@@ -280,8 +280,11 @@ takes over — mirrors the old `network:bootstrap` + `libs/openbao-bringup`. See
       terraform (jwks_url → api-network tailnet URL; executor policy granted auth/jwt-network/*); regenerated
       `component/`. Verified live: `bao auth list` shows jwt-network/, policy network-read present, role network-eso
       (aud openbao, bound to network ESO SA, network-read). Configuration reconciled Available; `tofu validate` green.
-- [ ] **3.1f** — network ClusterSecretStore (`openbao`, JWT auth → `secret.tail2c33e2.ts.net`) + test ExternalSecret.
-      ACL: network→`svc:secret` grant. **GATE:** test ExternalSecret in `network` syncs from secret's OpenBao.
+- [x] **3.1f** — network ClusterSecretStore (`openbao`, JWT auth → `secret.tail2c33e2.ts.net`) + real ExternalSecrets
+      (operator-oauth, cloudflare-api-token). ACL already grants network→svc:secret (verified live). **GATE MET:**
+      store Valid/ReadWrite; operator-oauth + cloudflare-api-token both `SecretSynced/READY` — full bidirectional
+      tailnet auth proven (network ESO→secret OpenBao JWT; OpenBao→network JWKS over the tailnet). In dev, pods reach
+      VIPs directly (vind host is the tailnet node) — no in-cluster egress needed. (Throwaway kv/test probe removed.)
 
 **Verification:** `vela cluster list` shows `network`; a test ExternalSecret in `network` syncs.
 **Dependencies:** 2.4 (secret OpenBao up). **Files:** `apps/control/src/children/application-network*.yaml`,

@@ -169,6 +169,89 @@ spec:
               - apiGroup: rbac.authorization.k8s.io
                 kind: Group
                 name: system:unauthenticated
+    # ── cross-cluster ESO store: read secret's OpenBao over the tailnet (Task 3.1f) ─
+    # network has no local OpenBao. Its ClusterSecretStore reaches the SECRET child's
+    # OpenBao at the svc:secret Tailscale Service (secret.tail2c33e2.ts.net, Task 3.1a)
+    # and authenticates with JWT auth: ESO mints a projected SA token (audience
+    # "openbao") for external-secrets and posts it to the jwt-network backend (Task
+    # 3.1e); OpenBao validates it against network's JWKS (fetched over the tailnet from
+    # svc:api-network) and grants the read-only network-read policy. No static token.
+    # In dev the pod reaches the VIP directly (the vind host is the tailnet node).
+    - name: clustersecretstore-openbao
+      type: k8s-objects
+      dependsOn: [external-secrets]
+      properties:
+        objects:
+          - apiVersion: external-secrets.io/v1
+            kind: ClusterSecretStore
+            metadata: { name: openbao }
+            spec:
+              provider:
+                vault:
+                  server: https://secret.tail2c33e2.ts.net
+                  path: kv
+                  version: v2
+                  auth:
+                    jwt:
+                      path: jwt-network
+                      role: network-eso
+                      kubernetesServiceAccountToken:
+                        serviceAccountRef:
+                          {
+                            name: external-secrets,
+                            namespace: external-secrets,
+                          }
+                        audiences: [openbao]
+
+    # ESO takes over the operator-oauth Secret that network-bringup seeded out-of-band.
+    - name: externalsecret-operator-oauth
+      type: k8s-objects
+      dependsOn: [clustersecretstore-openbao, ns-tailscale]
+      properties:
+        objects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata: { name: operator-oauth, namespace: tailscale }
+            spec:
+              refreshInterval: 1h
+              secretStoreRef: { name: openbao, kind: ClusterSecretStore }
+              target: { name: operator-oauth, creationPolicy: Owner }
+              data:
+                - {
+                    secretKey: client_id,
+                    remoteRef:
+                      {
+                        key: network-tailscale-operator,
+                        property: oauth_client_id,
+                      },
+                  }
+                - {
+                    secretKey: client_secret,
+                    remoteRef:
+                      {
+                        key: network-tailscale-operator,
+                        property: oauth_client_secret,
+                      },
+                  }
+
+    # cloudflare API token for the LE-prod DNS-01 issuer (used by Omada, Task 3.2).
+    - name: externalsecret-cloudflare-api-token
+      type: k8s-objects
+      dependsOn: [clustersecretstore-openbao, ns-cert-manager]
+      properties:
+        objects:
+          - apiVersion: external-secrets.io/v1
+            kind: ExternalSecret
+            metadata: { name: cloudflare-api-token, namespace: cert-manager }
+            spec:
+              refreshInterval: 1h
+              secretStoreRef: { name: openbao, kind: ClusterSecretStore }
+              target: { name: cloudflare-api-token, creationPolicy: Owner }
+              data:
+                - {
+                    secretKey: api-token,
+                    remoteRef: { key: cloudflare, property: credential },
+                  }
   policies:
     - name: to-network
       type: topology
