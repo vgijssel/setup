@@ -153,6 +153,28 @@ resource "vault_policy" "network_read" {
   EOT
 }
 
+# The ONE write the network cluster gets: create/update on exactly kv/data/mongodb.
+# The network child owns MongoDB (a network workload) but has no local secret store,
+# so it self-provisions the DB's root credentials into THIS OpenBao via an ESO
+# Password generator + PushSecret (updatePolicy=IfNotExists) — generate-once-and-store
+# so kv/mongodb is the durable source of truth both the mongodb-credentials and
+# mongodb-uri ExternalSecrets read back from. Scoped to the single path so the read-only
+# posture (network-read) holds everywhere else; IfNotExists needs read too, already
+# granted by network-read.
+resource "vault_policy" "network_mongodb_write" {
+  name   = "network-mongodb-write"
+  policy = <<-EOT
+    path "kv/data/mongodb" {
+      capabilities = ["create", "update", "read"]
+    }
+    # ESO PushSecret also PUTs kv/metadata/mongodb (custom metadata) and reads it for
+    # the IfNotExists existence check, so it needs write here too — still one path.
+    path "kv/metadata/mongodb" {
+      capabilities = ["create", "update", "read"]
+    }
+  EOT
+}
+
 # The login role bound to the network cluster's external-secrets ServiceAccount. ESO
 # mints a projected SA token with audience "openbao" and posts it to jwt-network;
 # OpenBao checks the signature (live JWKS over the tailnet), issuer, audience, and
@@ -164,7 +186,7 @@ resource "vault_jwt_auth_backend_role" "network_eso" {
   bound_audiences = ["openbao"]
   bound_subject   = "system:serviceaccount:external-secrets:external-secrets"
   user_claim      = "sub"
-  token_policies  = ["network-read"]
+  token_policies  = ["network-read", "network-mongodb-write"]
   token_ttl       = 3600
 
   depends_on = [vault_policy.openbao_config]
