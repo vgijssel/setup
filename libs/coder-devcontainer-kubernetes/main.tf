@@ -796,7 +796,6 @@ module "code-server" {
     "alexanderbast.vscode-snazzy",
     "hashicorp.hcl",
     "hashicorp.terraform",
-    "Hamster.task-master-hamster",
     "jetmartin.bats"
   ]
 }

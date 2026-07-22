@@ -135,8 +135,6 @@ The bridge-with-STP approach was rejected because:
 - Linux bridge only supports classic STP with 30-50 second convergence times
 - Point-to-point provides deterministic routing and full bandwidth utilization
 
-For details, see `.taskmaster/docs/prd-linstor-network.md`.
-
 ### Operational Notes
 
 **Link Failure Behavior:**

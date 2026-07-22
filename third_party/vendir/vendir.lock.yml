@@ -143,14 +143,6 @@ directories:
   path: shell/docker-in-docker
 - contents:
   - git:
-      commitTitle: 'Merge pull request #1540 from eyaltoledano/changeset-release/main'
-      sha: f961235442aa88e4983b29ab458b6a476fadf370
-      tags:
-      - task-master-ai@0.40.0
-    path: .
-  path: markdown/claude-task-master
-- contents:
-  - git:
       commitTitle: Release v1.0.2 (#2140)...
       sha: 48ce08f584084921a960d83342cf49d035092329
       tags:

@@ -124,10 +124,6 @@ node_modules/
 *.sw?
 # OS specific
 
-# Task files
-.taskmaster/tasks
-.taskmaster/reports
-
 # moon
 .moon/cache
 .moon/docker
