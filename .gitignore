@@ -68,6 +68,9 @@ services/kube-ovn/charts
 # Helm chart dependencies
 apps/**/charts/
 libs/**/charts/
+# apps/secret umbrella charts let Fleet resolve deps at build time (no committed
+# Chart.lock — see apps/secret/SPEC.md). ArgoCD-managed apps elsewhere still commit it.
+apps/secret/src/**/Chart.lock
 
 **/textual.log
 **/textual_serve.log
