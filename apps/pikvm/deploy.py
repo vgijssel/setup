@@ -22,8 +22,10 @@ Behaviour reproduced verbatim from https://docs.pikvm.org/netbird/ (asset files 
 import hashlib
 import os
 import sys
+from io import StringIO
 from pathlib import Path
 
+from jinja2 import Template
 from pyinfra import host
 from pyinfra.facts.files import Directory, File, Link, Sha256File
 from pyinfra.facts.server import Command
@@ -286,4 +288,67 @@ if passwords_need_update:
     server.shell(
         name="Passwords: remount rootfs read-only",
         commands=["ro"],
+    )
+
+
+# ── Static IPv4 via systemd-networkd (Task 8) ────────────────────────────────────
+# Assign a static IPv4 by rendering /etc/systemd/network/<iface>.network. The default
+# address equals the current LAN IP (192.168.1.31/24), so a normal apply changes no
+# address -- only pins it. Applying it uses `networkctl reload && reconfigure`, not a
+# networkd restart, so the active SSH session is not severed when the address is
+# unchanged.
+#
+# CONNECTIVITY RISK (SPEC 7 "ask first"): changing PIKVM_STATIC_IP/gateway to values
+# that differ from the live network can drop the box mid-apply. Get operator sign-off
+# before the first real apply; prefer running with `-- --dry` first.
+#
+# The template is rendered here (single source of bytes) and uploaded with files.put so
+# the rw gate's sha256 exactly matches what is written -> empty diff on a converged box.
+
+STATIC_IFACE = os.environ.get("PIKVM_NET_IFACE", "eth0")
+STATIC_IP = os.environ.get("PIKVM_STATIC_IP", "192.168.1.31")
+STATIC_PREFIX = os.environ.get("PIKVM_STATIC_PREFIX", "24")
+STATIC_GATEWAY = os.environ.get("PIKVM_GATEWAY", "192.168.1.1")
+STATIC_DNS = os.environ.get("PIKVM_DNS", STATIC_GATEWAY)
+
+_network_template = Path(os.path.join(FILES, "eth0.network.j2")).read_text(
+    encoding="utf-8",
+)
+_network_rendered = Template(_network_template, keep_trailing_newline=True).render(
+    iface=STATIC_IFACE,
+    address=STATIC_IP,
+    prefix=STATIC_PREFIX,
+    gateway=STATIC_GATEWAY,
+    dns_servers=[dns.strip() for dns in STATIC_DNS.split(",") if dns.strip()],
+)
+NETWORK_REMOTE = f"/etc/systemd/network/{STATIC_IFACE}.network"
+
+_desired_network_sha = hashlib.sha256(_network_rendered.encode()).hexdigest()
+static_ip_needs_rw = (
+    host.get_fact(Sha256File, path=NETWORK_REMOTE) != _desired_network_sha
+)
+
+if static_ip_needs_rw:
+    server.shell(
+        name="Static IP: remount rootfs read-write",
+        commands=["rw"],
+    )
+
+files.put(
+    name=f"Static IP: systemd-networkd config for {STATIC_IFACE}",
+    src=StringIO(_network_rendered),
+    dest=NETWORK_REMOTE,
+    mode="644",
+)
+
+if static_ip_needs_rw:
+    # Remount ro first, then apply without a full networkd restart. reconfigure re-reads
+    # the link config in place; with an unchanged address the SSH session survives.
+    server.shell(
+        name="Static IP: remount ro and reconfigure interface",
+        commands=[
+            "ro",
+            "networkctl reload",
+            f"networkctl reconfigure {STATIC_IFACE}",
+        ],
     )

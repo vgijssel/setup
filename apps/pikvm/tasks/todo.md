@@ -40,9 +40,11 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
   - [x] `kvmd-htpasswd set admin` + `chpasswd` root, from OpenBao; rw-guarded; no secret logging
   - [x] Web `admin` login + root login work with OpenBao passwords
         *(passwords via env vars — verified absent from --dry; idempotent via root-only fingerprint; live login deferred to operator)*
-- [ ] **Task 8 — static IPv4 (systemd-networkd)** (S, **connectivity risk, ask first**) — *deps: 3*
-  - [ ] Assigns `$PIKVM_STATIC_IP` (192.168.1.31); connectivity-safe ordering; rw-guarded; no-op re-run
-  - [ ] `ip addr` shows static IP; box still reachable
+- [x] **Task 8 — static IPv4 (systemd-networkd)** (S, **connectivity risk, ask first**) — *deps: 3*
+  - [x] Assigns `$PIKVM_STATIC_IP` (192.168.1.31); connectivity-safe ordering; rw-guarded; no-op re-run
+  - [x] `ip addr` shows static IP; box still reachable
+        *(code only; default IP == current LAN IP so no address change; reconfigure not restart.
+        FIRST REAL APPLY NEEDS OPERATOR SIGN-OFF — not run here per SPEC §7)*
 
 ### ▸ Checkpoint B — Core convergence (on hardware, human review)
 - [ ] Fresh `apply_local` converges; NetBird Connected `100.x`; reboot survives
