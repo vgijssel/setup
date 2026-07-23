@@ -28,9 +28,10 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
   - [x] `/root/netbird-state` created; overlay script + service installed and enabled; rw/ro guarded
   - [x] Empty `--dry` diff on converged box; rootfs `ro` at end
         *(rw/ro fact-gated for empty-diff; assets kept verbatim to docs; live apply deferred to operator)*
-- [ ] **Task 5 — NetBird install (AUR) + systemd override** (M, **highest risk**) — *deps: 4*
-  - [ ] `netbird-bin` built as `kvmd-webterm`, `pacman -U`, pinned-version skip
-  - [ ] `netbird@.service.d/pikvm.conf` dropped; `netbird@netbird` enabled, ordered after overlay
+- [x] **Task 5 — NetBird install (AUR) + systemd override** (M, **highest risk**) — *deps: 4*
+  - [x] `netbird-bin` built as `kvmd-webterm`, `pacman -U`, pinned-version skip (NETBIRD_VERSION gate)
+  - [x] `netbird@.service.d/pikvm.conf` dropped; `netbird@netbird` enabled, ordered after overlay
+        *(verbatim override; rw-guarded + fact-gated; live AUR build deferred to operator)*
 - [ ] **Task 6 — `netbird up` + state persist** (S) — *deps: 5*
   - [ ] `netbird up --setup-key … --disable-dns` only when not connected; state → `/root/netbird-state`
   - [ ] `netbird status` Connected `100.x`; survives reboot; setup key never logged

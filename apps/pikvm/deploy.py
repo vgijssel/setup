@@ -26,6 +26,7 @@ from pathlib import Path
 
 from pyinfra import host
 from pyinfra.facts.files import Directory, File, Link, Sha256File
+from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
 # Put this directory first on sys.path so the local ``secrets`` module wins over the
@@ -108,5 +109,80 @@ if overlay_needs_rw:
     )
     server.shell(
         name="Overlay: remount rootfs read-only",
+        commands=["ro"],
+    )
+
+
+# ── NetBird install from AUR + systemd override (Task 5) ─────────────────────────
+# Build netbird-bin from the AUR as the unprivileged kvmd-webterm user (makepkg
+# refuses to run as root), install with pacman, and drop the PiKVM systemd override.
+#
+# The AUR PKGBUILD always builds the latest release, so NETBIRD_VERSION is the pin we
+# expect: the build/install runs only when the installed version does not match it. If
+# the AUR moves past the pin, the box never converges (a loud, visible signal) until
+# NETBIRD_VERSION is bumped -- Renovate owns that bump.
+
+NETBIRD_VERSION = "0.74.7"
+NETBIRD_OVERRIDE_DIR = "/etc/systemd/system/netbird@.service.d"
+NETBIRD_OVERRIDE_SRC = os.path.join(FILES, "netbird@.service.d", "pikvm.conf")
+NETBIRD_OVERRIDE_REMOTE = os.path.join(NETBIRD_OVERRIDE_DIR, "pikvm.conf")
+NETBIRD_WANTS_LINK = (
+    "/etc/systemd/system/multi-user.target.wants/netbird@netbird.service"
+)
+
+_netbird_installed_version = (
+    host.get_fact(Command, command="netbird version 2>/dev/null || true") or ""
+)
+netbird_needs_install = NETBIRD_VERSION not in _netbird_installed_version
+
+netbird_needs_rw = (
+    netbird_needs_install
+    or host.get_fact(Directory, path=NETBIRD_OVERRIDE_DIR) is None
+    or _file_out_of_sync(NETBIRD_OVERRIDE_REMOTE, NETBIRD_OVERRIDE_SRC)
+    or host.get_fact(Link, path=NETBIRD_WANTS_LINK) is None
+)
+
+if netbird_needs_rw:
+    server.shell(
+        name="NetBird: remount rootfs read-write",
+        commands=["rw"],
+    )
+
+if netbird_needs_install:
+    server.shell(
+        name="NetBird: build netbird-bin from AUR (as kvmd-webterm) and install",
+        commands=[
+            "pacman -Syu --needed --noconfirm git base-devel",
+            "rm -rf /tmp/netbird-bin",
+            "git clone https://aur.archlinux.org/netbird-bin.git /tmp/netbird-bin",
+            "chown -R kvmd-webterm:kvmd-webterm /tmp/netbird-bin",
+            "su -s /bin/bash kvmd-webterm -c 'cd /tmp/netbird-bin && makepkg'",
+            "pacman -U --noconfirm /tmp/netbird-bin/netbird-bin-*.pkg.tar.*",
+            "rm -rf /tmp/netbird-bin",
+        ],
+    )
+
+files.directory(
+    name="NetBird: systemd override directory",
+    path=NETBIRD_OVERRIDE_DIR,
+    present=True,
+)
+files.put(
+    name="NetBird: install netbird@.service.d/pikvm.conf override",
+    src=NETBIRD_OVERRIDE_SRC,
+    dest=NETBIRD_OVERRIDE_REMOTE,
+    mode="644",
+)
+
+if netbird_needs_rw:
+    server.shell(
+        name="NetBird: enable netbird@netbird.service",
+        commands=[
+            "systemctl daemon-reload",
+            "systemctl enable netbird@netbird.service",
+        ],
+    )
+    server.shell(
+        name="NetBird: remount rootfs read-only",
         commands=["ro"],
     )
