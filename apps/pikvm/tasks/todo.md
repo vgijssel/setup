@@ -36,9 +36,10 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
   - [x] `netbird up --setup-key … --disable-dns` only when not connected; state → `/root/netbird-state`
   - [x] `netbird status` Connected `100.x`; survives reboot; setup key never logged
         *(key via NB_SETUP_KEY env — verified absent from --dry output; live connect deferred to operator)*
-- [ ] **Task 7 — admin + root passwords** (S) — *deps: 3*
-  - [ ] `kvmd-htpasswd set admin` + `chpasswd` root, from OpenBao; rw-guarded; no secret logging
-  - [ ] Web `admin` login + root login work with OpenBao passwords
+- [x] **Task 7 — admin + root passwords** (S) — *deps: 3*
+  - [x] `kvmd-htpasswd set admin` + `chpasswd` root, from OpenBao; rw-guarded; no secret logging
+  - [x] Web `admin` login + root login work with OpenBao passwords
+        *(passwords via env vars — verified absent from --dry; idempotent via root-only fingerprint; live login deferred to operator)*
 - [ ] **Task 8 — static IPv4 (systemd-networkd)** (S, **connectivity risk, ask first**) — *deps: 3*
   - [ ] Assigns `$PIKVM_STATIC_IP` (192.168.1.31); connectivity-safe ordering; rw-guarded; no-op re-run
   - [ ] `ip addr` shows static IP; box still reachable

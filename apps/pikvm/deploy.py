@@ -54,6 +54,19 @@ def _file_out_of_sync(remote: str, local_src: str) -> bool:
     return host.get_fact(Sha256File, path=remote) != _local_sha256(local_src)
 
 
+def _fingerprint(*values: str) -> str:
+    """Stable, non-reversible fingerprint used only to detect desired-value changes.
+
+    Exposure is negligible: it is stored root-only and reveals no more than the crypt
+    hashes root can already read in /etc/shadow and /etc/kvmd/htpasswd.
+    """
+    digest = hashlib.sha256(b"pikvm-provision-v1")
+    for value in values:
+        digest.update(b"\0")
+        digest.update(value.encode())
+    return digest.hexdigest()
+
+
 # ── NetBird read-only-rootfs overlay (Task 4) ────────────────────────────────────
 # Persistent state dir + tmpfs-overlay helper + oneshot unit that mounts the overlay
 # before NetBird and copies state back on stop. Enable only here; starting happens
@@ -221,4 +234,56 @@ if not netbird_connected:
             "cp -a /tmp/netbird-state/. /root/netbird-state/",
             "ro",
         ],
+    )
+
+
+# ── PiKVM admin + system root passwords (Task 7) ─────────────────────────────────
+# Set the PiKVM web `admin` password (kvmd-htpasswd) and the system `root` password
+# (chpasswd) from OpenBao. Both write to the rootfs (rw-guarded). Passwords are hashed
+# and salted on disk, so we detect "already applied" with a root-only fingerprint file
+# rather than by comparing hashes -- a converged box then makes no changes.
+#
+# Both secrets are passed via the environment and referenced as shell variables, so
+# they never appear in pyinfra's command/--dry output. The fingerprint written to disk
+# is a one-way digest, not the password.
+
+PASSWORD_FP_FILE = "/root/.pikvm-provision-secrets.sha256"
+
+_desired_password_fp = _fingerprint(
+    _secrets.admin_password,
+    _secrets.root_password,
+)
+_current_password_fp = (
+    host.get_fact(Command, command=f"cat {PASSWORD_FP_FILE} 2>/dev/null || true") or ""
+).strip()
+passwords_need_update = _desired_password_fp != _current_password_fp
+
+if passwords_need_update:
+    server.shell(
+        name="Passwords: remount rootfs read-write",
+        commands=["rw"],
+    )
+    server.shell(
+        name="Passwords: set PiKVM web admin password",
+        commands=[
+            "printf '%s\\n' \"$PIKVM_ADMIN_PASSWORD\" "
+            "| kvmd-htpasswd set admin --read-stdin --quiet",
+        ],
+        _env={"PIKVM_ADMIN_PASSWORD": _secrets.admin_password},
+    )
+    server.shell(
+        name="Passwords: set system root password",
+        commands=["printf '%s:%s\\n' root \"$PIKVM_ROOT_PASSWORD\" | chpasswd"],
+        _env={"PIKVM_ROOT_PASSWORD": _secrets.root_password},
+    )
+    server.shell(
+        name="Passwords: record provisioning fingerprint",
+        commands=[
+            f"printf %s '{_desired_password_fp}' > {PASSWORD_FP_FILE}",
+            f"chmod 600 {PASSWORD_FP_FILE}",
+        ],
+    )
+    server.shell(
+        name="Passwords: remount rootfs read-only",
+        commands=["ro"],
     )
