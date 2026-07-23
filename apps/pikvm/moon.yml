@@ -32,3 +32,19 @@ tasks:
       - uv.lock
     options:
       cache: true
+
+  # apply* SSH into a live host, read OpenBao, and mutate it -- never in CI.
+  # Passthrough args are forwarded to pyinfra: `moon run pikvm:apply -- --dry`.
+  apply:
+    command: uv run pyinfra inventories/production.py deploy.py
+    options:
+      cache: false
+      runInCI: false
+      interactive: true
+
+  apply_local:
+    command: uv run pyinfra inventories/local.py deploy.py
+    options:
+      cache: false
+      runInCI: false
+      interactive: true

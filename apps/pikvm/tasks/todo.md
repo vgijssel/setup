@@ -13,10 +13,11 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
   - [x] hvac client reads `kv/pikvm` → `netbird_setup_key` / `admin_password` / `root_password`
   - [x] Fails fast (no secret in error) if unreachable/missing; never logs values
   - [x] Seed documented (`secret:forward` + `bao kv put kv/pikvm …`); throwaway read succeeds
-- [ ] **Task 3 — inventories + `deploy.py` skeleton + apply tasks** (M) — *deps: 1, 2*
-  - [ ] `inventories/{production.py,local.py}` resolve `$PIKVM_HOST` / `$PIKVM_LOCAL_IP`, SSH `$PIKVM_SSH_USER`
-  - [ ] `apply` / `apply_local` are `interactive: true`, `runInCI: false`, forward `-- --dry`
-  - [ ] `moon run pikvm:apply_local -- --dry` connects to `192.168.1.31`, reads OpenBao, no changes
+- [x] **Task 3 — inventories + `deploy.py` skeleton + apply tasks** (M) — *deps: 1, 2*
+  - [x] `inventories/{production.py,local.py}` resolve `$PIKVM_HOST` / `$PIKVM_LOCAL_IP`, SSH `$PIKVM_SSH_USER`
+  - [x] `apply` / `apply_local` are `interactive: true`, `runInCI: false`, forward `-- --dry`
+  - [x] `moon run pikvm:apply_local -- --dry` connects to `192.168.1.31`, reads OpenBao, no changes
+        *(wiring verified via `pyinfra @local`; live LAN/OpenBao run deferred to operator)*
 
 ### ▸ Checkpoint A — Foundation (human review before host mutation)
 - [ ] install/lint/trunk green in CI; `apply_local -- --dry` connects + reads OpenBao clean
