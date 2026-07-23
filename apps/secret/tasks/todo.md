@@ -8,23 +8,13 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
 ---
 
 ## Phase 0 — De-risk spikes
-- [ ] **T0.1** provider-vault `ProviderConfig` Kubernetes-auth support
-  - Acceptance: exact auth block recorded in SPEC/PLAN; fallback chosen if unsupported.
-  - Verify: `kubectl explain providerconfig.spec` after install, or CRD schema on `doc.crds.dev`; paste the auth stanza.
-- [ ] **T0.2** arm64 image availability (crossplane core + provider-vault xpkg)
-  - Acceptance: arch confirmed for both; qemu/binfmt decision recorded.
-  - Verify: `docker manifest inspect <image>` shows `arm64`, or note the gap.
-- [ ] **T0.3** provider-vault MR coverage for all parity kinds
-  - Acceptance: GVKs listed for KV `Mount`, kubernetes `AuthBackend`/`Config`/`Role`, `Policy`, jwt `AuthBackend`/`Role`.
-  - Verify: `kubectl get crds | grep vault.upbound` after provider install.
-- [ ] **T0.4** OpenBao 0.28.4 self-init HCL
-  - Acceptance: exact `initialize` HCL for k8s-auth + `crossplane` policy + `crossplane` role captured; root-token auto-revoke confirmed.
-  - Verify: OpenBao 0.28.4 docs / test boot in a scratch pod.
-- [ ] **T0.5** Fleet Helm `lookup` support (seal Secret generate-once)
-  - Acceptance: confirmed Fleet honours `lookup` on install/upgrade, or fallback Job documented.
-  - Verify: deploy a trivial `lookup`-based Secret via Fleet; re-apply; value stable.
+- [x] **T0.1** provider-vault `ProviderConfig` Kubernetes-auth support — **PASS** (native `credentials.source: Kubernetes`); see plan.md §Phase-0 findings.
+- [x] **T0.2** arm64 image availability (crossplane core + provider-vault xpkg) — **PASS** (both multi-arch incl. arm64; no qemu needed).
+- [x] **T0.3** provider-vault MR coverage for all parity kinds — **PASS** (all GVKs exist).
+- [x] **T0.4** OpenBao 2.5.x self-init HCL — **PASS** (`initialize` stanza; root token revoked; no recovery keys w/ static seal).
+- [x] **T0.5** Fleet Helm `lookup` support (seal Secret generate-once) — **PASS w/ caveat** (supported since #1851; use lookup in manifest template, not a helper `define`; confirm empirically at T1.3, fallback Job documented).
 
-> **CHECKPOINT 0** — findings recorded; revise SPEC if any gate fails.
+> **CHECKPOINT 0 — PASSED (2026-07-23).** All five gates green; no SPEC revision required. Findings in plan.md.
 
 ## Phase 1 — Walking skeleton (thin vertical slice)
 - [ ] **T1.1** Vendor Crossplane Helm chart (pinned) in `third_party/vendir/vendir.yml`

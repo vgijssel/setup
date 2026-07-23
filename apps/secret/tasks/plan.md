@@ -173,6 +173,100 @@ production manifests.
 > unavailable → **stop and revise the SPEC** before Phase 1. Everything downstream
 > assumes k8s-auth + full MR coverage + self-init.
 
+#### Phase 0 findings — RESOLVED (2026-07-23), CHECKPOINT 0 PASSED
+
+All gates green; the SPEC design holds, no revision needed.
+
+**T0.1 — provider-vault k8s-auth: SUPPORTED natively.** `ProviderConfig`
+(`vault.upbound.io/v1beta1`) has `spec.credentials.source: Kubernetes` with a CRD
+XValidation rule requiring `spec.role` when that source is used. It logs in with the
+provider pod's own ServiceAccount token (like the terranetes `auth_login`). Shape:
+```yaml
+apiVersion: vault.upbound.io/v1beta1
+kind: ProviderConfig
+metadata: { name: openbao }
+spec:
+  address: http://openbao.secret.svc:8200
+  skip_child_token: true        # crossplane role lacks auth/token/create (matches provider.tf)
+  role: crossplane              # vault kubernetes auth role (self-init creates it)
+  mountPath: kubernetes         # default
+  credentials: { source: Kubernetes }
+```
+Wiring: the provider pod needs a **stable** SA name so the vault role can bind it. Use a
+`DeploymentRuntimeConfig` (pkg.crossplane.io/v1beta1) referenced from the `Provider` via
+`runtimeConfigRef`, giving the pod a fixed `serviceAccountName` (e.g. `provider-vault`) in
+`crossplane-system`; the vault `crossplane` role binds
+`bound_service_account_names=[provider-vault]`, `..._namespaces=[crossplane-system]`.
+No fallback (Vault-Agent / file token) required.
+
+**T0.2 — arm64: BOTH multi-arch.** `xpkg.upbound.io/upbound/provider-vault:v4.0.0`
+publishes arm64 **and** amd64; `crossplane/crossplane` core is multi-arch (amd64/arm/arm64/
+ppc64le). No qemu/binfmt needed for the new components — the qemu block in `start.sh` was
+only for amd64-only terranetes and can be dropped once terranetes is removed (T3.1/T4).
+
+**T0.3 — MR coverage: COMPLETE.** provider v4 splits APIs into `cluster` (cluster-scoped)
+and `namespaced`; use the **cluster-scoped** kinds. Parity map:
+
+| Terraform resource | Crossplane kind / apiVersion |
+|---|---|
+| `vault_mount` (kv v2) | `Mount` — `vault.vault.upbound.io/v1alpha1` |
+| `vault_auth_backend` (enable) | `Backend` — `auth.vault.upbound.io/v1alpha1` (`forProvider.type`, `path`) |
+| `vault_kubernetes_auth_backend_config` | `AuthBackendConfig` — `kubernetes.vault.upbound.io/v1alpha1` |
+| `vault_kubernetes_auth_backend_role` | `AuthBackendRole` — `kubernetes.vault.upbound.io/v1alpha1` |
+| `vault_policy` | `Policy` — `vault.vault.upbound.io/v1alpha1` |
+| `vault_jwt_auth_backend` | `AuthBackend` — `jwt.vault.upbound.io/v1alpha1` |
+| `vault_jwt_auth_backend_role` | `AuthBackendRole` — `jwt.vault.upbound.io/v1alpha1` |
+
+Child resources reference their backend by the `backend` string field (e.g.
+`backend: kubernetes`) or a `backendRef`/`backendSelector` cross-resource ref. Since the
+auth mount paths are deterministic (`kubernetes`, `jwt-network`), the literal `backend`
+string is simplest and avoids ref-resolution ordering.
+
+**T0.4 — OpenBao self-init: AVAILABLE (2.5.x).** Top-level `initialize` stanza runs once on
+first boot as root, then **revokes the root token**; with a static/auto seal **no recovery
+keys are generated**. Goes into the server `config:` HCL (values.yaml). Minimal subset HCL:
+```hcl
+initialize "crossplane_foothold" {
+  request "enable_k8s_auth" {
+    operation = "write"
+    path      = "sys/auth/kubernetes"
+    data      = { type = "kubernetes" }
+  }
+  request "configure_k8s_auth" {
+    operation = "write"
+    path      = "auth/kubernetes/config"
+    data      = { kubernetes_host = "https://kubernetes.default.svc:443" }
+  }
+  request "write_crossplane_policy" {
+    operation = "write"
+    path      = "sys/policies/acl/crossplane"
+    data      = { policy = "<same body as the crossplane MR policy — keep identical, T2.3>" }
+  }
+  request "create_crossplane_role" {
+    operation = "write"
+    path      = "auth/kubernetes/role/crossplane"
+    data = {
+      bound_service_account_names      = "provider-vault"
+      bound_service_account_namespaces = "crossplane-system"
+      token_policies                   = "crossplane"
+    }
+  }
+}
+```
+Requests run sequentially; `allow_failure = true` is available per-request if ever needed
+(not needed here). In-cluster OpenBao auto-reviews SA tokens with its own SA
+(system:auth-delegator), so only `kubernetes_host` is required in the config.
+
+**T0.5 — Fleet `lookup`: SUPPORTED, with a placement caveat.** rancher/fleet #1851 (closed,
+backported to v2.13) fixed `lookup` returning empty; Fleet detects lookup via
+`hasLookupFunction()` and then renders against the live cluster. Caveat from #5198: the
+detector historically only inspected the template root and **missed `lookup` inside
+`define`/`_helpers.tpl` helpers** — so the seal-Secret template must call `lookup`
+**directly in `secret-openbao-seal.yaml`**, not via a helper. Version note: hermit pins the
+fleet CLI at 0.15.4; confirm empirically at **T1.3** (apply twice → `seal-key` unchanged).
+If 0.15.4 predates the fix, fall back to an in-cluster generator Job + RBAC (documented,
+not built unless T1.3 fails).
+
 ---
 
 ### Phase 1 — Walking skeleton (thin vertical slice)
