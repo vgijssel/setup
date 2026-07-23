@@ -14,41 +14,51 @@ There are **two** places OpenBao configuration is expressed, and they are not pe
 
 | File | Role |
 |---|---|
-| `src/openbao/values.yaml` → `initialize` stanza | **Bootstrap SUBSET.** Runs once on first boot, then the root token is revoked. Seeds only the minimum needed to hand control to Crossplane, plus the break-glass admin foothold. Never reconciles. |
+| `src/openbao/values.yaml` → `initialize` stanza | **Irreducible auth foothold.** Runs once on first boot, then the root token is revoked. Seeds ONLY what Crossplane needs to authenticate. Never reconciles. Keep it tiny. |
 | `src/openbao-config/*.yaml` (Crossplane MRs) | **Full config + durable source of truth.** Reconciled continuously by provider-vault via the `openbao` ProviderConfig. |
 
-**RULE: `src/openbao/values.yaml`'s `initialize` config MUST be a strict subset of
-`src/openbao-config/`.** Anything you add to self-init for initialization (a policy, an
-auth role, an auth-method config) **must be duplicated** as the matching Crossplane
-managed resource in `src/openbao-config/`, kept **semantically identical**. Self-init
-seeds it; Crossplane owns and reconciles it thereafter.
+**RULE (one-directional): `init ⊂ crossplane`.**
 
-Current duplications (keep in sync):
+- **init must stay minimal** — its ONLY job is to let Crossplane authenticate. That is
+  exactly four things: enable the `kubernetes` auth method, configure it, and create the
+  `crossplane` policy + role that provider-vault logs in with. **Do NOT add anything else
+  to init** (not admin, not kv, not app grants). Once Crossplane can log in, *Crossplane*
+  provisions the rest — including the `admin` role that mints break-glass tokens.
+- **everything in init MUST also be a Crossplane MR** (so it is owned/reconciled, not just
+  seeded once). Every init item has a mirror; keep them semantically identical.
+- **most of Crossplane is NOT in init** (the reverse does not hold).
 
-| self-init (`values.yaml`) | Crossplane MR (`src/openbao-config/`) |
+Init items and their required mirrors (keep in sync):
+
+| init request (`values.yaml`) | Crossplane MR (`src/openbao-config/`) |
 |---|---|
+| enable `kubernetes` auth | `authbackend-kubernetes.yaml` (adopts via `external-name`) |
+| configure `kubernetes` auth | `authbackendconfig-kubernetes.yaml` |
 | `crossplane` policy | `policy-crossplane.yaml` |
-| `admin` policy | `policy-admin.yaml` |
-| `crossplane` k8s-auth role | *(self-init only — mirror it if you extend it)* |
-| `admin` k8s-auth role | *(self-init only — mirror it if you extend it)* |
-| enable + configure `kubernetes` auth | *(self-init only — the foothold mount)* |
+| `crossplane` k8s-auth role | `role-crossplane.yaml` |
 
-Config that lives **only** in Crossplane (never in self-init): the `kv` mount,
-`external-secrets` policy+role, and the `jwt-network` backend + `network-*` roles/policy.
+Crossplane-**only** (must NOT be in init): the `admin` policy+role (`policy-admin.yaml`,
+`role-admin.yaml`), the `kv` mount, `external-secrets` policy+role, and the `jwt-network`
+backend + `network-*` roles/policy.
 
-### Why the duplication is safe (not a fight)
+### Why the mirror is safe (not a fight)
 - Self-init is **fire-once**: it runs only while OpenBao is uninitialized and never again
   (not even on pod restart). So there is no ongoing tug-of-war — it seeds, Crossplane
   takes over.
 - OpenBao stores policy text **verbatim**, so a mirrored MR does not perpetually drift.
+- The auth-method *mount* mirror uses `crossplane.io/external-name` so provider-vault
+  **adopts** the self-init-created mount instead of re-creating it (re-enabling an existing
+  auth path errors "path already in use").
 - Every mirrored MR uses `deletionPolicy: Orphan`, so deleting an MR can't delete the
   live object and lock anything out.
 
-### Why keep the subset at all (don't collapse it into Crossplane)
-- The `crossplane` policy+role must exist **before** Crossplane can log in — chicken/egg,
-  so it has to be seeded by self-init.
-- The `admin` policy+role is the **break-glass** path (`moon run secret:auth`); it must
-  work **even when Crossplane is broken** (you may need admin to fix Crossplane).
+### Why keep init at all (don't collapse it into Crossplane)
+The `crossplane` policy+role (and the auth method they use) must exist **before** Crossplane
+can log in — chicken/egg — so they must be seeded by self-init. Everything else can wait
+until Crossplane is authenticated. Note the `admin` break-glass role is Crossplane-owned,
+so it appears shortly after first boot; if the Crossplane *controller* is down you can
+still break-glass by logging in as the self-init `crossplane` role (via the provider-vault
+SA token) and acting directly.
 
 ## Break-glass / human admin
 Self-init revokes root and generates no recovery keys, so admin comes from
