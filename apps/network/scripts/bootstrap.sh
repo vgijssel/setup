@@ -6,7 +6,7 @@
 #   REMOTE OpenBao by external-secrets — which itself can't authenticate until the
 #   operator's tailnet egress exists. So seed operator-oauth out-of-band here:
 #   read the secret-cluster root token from 1Password, read kv/tailscale from the
-#   remote OpenBao at https://secret.vgijssel.nl (the operator machine is on the
+#   remote OpenBao at https://openbao.secret.vgijssel.nl (the operator machine is on the
 #   tailnet), and create the Secret directly in the network cluster. ESO takes it
 #   over later (apps/network/src/config/externalsecret-operator-oauth.yaml).
 #
@@ -30,7 +30,7 @@ CONTEXT="${NETWORK_KUBE_CONTEXT:-vcluster-docker_network}"
 TS_NAMESPACE="${TS_NAMESPACE:-tailscale}"
 OP_VAULT="${OP_VAULT:-enigma-prod}"
 ROOT_OP_ITEM="${ROOT_OP_ITEM:-OpenBao root + recovery (secret cluster)}"
-REMOTE_BAO_ADDR="${REMOTE_BAO_ADDR:-https://secret.vgijssel.nl}"
+REMOTE_BAO_ADDR="${REMOTE_BAO_ADDR:-https://openbao.secret.vgijssel.nl}"
 KV_MOUNT="${KV_MOUNT:-kv}"
 KV_TAILSCALE_PATH="${KV_TAILSCALE_PATH:-tailscale}"
 

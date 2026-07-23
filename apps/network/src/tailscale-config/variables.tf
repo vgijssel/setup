@@ -1,7 +1,7 @@
 variable "bao_address" {
-  description = "OpenBao API address. In-cluster terranetes reaches the remote OpenBao over the tailnet (secret.vgijssel.nl); network:configure overrides to a local reach as needed."
+  description = "OpenBao API address. In-cluster terranetes reaches the remote OpenBao over the tailnet (openbao.secret.vgijssel.nl); network:configure overrides to a local reach as needed."
   type        = string
-  default     = "https://secret.vgijssel.nl"
+  default     = "https://openbao.secret.vgijssel.nl"
 }
 
 variable "auth_method" {

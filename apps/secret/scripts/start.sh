@@ -5,13 +5,15 @@
 # bundles under src/, so the same manifests work unchanged once Rancher manages
 # this cluster later.
 #
-# The cluster comes up empty. Next:
-#   moon run secret:apply      # install Fleet + apply the bundles
-#   moon run secret:bootstrap  # seed the seal key + initialise OpenBao
+# Once the node is Ready this script invokes apply.sh, so a single `secret:start`
+# brings the cluster up AND applies every Fleet bundle end-to-end. OpenBao then
+# self-initialises + auto-unseals and Crossplane reconciles the full config — no
+# bootstrap/configure step.
 #
 # Idempotent: creates the cluster, or just reconnects if it already exists.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_NAME="${SECRET_CLUSTER_NAME:-secret}"
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
@@ -47,21 +49,16 @@ done
 echo "==> Waiting for the node to become Ready"
 kubectl wait --for=condition=Ready nodes --all --timeout=180s
 
-# terranetes-controller (and its terranetes-executor jobs) ship amd64-only images
-# — appvia publishes no arm64/multi-arch variant. On an arm64 host (Apple Silicon)
-# the vind node is arm64, so those pods CrashLoop with "exec format error" unless
-# the Docker host has qemu/binfmt registered to emulate amd64. Register it here so
-# `fleet apply` yields a running controller non-interactively. Idempotent and a
-# no-op on amd64 hosts. All other operator images are multi-arch and unaffected.
-HOST_ARCH="$(uname -m)"
-if [[ "${HOST_ARCH}" = "arm64" ]] || [[ "${HOST_ARCH}" = "aarch64" ]]; then
-  if command -v docker >/dev/null 2>&1; then
-    echo "==> arm64 host: registering qemu/binfmt so amd64 images (terranetes) run"
-    docker run --privileged --rm tonistiigi/binfmt:qemu-v9.2.2 --install amd64 >/dev/null 2>&1 ||
-      echo "WARN: qemu/binfmt registration failed; terranetes-controller may CrashLoop on arm64"
-  fi
-fi
+# No qemu/binfmt registration: the crossplane core + upbound/provider-vault images
+# are multi-arch (arm64), and platform-terranetes (the only amd64-only bundle) targets
+# the network cluster, not secret. If a future secret bundle needs an amd64-only image
+# on an arm64 host, gate a `docker run --privileged tonistiigi/binfmt --install amd64`
+# here on that specific need.
 
 CURRENT_CONTEXT="$(kubectl config current-context)"
 echo "==> Cluster ready; kubectl context: ${CURRENT_CONTEXT}"
-echo "==> Next: moon run secret:apply"
+
+# End-to-end: install Fleet + apply every bundle. OpenBao self-inits + auto-unseals
+# and Crossplane configures it — no further manual step.
+echo "==> Applying Fleet bundles (scripts/apply.sh)"
+exec "${SCRIPT_DIR}/apply.sh"

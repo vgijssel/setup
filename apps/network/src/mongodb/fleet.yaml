@@ -11,3 +11,11 @@ labels:
 defaultNamespace: mongodb
 helm:
   releaseName: mongodb
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
+# cluster explicitly (previously scoped only by network:apply's static list) — this
+# keeps the bundle off the secret cluster.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network

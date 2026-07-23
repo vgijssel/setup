@@ -9,9 +9,10 @@
 # (apps/platform/src/tailscale/templates/proxygroup.yaml) instead of a single
 # dedicated proxy, so the operator advertises it through a STABLE Tailscale
 # Service (VIP). external-dns (source=service) reads the VIP from the Service's
-# loadBalancer status and the hostname annotation, and publishes secret.vgijssel.nl
-# in Cloudflare. Because the VIP is stable, the A record no longer churns when a
-# proxy Pod is recreated.
+# loadBalancer status and the hostname annotation, and publishes
+# openbao.secret.vgijssel.nl in Cloudflare. Because the VIP is stable, the A record
+# no longer churns when a proxy Pod is recreated. (The tailnet VIP name stays
+# `secret` — only the published public hostname is openbao.secret.vgijssel.nl.)
 ingress-nginx:
   controller:
     replicaCount: 1
@@ -21,4 +22,4 @@ ingress-nginx:
       annotations:
         tailscale.com/hostname: secret
         tailscale.com/proxy-group: secret-ingress
-        external-dns.alpha.kubernetes.io/hostname: secret.vgijssel.nl
+        external-dns.alpha.kubernetes.io/hostname: openbao.secret.vgijssel.nl
