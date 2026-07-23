@@ -14,11 +14,3 @@ tasks:
       runInCI: true
     inputs:
       - file: scripts/buildx-run.sh
-
-  registry_run:
-    command: scripts/registry-run.sh
-    options:
-      cache: false
-      runInCI: true
-    inputs:
-      - file: scripts/registry-run.sh
