@@ -30,9 +30,8 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
   - **Deviation from plan wording:** no separate SA/RBAC manifest — Crossplane creates + owns the `provider-vault` SA (named via serviceAccountTemplate) and its RBAC; OpenBao reviews the SA token with its own SA (chart `authDelegator` → system:auth-delegator), so the provider SA needs no extra RBAC. Live verify (HEALTHY + login) at Phase-1 acceptance.
 - [x] **T1.6** `src/openbao-config/mount-kv.yaml` (single KV v2 `Mount`, `deletionPolicy: Orphan`) + `fleet.yaml` (`dependsOn: crossplane-provider`)
   - Done: `mount-kv.yaml` (`vault.vault.upbound.io/v1alpha1` Mount, path kv, options.version "2", providerConfigRef openbao, deletionPolicy Orphan); `fleet.yaml` dependsOn crossplane-provider, secret-only, label openbao-config; `.fleetignore` keeps the legacy Terraform files out of the bundle. trunk check clean. Live SYNCED/READY at Phase-1 acceptance.
-- [ ] **T1.7** Create `bin/fleet-apply` (repo-root helper): `find` every `fleet.yaml`, `cd` repo root, `fleet apply` each (bundle name from path); have `apply.sh` call it after Fleet install + cluster label
-  - Acceptance: `secret:apply` discovers & applies **all** bundles (incl. new crossplane ones) with no hardcoded list; runtime order via `dependsOn`.
-  - Verify: `kubectl -n fleet-local get bundles` all Ready; `bin/fleet-apply` picks up a newly added `src/*/fleet.yaml` with no script edit.
+- [x] **T1.7** Create `bin/fleet-apply` (repo-root helper): `find` every `fleet.yaml`, `cd` repo root, `fleet apply` each (bundle name from path); have `apply.sh` call it after Fleet install + cluster label
+  - Done: `bin/fleet-apply` discovers every `apps/**/fleet.yaml`, derives `<group>-<component>` names (verified to match the old explicit names exactly), cd's to repo root, `fleet apply`s each into fleet-local; shellcheck clean. `apply.sh` now calls it (hardcoded list removed) and drops the bootstrap "Next" step. Live all-bundles-Ready check at Phase-1 acceptance.
 
 > **CHECKPOINT 1 (critical)** — chain proven live: self-init role → k8s-auth login → MR reconcile on this arch.
 

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# fleet-apply — discover and apply EVERY Fleet bundle in the repo.
+#
+# Repo-wide helper (alongside bin/help). It finds every `fleet.yaml` under apps/,
+# derives each bundle's name from its path (apps/<group>/src/<component> ->
+# <group>-<component>, matching the historical explicit names), and runs
+# `fleet apply` for each into the fleet-local workspace. There is NO hardcoded
+# bundle list: adding a component = adding a src/<x>/fleet.yaml.
+#
+# Cluster targeting is the ONLY deploy gate. Every bundle is applied (its Bundle
+# object is created) regardless of cluster; each fleet.yaml's targetCustomizations +
+# clusterSelector on cluster.vgijssel.nl/name decide whether the current cluster
+# gets a BundleDeployment. So a bundle meant for another cluster (e.g.
+# platform-terranetes -> network only) is applied here but produces no deployment.
+# Runtime ordering comes from dependsOn label selectors, not apply order.
+#
+# CWD is the repo root so Fleet resolves umbrella `file://` chart dependencies
+# (and builds them, helm-dependency-update style) relative to it.
+#
+# Idempotent: `fleet apply` upserts Bundles. Safe to re-run.
+#
+# Usage: bin/fleet-apply [namespace]   (namespace defaults to fleet-local)
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+FLEET_NS="${1:-${FLEET_NAMESPACE:-fleet-local}}"
+
+require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
+require fleet
+require find
+
+# Resolve file:// chart deps relative to the repo root.
+cd "${REPO_ROOT}"
+
+echo "==> Discovering Fleet bundles (fleet.yaml) under apps/"
+
+# Collect and sort for deterministic ordering (dependsOn handles real ordering).
+bundles="$(find apps -type f -name fleet.yaml 2>/dev/null | sort)"
+
+if [[ -z "${bundles}" ]]; then
+  echo "WARN: no fleet.yaml found under apps/" >&2
+  exit 0
+fi
+
+count=0
+while IFS= read -r manifest; do
+  [[ -z "${manifest}" ]] && continue
+  dir="$(dirname "${manifest}")"
+  # apps/<group>/src/<component> -> <group>-<component> (leftover slashes -> '-').
+  name="$(printf '%s' "${dir}" | sed -E 's#^apps/##; s#/src/#-#; s#/#-#g')"
+  echo "==> fleet apply -n ${FLEET_NS} ${name} ${dir}"
+  fleet apply -n "${FLEET_NS}" "${name}" "${dir}"
+  count=$((count + 1))
+done <<<"${bundles}"
+
+echo "==> Applied ${count} bundle(s) into ${FLEET_NS}."
