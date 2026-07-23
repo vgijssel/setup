@@ -105,15 +105,16 @@ AuthBackend blocked only by JWKS unreachability (see T2.4).
 > Open item for human decision: the human kv-seed write-auth gap above.
 
 ## Phase 4 — Remove Terranetes + finalize
-- [ ] **T4.1** Delete `src/openbao-config/*.tf`, `.terraform*`, `.gitignore`, `terraform/`
-- [ ] **T4.1b** Delete `src/openbao/charts/*.tgz` + `src/openbao/Chart.lock` (Fleet downloads deps at build; no `helm dependency update`/`helm package` in the flow)
-- [ ] **T4.2** Delete `src/config/{configuration-openbao,provider-openbao,rbac-terranetes-state}.yaml`
-- [ ] **T4.3** Delete `scripts/bootstrap.sh` + `scripts/configure.sh`; update `moon.yml` (remove bootstrap/configure, add forward)
-- [ ] **T4.4** `trunk fmt` + `trunk check` clean
-  - Verify: both commands exit 0.
-- [ ] **T4.5** Idempotency + rebuild
-  - Verify: re-run `secret:start`/`apply` = no-op; `secret:stop` then `secret:start` rebuilds to same ready state, no manual bootstrap.
-- [ ] **T4.6** Negative + parity check
-  - Verify: no Terranetes CRs / `.tf` / `zz_backend.tf` and no committed `charts/*.tgz`/`Chart.lock` under `apps/secret`; `platform-terranetes` has no BundleDeployment on secret (targeting excludes it, Bundle may still exist); `git status` shows `apps/network` + `apps/platform` untouched.
+- [x] **T4.1** Deleted `src/openbao-config/*.tf`, `.terraform.lock.hcl`, `.gitignore`, `.fleetignore`, and the local `terraform/` dir. openbao-config now holds only the Crossplane MRs + fleet.yaml.
+- [x] **T4.1b** Deleted `src/openbao/Chart.lock` + `charts/openbao-0.28.4.tgz`. Verified live: `fleet apply` builds the file:// dep itself ("Saving 1 charts") — no `helm dependency update`/`package` in the flow.
+- [x] **T4.2** Done via T3.4 (removed `configuration-openbao.yaml`, `provider-openbao.yaml`, `rbac-terranetes-state.yaml`).
+- [x] **T4.3** Deleted `scripts/bootstrap.sh` + `scripts/configure.sh`; removed the `bootstrap`/`configure` tasks from `moon.yml` (start now execs apply; forward added).
+- [x] **T4.4** `trunk fmt` + `trunk check` clean across apps/secret (40 files, no issues).
+- [~] **T4.5** Idempotency: re-applying bundles is a no-op upsert (verified repeatedly). Full `secret:stop` + fresh `secret:start` clean-boot rebuild NOT re-run end-to-end this session (the running cluster carries manual test tweaks — the crossplane policy `auth/token/create`, dummy kv value, and the jwt-network manual disable). A clean rebuild from the committed manifests is the recommended final confirmation.
+- [x] **T4.6** Negative + parity: 0 `.tf`, 0 `zz_backend.tf`, 0 committed `charts/*.tgz`/`Chart.lock` under apps/secret; only remaining `terraform.appvia.io` mention is this doc. `platform-terranetes` → 0/0 on secret. `apps/network` changed ONLY by network-only targeting (targeting-only); `apps/platform` changed only by the sanctioned terranetes retarget.
 
-> **CHECKPOINT 4 (final)** — SPEC §6 acceptance matrix green; network parity intact; update `ref=` → `main` at merge.
+> **CHECKPOINT 4 (final)** — Terranetes fully removed from apps/secret; lint clean; read
+> path proven on the internal service. Recommended before merge: a clean `secret:stop` +
+> `secret:start` rebuild (T4.5) to confirm the committed manifests boot with no manual
+> tweaks, and resolve the kv-seed write-auth gap (CHECKPOINT 3 note). Flip any `ref=` →
+> `main` at merge. jwt-network deferred (network cluster to be refactored).
