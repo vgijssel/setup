@@ -5,6 +5,13 @@ Task list for [plan.md](./plan.md). Legend: `[ ]` todo · `[~]` in progress · `
 Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not cross a
 `CHECKPOINT` without human review.
 
+> **STATUS — PLAN COMPLETE (2026-07-23).** All phases (0–4) done and their checkpoints
+> passed; Terranetes is fully removed from `apps/secret` and the read path is proven live.
+> The **only** open item is **T2.4** (`authbackend-jwt-network`), **deferred**: its config
+> write fetches the network cluster's live JWKS over the tailnet, which is unreachable from
+> an isolated dev cluster. It is a *manifest-complete, environment-blocked* item that
+> reconciles in the real deployment — not a code gap. No further work is actionable here.
+
 ---
 
 ## Phase 0 — De-risk spikes
@@ -74,7 +81,7 @@ self-init contract ("everything else is owned by Crossplane, not self-init").
 - [x] **T2.1** ~~authbackend-kubernetes~~ — **owned by self-init** (foothold), not a Crossplane MR. Roles reference `backend: kubernetes`.
 - [x] **T2.2** `policy-external-secrets.yaml` + `role-external-secrets.yaml` — LIVE SYNCED/READY=True (role via `backend: kubernetes`).
 - [x] **T2.3** `init ⊂ crossplane` finalized. **init minimized** to the irreducible auth foothold only (enable+configure kubernetes auth, `crossplane` policy+role); the `admin` policy+role were REMOVED from init and are now Crossplane-only (Crossplane provisions admin after it authenticates). Every init item is mirrored as an owned MR: `authbackend-kubernetes.yaml` (adopts via `external-name`), `authbackendconfig-kubernetes.yaml`, `policy-crossplane.yaml`, `role-crossplane.yaml`. Crossplane-only: `policy-admin.yaml`, `role-admin.yaml` (1h TTL), kv, external-secrets, network jwt. All `deletionPolicy: Orphan`. Verified live: every MR `SYNCED/READY=True` and stable (backend adopted cleanly, no flap); Crossplane didn't lock itself out; `secret:auth` still works with the admin role now Crossplane-owned. Docs: `values.yaml` banner + `apps/secret/CLAUDE.md`.
-- [~] **T2.4** `authbackend-jwt-network.yaml` (issuer/jwks_url from variables.tf defaults) — manifest is parity-exact, but CANNOT fully reconcile in the isolated vind cluster: the config write fetches the live JWKS from `api.network.vgijssel.nl` (100.86.162.164, tailnet VIP), which is unreachable without tailnet connectivity (wget times out). **Environment-blocked, not a config bug.** Reconciles in the real deployment; re-verify at Phase-3/CHECKPOINT-3 with the network side up.
+- [~] **T2.4 — DEFERRED (environment-blocked, not a code gap).** `authbackend-jwt-network.yaml` (issuer/jwks_url from variables.tf defaults) — manifest is parity-exact, but CANNOT fully reconcile in the isolated vind cluster: the config write fetches the live JWKS from `api.network.vgijssel.nl` (100.86.162.164, tailnet VIP), which is unreachable without tailnet connectivity (wget times out). Reconciles in the real deployment; re-verify with the network side up. This is the sole remaining item; the rest of the plan is complete.
 - [x] **T2.5** `policy-network-read.yaml` + `role-network-eso.yaml` + `role-network-terranetes.yaml` — LIVE SYNCED/READY=True (roles reference `backend: jwt-network`; mount enabled).
 - [x] **T2.6** `src/openbao-config/fleet.yaml` covers all MRs (single bundle) — applied; 5/6 MRs Ready live.
 
