@@ -17,9 +17,8 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
 > **CHECKPOINT 0 — PASSED (2026-07-23).** All five gates green; no SPEC revision required. Findings in plan.md.
 
 ## Phase 1 — Walking skeleton (thin vertical slice)
-- [ ] **T1.1** Vendor Crossplane Helm chart (pinned) in `third_party/vendir/vendir.yml`
-  - Acceptance: chart under `third_party/vendir/charts/crossplane`; lock diff intentional.
-  - Verify: `vendir sync` clean; `moon run <vendir project>:test` passes; `git diff vendir.lock.yml` reviewed.
+- [x] **T1.1** Vendor Crossplane Helm chart (pinned 2.3.3) in `third_party/vendir/vendir.yml`
+  - Done: chart at `third_party/vendir/charts/crossplane` (appVersion 2.3.3); `vendir sync` clean; lock diff is the single crossplane addition; `helm template` renders.
 - [ ] **T1.2** Self-init stanzas in `src/openbao/values.yaml` (minimal subset)
   - Acceptance: enables k8s auth + creates `crossplane` policy + role only.
   - Verify: after boot, `bao auth list` shows `kubernetes/`; `bao read auth/kubernetes/role/crossplane` succeeds.

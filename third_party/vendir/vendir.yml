@@ -159,6 +159,17 @@ directories:
           version: 0.7.9
           repository:
             url: https://groundhog2k.github.io/helm-charts/
+  # Crossplane core (v2). Reconciles the OpenBao config via upbound/provider-vault
+  # over OpenBao's Kubernetes auth method, replacing terranetes in apps/secret.
+  # Pinned to match provider-vault v4.0.0 (which targets crossplane-runtime/v2).
+  - path: charts/crossplane
+    contents:
+      - path: .
+        helmChart:
+          name: crossplane
+          version: 2.3.3
+          repository:
+            url: https://charts.crossplane.io/stable
   - path: charts/fleet-crd
     contents:
       - path: .

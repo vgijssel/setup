@@ -116,6 +116,12 @@ directories:
   path: charts/mongodb
 - contents:
   - helmChart:
+      appVersion: 2.3.3
+      version: 2.3.3
+    path: .
+  path: charts/crossplane
+- contents:
+  - helmChart:
       appVersion: 0.15.4
       version: 0.15.4
     path: .
