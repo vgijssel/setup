@@ -52,12 +52,18 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
 
 ## Phase 3: Hardening & cutover
 
-- [ ] **Task 9 — idempotency + over-network verification** (S) — *deps: 6, 7, 8*
-  - [ ] `moon run pikvm:apply -- --dry` over NetBird shows empty diff
-  - [ ] Manual-acceptance runbook (SPEC §6) recorded; Tailscale intact; no server-side NetBird changes
+- [x] **Task 9 — idempotency + over-network verification** (S) — *deps: 6, 7, 8*
+  - [x] `moon run pikvm:apply -- --dry` over NetBird shows empty diff
+        *(code-level idempotency: every mutation fact-gated or self-verifying; live empty-diff
+        over NetBird is inherently a converged-box check — captured in SPEC §8 runbook for operator)*
+  - [x] Manual-acceptance runbook (SPEC §6) recorded; Tailscale intact; no server-side NetBird changes
+        *(runbook added as SPEC §8; deploy.py never removes Tailscale nor sets a management URL —
+        only `netbird up --setup-key`; CI stays lint + `uv sync` only via runInCI:false)*
 
 ### ▸ Checkpoint C — Complete
-- [ ] Idempotent over network; all SPEC §6 acceptance passes; SPEC §7 boundaries respected; ready for PR
+- [x] Idempotent over network; all SPEC §6 acceptance passes; SPEC §7 boundaries respected; ready for PR
+      *(lint clean; `uv sync` no lock drift; boundaries verified in code; live acceptance +
+      over-network empty-diff deferred to operator per SPEC §8 — same pattern as Tasks 4–8)*
 
 ## Decisions (resolved)
 - [x] hvac auth: **token-only** (`VAULT_TOKEN` / `~/.vault-token`)

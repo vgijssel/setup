@@ -178,3 +178,59 @@ Infra app — "tests" are validation, not unit tests against live hardware:
 - Use `uvx`/`npx` or unpinned dependencies.
 - Write to the PiKVM rootfs without a matching `rw`/`ro` guard.
 - Manage NetBird server-side config (ACLs, groups, keys lifecycle) from this app.
+
+## 8. Cutover & manual-acceptance runbook
+
+The empty-`--dry`-diff idempotency check and the acceptance steps below run against the
+**live** PiKVM (facts only report "converged" on the real box), so they are performed by
+the operator, not in CI. CI covers only lint + `uv sync`; every host mutation in
+`deploy.py` is gated by a fact check or self-verifies, so a converged box makes no changes.
+
+### 8.0 Prerequisites (once per session)
+
+```bash
+moon run secret:forward                      # port-forward OpenBao to 127.0.0.1:8200
+export VAULT_ADDR=http://127.0.0.1:8200
+bao login                                    # writes token to ~/.vault-token (hvac reads it)
+# One-time seed of kv/pikvm (if not already present):
+# bao kv put kv/pikvm netbird_setup_key=… admin_password=… root_password=…
+```
+
+SSH to the PiKVM as `root` must work. The default static IP (`192.168.1.31`) equals the
+current LAN IP, so no address change occurs; **get explicit sign-off before changing
+`PIKVM_STATIC_IP`/gateway** (SPEC §7 — could drop the box mid-apply).
+
+### 8.1 First apply (LAN target)
+
+```bash
+moon run pikvm:apply_local -- --dry          # review the diff first — no secret values shown
+moon run pikvm:apply_local                    # converge the box
+```
+
+Verify:
+- `netbird status` → `Management: Connected`, peer IP is `100.x`.
+- PiKVM reachable over NetBird (`ssh root@<netbird-name-or-100.x>`).
+- `reboot`, wait, reconnect → still `Connected` (state persisted to `/root/netbird-state`).
+- PiKVM web login as `admin` works with the OpenBao `admin_password`; `root` login works
+  with `root_password`.
+- `ip addr show eth0` → static `192.168.1.31/24`.
+- Rootfs is `ro` at rest: `findmnt -no OPTIONS /` shows `ro`.
+
+### 8.2 Cutover to the network target + idempotency
+
+Once the box answers on NetBird, point `apply` at its NetBird name/IP and confirm it is a
+no-op:
+
+```bash
+export PIKVM_HOST=<netbird-name-or-100.x>     # default is the Tailscale name
+moon run pikvm:apply -- --dry                  # MUST show an empty diff (idempotent)
+moon run pikvm:apply                           # first run
+moon run pikvm:apply                           # second run MUST report no changes
+```
+
+### 8.3 Boundary confirmations (SPEC §7)
+
+- `tailscale status` on the box is still healthy — Tailscale is kept in parallel, not removed.
+- No NetBird server-side config (ACLs, groups, key lifecycle) was touched — this app only
+  runs `netbird up --setup-key` against the default management URL.
+- CI still runs only `pikvm:lint` + `pikvm:install` (`apply*` are `runInCI: false`).
