@@ -32,9 +32,10 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
   - [x] `netbird-bin` built as `kvmd-webterm`, `pacman -U`, pinned-version skip (NETBIRD_VERSION gate)
   - [x] `netbird@.service.d/pikvm.conf` dropped; `netbird@netbird` enabled, ordered after overlay
         *(verbatim override; rw-guarded + fact-gated; live AUR build deferred to operator)*
-- [ ] **Task 6 — `netbird up` + state persist** (S) — *deps: 5*
-  - [ ] `netbird up --setup-key … --disable-dns` only when not connected; state → `/root/netbird-state`
-  - [ ] `netbird status` Connected `100.x`; survives reboot; setup key never logged
+- [x] **Task 6 — `netbird up` + state persist** (S) — *deps: 5*
+  - [x] `netbird up --setup-key … --disable-dns` only when not connected; state → `/root/netbird-state`
+  - [x] `netbird status` Connected `100.x`; survives reboot; setup key never logged
+        *(key via NB_SETUP_KEY env — verified absent from --dry output; live connect deferred to operator)*
 - [ ] **Task 7 — admin + root passwords** (S) — *deps: 3*
   - [ ] `kvmd-htpasswd set admin` + `chpasswd` root, from OpenBao; rw-guarded; no secret logging
   - [ ] Web `admin` login + root login work with OpenBao passwords

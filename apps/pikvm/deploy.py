@@ -186,3 +186,39 @@ if netbird_needs_rw:
         name="NetBird: remount rootfs read-only",
         commands=["ro"],
     )
+
+
+# ── netbird up + state persistence (Task 6) ──────────────────────────────────────
+# Start the overlay + NetBird, register with the setup key, and persist the runtime
+# state (tmpfs) back to /root/netbird-state so it survives reboots. All of this runs
+# only when the peer is not already connected -- so a converged box makes no changes.
+#
+# The setup key is passed via the NB_SETUP_KEY environment variable and referenced as
+# $NB_SETUP_KEY in the command, so it never appears in pyinfra's command/--dry output.
+
+_netbird_status = (
+    host.get_fact(Command, command="netbird status 2>/dev/null || true") or ""
+)
+netbird_connected = "Management: Connected" in _netbird_status
+
+if not netbird_connected:
+    server.shell(
+        name="NetBird: start overlay and netbird services",
+        commands=[
+            "systemctl start netbird-overlay.service",
+            "systemctl start netbird@netbird.service",
+        ],
+    )
+    server.shell(
+        name="NetBird: register with setup key (--disable-dns)",
+        commands=['netbird up --setup-key "$NB_SETUP_KEY" --disable-dns'],
+        _env={"NB_SETUP_KEY": _secrets.netbird_setup_key},
+    )
+    server.shell(
+        name="NetBird: persist runtime state to /root/netbird-state",
+        commands=[
+            "rw",
+            "cp -a /tmp/netbird-state/. /root/netbird-state/",
+            "ro",
+        ],
+    )
