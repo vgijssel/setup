@@ -1,0 +1,34 @@
+language: python
+layer: application
+tags:
+  - python
+  - pikvm
+  - netbird
+  - pyinfra
+
+# The inherited `python` tag tasks assume a src/ package with pytest; this project
+# is a script-style pyinfra deploy validated by lint + `uv sync` (SPEC §6).
+workspace:
+  inheritedTasks:
+    exclude:
+      - build
+      - test
+
+tasks:
+  install:
+    command: uv sync
+    inputs:
+      - pyproject.toml
+      - uv.lock
+    options:
+      cache: true
+
+  lint:
+    command: uv run ruff check .
+    inputs:
+      - "*.py"
+      - inventories/*.py
+      - pyproject.toml
+      - uv.lock
+    options:
+      cache: true

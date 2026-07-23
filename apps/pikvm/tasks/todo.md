@@ -5,10 +5,10 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
 
 ## Phase 1: Foundation (CI-testable, no host mutation)
 
-- [ ] **Task 1 — uv + Moon scaffold** (S)
-  - [ ] `pyproject.toml` pins `pyinfra` + `hvac` exactly; `.python-version` = Hermit `python3.12`
-  - [ ] `uv.lock` committed + reproducible; `moon.yml` has `install` + `lint` (python/application, tags)
-  - [ ] `moon run pikvm:install` clean (no lock drift); `moon run pikvm:lint` + `trunk check` pass
+- [x] **Task 1 — uv + Moon scaffold** (S)
+  - [x] `pyproject.toml` pins `pyinfra` + `hvac` exactly; `.python-version` = Hermit `python3.12`
+  - [x] `uv.lock` committed + reproducible; `moon.yml` has `install` + `lint` (python/application, tags)
+  - [x] `moon run pikvm:install` clean (no lock drift); `moon run pikvm:lint` + `trunk check` pass
 - [ ] **Task 2 — OpenBao contract + `secrets.py`** (S) — *deps: 1*
   - [ ] hvac client reads `kv/pikvm` → `netbird_setup_key` / `admin_password` / `root_password`
   - [ ] Fails fast (no secret in error) if unreachable/missing; never logs values
