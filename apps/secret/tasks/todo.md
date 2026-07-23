@@ -19,9 +19,8 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
 ## Phase 1 — Walking skeleton (thin vertical slice)
 - [x] **T1.1** Vendor Crossplane Helm chart (pinned 2.3.3) in `third_party/vendir/vendir.yml`
   - Done: chart at `third_party/vendir/charts/crossplane` (appVersion 2.3.3); `vendir sync` clean; lock diff is the single crossplane addition; `helm template` renders.
-- [ ] **T1.2** Self-init stanzas in `src/openbao/values.yaml` (minimal subset)
-  - Acceptance: enables k8s auth + creates `crossplane` policy + role only.
-  - Verify: after boot, `bao auth list` shows `kubernetes/`; `bao read auth/kubernetes/role/crossplane` succeeds.
+- [x] **T1.2** Self-init stanzas in `src/openbao/values.yaml` (minimal subset)
+  - Done: `initialize "crossplane_foothold"` enables kubernetes auth, configures it, writes the `crossplane` policy (heredoc) + role only. Locally validated via `bao server` against the rendered chart config — static seal auto-unseals, self-init runs, enable/policy/role evaluate cleanly (fixed `operation` `write`→`update`). `configure_k8s_auth` verifies in-cluster (auto-reads pod ca.crt). Live re-verify at Phase-1 acceptance.
 - [ ] **T1.3** Helm-generated `src/openbao/templates/secret-openbao-seal.yaml` (`lookup`+`randBytes`)
   - Acceptance: Secret created if absent, reused if present (no rotation on re-apply).
   - Verify: `secret:apply` twice → `kubectl -n secret get secret openbao-seal -o jsonpath='{.data.seal-key}'` unchanged; OpenBao auto-unseals.

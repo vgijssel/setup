@@ -222,40 +222,47 @@ Child resources reference their backend by the `backend` string field (e.g.
 auth mount paths are deterministic (`kubernetes`, `jwt-network`), the literal `backend`
 string is simplest and avoids ref-resolution ordering.
 
-**T0.4 — OpenBao self-init: AVAILABLE (2.5.x).** Top-level `initialize` stanza runs once on
-first boot as root, then **revokes the root token**; with a static/auto seal **no recovery
-keys are generated**. Goes into the server `config:` HCL (values.yaml). Minimal subset HCL:
+**T0.4 — OpenBao self-init: AVAILABLE (2.5.x) — VALIDATED locally.** Top-level `initialize`
+stanza runs once on first boot as root, then **revokes the root token**; with a static/auto
+seal **no recovery keys are generated**. Goes into the server `config:` HCL (values.yaml).
+**CRITICAL: `operation` takes an ACL *capability* — `create`/`read`/`update`/`delete`/`list`
+/`sudo` — NOT `"write"`.** Writes use `operation = "update"`; `"write"` errors with
+"unsupported operation" (verified by booting `bao server` locally against the rendered
+config). Minimal subset HCL (as shipped in `src/openbao/values.yaml`):
 ```hcl
 initialize "crossplane_foothold" {
   request "enable_k8s_auth" {
-    operation = "write"
+    operation = "update"
     path      = "sys/auth/kubernetes"
     data      = { type = "kubernetes" }
   }
   request "configure_k8s_auth" {
-    operation = "write"
+    operation = "update"
     path      = "auth/kubernetes/config"
     data      = { kubernetes_host = "https://kubernetes.default.svc:443" }
   }
   request "write_crossplane_policy" {
-    operation = "write"
+    operation = "update"
     path      = "sys/policies/acl/crossplane"
-    data      = { policy = "<same body as the crossplane MR policy — keep identical, T2.3>" }
+    data      = { policy = <<-POLICY ... POLICY }   # heredoc OK; keep identical to the crossplane MR (T2.3)
   }
   request "create_crossplane_role" {
-    operation = "write"
+    operation = "update"
     path      = "auth/kubernetes/role/crossplane"
     data = {
       bound_service_account_names      = "provider-vault"
       bound_service_account_namespaces = "crossplane-system"
-      token_policies                   = "crossplane"
+      token_policies                   = "crossplane"    # comma-separated string
     }
   }
 }
 ```
-Requests run sequentially; `allow_failure = true` is available per-request if ever needed
-(not needed here). In-cluster OpenBao auto-reviews SA tokens with its own SA
-(system:auth-delegator), so only `kubernetes_host` is required in the config.
+Local validation (`bao server -config=<rendered>`): static seal auto-unseals → "Beginning
+post-unseal configuration" → `enable_k8s_auth`, `write_crossplane_policy` (heredoc), and
+`create_crossplane_role` all evaluate with no error. `configure_k8s_auth` can only be fully
+tested in-cluster — it auto-reads the pod's `/var/run/secrets/.../ca.crt` (absent on a
+laptop; present in-pod), so only `kubernetes_host` is required. Requests run sequentially;
+`allow_failure = true` is available per-request (not used).
 
 **T0.5 — Fleet `lookup`: SUPPORTED, with a placement caveat.** rancher/fleet #1851 (closed,
 backported to v2.13) fixed `lookup` returning empty; Fleet detects lookup via
