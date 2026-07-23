@@ -9,10 +9,10 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
   - [x] `pyproject.toml` pins `pyinfra` + `hvac` exactly; `.python-version` = Hermit `python3.12`
   - [x] `uv.lock` committed + reproducible; `moon.yml` has `install` + `lint` (python/application, tags)
   - [x] `moon run pikvm:install` clean (no lock drift); `moon run pikvm:lint` + `trunk check` pass
-- [ ] **Task 2 — OpenBao contract + `secrets.py`** (S) — *deps: 1*
-  - [ ] hvac client reads `kv/pikvm` → `netbird_setup_key` / `admin_password` / `root_password`
-  - [ ] Fails fast (no secret in error) if unreachable/missing; never logs values
-  - [ ] Seed documented (`secret:forward` + `bao kv put kv/pikvm …`); throwaway read succeeds
+- [x] **Task 2 — OpenBao contract + `secrets.py`** (S) — *deps: 1*
+  - [x] hvac client reads `kv/pikvm` → `netbird_setup_key` / `admin_password` / `root_password`
+  - [x] Fails fast (no secret in error) if unreachable/missing; never logs values
+  - [x] Seed documented (`secret:forward` + `bao kv put kv/pikvm …`); throwaway read succeeds
 - [ ] **Task 3 — inventories + `deploy.py` skeleton + apply tasks** (M) — *deps: 1, 2*
   - [ ] `inventories/{production.py,local.py}` resolve `$PIKVM_HOST` / `$PIKVM_LOCAL_IP`, SSH `$PIKVM_SSH_USER`
   - [ ] `apply` / `apply_local` are `interactive: true`, `runInCI: false`, forward `-- --dry`
