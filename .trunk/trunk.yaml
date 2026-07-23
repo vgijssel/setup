@@ -48,6 +48,8 @@ lint:
         - libs/devenv/goss.yaml
         # VCR cassettes contain recorded HTTP interactions with secrets
         - libs/fleet-mcp/tests/cassettes/**
+        # PiKVM host assets kept byte-for-byte verbatim to docs.pikvm.org for auditability
+        - apps/pikvm/files/**
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:

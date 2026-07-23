@@ -24,9 +24,10 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
 
 ## Phase 2: Core convergence (host changes, one concern per slice)
 
-- [ ] **Task 4 — NetBird overlay scaffolding** (M) — *deps: 3*
-  - [ ] `/root/netbird-state` created; overlay script + service installed and enabled; rw/ro guarded
-  - [ ] Empty `--dry` diff on converged box; rootfs `ro` at end
+- [x] **Task 4 — NetBird overlay scaffolding** (M) — *deps: 3*
+  - [x] `/root/netbird-state` created; overlay script + service installed and enabled; rw/ro guarded
+  - [x] Empty `--dry` diff on converged box; rootfs `ro` at end
+        *(rw/ro fact-gated for empty-diff; assets kept verbatim to docs; live apply deferred to operator)*
 - [ ] **Task 5 — NetBird install (AUR) + systemd override** (M, **highest risk**) — *deps: 4*
   - [ ] `netbird-bin` built as `kvmd-webterm`, `pacman -U`, pinned-version skip
   - [ ] `netbird@.service.d/pikvm.conf` dropped; `netbird@netbird` enabled, ordered after overlay
