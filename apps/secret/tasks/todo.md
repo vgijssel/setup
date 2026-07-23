@@ -33,7 +33,33 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
 - [x] **T1.7** Create `bin/fleet-apply` (repo-root helper): `find` every `fleet.yaml`, `cd` repo root, `fleet apply` each (bundle name from path); have `apply.sh` call it after Fleet install + cluster label
   - Done: `bin/fleet-apply` discovers every `apps/**/fleet.yaml`, derives `<group>-<component>` names (verified to match the old explicit names exactly), cd's to repo root, `fleet apply`s each into fleet-local; shellcheck clean. `apply.sh` now calls it (hardcoded list removed) and drops the bootstrap "Next" step. Live all-bundles-Ready check at Phase-1 acceptance.
 
-> **CHECKPOINT 1 (critical)** — chain proven live: self-init role → k8s-auth login → MR reconcile on this arch.
+### Phase 1 acceptance — PROVEN LIVE (2026-07-23) on vind/arm64
+
+Clean `secret:start` → `secret:apply` brought the whole chain up with **no bootstrap/
+configure step**:
+- OpenBao `openbao-0` Ready; `bao status` → `Initialized=true, Sealed=false` (static
+  seal auto-unseal + self-init).
+- kubernetes auth method + `crossplane` role present (logged in as it to verify).
+- Crossplane core Ready; `provider-vault` Provider `INSTALLED=True HEALTHY=True` on
+  **arm64** (no qemu); pod SA is the stable `provider-vault` (DeploymentRuntimeConfig).
+- `ProviderConfig openbao` k8s-auth login works; `Mount kv` MR **SYNCED=True READY=True**;
+  `kv/` (v2) present in OpenBao.
+
+**Two bugs found & fixed live (the point of the walking skeleton):**
+1. **Fleet atomic-release split.** A `ProviderConfig` (vault.upbound.io CR) in the same
+   bundle as the `Provider` that installs its CRD makes the whole Helm release fail to
+   build → the Provider is never created (deadlock). Fix: moved `providerconfig-openbao.yaml`
+   into the `openbao-config` bundle (downstream of `crossplane-provider`); crossplane-provider
+   now carries only Provider + DeploymentRuntimeConfig. openbao-config dependsOn
+   crossplane-provider **and** openbao.
+2. **`auth/token/create` grant.** `skip_child_token: true` is NOT honoured by
+   provider-vault on the auth_login/kubernetes path; it still mints a child token per
+   reconcile, and OpenBao's `default` policy doesn't grant token creation → 403. Fix:
+   added `path "auth/token/create"` to the self-init `crossplane` policy (values.yaml);
+   the Phase-2 policy-crossplane MR must include it too (keep in sync).
+
+> **CHECKPOINT 1 (critical) — PASSED (2026-07-23).** Chain proven live on arm64:
+> self-init role → k8s-auth login → MR reconcile. SPEC §2 risks all retired.
 
 ## Phase 2 — Full config parity
 - [ ] **T2.1** `authbackend-kubernetes.yaml` + `authbackendconfig-kubernetes.yaml` (`deletionPolicy: Orphan`)
