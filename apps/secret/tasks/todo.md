@@ -93,14 +93,16 @@ AuthBackend blocked only by JWKS unreachability (see T2.4).
   - Done + LIVE-VERIFIED: added `targetCustomizations` (network only) to `apps/platform/src/terranetes/fleet.yaml`. After re-apply, the bundle shows **0/0 BundleDeployments** on secret and `terranetes-system` has no controller. (SPEC-permitted shared-bundle retarget.)
 - [x] **T3.3** `scripts/forward.sh` + `secret:forward` task
   - Done: `forward.sh` port-forwards svc/openbao → localhost:8200 (long-running); `secret:forward` task added to moon.yml. shellcheck clean. (Live port-forward not exercised — trivial.)
-- [ ] **T3.4** Trim `src/config/` to cert/ingress/ClusterSecretStore/ExternalSecret/fleet
-  - **DEFERRED (destructive).** Removes the terranetes CRs — gated on CHECKPOINT 3 (read path proven in the real env) per plan sequencing.
-- [ ] **T3.5** ExternalSecret syncs via `ClusterSecretStore` (read path)
-  - **BLOCKED (needs real env).** Requires the tailnet + human-seeded kv secrets + ESO reading from OpenBao; cannot be validated in the isolated vind cluster. Belongs to a real-environment run.
+- [x] **T3.4** Trim `src/config/` to cert/ingress/ClusterSecretStore/ExternalSecret/fleet
+  - Done: removed `configuration-openbao.yaml`, `provider-openbao.yaml`, `rbac-terranetes-state.yaml` (terranetes CRs) — REQUIRED because terranetes is now off secret (T3.2), so their `terraform.appvia.io` CRDs are gone and their presence failed the whole secret-config Helm release (atomic), blocking the ClusterSecretStore. fleet.yaml comment updated. (Pulls T4.2 forward.)
+- [x] **T3.5** ExternalSecret syncs via `ClusterSecretStore` (read path) — **PROVEN LIVE**
+  - Done: ClusterSecretStore `openbao` is `Valid/READY=True` using the **internal** service `http://openbao.secret.svc:8200` + kubernetes auth (role external-secrets) — NOT the tailnet. Seeded a dummy `kv/secret-tailscale-operator`; ExternalSecret `tailscale/operator-oauth` → `SecretSynced=True`, target Secret populated (client_id/client_secret).
+  - **Root cause fixed (user report #2):** network-config's remote tailnet+JWT store (same name `openbao`) was clobbering secret's store because global `bin/fleet-apply` deployed all `apps/network` bundles on secret. Fixed by adding network-only `targetCustomizations` to every `apps/network/src/*/fleet.yaml`.
+  - **NEW design gap flagged (needs decision):** after self-init revokes root, NO role can write kv *data* — the `secret:forward` human-seed flow has no write auth (crossplane manages mounts/auth not data; external-secrets/network-read are read-only). Needs a break-glass/admin write path. Not fixed autonomously (auth/secrets decision).
 
-> **CHECKPOINT 3** — read path proven; single-command bring-up confirmed. **NOT YET
-> REACHED**: T3.4 (destructive) + T3.5 (read path) require the real environment / human
-> review. Safe wiring (T3.1–T3.3) done and committed.
+> **CHECKPOINT 3 — read path PROVEN LIVE via the internal service; single-command bring-up
+> wired.** jwt-network intentionally ignored (network cluster down, to be refactored).
+> Open item for human decision: the human kv-seed write-auth gap above.
 
 ## Phase 4 — Remove Terranetes + finalize
 - [ ] **T4.1** Delete `src/openbao-config/*.tf`, `.terraform*`, `.gitignore`, `terraform/`
