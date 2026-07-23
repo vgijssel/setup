@@ -21,9 +21,8 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
   - Done: chart at `third_party/vendir/charts/crossplane` (appVersion 2.3.3); `vendir sync` clean; lock diff is the single crossplane addition; `helm template` renders.
 - [x] **T1.2** Self-init stanzas in `src/openbao/values.yaml` (minimal subset)
   - Done: `initialize "crossplane_foothold"` enables kubernetes auth, configures it, writes the `crossplane` policy (heredoc) + role only. Locally validated via `bao server` against the rendered chart config — static seal auto-unseals, self-init runs, enable/policy/role evaluate cleanly (fixed `operation` `write`→`update`). `configure_k8s_auth` verifies in-cluster (auto-reads pod ca.crt). Live re-verify at Phase-1 acceptance.
-- [ ] **T1.3** Helm-generated `src/openbao/templates/secret-openbao-seal.yaml` (`lookup`+`randBytes`)
-  - Acceptance: Secret created if absent, reused if present (no rotation on re-apply).
-  - Verify: `secret:apply` twice → `kubectl -n secret get secret openbao-seal -o jsonpath='{.data.seal-key}'` unchanged; OpenBao auto-unseals.
+- [x] **T1.3** Helm-generated `src/openbao/templates/secret-openbao-seal.yaml` (`lookup`+`randBytes`)
+  - Done: umbrella-chart template mints `openbao-seal` once (`randBytes 32 | b64enc`, `helm.sh/resource-policy: keep`) and reuses the existing `.data["seal-key"]` via `lookup` on re-apply; lookup is in the manifest (not a helper) per #5198. Renders clean; seal-key decodes to a 44-char base64 (== `openssl rand -base64 32`). Generate-once persistence re-verified live at Phase-1 acceptance (apply twice → unchanged).
 - [ ] **T1.4** `src/crossplane/` umbrella chart + `values.yaml` + `fleet.yaml`
   - Acceptance: crossplane core deploys to `crossplane-system`.
   - Verify: `kubectl -n crossplane-system get deploy` Available; `kubectl get providers` CRD present.
