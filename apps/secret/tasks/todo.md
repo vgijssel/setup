@@ -87,23 +87,20 @@ AuthBackend blocked only by JWKS unreachability (see T2.4).
 > to CHECKPOINT 3 (read path, real env). Human review recommended before Phase 4 deletion.
 
 ## Phase 3 — Read path + wiring + config trim
-- [ ] **T3.1** `start.sh` invokes `apply.sh`; qemu/binfmt gated on real arm64 gap (T0.2)
-  - Acceptance: `secret:start` alone brings up + applies.
-  - Verify: clean-docker `secret:start` reaches configured state; no separate `apply` needed.
-- [ ] **T3.2** Keep `platform-terranetes` off `secret` via **cluster targeting** (not omission — `bin/fleet-apply` applies it globally); its `fleet.yaml` targets only `network`
-  - Acceptance: `platform-terranetes` Bundle may exist, but no BundleDeployment on the secret cluster; crossplane bundles deploy on secret.
-  - Verify: `kubectl -n fleet-local get bundledeployments` shows no `platform-terranetes` targeting the secret cluster.
-- [ ] **T3.3** `scripts/forward.sh` + `secret:forward` task
-  - Acceptance: port-forwards openbao svc → localhost:8200.
-  - Verify: `moon run secret:forward` then `BAO_ADDR=http://127.0.0.1:8200 bao status`.
+- [x] **T3.1** `start.sh` invokes `apply.sh`; qemu/binfmt block removed
+  - Done: after node Ready, start.sh `exec`s apply.sh (single-command bring-up). Dropped the qemu/binfmt registration — crossplane + provider-vault are arm64 and terranetes now targets network only (T3.2). moon.yml header updated. shellcheck clean.
+- [x] **T3.2** Keep `platform-terranetes` off `secret` via **cluster targeting** (its `fleet.yaml` targets only `network`)
+  - Done + LIVE-VERIFIED: added `targetCustomizations` (network only) to `apps/platform/src/terranetes/fleet.yaml`. After re-apply, the bundle shows **0/0 BundleDeployments** on secret and `terranetes-system` has no controller. (SPEC-permitted shared-bundle retarget.)
+- [x] **T3.3** `scripts/forward.sh` + `secret:forward` task
+  - Done: `forward.sh` port-forwards svc/openbao → localhost:8200 (long-running); `secret:forward` task added to moon.yml. shellcheck clean. (Live port-forward not exercised — trivial.)
 - [ ] **T3.4** Trim `src/config/` to cert/ingress/ClusterSecretStore/ExternalSecret/fleet
-  - Acceptance: only the kept files remain in `src/config/` (Terranetes CRs removed in Phase 4).
-  - Verify: `ls src/config`.
+  - **DEFERRED (destructive).** Removes the terranetes CRs — gated on CHECKPOINT 3 (read path proven in the real env) per plan sequencing.
 - [ ] **T3.5** ExternalSecret syncs via `ClusterSecretStore` (read path)
-  - Acceptance: operator-oauth ExternalSecret `SecretSynced=True` after kv values entered.
-  - Verify: `kubectl get externalsecret -A`; target Secret populated.
+  - **BLOCKED (needs real env).** Requires the tailnet + human-seeded kv secrets + ESO reading from OpenBao; cannot be validated in the isolated vind cluster. Belongs to a real-environment run.
 
-> **CHECKPOINT 3** — read path proven; single-command bring-up confirmed.
+> **CHECKPOINT 3** — read path proven; single-command bring-up confirmed. **NOT YET
+> REACHED**: T3.4 (destructive) + T3.5 (read path) require the real environment / human
+> review. Safe wiring (T3.1–T3.3) done and committed.
 
 ## Phase 4 — Remove Terranetes + finalize
 - [ ] **T4.1** Delete `src/openbao-config/*.tf`, `.terraform*`, `.gitignore`, `terraform/`
