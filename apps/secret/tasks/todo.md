@@ -62,26 +62,29 @@ configure step**:
 > self-init role → k8s-auth login → MR reconcile. SPEC §2 risks all retired.
 
 ## Phase 2 — Full config parity
-- [ ] **T2.1** `authbackend-kubernetes.yaml` + `authbackendconfig-kubernetes.yaml` (`deletionPolicy: Orphan`)
-  - Acceptance: MRs SYNCED/READY; `kubernetes_host` set.
-  - Verify: `bao read auth/kubernetes/config`.
-- [ ] **T2.2** `policy-external-secrets.yaml` + `role-external-secrets.yaml`
-  - Acceptance: MRs SYNCED/READY; body equivalent to current TF policy.
-  - Verify: `bao policy read external-secrets`; `bao read auth/kubernetes/role/external-secrets`.
-- [ ] **T2.3** `policy-crossplane.yaml` (renamed from `terranetes`, incl. `auth/jwt-network/*`); reconcile the self-init-created policy
-  - Acceptance: MR SYNCED/READY; content identical to self-init policy (no drift/fight).
-  - Verify: `bao policy read crossplane`; MR stays READY across two reconciles.
-- [ ] **T2.4** `authbackend-jwt-network.yaml` (issuer/jwks_url/ca from `variables.tf` defaults)
-  - Acceptance: MR SYNCED/READY; live JWKS fetch works.
-  - Verify: `bao read auth/jwt-network/config`.
-- [ ] **T2.5** `policy-network-read.yaml` + `role-network-eso.yaml` + `role-network-terranetes.yaml`
-  - Acceptance: all MRs SYNCED/READY; both jwt roles + policy present (network parity).
-  - Verify: `bao read auth/jwt-network/role/network-eso` and `.../network-terranetes`; `bao policy read network-read`.
-- [ ] **T2.6** Update `src/openbao-config/fleet.yaml` to cover all MRs
-  - Acceptance: bundle Ready with every MR.
-  - Verify: `kubectl get managed` all SYNCED/READY.
 
-> **CHECKPOINT 2** — full parity confirmed against the baseline table in plan.md §1.
+**Design decision (refines T2.1/T2.3):** the kubernetes auth backend + config and the
+`crossplane` policy + role are owned by **self-init** (the foothold), NOT duplicated as
+Crossplane MRs — this avoids adopting/fighting self-init-created resources. New role MRs
+reference the k8s backend by the `backend: kubernetes` string (the field exists on
+AuthBackendRole), so no Backend MR is needed. Crossplane owns everything else. All
+parity resources still exist; the split is just ownership. This satisfies the SPEC
+self-init contract ("everything else is owned by Crossplane, not self-init").
+
+- [x] **T2.1** ~~authbackend-kubernetes~~ — **owned by self-init** (foothold), not a Crossplane MR. Roles reference `backend: kubernetes`.
+- [x] **T2.2** `policy-external-secrets.yaml` + `role-external-secrets.yaml` — LIVE SYNCED/READY=True (role via `backend: kubernetes`).
+- [x] **T2.3** ~~policy-crossplane MR~~ — **owned by self-init** (values.yaml, incl. `auth/token/create`). Not a Crossplane MR (avoids drift/fight).
+- [~] **T2.4** `authbackend-jwt-network.yaml` (issuer/jwks_url from variables.tf defaults) — manifest is parity-exact, but CANNOT fully reconcile in the isolated vind cluster: the config write fetches the live JWKS from `api.network.vgijssel.nl` (100.86.162.164, tailnet VIP), which is unreachable without tailnet connectivity (wget times out). **Environment-blocked, not a config bug.** Reconciles in the real deployment; re-verify at Phase-3/CHECKPOINT-3 with the network side up.
+- [x] **T2.5** `policy-network-read.yaml` + `role-network-eso.yaml` + `role-network-terranetes.yaml` — LIVE SYNCED/READY=True (roles reference `backend: jwt-network`; mount enabled).
+- [x] **T2.6** `src/openbao-config/fleet.yaml` covers all MRs (single bundle) — applied; 5/6 MRs Ready live.
+
+Live `kubectl get managed`: kv Mount, external-secrets Policy+Role, network-read Policy,
+network-eso + network-terranetes jwt roles all **SYNCED=True READY=True**; jwt-network
+AuthBackend blocked only by JWKS unreachability (see T2.4).
+
+> **CHECKPOINT 2 — PARTIAL (2026-07-23).** Full parity present; 5/6 MRs reconcile live on
+> arm64. jwt-network needs the real tailnet to complete its JWKS-backed config — deferred
+> to CHECKPOINT 3 (read path, real env). Human review recommended before Phase 4 deletion.
 
 ## Phase 3 — Read path + wiring + config trim
 - [ ] **T3.1** `start.sh` invokes `apply.sh`; qemu/binfmt gated on real arm64 gap (T0.2)
