@@ -17,3 +17,14 @@
 # access (T8) and the egress is approved (ACL-A), the store stays NotReady and ESO
 # error-and-retries, which is expected.
 defaultNamespace: external-secrets
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
+# cluster explicitly (previously scoped only by network:apply's static list). This is
+# critical here: this bundle's ClusterSecretStore `openbao` is the REMOTE tailnet+JWT
+# store, and without targeting it deploys on the secret cluster too and CLOBBERS
+# secret's own same-named store (internal service + kubernetes auth). Targeting keeps
+# the secret cluster on its internal-service store.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
