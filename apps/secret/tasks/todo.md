@@ -28,9 +28,8 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
 - [x] **T1.5** `src/crossplane-provider/` Provider (pinned tag+digest) + ProviderConfig (k8s-auth) + DeploymentRuntimeConfig + `fleet.yaml` (`dependsOn: crossplane, openbao`)
   - Done: `provider-vault.yaml` (pinned `v4.0.0@sha256:e0873d6a…` multi-arch index), `deploymentruntimeconfig-provider-vault.yaml` (stable SA `provider-vault`), `providerconfig-openbao.yaml` (`credentials.source: Kubernetes`, `role: crossplane`, `skip_child_token`), `fleet.yaml` (dependsOn crossplane+openbao, secret-only). Added `apps/secret/src/openbao/templates/**` to trunk yamllint ignore; `trunk check` clean.
   - **Deviation from plan wording:** no separate SA/RBAC manifest — Crossplane creates + owns the `provider-vault` SA (named via serviceAccountTemplate) and its RBAC; OpenBao reviews the SA token with its own SA (chart `authDelegator` → system:auth-delegator), so the provider SA needs no extra RBAC. Live verify (HEALTHY + login) at Phase-1 acceptance.
-- [ ] **T1.6** `src/openbao-config/mount-kv.yaml` (single KV v2 `Mount`, `deletionPolicy: Orphan`) + `fleet.yaml` (`dependsOn: crossplane-provider`)
-  - Acceptance: `Mount` MR `SYNCED=True READY=True`.
-  - Verify: `kubectl get managed`; `bao secrets list` shows `kv/` (v2).
+- [x] **T1.6** `src/openbao-config/mount-kv.yaml` (single KV v2 `Mount`, `deletionPolicy: Orphan`) + `fleet.yaml` (`dependsOn: crossplane-provider`)
+  - Done: `mount-kv.yaml` (`vault.vault.upbound.io/v1alpha1` Mount, path kv, options.version "2", providerConfigRef openbao, deletionPolicy Orphan); `fleet.yaml` dependsOn crossplane-provider, secret-only, label openbao-config; `.fleetignore` keeps the legacy Terraform files out of the bundle. trunk check clean. Live SYNCED/READY at Phase-1 acceptance.
 - [ ] **T1.7** Create `bin/fleet-apply` (repo-root helper): `find` every `fleet.yaml`, `cd` repo root, `fleet apply` each (bundle name from path); have `apply.sh` call it after Fleet install + cluster label
   - Acceptance: `secret:apply` discovers & applies **all** bundles (incl. new crossplane ones) with no hardcoded list; runtime order via `dependsOn`.
   - Verify: `kubectl -n fleet-local get bundles` all Ready; `bin/fleet-apply` picks up a newly added `src/*/fleet.yaml` with no script edit.
