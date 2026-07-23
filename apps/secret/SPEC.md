@@ -221,7 +221,7 @@ primarily local + declarative-lint:
   K8s Secrets.
 - Pin all new dependencies (chart versions, provider digest) per `CLAUDE.md`.
 - Keep self-init a strict *minimal subset*; Crossplane owns the full config.
-- Preserve the existing tailnet exposure (OpenBao ingress `secret.vgijssel.nl`, API VIP
+- Preserve the existing tailnet exposure (OpenBao ingress `openbao.secret.vgijssel.nl`, API VIP
   `api.secret.vgijssel.nl`, `secret-ingress` ProxyGroup) and the static auto-unseal
   seal-key Secret contract.
 
