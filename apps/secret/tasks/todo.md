@@ -23,9 +23,8 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
   - Done: `initialize "crossplane_foothold"` enables kubernetes auth, configures it, writes the `crossplane` policy (heredoc) + role only. Locally validated via `bao server` against the rendered chart config — static seal auto-unseals, self-init runs, enable/policy/role evaluate cleanly (fixed `operation` `write`→`update`). `configure_k8s_auth` verifies in-cluster (auto-reads pod ca.crt). Live re-verify at Phase-1 acceptance.
 - [x] **T1.3** Helm-generated `src/openbao/templates/secret-openbao-seal.yaml` (`lookup`+`randBytes`)
   - Done: umbrella-chart template mints `openbao-seal` once (`randBytes 32 | b64enc`, `helm.sh/resource-policy: keep`) and reuses the existing `.data["seal-key"]` via `lookup` on re-apply; lookup is in the manifest (not a helper) per #5198. Renders clean; seal-key decodes to a 44-char base64 (== `openssl rand -base64 32`). Generate-once persistence re-verified live at Phase-1 acceptance (apply twice → unchanged).
-- [ ] **T1.4** `src/crossplane/` umbrella chart + `values.yaml` + `fleet.yaml`
-  - Acceptance: crossplane core deploys to `crossplane-system`.
-  - Verify: `kubectl -n crossplane-system get deploy` Available; `kubectl get providers` CRD present.
+- [x] **T1.4** `src/crossplane/` umbrella chart + `values.yaml` + `fleet.yaml`
+  - Done: umbrella pins crossplane 2.3.3 via `file://` dep (Fleet builds it); `fleet.yaml` → ns `crossplane-system`, label `fleet.vgijssel.nl/bundle: crossplane`, targetCustomizations=secret. Renders clean (`helm template` after dep build: core + rbac-manager Deployments, RBAC, SAs). Also added `fleet.vgijssel.nl/bundle: openbao` label to openbao/fleet.yaml for downstream dependsOn. Live deploy verified at Phase-1 acceptance.
 - [ ] **T1.5** `src/crossplane-provider/` Provider (pinned tag+digest) + ProviderConfig (k8s-auth) + SA/RBAC + `fleet.yaml` (`dependsOn: crossplane, openbao`)
   - Acceptance: Provider `HEALTHY=True`; ProviderConfig logs in via `crossplane` role.
   - Verify: `kubectl get providers` Healthy; provider pod logs show successful OpenBao login.
