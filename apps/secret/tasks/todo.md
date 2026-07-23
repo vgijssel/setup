@@ -25,9 +25,9 @@ Each task lists **Acceptance** (done-when) and **Verify** (how to check). Do not
   - Done: umbrella-chart template mints `openbao-seal` once (`randBytes 32 | b64enc`, `helm.sh/resource-policy: keep`) and reuses the existing `.data["seal-key"]` via `lookup` on re-apply; lookup is in the manifest (not a helper) per #5198. Renders clean; seal-key decodes to a 44-char base64 (== `openssl rand -base64 32`). Generate-once persistence re-verified live at Phase-1 acceptance (apply twice → unchanged).
 - [x] **T1.4** `src/crossplane/` umbrella chart + `values.yaml` + `fleet.yaml`
   - Done: umbrella pins crossplane 2.3.3 via `file://` dep (Fleet builds it); `fleet.yaml` → ns `crossplane-system`, label `fleet.vgijssel.nl/bundle: crossplane`, targetCustomizations=secret. Renders clean (`helm template` after dep build: core + rbac-manager Deployments, RBAC, SAs). Also added `fleet.vgijssel.nl/bundle: openbao` label to openbao/fleet.yaml for downstream dependsOn. Live deploy verified at Phase-1 acceptance.
-- [ ] **T1.5** `src/crossplane-provider/` Provider (pinned tag+digest) + ProviderConfig (k8s-auth) + SA/RBAC + `fleet.yaml` (`dependsOn: crossplane, openbao`)
-  - Acceptance: Provider `HEALTHY=True`; ProviderConfig logs in via `crossplane` role.
-  - Verify: `kubectl get providers` Healthy; provider pod logs show successful OpenBao login.
+- [x] **T1.5** `src/crossplane-provider/` Provider (pinned tag+digest) + ProviderConfig (k8s-auth) + DeploymentRuntimeConfig + `fleet.yaml` (`dependsOn: crossplane, openbao`)
+  - Done: `provider-vault.yaml` (pinned `v4.0.0@sha256:e0873d6a…` multi-arch index), `deploymentruntimeconfig-provider-vault.yaml` (stable SA `provider-vault`), `providerconfig-openbao.yaml` (`credentials.source: Kubernetes`, `role: crossplane`, `skip_child_token`), `fleet.yaml` (dependsOn crossplane+openbao, secret-only). Added `apps/secret/src/openbao/templates/**` to trunk yamllint ignore; `trunk check` clean.
+  - **Deviation from plan wording:** no separate SA/RBAC manifest — Crossplane creates + owns the `provider-vault` SA (named via serviceAccountTemplate) and its RBAC; OpenBao reviews the SA token with its own SA (chart `authDelegator` → system:auth-delegator), so the provider SA needs no extra RBAC. Live verify (HEALTHY + login) at Phase-1 acceptance.
 - [ ] **T1.6** `src/openbao-config/mount-kv.yaml` (single KV v2 `Mount`, `deletionPolicy: Orphan`) + `fleet.yaml` (`dependsOn: crossplane-provider`)
   - Acceptance: `Mount` MR `SYNCED=True READY=True`.
   - Verify: `kubectl get managed`; `bao secrets list` shows `kv/` (v2).
