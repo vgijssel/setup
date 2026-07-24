@@ -1,6 +1,6 @@
 # Make the OIDC discovery endpoints anonymously readable so the secret cluster's
 # OpenBao can fetch this cluster's JWKS over the tailnet WITHOUT credentials — OpenBao's
-# jwks_url fetch is unauthenticated. The kube-apiserver ProxyGroup (network-apiserver,
+# jwks_url fetch is unauthenticated. The kube-apiserver ProxyGroup (api-network,
 # mode: noauth — apps/network/src/tailscale-proxygroup) forwards the anonymous request
 # straight through, so the apiserver sees system:anonymous and this binding is what
 # authorizes the read.
@@ -10,11 +10,11 @@
 # (public key material) — and nothing else. Binding it to the system:unauthenticated
 # group lets anonymous callers read only those two endpoints; every other API path stays
 # denied for system:anonymous. Reachability is further gated by the tailnet ACL, which
-# only permits the secret cluster's egress to reach the network-apiserver proxy on 443.
+# only permits the secret cluster's egress to reach the api-network proxy on 443.
 #
-# Paired with the network-apiserver kube-apiserver ProxyGroup
+# Paired with the api-network kube-apiserver ProxyGroup
 # (apps/network/src/tailscale-proxygroup) and the jwt-network backend's jwksUrl
-# (https://network-apiserver.tail2c33e2.ts.net/openid/v1/jwks, apps/secret/src/openbao-config).
+# (https://api-network.tail2c33e2.ts.net/openid/v1/jwks, apps/secret/src/openbao-config).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

@@ -2,16 +2,23 @@
 # for the old nginx apiserver-proxy bundle (retired). Instead of terminating a Let's
 # Encrypt cert for api.network.vgijssel.nl and reverse-proxying to the kube-apiserver,
 # the operator exposes THIS cluster's Kubernetes API directly on the tailnet at
-#   https://network-apiserver.tail2c33e2.ts.net
+#   https://api-network.tail2c33e2.ts.net
 # with a Tailscale-provisioned (publicly-trusted *.ts.net) cert — so there is NO
 # cert-manager / Cloudflare dependency. This breaks the cold-start deadlock where the
 # JWKS endpoint needed an LE cert that needed OpenBao that needed the JWKS.
+#
+# NAME IS LOAD-BEARING: the operator provisions a Tailscale Service named after the
+# hostname (svc:api-network), and the tailnet ACL's autoApprovers.services + grants
+# already reference `api-network` (inherited from the retired nginx proxy). Naming it
+# anything else (e.g. network-apiserver) advertises svc:network-apiserver, which the ACL
+# does NOT auto-approve, so the proxies never advertise and the kube-apiserver stays
+# unreachable ("0/2 proxy backends ready and advertising"). Keep it `api-network`.
 #
 # mode: noauth -> the proxy terminates the tailnet TLS and forwards every request to the
 # in-cluster apiserver unchanged; the apiserver applies its OWN authn/authz. Anonymous
 # callers can still read only the two OIDC discovery endpoints
 # (../config/clusterrolebinding-oidc-discovery.yaml), which is exactly what the SECRET
-# cluster's OpenBao fetches: https://network-apiserver.tail2c33e2.ts.net/openid/v1/jwks
+# cluster's OpenBao fetches: https://api-network.tail2c33e2.ts.net/openid/v1/jwks
 # (jwt-network backend, apps/secret/src/openbao-config/authbackend-jwt-network.yaml).
 #
 # hostname pins the MagicDNS label (must be tailnet-unique); the *.ts.net cert follows it.
@@ -19,10 +26,10 @@
 apiVersion: tailscale.com/v1alpha1
 kind: ProxyGroup
 metadata:
-  name: network-apiserver
+  name: api-network
 spec:
   type: kube-apiserver
   replicas: 2
   kubeAPIServer:
     mode: noauth
-    hostname: network-apiserver
+    hostname: api-network
