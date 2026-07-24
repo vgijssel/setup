@@ -56,6 +56,7 @@ targetCustomizations:
           proxyConfig:
             defaultTags: tag:network-k8s
           # NOTE: the operator's built-in kube-apiserver ProxyConfig (previously mode:
-          # noauth, T17) was removed in T19. OpenBao no longer fetches this cluster's JWKS
-          # via the operator's .ts.net proxy — it uses the dedicated apiserver-proxy bundle
-          # (api.network.vgijssel.nl, valid public LE cert). See apps/network/src/apiserver-proxy.
+          # noauth, T17) was removed in T19. OpenBao fetches this cluster's JWKS via the
+          # dedicated api-network kube-apiserver ProxyGroup at api-network.tail2c33e2.ts.net
+          # (Tailscale-native *.ts.net cert, no cert-manager). See
+          # apps/network/src/tailscale-proxygroup/proxygroup-apiserver.yaml.
