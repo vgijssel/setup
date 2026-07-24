@@ -1,8 +1,0 @@
-id: ansible
-language: javascript
-layer: library
-tags:
-  - scope.lib
-  - type.infrastructure
-  - ansible
-tasks: {}

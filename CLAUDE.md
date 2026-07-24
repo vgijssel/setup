@@ -57,8 +57,8 @@ moon ci <base> <head>         # Run affected tasks in CI mode
 
 - **Build**: Moon monorepo orchestration (https://moonrepo.dev)
 - **Infrastructure**: Talos Linux, Kubernetes
-- **Automation**: Home Assistant, ESPHome, Ansible
-- **Quality**: Trunk CLI with ansible-lint, black, ruff, shellcheck, yamllint
+- **Automation**: Home Assistant, ESPHome, pyinfra
+- **Quality**: Trunk CLI with black, ruff, shellcheck, yamllint
 
 ## Moon Concepts
 

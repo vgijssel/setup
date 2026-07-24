@@ -1,0 +1,25 @@
+language: python
+layer: library
+tags:
+  - python
+
+# Inherits `build` (uv build) and `test` (uv run --all-extras pytest) from the python
+# tag (.moon/tasks/tag-python.yml). The library is a set of pyinfra facts/operations
+# imported by deploys (e.g. apps/pikvm); it ships no CLI.
+tasks:
+  install:
+    command: uv sync
+    inputs:
+      - pyproject.toml
+      - uv.lock
+    options:
+      cache: true
+
+  lint:
+    command: uv run --all-extras ruff check .
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_tests)"
+      - "@files(python_configs)"
+    options:
+      cache: true
