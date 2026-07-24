@@ -1,0 +1,17 @@
+apiVersion: v2
+appVersion: 1.23.0
+description: A Helm chart for Percona Server for MongoDB Operator Custom Resource
+  Definitions (CRDs).
+home: https://docs.percona.com/percona-operator-for-mongodb/
+maintainers:
+- email: natalia.marukovich@percona.com
+  name: nmarukovich
+- email: julio.pasinatto@percona.com
+  name: jvpasinatto
+- email: eleonora.zinchenko@percona.com
+  name: eleo007
+- email: valmira.nogueira@percona.com
+  name: valmiranogueira
+name: psmdb-operator-crds
+type: application
+version: 1.23.0

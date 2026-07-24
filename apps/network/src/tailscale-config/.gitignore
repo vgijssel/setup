@@ -1,9 +1,0 @@
-# Runtime OpenTofu artifacts. State lives ONLY in the kubernetes-backend Secret
-# tfstate-default-tailscale-config (ns terranetes-system), never in git. network:configure
-# writes zz_backend.tf at apply time and removes it after. .terraform.lock.hcl is
-# intentionally NOT ignored — it pins the providers for reproducible inits.
-.terraform/
-*.tfstate
-*.tfstate.*
-crash.log
-zz_backend.tf

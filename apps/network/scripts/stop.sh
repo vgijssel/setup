@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 # Stop the network cluster: delete the vind vcluster (and its kube context). All
 # in-cluster state is destroyed. Durable state lives elsewhere: the Tailscale OAuth
-# client + kv secrets remain in the remote OpenBao / 1Password, and the tailnet ACLs
-# persist, so a fresh network:start + network:apply + network:bootstrap re-creates
-# the cluster. Note (SPEC R5): the cluster's OIDC issuer/JWKS may change on recreate,
-# so re-run network:bootstrap and secret:configure to re-grant JWT access after a
-# stop+start. Mirrors apps/secret/scripts/stop.sh.
+# client + api_key + kv secrets remain in the remote OpenBao, and the tailnet ACL
+# persists, so a fresh `network:start` (which re-runs tailscale_auth + apply) fully
+# re-creates the cluster. Mirrors apps/secret/scripts/stop.sh.
 #
 # Idempotent: deletes the cluster, or a no-op if it is already absent.
 set -euo pipefail

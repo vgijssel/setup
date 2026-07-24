@@ -5,14 +5,19 @@
 # bundles under src/, so the same manifests work unchanged once Rancher manages
 # this cluster later. Mirrors apps/secret/scripts/start.sh.
 #
-# The cluster comes up empty. Next:
-#   moon run network:apply      # install Fleet + apply the bundles
-#   moon run network:bootstrap  # seed operator-oauth + extract OIDC issuer/JWKS
+# `start` now runs the full bring-up end-to-end: create the cluster, seed the
+# Tailscale operator OAuth client (network:tailscale_auth — breaks the operator/ESO
+# chicken-and-egg), then install Fleet + apply every bundle (network:apply).
 #
 # Idempotent: creates the cluster, or just reconnects if it already exists.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+CHARTS_DIR="${REPO_ROOT}/third_party/vendir/charts"
 CLUSTER_NAME="${NETWORK_CLUSTER_NAME:-network}"
+FLEET_SYSTEM_NS="cattle-fleet-system"
+FLEET_NS="fleet-local"
 
 require() { command -v "$1" >/dev/null 2>&1 || {
   echo "ERROR: '$1' is required but not found" >&2
@@ -21,6 +26,8 @@ require() { command -v "$1" >/dev/null 2>&1 || {
 require vcluster
 require kubectl
 require jq
+require helm
+require fleet
 
 # vind uses the docker driver: a standalone vcluster running in its own Docker
 # container rather than nested inside a host cluster. Selecting the driver is a
@@ -50,22 +57,54 @@ done
 echo "==> Waiting for the node to become Ready"
 kubectl wait --for=condition=Ready nodes --all --timeout=180s
 
-# Precautionary qemu/binfmt registration on arm64 hosts (Apple Silicon): the vind
-# node is arm64, and while every operator/app image this cluster runs (tailscale,
-# cert-manager, external-secrets, external-dns, the official multi-arch mongo image,
-# and mbentley/omada-controller) is multi-arch, registering amd64 emulation is a
-# harmless idempotent no-op that de-risks any future amd64-only image. Unlike
-# `secret`, network deploys no terranetes (the amd64-only image that made this
-# mandatory there).
-HOST_ARCH="$(uname -m)"
-if [[ "${HOST_ARCH}" = "arm64" ]] || [[ "${HOST_ARCH}" = "aarch64" ]]; then
-  if command -v docker >/dev/null 2>&1; then
-    echo "==> arm64 host: registering qemu/binfmt for amd64 (precautionary)"
-    docker run --privileged --rm tonistiigi/binfmt:qemu-v9.2.2 --install amd64 >/dev/null 2>&1 ||
-      echo "WARN: qemu/binfmt registration failed; only matters for amd64-only images"
-  fi
-fi
+# No qemu/binfmt registration: every operator/app image this cluster runs (tailscale,
+# cert-manager, external-secrets, external-dns, the Percona MongoDB operator + server,
+# crossplane + provider-upjet-tailscale, and mbentley/omada-controller) is multi-arch
+# (arm64), so no amd64 emulation is needed on this host.
 
 CURRENT_CONTEXT="$(kubectl config current-context)"
 echo "==> Cluster ready; kubectl context: ${CURRENT_CONTEXT}"
-echo "==> Next: moon run network:apply"
+
+# Seed the Tailscale operator OAuth client BEFORE apply, so the operator finds
+# operator-oauth on first start and can bring up the tailnet egress ESO needs.
+echo "==> Seeding the Tailscale operator OAuth client (scripts/tailscale_auth.sh)"
+"${SCRIPT_DIR}/tailscale_auth.sh"
+
+# ── Install the Fleet controller + label THIS cluster ─────────────────────────
+# Done HERE (not in apply.sh) while the kube-context is known-good: start.sh has just
+# run `vcluster connect "${CLUSTER_NAME}"`, so the active context is guaranteed to be
+# this cluster. Labelling used to live in apply.sh, but it keyed off the ambient
+# kubeconfig context — if an external tool switched the active context, apply could
+# stamp cluster.vgijssel.nl/name onto the WRONG cluster and make the two vind clusters
+# collide (a cross-cluster clobber that took OpenBao down once). apply.sh now only
+# verifies this label and refuses to run on a mismatch.
+#
+# Single-cluster mode: the same cluster is both Fleet manager and agent (the
+# fleet-local workspace / `local` cluster). Charts are vendored + pinned under
+# third_party/vendir/charts. Idempotent (helm upgrade --install; label --overwrite).
+echo "==> Installing fleet-crd (CustomResourceDefinitions)"
+helm upgrade --install fleet-crd "${CHARTS_DIR}/fleet-crd" \
+  --namespace "${FLEET_SYSTEM_NS}" --create-namespace --wait
+
+echo "==> Installing fleet controller (single-cluster mode)"
+helm upgrade --install fleet "${CHARTS_DIR}/fleet" \
+  --namespace "${FLEET_SYSTEM_NS}" --wait
+
+echo "==> Waiting for fleet-controller to be Available"
+kubectl -n "${FLEET_SYSTEM_NS}" rollout status deploy/fleet-controller --timeout=180s
+
+# The fleet-controller bootstraps the local agent, which registers a `local`
+# cluster in the fleet-local namespace a few seconds after it comes up.
+echo "==> Waiting for the local cluster to register"
+for _ in $(seq 1 60); do
+  if kubectl get clusters.fleet.cattle.io -A 2>/dev/null | grep -qw local; then break; fi
+  sleep 2
+done
+
+echo "==> Labeling the local Fleet cluster: cluster.vgijssel.nl/name=${CLUSTER_NAME}"
+kubectl -n "${FLEET_NS}" label clusters.fleet.cattle.io local \
+  cluster.vgijssel.nl/name="${CLUSTER_NAME}" --overwrite >/dev/null
+
+# End-to-end: apply every bundle. apply.sh verifies the label above, then pushes bundles.
+echo "==> Applying Fleet bundles (scripts/apply.sh)"
+exec "${SCRIPT_DIR}/apply.sh"

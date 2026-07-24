@@ -1,9 +1,0 @@
-apiVersion: v2
-name: mongodb
-description: Single-node MongoDB backing the Omada controller (network cluster)
-version: 1.0.0
-appVersion: 8.0.26
-dependencies:
-  - name: mongodb
-    version: 0.7.9
-    repository: file://../../../../third_party/vendir/charts/mongodb

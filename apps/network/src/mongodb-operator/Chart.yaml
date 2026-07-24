@@ -1,0 +1,15 @@
+apiVersion: v2
+name: mongodb-operator
+description: Percona Server for MongoDB Operator (network cluster) — generates MongoDB creds in-cluster
+version: 1.0.0
+appVersion: 1.23.0
+# Fleet resolves these file:// dependencies against the vendir-vendored charts at
+# bundle-build time. The CRDs are a SEPARATE chart since Percona 1.22 (see values.yaml
+# for how the operator's own bundled crds/ dir is reconciled with the crds chart).
+dependencies:
+  - name: psmdb-operator-crds
+    version: 1.23.0
+    repository: file://../../../../third_party/vendir/charts/psmdb-operator-crds
+  - name: psmdb-operator
+    version: 1.23.0
+    repository: file://../../../../third_party/vendir/charts/psmdb-operator

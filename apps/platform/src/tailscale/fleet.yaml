@@ -17,9 +17,9 @@ helm:
 # selected on the cluster.vgijssel.nl/name label their apply.sh sets. Declaring
 # targetCustomizations replaces Fleet's implicit "deploy everywhere" target, so a
 # cluster only gets a BundleDeployment if it matches a selector here. The operator
-# registers under a per-cluster device hostname; `secret` inherits the base
-# values.yaml (secret-operator) unchanged — keeping its rendered output byte-for-byte
-# identical — while `network` overrides only the hostname.
+# registers under a per-cluster device hostname; each target sets `hostname` and its
+# tags EXPLICITLY so neither relies on the base values.yaml default (a per-cluster
+# identity inherited from a shared default is a drift/collision risk).
 targetCustomizations:
   - name: secret
     clusterSelector:
@@ -33,8 +33,9 @@ targetCustomizations:
           # directional and each cluster's OAuth client is an independent root of
           # trust. The operator's client (kv/secret-tailscale-operator) owns
           # tag:secret-operator, which owns tag:secret-k8s (see tailscale-config
-          # tagOwners). hostname stays secret-operator (base values.yaml).
+          # tagOwners).
           operatorConfig:
+            hostname: secret-operator
             defaultTags:
               - tag:secret-operator
           proxyConfig:
@@ -56,6 +57,7 @@ targetCustomizations:
           proxyConfig:
             defaultTags: tag:network-k8s
           # NOTE: the operator's built-in kube-apiserver ProxyConfig (previously mode:
-          # noauth, T17) was removed in T19. OpenBao no longer fetches this cluster's JWKS
-          # via the operator's .ts.net proxy — it uses the dedicated apiserver-proxy bundle
-          # (api.network.vgijssel.nl, valid public LE cert). See apps/network/src/apiserver-proxy.
+          # noauth, T17) was removed in T19. OpenBao fetches this cluster's JWKS via the
+          # dedicated api-network kube-apiserver ProxyGroup at api-network.tail2c33e2.ts.net
+          # (Tailscale-native *.ts.net cert, no cert-manager). See
+          # apps/network/src/tailscale-proxygroup/proxygroup-apiserver.yaml.

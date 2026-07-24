@@ -1,6 +1,0 @@
-dependencies:
-- name: mongodb
-  repository: file://../../../../third_party/vendir/charts/mongodb
-  version: 0.7.9
-digest: sha256:be01bbd533aa58e30366776e1eb303fced17abdf366e9a14d86954ead612129f
-generated: "2026-07-19T22:51:46.547421+02:00"

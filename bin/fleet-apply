@@ -10,8 +10,9 @@
 # Cluster targeting is the ONLY deploy gate. Every bundle is applied (its Bundle
 # object is created) regardless of cluster; each fleet.yaml's targetCustomizations +
 # clusterSelector on cluster.vgijssel.nl/name decide whether the current cluster
-# gets a BundleDeployment. So a bundle meant for another cluster (e.g.
-# platform-terranetes -> network only) is applied here but produces no deployment.
+# gets a BundleDeployment. So a bundle meant for another cluster (e.g. a
+# network-only bundle when running on the secret cluster) is applied here but
+# produces no deployment.
 # Runtime ordering comes from dependsOn label selectors, not apply order.
 #
 # CWD is the repo root so Fleet resolves umbrella `file://` chart dependencies

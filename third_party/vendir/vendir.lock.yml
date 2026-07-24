@@ -98,22 +98,22 @@ directories:
   path: charts/openbao
 - contents:
   - helmChart:
-      appVersion: v0.5.7
-      version: v0.8.6
-    path: .
-  path: charts/terranetes-controller
-- contents:
-  - helmChart:
       appVersion: 6.2.14.11
       version: 1.4.1
     path: .
   path: charts/omada-controller-helm
 - contents:
   - helmChart:
-      appVersion: 8.0.26
-      version: 0.7.9
+      appVersion: 1.23.0
+      version: 1.23.0
     path: .
-  path: charts/mongodb
+  path: charts/psmdb-operator
+- contents:
+  - helmChart:
+      appVersion: 1.23.0
+      version: 1.23.0
+    path: .
+  path: charts/psmdb-operator-crds
 - contents:
   - helmChart:
       appVersion: 2.3.3

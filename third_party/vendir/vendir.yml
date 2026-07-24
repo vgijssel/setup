@@ -129,14 +129,6 @@ directories:
           version: 0.28.4
           repository:
             url: https://openbao.github.io/openbao-helm
-  - path: charts/terranetes-controller
-    contents:
-      - path: .
-        helmChart:
-          name: terranetes-controller
-          version: v0.8.6
-          repository:
-            url: https://terranetes-controller.appvia.io
   # TP-Link Omada SDN controller (network cluster). OCI chart from Docker Hub;
   # appVersion 6.2.14.11. Runs rootless against an EXTERNAL MongoDB (see below).
   - path: charts/omada-controller-helm
@@ -147,18 +139,28 @@ directories:
           version: 1.4.1
           repository:
             url: oci://registry-1.docker.io/mbentley
-  # External MongoDB for the Omada controller. groundhog2k's chart wraps the
-  # OFFICIAL multi-arch `mongo` image (arm64-native, freely pullable) rather than
-  # the Bitnami image that was relicensed/gated in 2025 (SPEC R6). appVersion
-  # 8.0.26 (MongoDB 8.0 LTS), which the Omada 6.2 external-MongoDB path supports.
-  - path: charts/mongodb
+  # Percona Server for MongoDB Operator (network cluster). Provides the EXTERNAL
+  # MongoDB for Omada: the operator GENERATES MongoDB credentials in-cluster
+  # (no OpenBao path for Mongo). Pinned 1.23.0 — the first release shipping native arm64
+  # for ALL images (earlier operators are amd64-only). Since 1.22 the CRDs are a separate
+  # chart (psmdb-operator-crds), vendored alongside so the operator + CRDs install as one
+  # umbrella bundle (apps/network/src/mongodb-operator).
+  - path: charts/psmdb-operator
     contents:
       - path: .
         helmChart:
-          name: mongodb
-          version: 0.7.9
+          name: psmdb-operator
+          version: 1.23.0
           repository:
-            url: https://groundhog2k.github.io/helm-charts/
+            url: https://percona.github.io/percona-helm-charts
+  - path: charts/psmdb-operator-crds
+    contents:
+      - path: .
+        helmChart:
+          name: psmdb-operator-crds
+          version: 1.23.0
+          repository:
+            url: https://percona.github.io/percona-helm-charts
   # Crossplane core (v2). Reconciles the OpenBao config via upbound/provider-vault
   # over OpenBao's Kubernetes auth method, replacing terranetes in apps/secret.
   # Pinned to match provider-vault v4.0.0 (which targets crossplane-runtime/v2).
