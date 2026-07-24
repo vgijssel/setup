@@ -2,7 +2,7 @@ r"""Read PiKVM secrets from OpenBao (``apps/secret``) via the Vault/hvac SDK.
 
 This is the single seam for secrets in ``apps/pikvm``. ``deploy.py`` calls
 :func:`get_secrets` directly -- there is no bash wrapper. Values come from the KV v2
-engine ``kv`` at path ``pikvm`` (see ``apps/pikvm/SPEC.md`` 3):
+engine ``kv`` at path ``pikvm``:
 
     kv/pikvm  netbird_setup_key, admin_password, root_password
 
