@@ -16,7 +16,7 @@ tasks:
       cache: true
 
   lint:
-    command: uv run ruff check .
+    command: uv run --all-extras ruff check .
     inputs:
       - "@files(python_sources)"
       - "@files(python_tests)"
