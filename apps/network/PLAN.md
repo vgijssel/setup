@@ -99,7 +99,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
     policy unchanged (checkpoint after P3, exercised in P9).
   - Files: `apps/network/src/tailscale-config/acl-tailnet.yaml`.
 
-- [ ] **T3.3: Bundle + remove the OpenTofu module.**
+- [x] **T3.3: Bundle + remove the OpenTofu module.**
   - Acceptance: `apps/network/src/tailscale-config/fleet.yaml` `dependsOn` crossplane-provider,
     network-targeted. Delete `main.tf`, `provider.tf`, `variables.tf`, `versions.tf`,
     `.terraform*`, `.terraform.lock.hcl`, `.gitignore` from that dir.
