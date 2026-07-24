@@ -1,7 +1,0 @@
----
-- hosts: pikvm
-  roles:
-    - role: common
-      tags: common
-    - role: pikvm
-      tags: pikvm

@@ -1,8 +1,0 @@
-ansible_remote_tmp: /tmp/.ansible/tmp
-ansible_remote_parent_tmp: /tmp/.ansible
-gateway: 192.168.1.1
-nameservers:
-  - 192.168.1.1
-
-architecture_mapping:
-  aarch64: arm64

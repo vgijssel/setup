@@ -1,4 +1,0 @@
----
-- import_playbook: provisioner.yml
-- import_playbook: pikvm.yml
-- import_playbook: provisioner-k8s.yml
