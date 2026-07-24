@@ -68,7 +68,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
   - Verify: manifest validates; name matches the ProviderConfig expectations.
   - Files: `apps/network/src/crossplane-provider/deploymentruntimeconfig-provider-tailscale.yaml`.
 
-- [ ] **T2.2: Provider manifest + bundle.**
+- [x] **T2.2: Provider manifest + bundle.**
   - Acceptance: `provider-tailscale.yaml` pins `ghcr.io/millstonehq/provider-tailscale:v0.1.0@sha256:…`
     (from T0.2) with `runtimeConfigRef` → T2.1; `fleet.yaml` `dependsOn` the crossplane bundle,
     network-targeted.
