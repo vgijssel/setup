@@ -1,0 +1,9 @@
+dependencies:
+- name: psmdb-operator-crds
+  repository: file://../../../../third_party/vendir/charts/psmdb-operator-crds
+  version: 1.23.0
+- name: psmdb-operator
+  repository: file://../../../../third_party/vendir/charts/psmdb-operator
+  version: 1.23.0
+digest: sha256:4b198a0e9f75c3fd6e6cc20336e8ff5c3ef74f01ff8218ae5991479eccb59105
+generated: "2026-07-24T11:45:08.727159+02:00"

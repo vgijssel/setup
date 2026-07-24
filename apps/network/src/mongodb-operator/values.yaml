@@ -1,0 +1,22 @@
+# Percona Server for MongoDB Operator. Values are nested under each dependency key.
+#
+# CRD ownership: the operator subchart (psmdb-operator) ships the 4 psmdb.percona.com
+# CRDs in its crds/ dir, which Helm installs on first apply (and never deletes on
+# uninstall). The psmdb-operator-crds subchart ALSO ships them — as TEMPLATES — so they
+# carry `helm.sh/resource-policy: keep` and become upgradable. To let the template CRDs
+# ADOPT the crds/-preinstalled ones instead of colliding, the Fleet bundle sets
+# helm.takeOwnership: true (fleet.yaml). Both are pinned 1.23.0 so the content is identical.
+psmdb-operator-crds:
+  # keep the CRDs (and all PerconaServerMongoDB data) if the bundle is ever GC'd.
+  preserveCrds: true
+
+psmdb-operator:
+  # Pin the operator image explicitly (matches the chart default; keeps the pin visible).
+  image:
+    repository: percona/percona-server-mongodb-operator
+    tag: 1.23.0
+  # Namespaced mode: watch only the operator's OWN namespace (mongodb, set as the bundle
+  # defaultNamespace). The single PerconaServerMongoDB CR (src/mongodb) lives there.
+  watchAllNamespaces: false
+  # No phone-home from the home-lab operator.
+  disableTelemetry: true

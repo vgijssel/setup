@@ -110,7 +110,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P4 — Percona operator install (network)
 
-- [ ] **T4.1: Add the `mongodb-operator` bundle.**
+- [x] **T4.1: Add the `mongodb-operator` bundle.**
   - Acceptance: `apps/network/src/mongodb-operator/{Chart.yaml,values.yaml,fleet.yaml}` install
     `psmdb-operator` 1.23.0 (+ CRDs chart), operator image pinned `1.23.0`, sharding/PMM defaults
     off; network-targeted; `watchAllNamespaces` (or scoped) set so it manages the CR in the mongodb ns.

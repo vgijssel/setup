@@ -1,0 +1,23 @@
+# Portable Fleet bundle: the Percona Server for MongoDB Operator + its CRDs. Fleet detects
+# the umbrella Chart.yaml here and deploys it with values.yaml into the mongodb namespace.
+# The mongodb bundle (the PerconaServerMongoDB CR) and the mongodb secretstore bundle both
+# dependsOn this bundle (label below) so the operator + CRDs exist before the CR applies.
+#
+# takeOwnership: the operator subchart installs the 4 psmdb.percona.com CRDs from its crds/
+# dir (Helm crds/ is install-only and un-annotated); the psmdb-operator-crds subchart ships
+# the same CRDs as templates (with resource-policy: keep). takeOwnership lets the template
+# apply ADOPT the crds/-preinstalled CRDs rather than fail the release on the ownership
+# check. Both are pinned 1.23.0, so adoption is a content no-op.
+labels:
+  fleet.vgijssel.nl/bundle: mongodb-operator
+defaultNamespace: mongodb
+helm:
+  releaseName: mongodb-operator
+  takeOwnership: true
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
+# cluster explicitly — the Percona operator must not deploy on the secret cluster.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
