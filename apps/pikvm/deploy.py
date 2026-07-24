@@ -72,7 +72,7 @@ def _fingerprint(*values: str) -> str:
 # ── Root SSH authorized key (bootstrap — must run FIRST) ─────────────────────────
 # Authorize the operator SSH public key for root so the box stays reachable over the
 # LAN (192.168.1.31) with key auth as a fallback. This runs before NetBird so that if
-# bringing the overlay up blips the Tailscale session the apply is running over, the
+# the overlay/NetBird bring-up blips the network session the apply is running over, the
 # operator can reconnect over the LAN and re-run. rw-guarded and idempotent.
 #
 # We render authorized_keys to EXACTLY this one key (files.put of the full content), so
@@ -133,10 +133,10 @@ if ssh_key_needs_rw:
 # so we treat {0,100} as success and only then reboot; 101 (or anything else) aborts
 # the apply with the rootfs left rw for inspection, exactly as the updater intends.
 #
-# CONNECTIVITY: pikvm-update restarts tailscaled + runs `tailscale up` near the end, so
-# it must NOT run over the Tailscale session (it would sever itself mid-upgrade). Run
-# over the LAN inventory (the bootstrap root key above enables LAN key-auth). This is a
-# large, major-version upgrade; a failed run can need physical recovery (see the docs).
+# CONNECTIVITY: this is a large, major-version upgrade that restarts core services and
+# can briefly disrupt the network session the apply runs over. It runs under a detached
+# systemd unit (below) so a dropped session cannot kill it mid-transaction; prefer the
+# LAN inventory for the first run. A failed upgrade can need physical recovery (docs).
 
 _pending_upgrades = (
     host.get_fact(Command, command="pacman -Qu 2>/dev/null | wc -l") or "0"
@@ -145,11 +145,11 @@ os_update_needed = _pending_upgrades.isdigit() and int(_pending_upgrades) > 0
 
 if os_update_needed:
     # Run the upgrade under a transient systemd unit (systemd-run --wait), NOT directly
-    # over SSH. pikvm-update restarts tailscaled near the end, which can sever the very
-    # session we run over; a detached unit keeps upgrading regardless, so a dropped
-    # connection can never kill pacman mid-transaction. --wait blocks and propagates the
-    # unit's result while the session is alive; if the session drops the unit finishes
-    # on the box anyway and we simply re-run the apply (pending upgrades -> 0 -> skipped).
+    # over SSH. The upgrade restarts core services and can sever the session we run over;
+    # a detached unit keeps upgrading regardless, so a dropped connection can never kill
+    # pacman mid-transaction. --wait blocks and propagates the unit's result while the
+    # session is alive; if the session drops the unit finishes on the box anyway and we
+    # simply re-run the apply (pending upgrades -> 0 -> skipped).
     #
     # SuccessExitStatus=100 maps pikvm-update's "applied, reboot required" (--no-reboot)
     # onto systemd success, so the op passes for exit 0 or 100 and only fails for 101

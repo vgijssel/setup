@@ -3,7 +3,10 @@
 Migrate the PiKVM host from Tailscale to NetBird, managed with **pyinfra** (Python,
 installed via **uv**) and wired into **Moon**. Replaces the Ansible-based PiKVM
 provisioning path (`apps/provisioner` `pikvm.yml`) for the NetBird + admin-password +
-static-IP concerns. Tailscale stays installed during the transition.
+static-IP concerns. Tailscale has since been fully removed from the PiKVM (packages
+`tailscale` + `tailscale-pikvm`, its state/config, and the `apps/provisioner` role) —
+NetBird is now the sole overlay. They cannot coexist on the host: both use
+`100.64.0.0/10`, and Tailscale's anti-spoof firewall drops NetBird's inbound traffic.
 
 ## 1. Objective
 
@@ -19,18 +22,19 @@ its core config in git.
   2. Sets the **PiKVM web admin password** (`admin`) and the **system root password**.
   3. Assigns a **static IPv4** to the PiKVM (default `192.168.1.31`).
 - **Two entry points**, differing only in how the host is reached:
-  - `moon run pikvm:apply` — targets the PiKVM over the network (NetBird/Tailscale
-    hostname). Used for ongoing management once the box is reachable.
+  - `moon run pikvm:apply` — targets the PiKVM over the network (NetBird IP/name).
+    Used for ongoing management once the box is on NetBird.
   - `moon run pikvm:apply_local` — targets the PiKVM directly at its **LAN IP**
-    (default `192.168.1.31`). Used for the **first** apply, when the box is not yet on
-    NetBird or Tailscale.
+    (default `192.168.1.31`). Used for the **first** apply, when the box is not yet
+    reachable over NetBird.
 - **Secrets** come from the **OpenBao** instance in `apps/secret`
   (`https://openbao.secret.vgijssel.nl`) — the NetBird setup key, the PiKVM admin
   password, and the root password all live there. The pyinfra script reads them at
   execution time via the **OpenBao/Vault Python SDK (`hvac`)**, not a shell wrapper.
-- **Non-goals:** does not manage the NetBird server/ACLs; does not remove Tailscale (kept
-  in parallel for now); does not port the Ansible `common` role or `/etc/kvmd/meta.yaml`
-  generation (those stay in `apps/provisioner` for now).
+- **Non-goals:** does not manage the NetBird server/ACLs (access policies — a group
+  covering the PiKVM + client peers — are configured in the NetBird dashboard); does not
+  port the Ansible `common` role or `/etc/kvmd/meta.yaml` generation (those stay in
+  `apps/provisioner` for now).
 
 ## 2. Commands
 
@@ -38,7 +42,7 @@ All commands run from the repo root via Moon; `bao`, `uv`, and friends come from
 
 | Command | Purpose |
 |---|---|
-| `moon run pikvm:apply` | Run pyinfra against the PiKVM over the network. Host = `$PIKVM_HOST` (default `pikvm.tail2c33e2.ts.net`; switch to the NetBird name once known). |
+| `moon run pikvm:apply` | Run pyinfra against the PiKVM over the network. Host = `$PIKVM_HOST` (default `100.65.192.152`, the PiKVM's NetBird IP). |
 | `moon run pikvm:apply_local` | Run pyinfra against the PiKVM at its LAN IP. Host = `$PIKVM_LOCAL_IP` (default `192.168.1.31`). Use for the first apply. |
 | `moon run pikvm:apply -- --dry` | Dry-run / diff against the remote host (pyinfra `--dry`), no changes made. |
 | `moon run pikvm:apply_local -- --dry` | Dry-run against the LAN host. |
@@ -54,7 +58,7 @@ to the PiKVM as `root`.
 
 ### Overridable inputs (env vars)
 
-- `PIKVM_HOST` — network target for `apply` (default `pikvm.tail2c33e2.ts.net`).
+- `PIKVM_HOST` — network target for `apply` (default `100.65.192.152`, the PiKVM's NetBird IP).
 - `PIKVM_LOCAL_IP` — LAN target for `apply_local` (default `192.168.1.31`).
 - `PIKVM_STATIC_IP` — static IP to assign to the box (default `192.168.1.31`).
 - `PIKVM_SSH_USER` — SSH user (default `root`).
@@ -164,10 +168,8 @@ Infra app — "tests" are validation, not unit tests against live hardware:
 - Keep every operation idempotent and re-runnable.
 - Toggle `rw`/`ro` around writes and persist NetBird state to `/root/netbird-state`.
 - Pull the setup key + passwords from OpenBao at runtime; pin all deps exactly.
-- Keep Tailscale installed and functional during the migration.
 
 **Ask first**
-- Removing/uninstalling Tailscale or dropping the `tailscale` role from the PiKVM path.
 - Changing the static IP away from `192.168.1.31`, or anything that could drop the box off
   the network mid-apply (IP change ordering vs. connectivity).
 - Introducing a self-hosted NetBird management URL or new OpenBao paths/mounts.
@@ -218,19 +220,25 @@ Verify:
 
 ### 8.2 Cutover to the network target + idempotency
 
-Once the box answers on NetBird, point `apply` at its NetBird name/IP and confirm it is a
-no-op:
+Once the box answers on NetBird, run `apply` against its NetBird IP (the default) and
+confirm it is a no-op:
 
 ```bash
-export PIKVM_HOST=<netbird-name-or-100.x>     # default is the Tailscale name
+# PIKVM_HOST defaults to 100.65.192.152 (the PiKVM's NetBird IP); override if it changed.
 moon run pikvm:apply -- --dry                  # MUST show an empty diff (idempotent)
 moon run pikvm:apply                           # first run
 moon run pikvm:apply                           # second run MUST report no changes
 ```
 
+**NetBird reachability prerequisite:** the client and the PiKVM must be in a NetBird
+group covered by an enabled access policy (peers with no group are default-denied).
+Configure this in the NetBird dashboard — it is not managed here.
+
 ### 8.3 Boundary confirmations (SPEC §7)
 
-- `tailscale status` on the box is still healthy — Tailscale is kept in parallel, not removed.
-- No NetBird server-side config (ACLs, groups, key lifecycle) was touched — this app only
-  runs `netbird up --setup-key` against the default management URL.
+- Tailscale is fully removed from the PiKVM (`tailscale`/`tailscale-pikvm` packages,
+  state, and the `apps/provisioner` role) — NetBird is the sole overlay. It could not
+  run alongside NetBird (shared `100.64.0.0/10`; Tailscale's firewall dropped NetBird).
+- No NetBird server-side config (ACLs, groups, key lifecycle) was touched by this app —
+  it only runs `netbird up --setup-key` against the default management URL.
 - CI still runs only `pikvm:lint` + `pikvm:install` (`apply*` are `runInCI: false`).

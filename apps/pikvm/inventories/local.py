@@ -1,7 +1,7 @@
 """LAN inventory: target the PiKVM directly at its local IP.
 
 Used by ``moon run pikvm:apply_local`` for the first apply, when the box is not yet
-on NetBird or Tailscale.
+reachable over NetBird.
 """
 
 import os
