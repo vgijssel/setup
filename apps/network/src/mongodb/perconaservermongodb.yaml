@@ -15,19 +15,20 @@
 # The mongodb SecretStore (secretstore-mongodb.yaml) + omada ExternalSecret (T6.1) read the
 # conn-str Secret.
 #
-# KERNEL-GUARD NOTE: pinned to the latest stable percona/percona-server-mongodb:8.0.26-11.
-# Percona's build likely lacks the community SERVER-121912 kernel guard that broke
-# mongo:8.0.26 on OrbStack/vind (misreads the kernel version and refuses to start). This is
-# VALIDATED live during bring-up (P9): if any rs0 member logs a SERVER-121912 / kernel
-# refusal, fall back to image percona/percona-server-mongodb:7.0.37-20 (the 7.0 series
-# predates the guard) and re-apply.
+# KERNEL-GUARD NOTE: fell back to percona/percona-server-mongodb:7.0.37-20. The latest
+# stable 8.0.26-11 DID carry the community SERVER-121912 kernel guard: on this arm64
+# vind/OrbStack node the mongod container exited 1 immediately with ZERO stdout (only the
+# mongo-init container logged), the classic fast-exit kernel-version refusal. Validated
+# live during bring-up (P9). The 7.0 series predates the guard, so 7.0.37-20 starts
+# cleanly — mirrors the old mongo:8.0.4 workaround. Re-pin to an 8.0 build only once a
+# release ships without the guard AND it is re-validated on this node.
 apiVersion: psmdb.percona.com/v1
 kind: PerconaServerMongoDB
 metadata:
   name: mongodb
 spec:
   crVersion: 1.23.0
-  image: percona/percona-server-mongodb:8.0.26-11
+  image: percona/percona-server-mongodb:7.0.37-20
   imagePullPolicy: IfNotPresent
   updateStrategy: SmartUpdate
   # Never auto-upgrade the DB image (pinned); no scheduled version checks act on it.
@@ -38,21 +39,34 @@ spec:
   secrets:
     users: mongodb-secrets
   # A 3-member replica set (safe size — no unsafeFlags needed). Per-member PVCs.
+  # antiAffinityTopologyKey: none — this is a SINGLE-NODE vind cluster, so the operator's
+  # default hostname anti-affinity (one member per node) leaves rs0-1/rs0-2 unschedulable
+  # ("didn't match pod anti-affinity rules"). Allow co-scheduling all 3 members on the one
+  # node; the replica set still elects a primary and Omada gets real 3-member semantics.
   replsets:
     - name: rs0
       size: 3
+      affinity:
+        antiAffinityTopologyKey: none
       volumeSpec:
         persistentVolumeClaim:
           resources:
             requests:
               storage: 2Gi
   # Home-lab minimal footprint: no sharding, no backups, no PMM monitoring.
+  # NOTE: the 1.23.0 CRD requires backup.image and pmm.image even when the feature is
+  # disabled (admission rejects the CR otherwise: "spec.pmm.image: Required value,
+  # spec.backup.image: Required value"). Pin the exact images operator 1.23.0 ships
+  # (deploy/cr.yaml @ v1.23.0); both are multi-arch/arm64. They are never pulled while
+  # enabled: false — they only satisfy CRD validation.
   sharding:
     enabled: false
   backup:
     enabled: false
+    image: percona/percona-backup-mongodb:2.15.0
   pmm:
     enabled: false
+    image: percona/pmm-client:3.8.1
   # Custom application user for Omada. No passwordSecretRef → the operator auto-generates
   # the password (into mongodb-custom-user-secret) and the connection strings (into
   # mongodb-custom-user-secret-conn-str). dbOwner on the `omada` database; authenticates
