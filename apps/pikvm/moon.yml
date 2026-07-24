@@ -1,0 +1,50 @@
+language: python
+layer: application
+tags:
+  - python
+  - pikvm
+  - netbird
+  - pyinfra
+
+# The inherited `python` tag tasks assume a src/ package with pytest; this project
+# is a script-style pyinfra deploy validated by lint + `uv sync` (SPEC §6).
+workspace:
+  inheritedTasks:
+    exclude:
+      - build
+      - test
+
+tasks:
+  install:
+    command: uv sync
+    inputs:
+      - pyproject.toml
+      - uv.lock
+    options:
+      cache: true
+
+  lint:
+    command: uv run ruff check .
+    inputs:
+      - "*.py"
+      - inventories/*.py
+      - pyproject.toml
+      - uv.lock
+    options:
+      cache: true
+
+  # apply* SSH into a live host, read OpenBao, and mutate it -- never in CI.
+  # Passthrough args are forwarded to pyinfra: `moon run pikvm:apply -- --dry`.
+  apply:
+    command: uv run pyinfra inventories/production.py deploy.py
+    options:
+      cache: false
+      runInCI: false
+      interactive: true
+
+  apply_local:
+    command: uv run pyinfra inventories/local.py deploy.py
+    options:
+      cache: false
+      runInCI: false
+      interactive: true

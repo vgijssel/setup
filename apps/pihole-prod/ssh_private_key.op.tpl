@@ -1,1 +1,0 @@
-{{ op://setup-pihole-prod/ssh_key/private key?ssh-format=openssh }}

@@ -1,0 +1,13 @@
+[Unit]
+Description=Setup tmpfs overlay for NetBird
+After=local-fs.target tmp.mount
+Before=netbird@netbird.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-netbird-overlay.sh
+ExecStop=/bin/sh -c 'cp -a /tmp/netbird-state/. /root/netbird-state/'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
