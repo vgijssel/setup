@@ -159,6 +159,28 @@ directories:
           version: 0.7.9
           repository:
             url: https://groundhog2k.github.io/helm-charts/
+  # Percona Server for MongoDB Operator (network cluster). Replaces the single-node
+  # groundhog2k `mongodb` chart: the operator GENERATES MongoDB credentials in-cluster
+  # (no OpenBao path for Mongo). Pinned 1.23.0 — the first release shipping native arm64
+  # for ALL images (earlier operators are amd64-only). Since 1.22 the CRDs are a separate
+  # chart (psmdb-operator-crds), vendored alongside so the operator + CRDs install as one
+  # umbrella bundle (apps/network/src/mongodb-operator).
+  - path: charts/psmdb-operator
+    contents:
+      - path: .
+        helmChart:
+          name: psmdb-operator
+          version: 1.23.0
+          repository:
+            url: https://percona.github.io/percona-helm-charts
+  - path: charts/psmdb-operator-crds
+    contents:
+      - path: .
+        helmChart:
+          name: psmdb-operator-crds
+          version: 1.23.0
+          repository:
+            url: https://percona.github.io/percona-helm-charts
   # Crossplane core (v2). Reconciles the OpenBao config via upbound/provider-vault
   # over OpenBao's Kubernetes auth method, replacing terranetes in apps/secret.
   # Pinned to match provider-vault v4.0.0 (which targets crossplane-runtime/v2).

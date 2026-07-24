@@ -31,14 +31,16 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P0 — Prerequisites & vendored charts
 
-- [ ] **T0.1: Vendor the Percona operator Helm chart(s).**
+- [x] **T0.1: Vendor the Percona operator Helm chart(s).**
   - Acceptance: `psmdb-operator` **1.23.0** and its split CRD chart `psmdb-operator-crds` **1.23.0**
     are vendored under the repo's chart-vendoring path (mirror how `crossplane-2.3.3.tgz` /
     `openbao-0.28.4.tgz` are vendored). Versions pinned exactly.
   - Verify: `helm template` renders the operator with image tag `1.23.0`; chart digests committed.
   - Files: `third_party/vendir/charts/psmdb-operator*` (+ vendir config), lockfiles.
 
-- [ ] **T0.2: Resolve the provider image digest.**
+- [x] **T0.2: Resolve the provider image digest.**
+  - RESOLVED: `ghcr.io/millstonehq/provider-tailscale:v0.1.0@sha256:71b2e9b3a664d4bbb6c5708176cb0f19cd20ae8e8bf2edcc6bc07bb3faa5c599`
+    (multi-arch index digest; `linux/arm64` platform manifest present). Used in T2.2.
   - Acceptance: the multi-arch (arm64) digest of `ghcr.io/millstonehq/provider-tailscale:v0.1.0`
     is captured for pinning (`tag@sha256:…`).
   - Verify: `docker buildx imagetools inspect ghcr.io/millstonehq/provider-tailscale:v0.1.0`
