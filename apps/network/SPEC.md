@@ -67,13 +67,16 @@ are not usable as a raw bearer). **Therefore auth is a static Tailscale API acce
 ## Commands
 
 ```bash
-# Lifecycle (Moon; run from repo root)
-moon run network:start        # create/reconnect the vind cluster "network"
-moon run network:apply        # install Fleet + apply all bundles (Crossplane, no Terranetes)
-moon run network:bootstrap    # seed operator-oauth + the Tailscale api_key into OpenBao (uses VAULT_TOKEN from .env)
-moon run network:stop         # delete the vind cluster
+# Lifecycle (Moon; run from repo root) — mirrors apps/secret
+moon run network:start          # end-to-end bring-up: create the vind cluster "network",
+                                #   run tailscale_auth, then apply all bundles
+moon run network:tailscale_auth # seed operator-oauth from the secret OpenBao (VAULT_TOKEN from .env);
+                                #   invoked by start, also runnable standalone
+moon run network:apply          # install Fleet + apply all bundles (Crossplane, no Terranetes)
+moon run network:stop           # delete the vind cluster
 
-# One-time seed of the Crossplane Tailscale API key (folded into network:bootstrap):
+# One-time seed of the Crossplane Tailscale API key (NOT part of the bring-up scripts —
+# it persists in OpenBao across cluster recreation; reseed only on ≤90d expiry):
 #   create a Tailscale API access token (policy_file write) in the admin console, then:
 VAULT_ADDR=https://openbao.secret.vgijssel.nl VAULT_TOKEN=<root-from-.env> \
   bao kv put kv/network-tailscale-crossplane api_key=tskey-api-xxxx
@@ -102,9 +105,9 @@ apps/network/
 ├── SPEC.md                       # this file
 ├── moon.yml                      # drop the `configure` task
 ├── scripts/
-│   ├── start.sh                  # unchanged
-│   ├── apply.sh                  # drop Terranetes from the network install; add crossplane bundles
-│   ├── bootstrap.sh              # use VAULT_TOKEN from .env; also seed kv/network-tailscale-crossplane
+│   ├── start.sh                  # end-to-end: create cluster → tailscale_auth → apply
+│   ├── apply.sh                  # Fleet install + bin/fleet-apply (no Terranetes)
+│   ├── tailscale_auth.sh         # seed operator-oauth from the secret OpenBao (VAULT_TOKEN from .env)
 │   └── stop.sh                   # unchanged
 └── src/
     ├── crossplane/               # NEW — Crossplane core (vendored chart, network-targeted)
@@ -205,8 +208,8 @@ recreated cluster (the change is applied directly, per the request).
   `mongodb-custom-user-secret` + `mongodb-custom-user-secret-conn-str` for the `omada` user;
   ESO materializes the `mongodb-uri` Secret in the `omada` namespace from that connection
   string; the replica set elects a primary and Omada authenticates against the `omada` database.
-- **End-to-end:** `moon run network:stop && network:start && network:apply && network:bootstrap`
-  brings the cluster up clean with Omada `Running` and no Terranetes objects present
+- **End-to-end:** `moon run network:stop && moon run network:start` (start runs tailscale_auth
+  + apply) brings the cluster up clean with Omada `Running` and no Terranetes objects present
   (`kubectl get crds | grep terraform.appvia.io` → empty on the network cluster).
 - **Secret-cluster regression:** after deleting `role-network-terranetes`, the network
   cluster's ESO still reads `kv/*` via `network-eso`; the new `network-mongodb` role permits

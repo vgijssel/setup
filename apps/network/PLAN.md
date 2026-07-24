@@ -24,7 +24,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 - **After P3:** on a scratch/live apply, the `ACL` MR is `SYNCED=True READY=True` and the live
   tailnet policy is byte-equivalent to today's (diff the admin-console policy before/after).
 - **After P6:** Percona 3-member `rs0` is `ready`, and `mongodb-uri` in `omada` resolves.
-- **After P9:** full `stop→start→apply→bootstrap` brings Omada up; no `terraform.appvia.io`
+- **After P9:** full `stop→start` (create → tailscale_auth → apply) brings Omada up; no `terraform.appvia.io`
   objects on the network cluster.
 
 ---
@@ -176,13 +176,16 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 - [x] **T7.2: Update `apply.sh` and `bootstrap.sh`.**
   - Acceptance: `apply.sh` mirrors `apps/secret/scripts/apply.sh` (Fleet install + `bin/fleet-apply`,
-    no Terranetes-specific steps, no static per-cluster bundle list dependence). `bootstrap.sh` uses
-    `VAULT_TOKEN` from `.env` (not 1Password `op`) to reach `https://openbao.secret.vgijssel.nl`, still
-    seeds `operator-oauth`, and **also** seeds `kv/network-tailscale-crossplane#api_key` (prompting the
-    operator to supply a Tailscale API access token if absent).
-  - Verify: `shellcheck` clean; dry idempotent re-run is a no-op; `bootstrap.sh` fails clearly if
-    `VAULT_TOKEN` unset or the api_key not provided.
-  - Files: `apps/network/scripts/apply.sh`, `apps/network/scripts/bootstrap.sh`.
+    no Terranetes-specific steps, no static per-cluster bundle list dependence).
+  - Verify: `shellcheck` clean; dry idempotent re-run is a no-op.
+  - Files: `apps/network/scripts/apply.sh`.
+  - SUPERSEDED (per user direction): the script layout now mirrors `apps/secret` more closely.
+    `bootstrap.sh` was renamed to `tailscale_auth.sh` and reduced to its ONE job — seed the
+    Tailscale operator OAuth client (`operator-oauth`) from the secret cluster's OpenBao
+    (`VAULT_TOKEN` from `.env`); it no longer seeds the Crossplane `api_key`. A `tailscale_auth`
+    moon task was added, and `start.sh` now runs `tailscale_auth` **before** `apply` (end-to-end
+    bring-up). The one-time `api_key` seed persists in OpenBao (out-of-band `bao kv put`), so no
+    script touches it. `shellcheck` clean; fails clearly if `VAULT_TOKEN` unset.
 
 ---
 
@@ -208,13 +211,13 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 - [ ] **T9.1: Seed the Tailscale API key (one-time).**
   - Acceptance: an admin-console Tailscale API access token with `policy_file` write is stored at
-    `kv/network-tailscale-crossplane#api_key` in OpenBao (via `bootstrap.sh` / `bao kv put` using
-    `VAULT_TOKEN`).
+    `kv/network-tailscale-crossplane#api_key` in OpenBao (via `bao kv put` using `VAULT_TOKEN`;
+    the bring-up scripts do not seed it — it persists in OpenBao).
   - Verify: `bao kv get kv/network-tailscale-crossplane` shows `api_key`.
 
 - [ ] **T9.2: Recreate the cluster and apply.**
-  - Acceptance: `moon run network:stop` → `network:start` → `network:apply` → `network:bootstrap`
-    complete without manual Terranetes steps.
+  - Acceptance: `moon run network:stop` → `network:start` (runs `tailscale_auth` + `apply`
+    end-to-end) complete without manual Terranetes steps.
   - Verify: all bundles reconcile; ESO reaches OpenBao (tailnet ACL-A already live); Crossplane +
     Percona operator healthy.
 
@@ -235,13 +238,13 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
   before/after the first apply (P3 checkpoint). Because the content is unchanged, a replace is a no-op.
 - **Chicken-and-egg on first apply.** ESO needs OpenBao to sync both `operator-oauth` and the
   `api_key`; OpenBao reachability depends on the tailnet ACL-A grant, which is **already live** from
-  the prior Terranetes state. `bootstrap.sh` seeds `operator-oauth` out-of-band to start the operator/
-  egress; then ESO + Crossplane converge. If the tailnet policy were ever lost, re-seed via the admin
-  console (documented — there is no longer a `network:configure`).
+  the prior Terranetes state. `tailscale_auth.sh` seeds `operator-oauth` out-of-band to start the
+  operator/egress; then ESO + Crossplane converge. If the tailnet policy were ever lost, re-seed via
+  the admin console (documented — there is no longer a `network:configure`).
 - **PSMDB 8.0.26 kernel guard on OrbStack/vind.** Validated in T5.1; documented fallback `7.0.37-20`.
 - **Custom-user connection-string secret keys differ from docs.** Confirm exact keys from the live
   secret in T6.1 before finalizing the ExternalSecret; template the DB path if required.
 - **Fleet atomic-release ordering.** ProviderConfig/ACL and the PSMDB CR live in bundles that
   `dependsOn` their operator/provider bundles (CRDs must exist first) — mirrors the secret cluster.
-- **Tailscale API key expiry (≤90d).** Accepted; reseed via `bootstrap.sh`. (Rotation automation is
+- **Tailscale API key expiry (≤90d).** Accepted; reseed via `bao kv put`. (Rotation automation is
   out of scope — SPEC Open Question #4.)

@@ -73,4 +73,4 @@ echo "==> Applying Fleet bundles (bin/fleet-apply — global discovery)"
 echo "==> Applied. Bundles:"
 kubectl -n "${FLEET_NS}" get bundles 2>/dev/null || true
 
-echo "==> Next: moon run network:bootstrap (seed operator-oauth + the Tailscale api_key)"
+echo "==> Applied. (network:start runs tailscale_auth before this; the api_key persists in OpenBao.)"

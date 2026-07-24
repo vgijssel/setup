@@ -5,13 +5,14 @@
 # bundles under src/, so the same manifests work unchanged once Rancher manages
 # this cluster later. Mirrors apps/secret/scripts/start.sh.
 #
-# The cluster comes up empty. Next:
-#   moon run network:apply      # install Fleet + apply the bundles
-#   moon run network:bootstrap  # seed operator-oauth + extract OIDC issuer/JWKS
+# `start` now runs the full bring-up end-to-end: create the cluster, seed the
+# Tailscale operator OAuth client (network:tailscale_auth — breaks the operator/ESO
+# chicken-and-egg), then install Fleet + apply every bundle (network:apply).
 #
 # Idempotent: creates the cluster, or just reconnects if it already exists.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_NAME="${NETWORK_CLUSTER_NAME:-network}"
 
 require() { command -v "$1" >/dev/null 2>&1 || {
@@ -50,20 +51,19 @@ done
 echo "==> Waiting for the node to become Ready"
 kubectl wait --for=condition=Ready nodes --all --timeout=180s
 
-# Precautionary qemu/binfmt registration on arm64 hosts (Apple Silicon): the vind
-# node is arm64, and while every operator/app image this cluster runs (tailscale,
-# cert-manager, external-secrets, external-dns, the official multi-arch mongo image,
-# and mbentley/omada-controller) is multi-arch, registering amd64 emulation is a
-# harmless idempotent no-op that de-risks any future amd64-only image.
-HOST_ARCH="$(uname -m)"
-if [[ "${HOST_ARCH}" = "arm64" ]] || [[ "${HOST_ARCH}" = "aarch64" ]]; then
-  if command -v docker >/dev/null 2>&1; then
-    echo "==> arm64 host: registering qemu/binfmt for amd64 (precautionary)"
-    docker run --privileged --rm tonistiigi/binfmt:qemu-v9.2.2 --install amd64 >/dev/null 2>&1 ||
-      echo "WARN: qemu/binfmt registration failed; only matters for amd64-only images"
-  fi
-fi
+# No qemu/binfmt registration: every operator/app image this cluster runs (tailscale,
+# cert-manager, external-secrets, external-dns, the Percona MongoDB operator + server,
+# crossplane + provider-upjet-tailscale, and mbentley/omada-controller) is multi-arch
+# (arm64), so no amd64 emulation is needed on this host.
 
 CURRENT_CONTEXT="$(kubectl config current-context)"
 echo "==> Cluster ready; kubectl context: ${CURRENT_CONTEXT}"
-echo "==> Next: moon run network:apply"
+
+# Seed the Tailscale operator OAuth client BEFORE apply, so the operator finds
+# operator-oauth on first start and can bring up the tailnet egress ESO needs.
+echo "==> Seeding the Tailscale operator OAuth client (scripts/tailscale_auth.sh)"
+"${SCRIPT_DIR}/tailscale_auth.sh"
+
+# End-to-end: install Fleet + apply every bundle.
+echo "==> Applying Fleet bundles (scripts/apply.sh)"
+exec "${SCRIPT_DIR}/apply.sh"
