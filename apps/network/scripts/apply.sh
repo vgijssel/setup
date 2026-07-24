@@ -3,19 +3,22 @@
 # cluster (run after network:start). Mirrors apps/secret/scripts/apply.sh.
 #
 # 1. Install the Fleet controller in single-cluster mode into cattle-fleet-system
-#    (throwaway bootstrap substrate; the portable fleet.yaml bundles are the durable
-#    artifact and migrate unchanged to a Rancher-managed Fleet later).
+#    so Bundles unpack in-cluster: the same cluster is both Fleet manager and
+#    agent (the fleet-local workspace / `local` cluster). Charts are vendored +
+#    pinned (0.15.4, matching the hermit-pinned fleet CLI) under
+#    third_party/vendir/charts. This controller is throwaway bootstrap — the
+#    portable fleet.yaml bundles it applies are the durable artifact and migrate
+#    unchanged to a Rancher-managed Fleet later.
 #
 # 2. Label the local Fleet cluster cluster.vgijssel.nl/name=network — the selector
-#    the multi-cluster platform bundles key on (apps/platform/src/*). This gates
-#    ingress-nginx and the secret-ingress ProxyGroup OUT (their targets match only
-#    `secret`) and pins network's per-cluster values (operator hostname
-#    network-operator, external-dns txtOwnerId network-cluster).
+#    the multi-cluster platform + network bundles key on. Cluster targeting is the
+#    ONLY deploy gate: each bundle's targetCustomizations/clusterSelector decides
+#    whether this cluster gets a BundleDeployment. Crossplane (+ provider-upjet-
+#    tailscale) now owns the tailnet policy — there is no terranetes here anymore.
 #
-# 3. `fleet apply` the SHARED platform bundles this cluster consumes plus network's
-#    OWN bundles. network runs no OpenBao, so it omits the OpenBao/ingress-nginx/
-#    secret-ingress bundles. It DOES run terranetes, though — to reconcile
-#    apps/network/src/tailscale-config (the tailnet policy) against the remote OpenBao.
+# 3. Apply every Fleet bundle via the repo-wide bin/fleet-apply helper, which
+#    discovers every fleet.yaml under apps/ (no hardcoded list) and applies each
+#    into the fleet-local workspace. Runtime ordering comes from dependsOn labels.
 #
 # Idempotent: helm upgrade --install for the charts; fleet apply upserts Bundles.
 set -euo pipefail
@@ -56,44 +59,18 @@ for _ in $(seq 1 60); do
   sleep 2
 done
 
-# Label the local cluster BEFORE applying bundles, or the label-selected platform
-# bundles would match no cluster and not deploy (see header). Idempotent.
+# Label the standalone Fleet `local` cluster with cluster.vgijssel.nl/name=network.
+# Must be set BEFORE `fleet apply` below, or the label-selected bundles would match
+# no cluster and not deploy. Idempotent (--overwrite).
 echo "==> Labeling the local Fleet cluster: cluster.vgijssel.nl/name=network"
 kubectl -n "${FLEET_NS}" label clusters.fleet.cattle.io local \
   cluster.vgijssel.nl/name=network --overwrite >/dev/null
 
-# ── Apply the bundles (fleet resolves chart file:// deps relative to CWD) ────
-cd "${REPO_ROOT}"
-
-# Apply a network-owned bundle only once its directory has manifests. Lets this
-# script run end-to-end while the network bundles are built out task by task
-# (they land under apps/network/src as T10–T14 progress).
-apply_if_present() { # apply_if_present <bundle-name> <dir>
-  if [[ -d "$2" ]] && find "$2" -maxdepth 1 -type f \( -name '*.yaml' -o -name '*.yml' \) | grep -q .; then
-    echo "==> Applying ${1} (${2})"
-    fleet apply -n "${FLEET_NS}" "$1" "$2"
-  else
-    echo "==> Skipping ${1}: ${2} has no manifests yet"
-  fi
-}
-
-echo "==> Applying shared platform bundles"
-fleet apply -n "${FLEET_NS}" platform-external-secrets apps/platform/src/external-secrets
-fleet apply -n "${FLEET_NS}" platform-cert-manager apps/platform/src/cert-manager
-fleet apply -n "${FLEET_NS}" platform-tailscale apps/platform/src/tailscale
-fleet apply -n "${FLEET_NS}" platform-external-dns apps/platform/src/external-dns
-fleet apply -n "${FLEET_NS}" platform-netdata apps/platform/src/netdata
-fleet apply -n "${FLEET_NS}" platform-terranetes apps/platform/src/terranetes
-fleet apply -n "${FLEET_NS}" platform-config apps/platform/src/config
-
-echo "==> Applying network bundles"
-apply_if_present network-config apps/network/src/config
-apply_if_present network-ingress apps/network/src/tailscale-proxygroup
-apply_if_present network-apiserver-proxy apps/network/src/apiserver-proxy
-apply_if_present network-mongodb apps/network/src/mongodb
-apply_if_present network-omada apps/network/src/omada
+# ── Apply the bundles (global discovery; fleet resolves file:// deps from CWD) ─
+echo "==> Applying Fleet bundles (bin/fleet-apply — global discovery)"
+"${REPO_ROOT}/bin/fleet-apply" "${FLEET_NS}"
 
 echo "==> Applied. Bundles:"
 kubectl -n "${FLEET_NS}" get bundles 2>/dev/null || true
 
-echo "==> Next: moon run network:bootstrap, then network:configure"
+echo "==> Next: moon run network:bootstrap (seed operator-oauth + the Tailscale api_key)"

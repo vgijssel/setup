@@ -21,9 +21,9 @@ tasks:
       runInCI: false
       interactive: true
       cache: false
-  # 2. Seed operator-oauth from the remote OpenBao (secret-cluster root token) so the
-  #    Tailscale operator can start before ESO is functional, then extract this
-  #    cluster's OIDC issuer + JWKS for the secret-side JWT grant. Idempotent.
+  # 2. Seed operator-oauth (so the Tailscale operator can start before ESO is functional)
+  #    and the Crossplane Tailscale api_key (kv/network-tailscale-crossplane), both against
+  #    the remote OpenBao using VAULT_TOKEN from .env. Idempotent.
   bootstrap:
     command: scripts/bootstrap.sh
     options:

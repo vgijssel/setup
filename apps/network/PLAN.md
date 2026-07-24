@@ -169,7 +169,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
     `configure`; `platform-terranetes` fleet target excludes network.
   - Files: delete the 3 config files + `configure.sh`; edit `moon.yml`; adjust the terranetes bundle target.
 
-- [ ] **T7.2: Update `apply.sh` and `bootstrap.sh`.**
+- [x] **T7.2: Update `apply.sh` and `bootstrap.sh`.**
   - Acceptance: `apply.sh` mirrors `apps/secret/scripts/apply.sh` (Fleet install + `bin/fleet-apply`,
     no Terranetes-specific steps, no static per-cluster bundle list dependence). `bootstrap.sh` uses
     `VAULT_TOKEN` from `.env` (not 1Password `op`) to reach `https://openbao.secret.vgijssel.nl`, still
