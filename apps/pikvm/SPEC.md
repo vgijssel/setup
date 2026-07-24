@@ -166,6 +166,13 @@ Infra app — "tests" are validation, not unit tests against live hardware:
   clean and show an empty diff when the host is already converged. This is the primary
   correctness check. Note: `--dry` still reads from OpenBao (via `hvac`), so OpenBao must
   be reachable even for a dry run — the read is harmless.
+  - **Caveat — the Task 6 reconcile op always shows as a `Conditional Change` in `--dry`,
+    even when converged.** pyinfra only evaluates `_if` guards at real execution
+    (`state.is_executing`); in `--dry` it instead generates the op's commands, and shell
+    commands always *look* like a change. So the reconcile's `Change` column is `-` but
+    its `Conditional Change` is `1`. The authoritative idempotency signal is a **real
+    run** reporting `No changes` for every op — verified on both targets (LAN
+    `192.168.1.31` and NetBird `100.65.192.152`): 8/8 `No Change`, reconcile skipped.
 - **Lint:** `moon run pikvm:lint` — ruff/black clean; `trunk check` passes on the app.
 - **Lock integrity:** `uv sync` reproduces from `uv.lock` with no drift.
 - **Manual acceptance (documented, not automated):**
