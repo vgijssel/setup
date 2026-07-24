@@ -13,8 +13,8 @@
 # (apps/network/src/config/externalsecret-operator-oauth.yaml).
 #
 # Once the operator is up and the tailnet egress is approved, external-secrets reaches
-# OpenBao and Crossplane (provider-upjet-tailscale) reads kv/network-tailscale-crossplane
-# for its own API token — no further seeding here.
+# OpenBao and Crossplane (provider-upjet-tailscale) reads kv/network-tailscale-config
+# (access_token) for its own API token — no further seeding here.
 #
 # Secrets never touch git: the root token lives only in .env; the OAuth client is read
 # into shell variables and written straight to a Kubernetes Secret.
