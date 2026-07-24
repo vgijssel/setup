@@ -89,7 +89,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
   - Files: `apps/network/src/tailscale-config/externalsecret-tailscale-apikey.yaml`,
     `providerconfig-tailscale.yaml`.
 
-- [ ] **T3.2: Translate the tailnet policy to an `ACL` managed resource.**
+- [x] **T3.2: Translate the tailnet policy to an `ACL` managed resource.**
   - Acceptance: `acl-tailnet.yaml` (`acl.tailscale.upbound.io/v1alpha1`, `deletionPolicy: Orphan`)
     carries the **verbatim** HuJSON from `apps/network/src/tailscale-config/main.tf`
     (autoApprovers, groups, tagOwners, acls, ssh, nodeAttrs, grants — unchanged). Set
