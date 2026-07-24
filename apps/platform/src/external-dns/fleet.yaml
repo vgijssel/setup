@@ -8,15 +8,21 @@ helm:
 # Multi-cluster: both clusters run external-dns against the SAME Cloudflare zone
 # (vgijssel.nl), so each MUST use a distinct txtOwnerId or one cluster's external-dns
 # would treat the other's records as orphans and delete them (SPEC R7, a hard
-# boundary). `secret` inherits the base values.yaml (txtOwnerId: secret-cluster)
-# unchanged — byte-for-byte identical rendering — and `network` overrides it to
-# network-cluster. Declaring targetCustomizations also gates membership to these two
-# labels (replacing Fleet's implicit deploy-everywhere target).
+# boundary). Each target sets txtOwnerId EXPLICITLY — neither relies on the base
+# values.yaml default. A missed/stale default here is not cosmetic: if both clusters
+# ever resolve to the same owner id they fight, one deleting the other's records every
+# reconcile (observed: `secret` briefly ran the `network-cluster` id and kept deleting
+# omada.network.vgijssel.nl). Declaring targetCustomizations also gates membership to
+# these two labels (replacing Fleet's implicit deploy-everywhere target).
 targetCustomizations:
   - name: secret
     clusterSelector:
       matchLabels:
         cluster.vgijssel.nl/name: secret
+    helm:
+      values:
+        external-dns:
+          txtOwnerId: secret-cluster
   - name: network
     clusterSelector:
       matchLabels:
