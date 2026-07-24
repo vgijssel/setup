@@ -214,13 +214,15 @@ files.directory(
     path=NETBIRD_LIB_DIR,
     present=True,
 )
-files.put(
+# Capture the operation results so the Task 6 reconcile can restart NetBird via
+# change detection (OperationMeta.did_change) when either overlay file actually changed.
+overlay_script = files.put(
     name="Overlay: install setup-netbird-overlay.sh",
     src=OVERLAY_SCRIPT_SRC,
     dest=OVERLAY_SCRIPT_REMOTE,
     mode="755",
 )
-files.put(
+overlay_unit = files.put(
     name="Overlay: install netbird-overlay.service",
     src=OVERLAY_UNIT_SRC,
     dest=OVERLAY_UNIT_REMOTE,
@@ -301,7 +303,9 @@ files.directory(
     path=NETBIRD_OVERRIDE_DIR,
     present=True,
 )
-files.put(
+# Capture the result so the Task 6 reconcile can restart NetBird (change detection)
+# when the systemd override actually changed -- a changed unit needs a restart to apply.
+netbird_override = files.put(
     name="NetBird: install netbird@.service.d/pikvm.conf override",
     src=NETBIRD_OVERRIDE_SRC,
     dest=NETBIRD_OVERRIDE_REMOTE,
@@ -322,20 +326,54 @@ if netbird_needs_rw:
     )
 
 
-# ── netbird up + state persistence (Task 6) ──────────────────────────────────────
-# Start the overlay + NetBird, register with the setup key, and persist the runtime
-# state (tmpfs) back to /root/netbird-state so it survives reboots. All of this runs
-# only when the peer is not already connected -- so a converged box makes no changes.
+# ── netbird up (DNS enabled) + config-change restart (Task 6) ────────────────────
+# DNS is ENABLED here (`--disable-dns=false`). The stock PiKVM guide passes
+# `--disable-dns` to stop NetBird writing /etc/resolv.conf on the read-only rootfs, but
+# that assumes NetBird's *file* DNS backend. This box runs systemd-resolved (active,
+# /etc/resolv.conf symlinked into the writable tmpfs /run), so NetBird uses its
+# systemd-resolved *D-Bus* backend and configures DNS at runtime -- touching no rootfs
+# file. Verified live: it logs "System DNS manager discovered: systemd" and the rootfs
+# stays `ro` with no /etc/resolv.conf.original.netbird written.
 #
-# The setup key is passed via the NB_SETUP_KEY environment variable and referenced as
-# $NB_SETUP_KEY in the command, so it never appears in pyinfra's command/--dry output.
+# Two entry states:
+#   * Not yet registered -> start services and register with DNS enabled, persist state.
+#   * Already registered -> *reconcile*: restart NetBird when any of its config changed
+#     this apply (change detection via OperationMeta.did_change) and/or flip DNS on.
+#     `netbird up` on an already-connected peer is a no-op, so applying a changed flag
+#     needs a down/up cycle; DisableDNS is also sticky in /var/lib/netbird/default.json,
+#     so it must be passed as `=false` explicitly. A converged box changes nothing.
+#
+# SSH-DISCONNECT SAFETY: restarting NetBird / cycling `netbird up` bounces the wt0
+# interface, which severs the SSH session when the apply runs OVER NetBird (the `apply`
+# inventory). The reconcile therefore runs under a detached transient unit
+# (`systemd-run --wait`), exactly like the OS update above: a dropped session cannot
+# kill it mid-restart -- the unit completes on the box and a re-run converges (DNS
+# enabled + config unchanged -> the guard is false -> no-op). Over the LAN
+# (`apply_local`) SSH is on eth0 and does not drop, so `--wait` returns normally. State
+# is persisted to /root/netbird-state inside the same unit, so the enabled-DNS config
+# survives a reboot atomically with the change.
+#
+# The setup key is passed via the NB_SETUP_KEY environment variable (first bring-up
+# only) and referenced as $NB_SETUP_KEY, so it never appears in pyinfra's --dry output.
 
 _netbird_status = (
     host.get_fact(Command, command="netbird status 2>/dev/null || true") or ""
 )
 netbird_connected = "Management: Connected" in _netbird_status
 
+# Current persisted DNS setting; only meaningful once registered (file absent before).
+_netbird_dns_cfg = (
+    host.get_fact(
+        Command,
+        command="grep -o '\"DisableDNS\"[^,]*' /var/lib/netbird/default.json "
+        "2>/dev/null || true",
+    )
+    or ""
+)
+dns_currently_disabled = "true" in _netbird_dns_cfg.lower()
+
 if not netbird_connected:
+    # First bring-up: register with DNS enabled and persist state.
     server.shell(
         name="NetBird: start overlay and netbird services",
         commands=[
@@ -344,8 +382,8 @@ if not netbird_connected:
         ],
     )
     server.shell(
-        name="NetBird: register with setup key (--disable-dns)",
-        commands=['netbird up --setup-key "$NB_SETUP_KEY" --disable-dns'],
+        name="NetBird: register with setup key (DNS enabled)",
+        commands=['netbird up --setup-key "$NB_SETUP_KEY" --disable-dns=false'],
         _env={"NB_SETUP_KEY": _secrets.netbird_setup_key},
     )
     server.shell(
@@ -355,6 +393,33 @@ if not netbird_connected:
             "cp -a /tmp/netbird-state/. /root/netbird-state/",
             "ro",
         ],
+    )
+else:
+    # Already registered: restart to pick up a changed systemd override / overlay unit
+    # (or a freshly installed binary) and/or flip DNS on. Gated by change detection +
+    # the current DNS state so a converged box makes no changes. daemon-reload picks up
+    # unit-file edits; the restart applies the new override; down + `up --disable-dns=false`
+    # applies the DNS flag; then state is persisted -- all inside one detached unit.
+    server.shell(
+        name="NetBird: reconcile config/DNS (detached; survives SSH drop)",
+        commands=[
+            "systemctl reset-failed netbird-reconfigure.service 2>/dev/null || true",
+            "systemd-run --unit=netbird-reconfigure --wait --collect /bin/sh -c '"
+            "systemctl daemon-reload; "
+            "systemctl restart netbird@netbird.service; "
+            "sleep 1; "
+            "netbird down || true; "
+            "netbird up --disable-dns=false; "
+            "rw; cp -a /tmp/netbird-state/. /root/netbird-state/; ro"
+            "'",
+        ],
+        _if=lambda: (
+            netbird_override.did_change()
+            or overlay_unit.did_change()
+            or overlay_script.did_change()
+            or netbird_needs_install
+            or dns_currently_disabled
+        ),
     )
 
 

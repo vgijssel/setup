@@ -49,7 +49,7 @@ Task 1  uv/Moon scaffold (pyproject, uv.lock, .python-version, moon.yml: install
             │      │
             │      └── Task 5  NetBird install (AUR netbird-bin as kvmd-webterm + override)
             │             │
-            │             └── Task 6  netbird up (setup key, --disable-dns) + state persist
+            │             └── Task 6  netbird up (setup key, --disable-dns=false) + state persist + restart-on-change
             │
             ├── Task 7  admin + root passwords (kvmd-htpasswd, chpasswd, rw-guarded)
             │
@@ -227,20 +227,30 @@ overlay) and `enable netbird@netbird`. All `rw`-guarded and idempotent.
 
 ---
 
-### Task 6: `netbird up` with setup key + state persistence
+### Task 6: `netbird up` (DNS enabled) + state persistence + restart-on-change
 
-**Description:** Start overlay + netbird; run
-`netbird up --setup-key $NETBIRD_SETUP_KEY --disable-dns` **only when** `netbird status` is not
-already connected. Persist state back to `/root/netbird-state`; leave fs `ro`. Setup key comes
-from `secrets.py`; never logged.
+**Description:** Start overlay + netbird; on first bring-up run
+`netbird up --setup-key $NETBIRD_SETUP_KEY --disable-dns=false` (**DNS enabled** — this box
+runs systemd-resolved, so NetBird uses the D-Bus backend and writes no rootfs file) **when**
+`netbird status` is not already connected, and persist state. When already connected,
+**reconcile**: restart `netbird@netbird` when any netbird config file changed this apply
+(pyinfra change detection, `OperationMeta.did_change`) and/or flip DNS on via a `down`/`up
+--disable-dns=false` cycle (the flag is sticky in `/var/lib/netbird/default.json`), then
+persist state. The reconcile runs under a detached `systemd-run --wait` unit so a bounced
+`wt0`/severed over-NetBird session cannot kill it mid-restart. Setup key from `secrets.py`;
+never logged.
 
 **Acceptance criteria:**
-- [ ] `netbird up` runs only when not connected (idempotent guard); `--disable-dns` set
+- [ ] First bring-up runs only when not connected; registers with `--disable-dns=false`
+- [ ] Restart/reconcile runs only when a netbird config changed or DNS still disabled
+      (`did_change`/DNS-state guard) — converged box is a no-op
+- [ ] Reconcile is detached (`systemd-run --wait`) so it survives a brief SSH disconnect
 - [ ] State persisted to `/root/netbird-state`; setup key never appears in logs/diff output
 
 **Verification:**
-- [ ] After apply, `netbird status` shows Connected with a `100.x` IP
-- [ ] Reboot → still Connected (state survived); `apply_local -- --dry` shows empty diff
+- [ ] After apply, `netbird status` Connected `100.x`; `resolvectl status wt0` shows DNS
+      scope + `netbird.cloud` domain; rootfs still `ro`; no `/etc/resolv.conf.original.netbird`
+- [ ] Reboot → still Connected + DNS enabled (state survived); `apply_local -- --dry` empty diff
 
 **Dependencies:** Task 5
 **Files likely touched:** `apps/pikvm/deploy.py`

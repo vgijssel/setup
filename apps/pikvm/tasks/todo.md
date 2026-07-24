@@ -33,7 +33,8 @@ mutation (4–8), hardening last (9). Check off acceptance criteria as you go.
   - [x] `netbird@.service.d/pikvm.conf` dropped; `netbird@netbird` enabled, ordered after overlay
         *(verbatim override; rw-guarded + fact-gated; live AUR build deferred to operator)*
 - [x] **Task 6 — `netbird up` + state persist** (S) — *deps: 5*
-  - [x] `netbird up --setup-key … --disable-dns` only when not connected; state → `/root/netbird-state`
+  - [x] `netbird up --setup-key … --disable-dns=false` (DNS enabled) on first bring-up; state → `/root/netbird-state`
+  - [x] reconcile when connected: restart on config change (`OperationMeta.did_change`) / flip DNS on, via detached `systemd-run --wait` (survives SSH drop)
   - [x] `netbird status` Connected `100.x`; survives reboot; setup key never logged
         *(key via NB_SETUP_KEY env — verified absent from --dry output; live connect deferred to operator)*
 - [x] **Task 7 — admin + root passwords** (S) — *deps: 3*

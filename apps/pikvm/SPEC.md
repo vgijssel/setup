@@ -120,10 +120,24 @@ rootfs (`rw` before writes, `ro` after; persist state to `/root/netbird-state`):
    pinned version.
 3. Drop the systemd override `netbird@.service.d/pikvm.conf` (syslog logging,
    `NB_DISABLE_SSH_CONFIG=true`, ordering after overlay); `enable netbird@netbird`.
-4. Start overlay + netbird; run `netbird up --setup-key $NETBIRD_SETUP_KEY --disable-dns`
-   only when `netbird status` is not already connected.
+4. Start overlay + netbird; when `netbird status` is not already connected, register with
+   `netbird up --setup-key $NETBIRD_SETUP_KEY --disable-dns=false` (**DNS enabled**).
+   NetBird's default `--disable-dns` avoids writing `/etc/resolv.conf` on a read-only
+   rootfs, but this box runs **systemd-resolved** (`/etc/resolv.conf` → tmpfs `/run`), so
+   NetBird uses its systemd-resolved **D-Bus** backend and configures DNS at runtime with
+   **no rootfs write** (verified live: "System DNS manager discovered: systemd", rootfs
+   stays `ro`, no `/etc/resolv.conf.original.netbird`).
 5. Persist state back to `/root/netbird-state`; leave the fs `ro`.
-6. Set admin + root passwords; assign the static IP (systemd-networkd) — all `rw`-guarded
+6. **Restart NetBird when its config changed:** when a netbird config file changed this
+   apply (systemd override / overlay unit — detected via pyinfra change detection,
+   `OperationMeta.did_change`) or DNS is still disabled, reconcile the running peer:
+   `daemon-reload` + restart `netbird@netbird`, then `netbird down` + `netbird up
+   --disable-dns=false` (a flag change needs a down/up cycle; `DisableDNS` is sticky in
+   `/var/lib/netbird/default.json`), then persist state. This bounces the `wt0` interface
+   and can sever an over-NetBird apply session, so it runs under a **detached
+   `systemd-run --wait` unit** (like the OS update) — a dropped session cannot kill it
+   mid-restart; a re-run converges to a no-op.
+7. Set admin + root passwords; assign the static IP (systemd-networkd) — all `rw`-guarded
    and idempotent.
 
 ## 5. Code Style
@@ -211,6 +225,9 @@ moon run pikvm:apply_local                    # converge the box
 
 Verify:
 - `netbird status` → `Management: Connected`, peer IP is `100.x`.
+- **DNS enabled with no rootfs write:** `resolvectl status wt0` shows `Current Scopes: DNS`
+  and `DNS Domain: netbird.cloud`; `findmnt -no OPTIONS /` still `ro`; no
+  `/etc/resolv.conf.original.netbird` (NetBird used the systemd-resolved D-Bus backend).
 - PiKVM reachable over NetBird (`ssh root@<netbird-name-or-100.x>`).
 - `reboot`, wait, reconnect → still `Connected` (state persisted to `/root/netbird-state`).
 - PiKVM web login as `admin` works with the OpenBao `admin_password`; `root` login works
