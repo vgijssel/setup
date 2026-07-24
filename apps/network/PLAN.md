@@ -80,7 +80,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P3 — Tailscale ACL via Crossplane (replaces the OpenTofu module)
 
-- [ ] **T3.1: api_key ExternalSecret + ProviderConfig.**
+- [x] **T3.1: api_key ExternalSecret + ProviderConfig.**
   - Acceptance: `externalsecret-tailscale-apikey.yaml` syncs `kv/network-tailscale-crossplane#api_key`
     (via the existing remote `openbao` ClusterSecretStore) into a Secret in `crossplane-system`;
     `providerconfig-tailscale.yaml` (`tailscale.upbound.io/v1beta1`) sets `credentials.source: Secret`

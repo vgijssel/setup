@@ -1,0 +1,26 @@
+# The ProviderConfig every tailscale managed resource (the ACL) references. It reads a
+# static Tailscale API access token from the `tailscale-credentials` Secret's `api_key`
+# key (synced by ESO — externalsecret-tailscale-apikey.yaml) and hands it to the wrapped
+# tailscale/tailscale Terraform provider as `api_key`.
+#
+# Why a static API token and not OAuth: provider-upjet-tailscale advertises OAuth but its
+# implementation only ever sets the TF provider's api_key from the credential secret (it
+# declares oauth_client_id/secret constants but never reads them), and Tailscale requires
+# OAuth secrets to be exchanged at /oauth/token rather than used as a bearer. So auth is a
+# `tskey-api-…` token with the policy_file write scope.
+#
+# NOTE: this CR's CRD (tailscale.upbound.io) only exists once provider-tailscale is healthy;
+# it therefore lives in this tailscale-config bundle (downstream of crossplane-provider),
+# never in the same bundle as the Provider — Fleet applies a bundle as one atomic Helm
+# release, so a ProviderConfig alongside the Provider would fail the whole release.
+apiVersion: tailscale.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: tailscale
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: tailscale-credentials
+      key: api_key
