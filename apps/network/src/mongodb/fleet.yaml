@@ -1,19 +1,20 @@
-# Portable Fleet bundle: single-node MongoDB for the Omada controller. Fleet detects
-# the umbrella Chart.yaml here and deploys it with values.yaml. The omada bundle
-# dependsOn this bundle (label below) so Mongo is up before Omada tries to connect.
+# Raw-manifest Fleet bundle: the PerconaServerMongoDB CR (perconaservermongodb.yaml) + the
+# ESO Kubernetes ClusterSecretStore that exposes the operator-generated connection string
+# (secretstore-mongodb.yaml). Was an umbrella Helm chart (the old groundhog2k mongo); now
+# raw manifests reconciled by the Percona operator.
 #
-# Owns the `mongodb` namespace (defaultNamespace). The mongodb-credentials
-# ExternalSecret stays NotReady until the network ClusterSecretStore can reach OpenBao
-# (ACL-A + T8); MongoDB won't finish first-boot init without those root creds, which
-# is expected during bootstrap.
+# dependsOn mongodb-operator (label selector): the psmdb.percona.com CRDs come from the
+# operator bundle, and Fleet applies a bundle as one atomic release — so the CR must be a
+# DOWNSTREAM bundle, applied only after the operator + CRDs are installed.
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: mongodb-operator
 labels:
   fleet.vgijssel.nl/bundle: network-mongodb
 defaultNamespace: mongodb
-helm:
-  releaseName: mongodb
 # network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
-# cluster explicitly (previously scoped only by network:apply's static list) — this
-# keeps the bundle off the secret cluster.
+# cluster explicitly — keeps this off the secret cluster.
 targetCustomizations:
   - name: network
     clusterSelector:

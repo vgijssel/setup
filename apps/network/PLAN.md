@@ -133,7 +133,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
     SERVER-121912 / kernel-version refusal; if present, change image to `7.0.37-20` and re-apply.
   - Files: `apps/network/src/mongodb/perconaservermongodb.yaml`; delete old mongo chart files.
 
-- [ ] **T5.2: ESO Kubernetes SecretStore for the Percona conn-str secret.**
+- [x] **T5.2: ESO Kubernetes SecretStore for the Percona conn-str secret.**
   - Acceptance: `secretstore-mongodb.yaml` — an ESO **Kubernetes** `SecretStore` (or ClusterSecretStore)
     granting read of `mongodb-custom-user-secret-conn-str` in the mongodb namespace; RBAC for ESO's SA.
     `fleet.yaml` `dependsOn` mongodb-operator, network-targeted.
