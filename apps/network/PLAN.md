@@ -144,7 +144,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P6 — Omada wiring
 
-- [ ] **T6.1: Rewire `mongodb-uri` to the Percona connection string.**
+- [x] **T6.1: Rewire `mongodb-uri` to the Percona connection string.**
   - Acceptance: `apps/network/src/omada/templates/externalsecret-mongodb-uri.yaml` reads the
     generated connection string via the T5.2 Kubernetes store (key confirmed from the live secret,
     e.g. `omada_rs0_connectionString`/`…Srv`) and materializes `mongodb-uri` in the `omada`
