@@ -3,17 +3,27 @@
 Single source of operations shared by both inventories (``inventories/production.py``
 and ``inventories/local.py``); the inventories only change how the host is reached.
 
+Declarative style
+-----------------
+Host state is read through **facts** and mutations are expressed as **operations** --
+pyinfra's built-ins (``files.*``, ``systemd.service``, ``pacman.packages``,
+``server.reboot``) plus custom facts/operations from the ``pyinfra_custom`` library
+(``libs/pyinfra-custom``). The handful of genuinely one-shot actions with no operation
+equivalent (``pikvm-update``, the AUR build, the detached NetBird reconcile, ``chpasswd``,
+``networkctl``) remain ``server.shell`` and are called out inline.
+
 Read-only rootfs discipline
 ---------------------------
-PiKVM's root filesystem is mounted read-only. PiKVM ships ``rw`` / ``ro`` helpers that
-remount it read-write / read-only. Every host mutation is wrapped ``rw`` -> write ->
-``ro``. Because ``rw`` / ``ro`` are plain shell commands (pyinfra cannot tell they are
-no-ops), they are only queued when a fact check shows the slice is actually out of sync
--- so a converged box produces an empty ``--dry`` diff. The idempotent ``files.*``
-operations are always queued; they self-verify and report no change when converged.
+PiKVM's root filesystem is mounted read-only. The custom ``rootfs.writable(changed_if=...)``
+context remounts read-write before a block of writes and read-only after -- but only when
+``changed_if`` shows the slice is actually out of sync, so a converged box performs no
+remount and produces an empty ``--dry`` diff. The idempotent ``files.*`` operations inside
+are always queued; they self-verify and report no change when converged.
 
-Secrets (NetBird setup key, PiKVM admin/root passwords) are read at runtime from
-OpenBao via ``secrets.py`` -- never committed or logged. Even ``--dry`` reads OpenBao.
+Secrets (NetBird setup key, PiKVM admin/root passwords) are read from OpenBao via the
+``OpenBaoSecret`` fact, which fetches on the control machine and never transmits secret
+material to the PiKVM. Values passed to the host ride in per-command ``_env`` and never
+appear in argv or ``--dry`` output. Even ``--dry`` reads OpenBao.
 
 Behaviour reproduced verbatim from https://docs.pikvm.org/netbird/ (asset files under
 ``files/`` are kept byte-for-byte to the docs for auditability).
@@ -21,28 +31,38 @@ Behaviour reproduced verbatim from https://docs.pikvm.org/netbird/ (asset files 
 
 import hashlib
 import os
-import sys
 from io import StringIO
 from pathlib import Path
 
 from jinja2 import Template
 from pyinfra import host
 from pyinfra.facts.files import Directory, File, Link, Sha256File
-from pyinfra.facts.server import Command
-from pyinfra.operations import files, server
-
-# Put this directory first on sys.path so the local ``secrets`` module wins over the
-# standard-library ``secrets`` module regardless of how pyinfra invokes this file.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from secrets import get_secrets  # noqa: E402
+from pyinfra.operations import files, pacman, server, systemd
+from pyinfra_custom.facts import (
+    NetbirdConnected,
+    NetbirdDnsDisabled,
+    NetbirdVersion,
+    OpenBaoSecret,
+    PacmanUpgradablePackages,
+)
+from pyinfra_custom.operations import netbird, pikvm, rootfs
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILES = os.path.join(HERE, "files")
 
-# Fail fast if OpenBao is unreachable or a field is missing (SPEC 6). Later slices
-# consume these values; nothing here logs them.
-_secrets = get_secrets()
+# OpenBao KV v2 location for this host's secrets (see libs/pyinfra-custom OpenBaoSecret).
+SECRET_MOUNT = "kv"
+SECRET_PATH = "pikvm"
+
+
+def _secret(field: str) -> str:
+    """Read one field of ``kv/pikvm`` from OpenBao as a fact (fetched on the control host)."""
+    return host.get_fact(
+        OpenBaoSecret,
+        mount=SECRET_MOUNT,
+        path=SECRET_PATH,
+        field=field,
+    )
 
 
 def _local_sha256(path: str) -> str:
@@ -93,13 +113,7 @@ ssh_key_needs_rw = (
     != hashlib.sha256(_authorized_keys.encode()).hexdigest()
 )
 
-# Queue the writes only when out of sync (ssh_key_needs_rw); gating the whole block keeps
-# a converged box a no-op and avoids touching the rootfs while it is read-only.
-if ssh_key_needs_rw:
-    server.shell(
-        name="Root SSH key: remount rootfs read-write",
-        commands=["rw"],
-    )
+with rootfs.writable(changed_if=ssh_key_needs_rw):
     files.directory(
         name="Root SSH key: ensure /root/.ssh (0700)",
         path=ROOT_SSH_DIR,
@@ -112,10 +126,6 @@ if ssh_key_needs_rw:
         dest=ROOT_AUTHORIZED_KEYS,
         mode="600",
     )
-    server.shell(
-        name="Root SSH key: remount rootfs read-only",
-        commands=["ro"],
-    )
 
 
 # ── PiKVM OS update (must run before NetBird) ────────────────────────────────────
@@ -126,7 +136,8 @@ if ssh_key_needs_rw:
 # continue on the freshly-updated system. The PiKVM AUR/NetBird guide assumes an
 # up-to-date box, so this belongs before the NetBird slices.
 #
-# Exit-code contract (read from the pikvm-update script on the host):
+# `pikvm-update` is a bespoke one-shot with its own exit-code contract, so it stays a
+# documented server.shell (no operation equivalent):
 #   0   -> already up-to-date / completed, no reboot needed
 #   100 -> update applied successfully, reboot required (its --no-reboot signal)
 #   101 -> kvmd config broke mid-update: DO NOT REBOOT -- fail loudly
@@ -138,10 +149,8 @@ if ssh_key_needs_rw:
 # systemd unit (below) so a dropped session cannot kill it mid-transaction; prefer the
 # LAN inventory for the first run. A failed upgrade can need physical recovery (docs).
 
-_pending_upgrades = (
-    host.get_fact(Command, command="pacman -Qu 2>/dev/null | wc -l") or "0"
-).strip()
-os_update_needed = _pending_upgrades.isdigit() and int(_pending_upgrades) > 0
+_upgradable = host.get_fact(PacmanUpgradablePackages)
+os_update_needed = len(_upgradable) > 0
 
 if os_update_needed:
     # Run the upgrade under a transient systemd unit (systemd-run --wait), NOT directly
@@ -156,7 +165,7 @@ if os_update_needed:
     # (broken kvmd config, "DO NOT REBOOT") or any other error -- which aborts the apply
     # before the reboot, leaving the box rw for inspection exactly as intended.
     server.shell(
-        name=f"OS update: pikvm-update via systemd-run ({_pending_upgrades} pending)",
+        name=f"OS update: pikvm-update via systemd-run ({len(_upgradable)} pending)",
         commands=[
             "systemctl reset-failed pikvm-os-update.service 2>/dev/null || true",
             "systemd-run --unit=pikvm-os-update --wait --collect "
@@ -198,49 +207,41 @@ overlay_needs_rw = (
     or host.get_fact(Link, path=OVERLAY_WANTS_LINK) is None
 )
 
-if overlay_needs_rw:
-    server.shell(
-        name="Overlay: remount rootfs read-write",
-        commands=["rw"],
+with rootfs.writable(changed_if=overlay_needs_rw):
+    files.directory(
+        name="Overlay: persistent NetBird state directory",
+        path=NETBIRD_STATE_DIR,
+        present=True,
     )
-
-files.directory(
-    name="Overlay: persistent NetBird state directory",
-    path=NETBIRD_STATE_DIR,
-    present=True,
-)
-files.directory(
-    name="Overlay: persistent bind-mount target /var/lib/netbird",
-    path=NETBIRD_LIB_DIR,
-    present=True,
-)
-# Capture the operation results so the Task 6 reconcile can restart NetBird via
-# change detection (OperationMeta.did_change) when either overlay file actually changed.
-overlay_script = files.put(
-    name="Overlay: install setup-netbird-overlay.sh",
-    src=OVERLAY_SCRIPT_SRC,
-    dest=OVERLAY_SCRIPT_REMOTE,
-    mode="755",
-)
-overlay_unit = files.put(
-    name="Overlay: install netbird-overlay.service",
-    src=OVERLAY_UNIT_SRC,
-    dest=OVERLAY_UNIT_REMOTE,
-    mode="644",
-)
-
-if overlay_needs_rw:
-    server.shell(
-        name="Overlay: enable netbird-overlay.service",
-        commands=[
-            "systemctl daemon-reload",
-            "systemctl enable netbird-overlay.service",
-        ],
+    files.directory(
+        name="Overlay: persistent bind-mount target /var/lib/netbird",
+        path=NETBIRD_LIB_DIR,
+        present=True,
     )
-    server.shell(
-        name="Overlay: remount rootfs read-only",
-        commands=["ro"],
+    # Capture the operation results so the Task 6 reconcile can restart NetBird via
+    # change detection (OperationMeta.did_change) when either overlay file changed.
+    overlay_script = files.put(
+        name="Overlay: install setup-netbird-overlay.sh",
+        src=OVERLAY_SCRIPT_SRC,
+        dest=OVERLAY_SCRIPT_REMOTE,
+        mode="755",
     )
+    overlay_unit = files.put(
+        name="Overlay: install netbird-overlay.service",
+        src=OVERLAY_UNIT_SRC,
+        dest=OVERLAY_UNIT_REMOTE,
+        mode="644",
+    )
+    if overlay_needs_rw:
+        # Enable only (running=None); the unit is started with NetBird in Task 6.
+        # daemon_reload is gated on overlay_needs_rw so a converged box reloads nothing.
+        systemd.service(
+            name="Overlay: enable netbird-overlay.service",
+            service="netbird-overlay.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
 
 
 # ── NetBird install from AUR + systemd override (Task 5) ─────────────────────────
@@ -256,7 +257,7 @@ if overlay_needs_rw:
 # (pinned python<3.14) while the ALARM repos already ship python 3.14, so a full upgrade
 # fails to prepare its transaction. `netbird-bin` is a *binary* package (depends=(glibc),
 # no makedepends), so it only needs `git` + `base-devel` (both shipped on PiKVM). We sync
-# the db (`-Sy`) and install just those with `--needed` -- no system-wide upgrade.
+# the db and install just those with pacman.packages -- no system-wide upgrade.
 
 NETBIRD_VERSION = "0.75.0"
 NETBIRD_OVERRIDE_DIR = "/etc/systemd/system/netbird@.service.d"
@@ -266,10 +267,7 @@ NETBIRD_WANTS_LINK = (
     "/etc/systemd/system/multi-user.target.wants/netbird@netbird.service"
 )
 
-_netbird_installed_version = (
-    host.get_fact(Command, command="netbird version 2>/dev/null || true") or ""
-)
-netbird_needs_install = NETBIRD_VERSION not in _netbird_installed_version
+netbird_needs_install = NETBIRD_VERSION not in host.get_fact(NetbirdVersion)
 
 netbird_needs_rw = (
     netbird_needs_install
@@ -278,56 +276,56 @@ netbird_needs_rw = (
     or host.get_fact(Link, path=NETBIRD_WANTS_LINK) is None
 )
 
-if netbird_needs_rw:
-    server.shell(
-        name="NetBird: remount rootfs read-write",
-        commands=["rw"],
-    )
+with rootfs.writable(changed_if=netbird_needs_rw):
+    if netbird_needs_install:
+        # Sync the db and ensure the build deps (both ship on PiKVM; --needed no-op).
+        pacman.packages(
+            name="NetBird: ensure build deps (git, base-devel)",
+            packages=["git", "base-devel"],
+            update=True,
+        )
+        # AUR build/install is a bespoke one-shot (clone + makepkg as kvmd-webterm +
+        # local pacman -U); no operation equivalent, so it stays a documented shell.
+        # NEVER run makepkg as root; NEVER a full `pacman -Syu` (breaks python-periphery).
+        server.shell(
+            name="NetBird: build netbird-bin from AUR (as kvmd-webterm) and install",
+            commands=[
+                "rm -rf /tmp/netbird-bin",
+                "git clone https://aur.archlinux.org/netbird-bin.git /tmp/netbird-bin",
+                "chown -R kvmd-webterm:kvmd-webterm /tmp/netbird-bin",
+                "su -s /bin/bash kvmd-webterm -c 'cd /tmp/netbird-bin && makepkg'",
+                "pacman -U --noconfirm /tmp/netbird-bin/netbird-bin-*.pkg.tar.*",
+                "rm -rf /tmp/netbird-bin",
+            ],
+        )
 
-if netbird_needs_install:
-    server.shell(
-        name="NetBird: build netbird-bin from AUR (as kvmd-webterm) and install",
-        commands=[
-            "pacman -Sy --needed --noconfirm git base-devel",
-            "rm -rf /tmp/netbird-bin",
-            "git clone https://aur.archlinux.org/netbird-bin.git /tmp/netbird-bin",
-            "chown -R kvmd-webterm:kvmd-webterm /tmp/netbird-bin",
-            "su -s /bin/bash kvmd-webterm -c 'cd /tmp/netbird-bin && makepkg'",
-            "pacman -U --noconfirm /tmp/netbird-bin/netbird-bin-*.pkg.tar.*",
-            "rm -rf /tmp/netbird-bin",
-        ],
+    files.directory(
+        name="NetBird: systemd override directory",
+        path=NETBIRD_OVERRIDE_DIR,
+        present=True,
     )
-
-files.directory(
-    name="NetBird: systemd override directory",
-    path=NETBIRD_OVERRIDE_DIR,
-    present=True,
-)
-# Capture the result so the Task 6 reconcile can restart NetBird (change detection)
-# when the systemd override actually changed -- a changed unit needs a restart to apply.
-netbird_override = files.put(
-    name="NetBird: install netbird@.service.d/pikvm.conf override",
-    src=NETBIRD_OVERRIDE_SRC,
-    dest=NETBIRD_OVERRIDE_REMOTE,
-    mode="644",
-)
-
-if netbird_needs_rw:
-    server.shell(
-        name="NetBird: enable netbird@netbird.service",
-        commands=[
-            "systemctl daemon-reload",
-            "systemctl enable netbird@netbird.service",
-        ],
+    # Capture the result so the Task 6 reconcile can restart NetBird (change detection)
+    # when the systemd override changed -- a changed unit needs a restart to apply.
+    netbird_override = files.put(
+        name="NetBird: install netbird@.service.d/pikvm.conf override",
+        src=NETBIRD_OVERRIDE_SRC,
+        dest=NETBIRD_OVERRIDE_REMOTE,
+        mode="644",
     )
-    server.shell(
-        name="NetBird: remount rootfs read-only",
-        commands=["ro"],
-    )
+    if netbird_needs_rw:
+        # Enable only (running=None); started in Task 6. daemon_reload gated on the
+        # change condition so a converged box reloads nothing.
+        systemd.service(
+            name="NetBird: enable netbird@netbird.service",
+            service="netbird@netbird.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
 
 
 # ── netbird up (DNS enabled) + config-change restart (Task 6) ────────────────────
-# DNS is ENABLED here (`--disable-dns=false`). The stock PiKVM guide passes
+# DNS is ENABLED here (`disable_dns=False`). The stock PiKVM guide passes
 # `--disable-dns` to stop NetBird writing /etc/resolv.conf on the read-only rootfs, but
 # that assumes NetBird's *file* DNS backend. This box runs systemd-resolved (active,
 # /etc/resolv.conf symlinked into the writable tmpfs /run), so NetBird uses its
@@ -352,48 +350,35 @@ if netbird_needs_rw:
 # (`apply_local`) SSH is on eth0 and does not drop, so `--wait` returns normally. State
 # is persisted to /root/netbird-state inside the same unit, so the enabled-DNS config
 # survives a reboot atomically with the change.
-#
-# The setup key is passed via the NB_SETUP_KEY environment variable (first bring-up
-# only) and referenced as $NB_SETUP_KEY, so it never appears in pyinfra's --dry output.
 
-_netbird_status = (
-    host.get_fact(Command, command="netbird status 2>/dev/null || true") or ""
-)
-netbird_connected = "Management: Connected" in _netbird_status
-
-# Current persisted DNS setting; only meaningful once registered (file absent before).
-_netbird_dns_cfg = (
-    host.get_fact(
-        Command,
-        command="grep -o '\"DisableDNS\"[^,]*' /var/lib/netbird/default.json "
-        "2>/dev/null || true",
-    )
-    or ""
-)
-dns_currently_disabled = "true" in _netbird_dns_cfg.lower()
+netbird_connected = host.get_fact(NetbirdConnected)
+# Current persisted DNS setting; only meaningful once registered (False before).
+dns_currently_disabled = host.get_fact(NetbirdDnsDisabled)
 
 if not netbird_connected:
-    # First bring-up: register with DNS enabled and persist state.
-    server.shell(
-        name="NetBird: start overlay and netbird services",
-        commands=[
-            "systemctl start netbird-overlay.service",
-            "systemctl start netbird@netbird.service",
-        ],
+    # First bring-up: start services, register with DNS enabled, persist state.
+    systemd.service(
+        name="NetBird: start overlay service",
+        service="netbird-overlay.service",
+        running=True,
     )
-    server.shell(
+    systemd.service(
+        name="NetBird: start netbird@netbird.service",
+        service="netbird@netbird.service",
+        running=True,
+    )
+    # netbird.up passes the setup key via per-command _env ($NB_SETUP_KEY) -- never in
+    # argv or --dry.
+    netbird.up(
         name="NetBird: register with setup key (DNS enabled)",
-        commands=['netbird up --setup-key "$NB_SETUP_KEY" --disable-dns=false'],
-        _env={"NB_SETUP_KEY": _secrets.netbird_setup_key},
+        setup_key=_secret("netbird_setup_key"),
+        disable_dns=False,
     )
-    server.shell(
-        name="NetBird: persist runtime state to /root/netbird-state",
-        commands=[
-            "rw",
-            "cp -a /tmp/netbird-state/. /root/netbird-state/",
-            "ro",
-        ],
-    )
+    with rootfs.writable(changed_if=True):
+        server.shell(
+            name="NetBird: persist runtime state to /root/netbird-state",
+            commands=["cp -a /tmp/netbird-state/. /root/netbird-state/"],
+        )
 else:
     # Already registered: restart to pick up a changed systemd override / overlay unit
     # (or a freshly installed binary) and/or flip DNS on. Gated by change detection +
@@ -424,55 +409,44 @@ else:
 
 
 # ── PiKVM admin + system root passwords (Task 7) ─────────────────────────────────
-# Set the PiKVM web `admin` password (kvmd-htpasswd) and the system `root` password
+# Set the PiKVM web `admin` password (pikvm.htpasswd) and the system `root` password
 # (chpasswd) from OpenBao. Both write to the rootfs (rw-guarded). Passwords are hashed
 # and salted on disk, so we detect "already applied" with a root-only fingerprint file
 # rather than by comparing hashes -- a converged box then makes no changes.
 #
-# Both secrets are passed via the environment and referenced as shell variables, so
-# they never appear in pyinfra's command/--dry output. The fingerprint written to disk
-# is a one-way digest, not the password.
+# Both secrets are passed via per-command _env and referenced as shell variables, so
+# they never appear in argv / --dry output. The fingerprint written to disk is a one-way
+# digest, not the password; the Sha256File fact compares it without reading the value.
 
 PASSWORD_FP_FILE = "/root/.pikvm-provision-secrets.sha256"
 
-_desired_password_fp = _fingerprint(
-    _secrets.admin_password,
-    _secrets.root_password,
+_admin_password = _secret("admin_password")
+_root_password = _secret("root_password")
+_desired_password_fp = _fingerprint(_admin_password, _root_password)
+_desired_fp_sha = hashlib.sha256(_desired_password_fp.encode()).hexdigest()
+passwords_need_update = (
+    host.get_fact(Sha256File, path=PASSWORD_FP_FILE) != _desired_fp_sha
 )
-_current_password_fp = (
-    host.get_fact(Command, command=f"cat {PASSWORD_FP_FILE} 2>/dev/null || true") or ""
-).strip()
-passwords_need_update = _desired_password_fp != _current_password_fp
 
 if passwords_need_update:
-    server.shell(
-        name="Passwords: remount rootfs read-write",
-        commands=["rw"],
-    )
-    server.shell(
-        name="Passwords: set PiKVM web admin password",
-        commands=[
-            "printf '%s\\n' \"$PIKVM_ADMIN_PASSWORD\" "
-            "| kvmd-htpasswd set admin --read-stdin --quiet",
-        ],
-        _env={"PIKVM_ADMIN_PASSWORD": _secrets.admin_password},
-    )
-    server.shell(
-        name="Passwords: set system root password",
-        commands=["printf '%s:%s\\n' root \"$PIKVM_ROOT_PASSWORD\" | chpasswd"],
-        _env={"PIKVM_ROOT_PASSWORD": _secrets.root_password},
-    )
-    server.shell(
-        name="Passwords: record provisioning fingerprint",
-        commands=[
-            f"printf %s '{_desired_password_fp}' > {PASSWORD_FP_FILE}",
-            f"chmod 600 {PASSWORD_FP_FILE}",
-        ],
-    )
-    server.shell(
-        name="Passwords: remount rootfs read-only",
-        commands=["ro"],
-    )
+    with rootfs.writable(changed_if=True):
+        pikvm.htpasswd(
+            name="Passwords: set PiKVM web admin password",
+            user="admin",
+            password=_admin_password,
+        )
+        # chpasswd has no clean operation equivalent; documented shell, secret via _env.
+        server.shell(
+            name="Passwords: set system root password",
+            commands=["printf '%s:%s\\n' root \"$PIKVM_ROOT_PASSWORD\" | chpasswd"],
+            _env={"PIKVM_ROOT_PASSWORD": _root_password},
+        )
+        files.put(
+            name="Passwords: record provisioning fingerprint",
+            src=StringIO(_desired_password_fp),
+            dest=PASSWORD_FP_FILE,
+            mode="600",
+        )
 
 
 # ── Static IPv4 via systemd-networkd (Task 8) ────────────────────────────────────
@@ -482,9 +456,9 @@ if passwords_need_update:
 # networkd restart, so the active SSH session is not severed when the address is
 # unchanged.
 #
-# CONNECTIVITY RISK (SPEC 7 "ask first"): changing PIKVM_STATIC_IP/gateway to values
-# that differ from the live network can drop the box mid-apply. Get operator sign-off
-# before the first real apply; prefer running with `-- --dry` first.
+# CONNECTIVITY RISK (SPEC "ask first"): changing PIKVM_STATIC_IP/gateway to values that
+# differ from the live network can drop the box mid-apply. Get operator sign-off before
+# the first real apply; prefer running with `-- --dry` first.
 #
 # The template is rendered here (single source of bytes) and uploaded with files.put so
 # the rw gate's sha256 exactly matches what is written -> empty diff on a converged box.
@@ -512,26 +486,21 @@ static_ip_needs_rw = (
     host.get_fact(Sha256File, path=NETWORK_REMOTE) != _desired_network_sha
 )
 
-if static_ip_needs_rw:
-    server.shell(
-        name="Static IP: remount rootfs read-write",
-        commands=["rw"],
+with rootfs.writable(changed_if=static_ip_needs_rw):
+    files.put(
+        name=f"Static IP: systemd-networkd config for {STATIC_IFACE}",
+        src=StringIO(_network_rendered),
+        dest=NETWORK_REMOTE,
+        mode="644",
     )
 
-files.put(
-    name=f"Static IP: systemd-networkd config for {STATIC_IFACE}",
-    src=StringIO(_network_rendered),
-    dest=NETWORK_REMOTE,
-    mode="644",
-)
-
 if static_ip_needs_rw:
-    # Remount ro first, then apply without a full networkd restart. reconfigure re-reads
-    # the link config in place; with an unchanged address the SSH session survives.
+    # rootfs is already ro (context exited); reconfigure re-reads the link config in
+    # place. networkctl has no pyinfra operation -> documented shell. With an unchanged
+    # address the SSH session survives.
     server.shell(
-        name="Static IP: remount ro and reconfigure interface",
+        name="Static IP: reconfigure interface (rootfs already ro)",
         commands=[
-            "ro",
             "networkctl reload",
             f"networkctl reconfigure {STATIC_IFACE}",
         ],
