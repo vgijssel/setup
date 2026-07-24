@@ -62,7 +62,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P2 — provider-upjet-tailscale (network)
 
-- [ ] **T2.1: DeploymentRuntimeConfig pinning the provider SA name.**
+- [x] **T2.1: DeploymentRuntimeConfig pinning the provider SA name.**
   - Acceptance: `deploymentruntimeconfig-provider-tailscale.yaml` fixes the pod SA to
     `provider-tailscale` (mirrors the provider-vault pattern; stable name across upgrades).
   - Verify: manifest validates; name matches the ProviderConfig expectations.
