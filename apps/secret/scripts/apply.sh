@@ -10,9 +10,13 @@
 #    portable fleet.yaml bundles it applies are the durable artifact and migrate
 #    unchanged to a Rancher-managed Fleet later.
 #
-# 2. `fleet apply` each src/ bundle into the fleet-local workspace as an explicit,
-#    named bundle. The list is static (not discovered) so it reads as the future
-#    Rancher GitRepo `paths:` and each bundle boundary is obvious.
+# 2. Apply every Fleet bundle via the repo-wide bin/fleet-apply helper, which
+#    discovers every fleet.yaml under apps/ (no hardcoded list) and applies each
+#    into the fleet-local workspace. Cluster targeting is the only deploy gate:
+#    each bundle's targetCustomizations/clusterSelector on cluster.vgijssel.nl/name
+#    decides whether the `secret` cluster gets a BundleDeployment (e.g.
+#    platform-terranetes targets only network, so it is applied but not deployed
+#    here). Runtime ordering comes from dependsOn label selectors.
 #
 # Idempotent: helm upgrade --install for the charts; fleet apply upserts Bundles.
 set -euo pipefail
@@ -60,27 +64,14 @@ echo "==> Labeling the local Fleet cluster: cluster.vgijssel.nl/name=secret"
 kubectl -n "${FLEET_NS}" label clusters.fleet.cattle.io local \
   cluster.vgijssel.nl/name=secret --overwrite >/dev/null
 
-# ── Apply the bundles (fleet resolves chart file:// deps relative to CWD) ────
-cd "${REPO_ROOT}"
-
-echo "==> Applying Fleet bundles"
-fleet apply -n "${FLEET_NS}" secret-config apps/secret/src/config
-fleet apply -n "${FLEET_NS}" secret-openbao apps/secret/src/openbao
-fleet apply -n "${FLEET_NS}" secret-apiserver-proxy apps/secret/src/apiserver-proxy
-# secret-only: the `secret-ingress` ProxyGroup. dependsOn the tailscale-operator
-# bundle (label selector) so Fleet orders it after platform-tailscale regardless
-# of apply order here.
-fleet apply -n "${FLEET_NS}" secret-tailscale-proxygroup apps/secret/src/tailscale-proxygroup
-fleet apply -n "${FLEET_NS}" platform-external-secrets apps/platform/src/external-secrets
-fleet apply -n "${FLEET_NS}" platform-cert-manager apps/platform/src/cert-manager
-fleet apply -n "${FLEET_NS}" platform-terranetes apps/platform/src/terranetes
-fleet apply -n "${FLEET_NS}" platform-tailscale apps/platform/src/tailscale
-fleet apply -n "${FLEET_NS}" platform-ingress-nginx apps/platform/src/ingress-nginx
-fleet apply -n "${FLEET_NS}" platform-external-dns apps/platform/src/external-dns
-fleet apply -n "${FLEET_NS}" platform-netdata apps/platform/src/netdata
-fleet apply -n "${FLEET_NS}" platform-config apps/platform/src/config
+# ── Apply the bundles (global discovery; fleet resolves file:// deps from CWD) ─
+echo "==> Applying Fleet bundles (bin/fleet-apply — global discovery)"
+"${REPO_ROOT}/bin/fleet-apply" "${FLEET_NS}"
 
 echo "==> Applied. Bundles:"
 kubectl -n "${FLEET_NS}" get bundles 2>/dev/null || true
 
-echo "==> Next: moon run secret:bootstrap"
+# No bootstrap/configure step: OpenBao self-initialises + auto-unseals on first
+# boot, and Crossplane (provider-vault) reconciles the full config over k8s auth.
+echo "==> Done. OpenBao self-inits and Crossplane configures it automatically."
+echo "==> Optional: moon run secret:forward   # enter human-only seed kv secrets"

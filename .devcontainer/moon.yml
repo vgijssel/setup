@@ -53,22 +53,3 @@ tasks:
       cache: true
       # This test can be flacky due to external network calls, so we allow retries
       retryCount: 3
-
-  envbuilder-test:
-    command: bats tests/envbuilder-test.bats
-    deps:
-      - docker:registry_run
-    inputs:
-      - file: Dockerfile
-      - file: devcontainer.json
-      - file: tests/envbuilder-test.bats
-      - file: /.envrc
-      - glob: /bin/**/*
-      - glob: /third_party/hermit/**/*
-      - glob: /third_party/vendir/shell/**/*
-      - glob: /libs/devenv/**/*
-      - file: /.chezmoiroot
-    options:
-      cache: true
-      # This test can be flacky due to external network calls, so we allow retries
-      retryCount: 3

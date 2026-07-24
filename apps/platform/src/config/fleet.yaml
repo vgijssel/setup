@@ -20,3 +20,15 @@
 # and reconciled by terranetes (apps/secret/src/config); until then the store stays
 # NotReady and ESO error-and-retries, which is expected.
 defaultNamespace: external-secrets
+# Multi-cluster: deploys on BOTH the secret and network clusters. Declaring
+# targetCustomizations replaces Fleet's implicit deploy-everywhere, so global
+# bin/fleet-apply only creates BundleDeployments on these named clusters.
+targetCustomizations:
+  - name: secret
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: secret
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network

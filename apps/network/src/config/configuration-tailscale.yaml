@@ -32,5 +32,5 @@ spec:
   enableDriftDetection: true
   variables:
     auth_method: jwt
-    bao_address: https://secret.vgijssel.nl
+    bao_address: https://openbao.secret.vgijssel.nl
     jwt_role: network-terranetes

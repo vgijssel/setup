@@ -32,7 +32,7 @@ NETWORK_CONTEXT="${NETWORK_KUBE_CONTEXT:-vcluster-docker_network}"
 STATE_NAMESPACE="${STATE_NAMESPACE:-terranetes-system}"
 OP_VAULT="${OP_VAULT:-enigma-prod}"
 ROOT_OP_ITEM="${ROOT_OP_ITEM:-OpenBao root + recovery (secret cluster)}"
-REMOTE_BAO_ADDR="${REMOTE_BAO_ADDR:-https://secret.vgijssel.nl}"
+REMOTE_BAO_ADDR="${REMOTE_BAO_ADDR:-https://openbao.secret.vgijssel.nl}"
 TS_ACL_KV_MOUNT="${TS_ACL_KV_MOUNT:-kv}"
 TS_ACL_KV_PATH="${TS_ACL_KV_PATH:-network-tailscale-config}"
 
