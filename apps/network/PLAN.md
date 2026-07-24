@@ -51,7 +51,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P1 — Crossplane core (network)
 
-- [ ] **T1.1: Add the `crossplane` bundle for the network cluster.**
+- [x] **T1.1: Add the `crossplane` bundle for the network cluster.**
   - Acceptance: `apps/network/src/crossplane/{Chart.yaml,values.yaml,fleet.yaml}` mirror
     `apps/secret/src/crossplane/` but `fleet.yaml` targets `cluster.vgijssel.nl/name: network`.
     Reuse the vendored crossplane 2.3.3 chart.

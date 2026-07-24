@@ -1,0 +1,22 @@
+# Portable Fleet bundle for Crossplane core. Fleet detects the umbrella Chart.yaml
+# here and deploys it with values.yaml into crossplane-system, resolving the
+# file:// chart dependency against the vendored chart at build time.
+#
+# This is the reconciler that replaces terranetes for apps/network: once core is
+# Ready its pkg.crossplane.io CRDs (Provider, DeploymentRuntimeConfig, ...) exist,
+# so the crossplane-provider bundle dependsOn this one (label below).
+labels:
+  fleet.vgijssel.nl/bundle: crossplane
+defaultNamespace: crossplane-system
+helm:
+  releaseName: crossplane
+# network-ONLY. apps/network owns the tailnet-policy reconciler; the secret cluster
+# runs its OWN crossplane bundle (apps/secret/src/crossplane). Declaring
+# targetCustomizations replaces Fleet's implicit deploy-everywhere, so bin/fleet-apply
+# creating this Bundle in another cluster's Fleet yields no BundleDeployment unless it
+# is labelled `network`.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
