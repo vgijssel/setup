@@ -183,7 +183,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P8 — Secret-cluster cleanup
 
-- [ ] **T8.1: Remove the obsolete `network-terranetes` role.**
+- [x] **T8.1: Remove the obsolete `network-terranetes` role.**
   - Acceptance: delete `apps/secret/src/openbao-config/role-network-terranetes.yaml`; keep
     `role-network-eso.yaml` + `policy-network-read.yaml` (ESO read path) untouched. No new OpenBao
     privileges added.
