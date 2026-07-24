@@ -104,12 +104,6 @@ directories:
   path: charts/omada-controller-helm
 - contents:
   - helmChart:
-      appVersion: 8.0.26
-      version: 0.7.9
-    path: .
-  path: charts/mongodb
-- contents:
-  - helmChart:
       appVersion: 1.23.0
       version: 1.23.0
     path: .
