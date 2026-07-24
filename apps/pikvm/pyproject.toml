@@ -3,12 +3,16 @@ name = "setup-pikvm"
 version = "0.0.0"
 description = "Bring the PiKVM host onto NetBird via pyinfra, with secrets from OpenBao"
 requires-python = ">=3.12"
-dependencies = ["pyinfra==3.9.2", "hvac==2.4.0"]
+dependencies = ["pyinfra==3.9.2", "hvac==2.4.0", "pyinfra-custom"]
 
 [dependency-groups]
 dev = ["ruff==0.14.14"]
 
-# Script-style project: deploy.py / secrets.py / inventories/ are top-level modules
-# executed via `uv run pyinfra`, not an installable package.
+# Script-style project: deploy.py / inventories/ are top-level modules executed via
+# `uv run pyinfra`, not an installable package. Custom facts/operations come from the
+# shared library at libs/pyinfra-custom (editable path source).
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+pyinfra-custom = { path = "../../libs/pyinfra-custom", editable = true }

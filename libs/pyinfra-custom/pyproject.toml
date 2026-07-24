@@ -1,0 +1,16 @@
+[project]
+name = "pyinfra-custom"
+version = "0.1.0"
+description = "Custom pyinfra facts and operations shared across setup deploys (OpenBao secrets, PiKVM/NetBird, read-only-rootfs)"
+requires-python = ">=3.12"
+dependencies = ["pyinfra==3.9.2", "hvac==2.4.0"]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.4", "pytest-mock==3.14.0", "ruff==0.14.14"]
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pyinfra_custom"]
