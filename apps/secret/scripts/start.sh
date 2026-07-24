@@ -50,10 +50,9 @@ echo "==> Waiting for the node to become Ready"
 kubectl wait --for=condition=Ready nodes --all --timeout=180s
 
 # No qemu/binfmt registration: the crossplane core + upbound/provider-vault images
-# are multi-arch (arm64), and platform-terranetes (the only amd64-only bundle) targets
-# the network cluster, not secret. If a future secret bundle needs an amd64-only image
-# on an arm64 host, gate a `docker run --privileged tonistiigi/binfmt --install amd64`
-# here on that specific need.
+# are multi-arch (arm64), so no amd64 emulation is needed on this host. If a future
+# secret bundle needs an amd64-only image on an arm64 host, gate a
+# `docker run --privileged tonistiigi/binfmt --install amd64` here on that specific need.
 
 CURRENT_CONTEXT="$(kubectl config current-context)"
 echo "==> Cluster ready; kubectl context: ${CURRENT_CONTEXT}"

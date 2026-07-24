@@ -98,12 +98,6 @@ directories:
   path: charts/openbao
 - contents:
   - helmChart:
-      appVersion: v0.5.7
-      version: v0.8.6
-    path: .
-  path: charts/terranetes-controller
-- contents:
-  - helmChart:
       appVersion: 6.2.14.11
       version: 1.4.1
     path: .

@@ -155,7 +155,7 @@ spec:
                   "ip":  ["tcp:443", "tcp:80"],
               },
               // ACL-A: the network cluster's proxies reach the secret cluster's OpenBao VIP
-              // so external-secrets + terranetes can read kv/*. DIRECTIONAL (network ->
+              // so external-secrets can read kv/*. DIRECTIONAL (network ->
               // secret): src is tag:network-k8s only — secret's OWN proxies (tag:secret-k8s)
               // cannot match this grant (T24 retired the shared tag:k8s).
               {

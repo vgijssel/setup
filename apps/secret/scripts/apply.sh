@@ -14,8 +14,8 @@
 #    discovers every fleet.yaml under apps/ (no hardcoded list) and applies each
 #    into the fleet-local workspace. Cluster targeting is the only deploy gate:
 #    each bundle's targetCustomizations/clusterSelector on cluster.vgijssel.nl/name
-#    decides whether the `secret` cluster gets a BundleDeployment (e.g.
-#    platform-terranetes targets only network, so it is applied but not deployed
+#    decides whether the `secret` cluster gets a BundleDeployment (e.g. the
+#    network-* bundles target only network, so they are applied but not deployed
 #    here). Runtime ordering comes from dependsOn label selectors.
 #
 # Idempotent: helm upgrade --install for the charts; fleet apply upserts Bundles.

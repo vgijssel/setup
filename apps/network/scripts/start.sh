@@ -54,9 +54,7 @@ kubectl wait --for=condition=Ready nodes --all --timeout=180s
 # node is arm64, and while every operator/app image this cluster runs (tailscale,
 # cert-manager, external-secrets, external-dns, the official multi-arch mongo image,
 # and mbentley/omada-controller) is multi-arch, registering amd64 emulation is a
-# harmless idempotent no-op that de-risks any future amd64-only image. Unlike
-# `secret`, network deploys no terranetes (the amd64-only image that made this
-# mandatory there).
+# harmless idempotent no-op that de-risks any future amd64-only image.
 HOST_ARCH="$(uname -m)"
 if [[ "${HOST_ARCH}" = "arm64" ]] || [[ "${HOST_ARCH}" = "aarch64" ]]; then
   if command -v docker >/dev/null 2>&1; then

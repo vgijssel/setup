@@ -159,7 +159,12 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P7 — Terranetes teardown (network)
 
-- [ ] **T7.1: Remove Terranetes config + scripts from the network cluster.**
+- [x] **T7.1: Remove Terranetes config + scripts from the network cluster.**
+  - DONE + extended: per user direction, terranetes was removed ENTIRELY — the
+    `platform-terranetes` bundle (`apps/platform/src/terranetes`), the vendored
+    `terranetes-controller` chart (+ vendir entry/lock), and the local amd64
+    `appvia/terranetes-{controller,executor}:v0.5.7` docker images were all deleted, and
+    stale operational references were corrected. No `terraform.appvia.io` anywhere.
   - Acceptance: delete `apps/network/src/config/{configuration-tailscale.yaml,provider-tailscale.yaml,
     rbac-terranetes-state.yaml}` and `apps/network/scripts/configure.sh`; drop the `configure` task
     from `apps/network/moon.yml`; ensure `platform-terranetes` is **not** targeted at the network

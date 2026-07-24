@@ -129,14 +129,6 @@ directories:
           version: 0.28.4
           repository:
             url: https://openbao.github.io/openbao-helm
-  - path: charts/terranetes-controller
-    contents:
-      - path: .
-        helmChart:
-          name: terranetes-controller
-          version: v0.8.6
-          repository:
-            url: https://terranetes-controller.appvia.io
   # TP-Link Omada SDN controller (network cluster). OCI chart from Docker Hub;
   # appVersion 6.2.14.11. Runs rootless against an EXTERNAL MongoDB (see below).
   - path: charts/omada-controller-helm
