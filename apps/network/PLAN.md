@@ -121,7 +121,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ## P5 — PerconaServerMongoDB CR + omada user (network)
 
-- [ ] **T5.1: Replace the mongo chart with the Percona CR (3-member).**
+- [x] **T5.1: Replace the mongo chart with the Percona CR (3-member).**
   - Acceptance: `apps/network/src/mongodb/perconaservermongodb.yaml` defines a **3-member** `rs0`
     (`size: 3`), `sharding.enabled: false`, `backup.enabled: false`, no `pmm`, `upgradeOptions.apply:
     disabled`, DB image **`percona/percona-server-mongodb:8.0.26-11`**, per-member PVCs, and
