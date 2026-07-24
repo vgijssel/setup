@@ -69,12 +69,119 @@ def _fingerprint(*values: str) -> str:
     return digest.hexdigest()
 
 
+# ── Root SSH authorized key (bootstrap — must run FIRST) ─────────────────────────
+# Authorize the operator SSH public key for root so the box stays reachable over the
+# LAN (192.168.1.31) with key auth as a fallback. This runs before NetBird so that if
+# bringing the overlay up blips the Tailscale session the apply is running over, the
+# operator can reconnect over the LAN and re-run. rw-guarded and idempotent.
+#
+# We render authorized_keys to EXACTLY this one key (files.put of the full content), so
+# the apply also *removes* any other keys -- e.g. a temporary deploy key added out of
+# band. files.put self-verifies against the remote sha, so a converged box is a no-op.
+
+ROOT_SSH_DIR = "/root/.ssh"
+ROOT_AUTHORIZED_KEYS = f"{ROOT_SSH_DIR}/authorized_keys"
+ROOT_SSH_PUBKEY = (
+    "ssh-ed25519 "
+    "AAAAC3NzaC1lZDI1NTE5AAAAIAvXN6EpJc9+19awLUuqdVvvjZ1v/ofx9dee9UzM3xXp"
+)
+_authorized_keys = ROOT_SSH_PUBKEY + "\n"
+
+ssh_key_needs_rw = (
+    host.get_fact(Directory, path=ROOT_SSH_DIR) is None
+    or host.get_fact(Sha256File, path=ROOT_AUTHORIZED_KEYS)
+    != hashlib.sha256(_authorized_keys.encode()).hexdigest()
+)
+
+# Queue the writes only when out of sync (ssh_key_needs_rw); gating the whole block keeps
+# a converged box a no-op and avoids touching the rootfs while it is read-only.
+if ssh_key_needs_rw:
+    server.shell(
+        name="Root SSH key: remount rootfs read-write",
+        commands=["rw"],
+    )
+    files.directory(
+        name="Root SSH key: ensure /root/.ssh (0700)",
+        path=ROOT_SSH_DIR,
+        mode="700",
+        present=True,
+    )
+    files.put(
+        name="Root SSH key: render authorized_keys to exactly the operator key",
+        src=StringIO(_authorized_keys),
+        dest=ROOT_AUTHORIZED_KEYS,
+        mode="600",
+    )
+    server.shell(
+        name="Root SSH key: remount rootfs read-only",
+        commands=["ro"],
+    )
+
+
+# ── PiKVM OS update (must run before NetBird) ────────────────────────────────────
+# Follow the official OS-update path (docs.pikvm.org/_update_os): `pikvm-update`
+# remounts rw, force-refreshes the db, self-updates the updater, runs the curated
+# `pacman -Su` (with --overwrite/--ask), validates the kvmd config, and normally
+# reboots. We call it with --no-reboot and let pyinfra own the reboot so the apply can
+# continue on the freshly-updated system. The PiKVM AUR/NetBird guide assumes an
+# up-to-date box, so this belongs before the NetBird slices.
+#
+# Exit-code contract (read from the pikvm-update script on the host):
+#   0   -> already up-to-date / completed, no reboot needed
+#   100 -> update applied successfully, reboot required (its --no-reboot signal)
+#   101 -> kvmd config broke mid-update: DO NOT REBOOT -- fail loudly
+# so we treat {0,100} as success and only then reboot; 101 (or anything else) aborts
+# the apply with the rootfs left rw for inspection, exactly as the updater intends.
+#
+# CONNECTIVITY: pikvm-update restarts tailscaled + runs `tailscale up` near the end, so
+# it must NOT run over the Tailscale session (it would sever itself mid-upgrade). Run
+# over the LAN inventory (the bootstrap root key above enables LAN key-auth). This is a
+# large, major-version upgrade; a failed run can need physical recovery (see the docs).
+
+_pending_upgrades = (
+    host.get_fact(Command, command="pacman -Qu 2>/dev/null | wc -l") or "0"
+).strip()
+os_update_needed = _pending_upgrades.isdigit() and int(_pending_upgrades) > 0
+
+if os_update_needed:
+    # Run the upgrade under a transient systemd unit (systemd-run --wait), NOT directly
+    # over SSH. pikvm-update restarts tailscaled near the end, which can sever the very
+    # session we run over; a detached unit keeps upgrading regardless, so a dropped
+    # connection can never kill pacman mid-transaction. --wait blocks and propagates the
+    # unit's result while the session is alive; if the session drops the unit finishes
+    # on the box anyway and we simply re-run the apply (pending upgrades -> 0 -> skipped).
+    #
+    # SuccessExitStatus=100 maps pikvm-update's "applied, reboot required" (--no-reboot)
+    # onto systemd success, so the op passes for exit 0 or 100 and only fails for 101
+    # (broken kvmd config, "DO NOT REBOOT") or any other error -- which aborts the apply
+    # before the reboot, leaving the box rw for inspection exactly as intended.
+    server.shell(
+        name=f"OS update: pikvm-update via systemd-run ({_pending_upgrades} pending)",
+        commands=[
+            "systemctl reset-failed pikvm-os-update.service 2>/dev/null || true",
+            "systemd-run --unit=pikvm-os-update --wait --collect "
+            "--property=SuccessExitStatus=100 "
+            "/usr/bin/pikvm-update --no-reboot",
+        ],
+    )
+    server.reboot(
+        name="OS update: reboot into the updated system and wait for reconnect",
+        delay=10,
+        reboot_timeout=900,
+    )
+
+
 # ── NetBird read-only-rootfs overlay (Task 4) ────────────────────────────────────
 # Persistent state dir + tmpfs-overlay helper + oneshot unit that mounts the overlay
 # before NetBird and copies state back on stop. Enable only here; starting happens
 # alongside NetBird in a later slice.
 
 NETBIRD_STATE_DIR = "/root/netbird-state"
+# Bind-mount target for the writable overlay. The netbird-bin package does NOT ship
+# /var/lib/netbird, and the rootfs is read-only at boot, so the mount target must be
+# created here (persistently, while rw) or the overlay unit fails every boot with
+# "mkdir: cannot create directory '/var/lib/netbird': Read-only file system".
+NETBIRD_LIB_DIR = "/var/lib/netbird"
 OVERLAY_SCRIPT_SRC = os.path.join(FILES, "setup-netbird-overlay.sh")
 OVERLAY_SCRIPT_REMOTE = "/usr/local/bin/setup-netbird-overlay.sh"
 OVERLAY_UNIT_SRC = os.path.join(FILES, "netbird-overlay.service")
@@ -85,6 +192,7 @@ OVERLAY_WANTS_LINK = (
 
 overlay_needs_rw = (
     host.get_fact(Directory, path=NETBIRD_STATE_DIR) is None
+    or host.get_fact(Directory, path=NETBIRD_LIB_DIR) is None
     or _file_out_of_sync(OVERLAY_SCRIPT_REMOTE, OVERLAY_SCRIPT_SRC)
     or _file_out_of_sync(OVERLAY_UNIT_REMOTE, OVERLAY_UNIT_SRC)
     or host.get_fact(Link, path=OVERLAY_WANTS_LINK) is None
@@ -99,6 +207,11 @@ if overlay_needs_rw:
 files.directory(
     name="Overlay: persistent NetBird state directory",
     path=NETBIRD_STATE_DIR,
+    present=True,
+)
+files.directory(
+    name="Overlay: persistent bind-mount target /var/lib/netbird",
+    path=NETBIRD_LIB_DIR,
     present=True,
 )
 files.put(
@@ -136,8 +249,14 @@ if overlay_needs_rw:
 # expect: the build/install runs only when the installed version does not match it. If
 # the AUR moves past the pin, the box never converges (a loud, visible signal) until
 # NETBIRD_VERSION is bumped -- Renovate owns that bump.
+#
+# We deliberately do NOT run a full `pacman -Syu` here. PiKVM holds `python-periphery`
+# (pinned python<3.14) while the ALARM repos already ship python 3.14, so a full upgrade
+# fails to prepare its transaction. `netbird-bin` is a *binary* package (depends=(glibc),
+# no makedepends), so it only needs `git` + `base-devel` (both shipped on PiKVM). We sync
+# the db (`-Sy`) and install just those with `--needed` -- no system-wide upgrade.
 
-NETBIRD_VERSION = "0.74.7"
+NETBIRD_VERSION = "0.75.0"
 NETBIRD_OVERRIDE_DIR = "/etc/systemd/system/netbird@.service.d"
 NETBIRD_OVERRIDE_SRC = os.path.join(FILES, "netbird@.service.d", "pikvm.conf")
 NETBIRD_OVERRIDE_REMOTE = os.path.join(NETBIRD_OVERRIDE_DIR, "pikvm.conf")
@@ -167,7 +286,7 @@ if netbird_needs_install:
     server.shell(
         name="NetBird: build netbird-bin from AUR (as kvmd-webterm) and install",
         commands=[
-            "pacman -Syu --needed --noconfirm git base-devel",
+            "pacman -Sy --needed --noconfirm git base-devel",
             "rm -rf /tmp/netbird-bin",
             "git clone https://aur.archlinux.org/netbird-bin.git /tmp/netbird-bin",
             "chown -R kvmd-webterm:kvmd-webterm /tmp/netbird-bin",
