@@ -41,6 +41,20 @@ directories:
           version: 1.90.9
           repository:
             url: https://pkgs.tailscale.com/helmcharts
+  # NetBird Kubernetes operator — replaces the Tailscale operator as the overlay
+  # network control plane (cross-cluster reachability + kube-apiserver exposure via
+  # custom domains). OCI chart from GHCR, pinned to 0.8.0
+  # (digest sha256:d836ce83f06e7749f826a2ebe680bbec17a9545c7ed4645c4d6217a472d94b8d,
+  # app v0.8.0). The operator authenticates to the NetBird management API with a PAT
+  # (netbird-mgmt-api-key / NB_API_KEY) and mints setup keys via its own CRDs.
+  - path: charts/netbird-operator
+    contents:
+      - path: .
+        helmChart:
+          name: netbird-operator
+          version: 0.8.0
+          repository:
+            url: oci://ghcr.io/netbirdio/helm-charts
   - path: charts/external-dns
     contents:
       - path: .
