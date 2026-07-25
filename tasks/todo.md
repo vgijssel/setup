@@ -23,8 +23,8 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [ ] **Checkpoint:** record `proxy_cname_target`; review with maintainer
 
 ## Phase 1 — network migration
-- [ ] 1.1 Vendor `netbird-operator` `0.8.0` in `vendir.yml`
-- [ ] 1.2 `apps/platform/src/netbird-operator/` Fleet bundle (ns `netbird`, PAT secret, mgmt URL var)
+- [x] 1.1 Vendor `netbird-operator` `0.8.0` in `vendir.yml`
+- [x] 1.2 `apps/platform/src/netbird-operator/` Fleet bundle (ns `netbird`, PAT secret, mgmt URL var) — deployed to BOTH clusters; operator `Running 1/1`, `netbird-mgmt-api-key` ExternalSecret `SecretSynced` (per-cluster `kv/<cluster>-netbird-operator#access_token`)
 - [ ] 1.3 `tailscale_auth.sh` → `netbird_auth.sh`; seed PAT + setup-key; rename moon task; edit `start.sh`
 - [ ] 1.4 `apps/network/src/netbird-config/` — SetupKey, Group, ClusterProxy; swap OIDC CRB from `system:unauthenticated` → OpenBao NetBird group
 - [ ] 1.5 Omada: drop Tailscale LB; UI via NetBird L7, device ports via L4 NetworkResource; delete `certificate-omada.yaml`

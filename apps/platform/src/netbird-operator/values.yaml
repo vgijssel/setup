@@ -1,0 +1,16 @@
+# The operator reads its NetBird management API PAT from a precreated Secret named
+# `netbird-mgmt-api-key` (key `NB_API_KEY`), populated by the per-cluster
+# ExternalSecret in apps/{network,secret}/src/config. Until that Secret exists the
+# operator stays not-Ready, which is expected during bootstrap — the same
+# chicken-and-egg the Tailscale operator's operator-oauth Secret had.
+#
+# Values are keyed under the subchart name (`netbird-operator`). `cluster.name` is set
+# per-cluster in fleet.yaml's targetCustomizations (it names the NetBird network +
+# resources the operator creates), so neither cluster inherits a shared default.
+netbird-operator:
+  # Default NetBird Cloud management API. Kept explicit (not a scattered literal) so a
+  # future self-hosted cutover only edits this one value.
+  netbirdAPI:
+    keyFromSecret:
+      name: netbird-mgmt-api-key
+      key: NB_API_KEY

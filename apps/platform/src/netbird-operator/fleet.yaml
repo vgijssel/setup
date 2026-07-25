@@ -1,0 +1,42 @@
+# Portable Fleet bundle for the NetBird Kubernetes operator. Fleet detects the umbrella
+# Chart.yaml here and deploys it with values.yaml. The operator reads its NetBird
+# management API PAT from the precreated `netbird-mgmt-api-key` Secret (synced from
+# OpenBao by ../../{network,secret}/src/config); until that exists the operator stays
+# not-Ready, which is expected during bootstrap.
+#
+# This bundle OWNS the `netbird` namespace (Fleet defaultNamespace). The per-cluster
+# credential ExternalSecret targets this namespace but is declared in the config bundle
+# (independent per-cluster root of trust), mirroring how the Tailscale operator-oauth
+# ExternalSecret lives in the config bundle while ns tailscale is owned by the operator
+# bundle. The netbird-config bundles (SetupKey, ClusterProxy, NetworkResource, …)
+# dependsOn this bundle so the operator's CRDs are registered before their CRs apply.
+labels:
+  fleet.vgijssel.nl/bundle: netbird-operator
+defaultNamespace: netbird
+helm:
+  releaseName: netbird-operator
+# Multi-cluster: this one bundle serves both the `secret` and `network` clusters,
+# selected on the cluster.vgijssel.nl/name label their apply.sh sets. Declaring
+# targetCustomizations replaces Fleet's implicit "deploy everywhere" target. Each
+# target sets `cluster.name` EXPLICITLY — it names the NetBird network + resources this
+# operator manages, so neither cluster relies on a shared default (a per-cluster
+# identity inherited from a shared default is a drift/collision risk).
+targetCustomizations:
+  - name: secret
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: secret
+    helm:
+      values:
+        netbird-operator:
+          cluster:
+            name: secret
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+    helm:
+      values:
+        netbird-operator:
+          cluster:
+            name: network
