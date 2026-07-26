@@ -17,7 +17,7 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 ## Phase 0 — De-risk spike (network, throwaway)
 - [ ] 0.1 Operator + peer enrollment → **Connected** in group `network-k8s`
 - [ ] 0.2 `ClusterProxy` kubectl (impersonation) works; capture endpoint + CNAME target
-- [ ] 0.3 **JWKS through the same ClusterProxy** (group→`system:service-account-issuer-discovery`, `jwksCaPem`) — **if it fails, STOP and report why**
+- [✗] 0.3 **JWKS through the ClusterProxy — INFEASIBLE.** netbird-kubeapi-proxy v0.0.4 forwards only `/api`+`/apis`; `/openid/v1/jwks` 404s. Token-less identity propagation works (impersonated per-user `auth0|<sub>`, 403 on namespaces) but the discovery path isn't exposed. **STOPPED per plan.** Fallback = NetworkResource exposing apiserver + keep anonymous OIDC CRB. Awaiting maintainer decision.
 - [ ] 0.4 NetBird auto-TLS on L7 custom domain confirmed; Omada L4 device-adoption cert nuance resolved
 - [ ] 0.5 **Live-validate nested hostnames** (`api.network.vgijssel.nl`, `api.secret`, `omada.network`, `openbao.secret`) forward into NetBird via the single `*.vgijssel.nl` wildcard; fallback = explicit per-host CNAMEs
 - [ ] **Checkpoint:** record `proxy_cname_target`; review with maintainer
