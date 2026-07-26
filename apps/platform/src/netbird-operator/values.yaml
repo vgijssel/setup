@@ -14,3 +14,12 @@ netbird-operator:
     keyFromSecret:
       name: netbird-mgmt-api-key
       key: NB_API_KEY
+  # Let the operator create NetBird access policies from Service annotations
+  # (netbird.io/policy*). Required for the v1 NBRoutingPeer/NBResource exposure flow: an
+  # exposed Service (netbird.io/expose) declares its allowed source groups via
+  # netbird.io/policy-source-groups, and without this flag the operator refuses to create
+  # the policy ("automatic policy creation is not allowed") so the resource is
+  # unreachable. We control which Services carry the annotations, so the blast radius is
+  # bounded to those.
+  ingress:
+    allowAutomaticPolicyCreation: true
