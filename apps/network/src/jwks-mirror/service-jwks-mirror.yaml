@@ -1,5 +1,14 @@
-# ClusterIP Service fronting the JWKS mirror. Exposed to the secret cluster over NetBird
-# by a NetworkResource (spec.serviceRef -> this Service) in ../netbird-config.
+# ClusterIP Service fronting the JWKS mirror, exposed to the secret cluster over NetBird
+# by the operator's v1 stack: netbird.io/expose makes the operator create a domain-type
+# NBResource (jwks-mirror.netbird.svc.cluster.local) on the NBRoutingPeer's network, plus
+# an access policy from the source groups to it. Requires the routing peer
+# (../netbird-config/nbroutingpeer-router.yaml) and operator
+# ingress.allowAutomaticPolicyCreation=true.
+#
+# policy-source-groups is `secret` — the secret cluster's NetBird group (created by its
+# own NBRoutingPeer in Phase 2), i.e. the OpenBao consumer. Until that group exists the
+# policy has no effective source (harmless: JWKS is public and unreachable to others).
+# The producer path itself was validated by fetching the JWKS over NetBird from a peer.
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,6 +16,13 @@ metadata:
   namespace: netbird
   labels:
     app: jwks-mirror
+  annotations:
+    netbird.io/expose: "true"
+    netbird.io/groups: "jwks-mirror"
+    netbird.io/policy: "jwks-mirror"
+    netbird.io/policy-protocol: "tcp"
+    netbird.io/policy-ports: "80"
+    netbird.io/policy-source-groups: "secret"
 spec:
   selector:
     app: jwks-mirror
