@@ -68,3 +68,47 @@ class NetbirdDnsDisabled(FactBase[bool]):
 
     def process(self, output: list[str]) -> bool:
         return any("true" in line.lower() for line in output)
+
+
+class NetbirdServerSshAllowed(FactBase[bool]):
+    """``True`` when NetBird's persisted config has ``ServerSSHAllowed: true``.
+
+    Drives the SSH-server-enable reconcile. Returns ``False`` before registration (the
+    config file does not exist yet), matching "SSH server not allowed".
+    """
+
+    default = bool  # bool() -> False
+
+    def requires_command(self, *args, **kwargs) -> str:
+        return "netbird"
+
+    def command(self) -> str:
+        return (
+            "grep -o '\"ServerSSHAllowed\"[^,]*' /var/lib/netbird/default.json "
+            "2>/dev/null || true"
+        )
+
+    def process(self, output: list[str]) -> bool:
+        return any("true" in line.lower() for line in output)
+
+
+class NetbirdSshRootEnabled(FactBase[bool]):
+    """``True`` when NetBird's persisted config has ``EnableSSHRoot: true``.
+
+    Drives the SSH-root-enable reconcile. Returns ``False`` before registration (the
+    config file does not exist yet), matching "root login not enabled".
+    """
+
+    default = bool  # bool() -> False
+
+    def requires_command(self, *args, **kwargs) -> str:
+        return "netbird"
+
+    def command(self) -> str:
+        return (
+            "grep -o '\"EnableSSHRoot\"[^,]*' /var/lib/netbird/default.json "
+            "2>/dev/null || true"
+        )
+
+    def process(self, output: list[str]) -> bool:
+        return any("true" in line.lower() for line in output)

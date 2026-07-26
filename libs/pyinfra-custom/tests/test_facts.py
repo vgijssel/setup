@@ -5,6 +5,8 @@ from __future__ import annotations
 from pyinfra_custom.facts import (
     NetbirdConnected,
     NetbirdDnsDisabled,
+    NetbirdServerSshAllowed,
+    NetbirdSshRootEnabled,
     NetbirdVersion,
     PacmanUpgradablePackages,
 )
@@ -37,6 +39,26 @@ def test_netbird_dns_disabled_reads_flag():
     assert fact.process(['"DisableDNS":true']) is True
     assert fact.process(['"DisableDNS":false']) is False
     assert fact.process([]) is False
+
+
+def test_netbird_server_ssh_allowed_reads_flag():
+    fact = NetbirdServerSshAllowed()
+    assert fact.requires_command() == "netbird"
+    assert "ServerSSHAllowed" in fact.command()
+    assert fact.process(['"ServerSSHAllowed":true']) is True
+    assert fact.process(['"ServerSSHAllowed":false']) is False
+    assert fact.process([]) is False
+    assert NetbirdServerSshAllowed.default() is False
+
+
+def test_netbird_ssh_root_enabled_reads_flag():
+    fact = NetbirdSshRootEnabled()
+    assert fact.requires_command() == "netbird"
+    assert "EnableSSHRoot" in fact.command()
+    assert fact.process(['"EnableSSHRoot":true']) is True
+    assert fact.process(['"EnableSSHRoot":false']) is False
+    assert fact.process([]) is False
+    assert NetbirdSshRootEnabled.default() is False
 
 
 def test_pacman_upgradable_lists_nonblank_lines():
