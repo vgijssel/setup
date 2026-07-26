@@ -30,7 +30,18 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [x] 1.2 `apps/platform/src/netbird-operator/` Fleet bundle (ns `netbird`, PAT secret, mgmt URL var) — deployed to BOTH clusters; operator `Running 1/1`, `netbird-mgmt-api-key` ExternalSecret `SecretSynced` (per-cluster `kv/<cluster>-netbird-operator#access_token`)
 - [x] 1.3 `tailscale_auth.sh` → `netbird_auth.sh`; seeds `netbird-mgmt-api-key` PAT (`kv/network-netbird-operator#access_token`) — operator mints its own SetupKeys, so no setup-key seeding; renamed moon task `tailscale_auth`→`netbird_auth`; rewired `start.sh`/`apply.sh`/`stop.sh` comments
 - [~] 1.4 `apps/network/src/netbird-config/` — Group `network-k8s` + SetupKey **Ready**; ClusterProxy `api-network` **Ready** (3/3 proxy peers `connected` in network-k8s, kube-apiserver fronted w/ impersonation RBAC, kubectl-only). **SUPERSEDED:** the "OIDC-discovery CRB swap (JWKS-via-ClusterProxy)" is dropped — JWKS now rides the mirror (`jwks-mirror` bundle, anonymous apiserver read), so the anonymous `clusterrolebinding-oidc-discovery.yaml` must **stay** (its comments still reference the retired Tailscale ProxyGroup — cleanup pending in 1.8). **Still pending:** custom-domain `api.network.vgijssel.nl` reachability (NetBird custom domain + Cloudflare CNAME — Ask-first, 1.7).
-- [ ] 1.5 Omada: drop Tailscale LB; UI via NetBird L7, device ports via L4 NetworkResource; delete `certificate-omada.yaml`
+- [~] 1.5 Omada over NetBird. **Approach revised (2026-07-26, maintainer):** UI is a NetBird-Only
+  **private** reverse-proxy service (mesh-only, no interstitial), not L7 public. Shared cloud cluster
+  can't do private (`supports_private:false`), so deployed a **BYOP proxy** in-cluster
+  (`apps/network/src/netbird-reverse-proxy`, chart christianhuth 0.1.0) → private account cluster
+  `vgijssel.nl`. Service managed via **opentofu + Mastercard/restapi** Workspace
+  (`cloudflare-config/workspace-reverse-proxy-services.yaml`) since the netbird TF provider lacks
+  private/access_groups (upstream PR #162); target_type=cluster + direct_upstream + skip_tls_verify →
+  in-cluster Omada 8043. **DONE & validated:** `https://omada.network.vgijssel.nl` → HTTP 200 from the
+  Mac (homelab peer) over the mesh; proxy token in `kv/network-netbird-proxy#token`.
+  **PENDING:** (a) maintainer validates the switch path via pikvm routing peer; (b) THEN cut Omada off
+  Tailscale — rewrite `service-omada.yaml` to ClusterIP, drop the Tailscale LB + external-dns A record,
+  delete `certificate-omada.yaml`; (c) optional trusted client cert (proxy self-signed CN=vgijssel.nl today).
 - [ ] 1.6 network `config/` — ESO setup-key ES (`kv/network-netbird`); remote `openbao` store host over NetBird
 - [ ] 1.7 Add Crossplane core + `provider-upjet-cloudflare` to network; single DNS-only wildcard `Record` MR — `*.vgijssel.nl` → `eu1.netbird.services`
 - [ ] 1.8 Remove `apps/network/src/tailscale-proxygroup/`; retarget platform tailscale bundle `secret`-only
