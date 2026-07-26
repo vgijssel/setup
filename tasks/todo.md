@@ -20,7 +20,7 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [✗] 0.3 **JWKS through the ClusterProxy — INFEASIBLE** (netbird-kubeapi-proxy v0.0.4 forwards only `/api`+`/apis`; `/openid/v1/jwks` 404s). Chosen fallback: **JWKS HTTP mirror + NetworkResource** (maintainer).
   - [x] JWKS HTTP mirror (`apps/network/src/jwks-mirror/`, nginx→apiserver anon /openid/v1/jwks over HTTP) — live, HTTP 200 with real keys.
   - [x] Exposed cross-cluster via **operator v1 stack** (`NBRoutingPeer` + Service `netbird.io/expose` → domain `NBResource` jwks-mirror.netbird.svc.cluster.local + auto-policy; no DNS zone, no crossplane). **Validated: JWKS fetched over NetBird from a peer, HTTP 200 real keys.** (netbird-crossplane-provider evaluated & reverted; Crossplane **core** kept on network for Cloudflare.)
-  - [ ] secret OpenBao `jwt-network` jwksUrl → `http://jwks-mirror.netbird.svc.cluster.local/openid/v1/jwks` (Phase 2; needs secret consumer in group `secret`).
+  - [~] secret OpenBao `jwt-network` jwksUrl → `http://jwks-mirror.netbird.svc.cluster.local/openid/v1/jwks`. **Mesh path PROVEN (2026-07-26):** secret NBRoutingPeer live → auto-group `secret` (id d9ius9jl0ubs73flnbb0) → network jwks-mirror NBPolicy source now resolves to it (operator log confirms `sources:[d9ius9jl0ubs73flnbb0]`; NBResource `status.policySourceGroups:[homelab]` is a STALE cosmetic write-back conflict, not the real policy) → **fetch of real JWKS keys succeeds from the secret router pod over NetBird.** BLOCKER: `openbao-0` is NOT a netbird client, so it gets NXDOMAIN/"bad address" on `jwks-mirror.netbird.svc.cluster.local` (cluster CoreDNS has no route). Fix = **SidecarProfile** injecting a netbird sidecar into the OpenBao StatefulSet (restarts openbao-0 — ask-first). jwksUrl NOT switched yet (no regression; still on the working Tailscale URL).
 - [ ] 0.4 NetBird auto-TLS on L7 custom domain confirmed; Omada L4 device-adoption cert nuance resolved
 - [ ] 0.5 **Live-validate nested hostnames** (`api.network.vgijssel.nl`, `api.secret`, `omada.network`, `openbao.secret`) forward into NetBird via the single `*.vgijssel.nl` wildcard; fallback = explicit per-host CNAMEs
 - [ ] **Checkpoint:** record `proxy_cname_target`; review with maintainer
@@ -37,7 +37,7 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [ ] **Checkpoint:** fresh `network:start`; Connected; kubectl+JWKS via ClusterProxy; Omada UI+devices; CNAMEs resolve; ESO syncs; no tailscale refs
 
 ## Phase 2 — secret migration
-- [ ] 2.1 `apps/secret/src/netbird-config/` — SetupKey, Group, ClusterProxy (`api.secret`), NetworkResource exposing OpenBao to `network-k8s`
+- [~] 2.1 `apps/secret/src/netbird-config/` — **DONE:** `NBRoutingPeer router` (v1 stack) live + auto-group `secret` Connected — the consumer half of the cross-cluster JWKS path (proven, see 0.3). **PENDING:** ClusterProxy (`api.secret`) for kubectl; exposing OpenBao to `network-k8s` for network ESO (the reverse direction — has the cert/SNI wrinkle since ESO uses the public `openbao.secret.vgijssel.nl` name, not the mesh domain).
 - [ ] 2.2 `authbackend-jwt-network.yaml` `jwksUrl` → `https://api.network.vgijssel.nl/openid/v1/jwks` + add `jwksCaPem` (network CA)
 - [ ] 2.3 secret `config/` — ESO setup-key ES (`kv/secret-netbird`); OpenBao UI via NetBird L7; ingress-nginx off Tailscale LB; delete `certificate-secret.yaml`
 - [ ] 2.4 Remove `apps/secret/src/tailscale-proxygroup/`, `apps/platform/src/tailscale/`, vendir `tailscale-operator` entry
