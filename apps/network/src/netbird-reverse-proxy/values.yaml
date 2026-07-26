@@ -32,12 +32,15 @@ netbird-reverse-proxy:
         existingSecret: netbird-proxy-token
 
     tls:
-      # Self-signed cert: private services are reached ONLY by mesh peers over the
-      # WireGuard tunnel (never the public internet), so a publicly-trusted cert is neither
-      # needed nor obtainable (ACME needs internet-reachable :443, which a mesh-only proxy
-      # is not). Clients trust the mesh, not the operator credential. Revisit with a mounted
-      # cert (source: secret) if a trusted cert is wanted for the Omada admin UI.
-      source: selfSigned
+      # Serve the publicly-trusted wildcard cert (*.network.vgijssel.nl) that cert-manager
+      # issues into the netbird-reverse-proxy-cert Secret (see
+      # templates/certificate-netbird-reverse-proxy.yaml). The proxy mounts it at /certs and
+      # hot-reloads on renewal, so clients (e.g. the Omada admin UI at
+      # omada.network.vgijssel.nl over the mesh) get a trusted cert with no name-mismatch
+      # warning. cert-manager can't issue until the cloudflare-api-token Secret is synced from
+      # OpenBao, so on a cold start the proxy stays not-Ready until the cert exists (expected).
+      source: secret
+      existingSecret: netbird-reverse-proxy-cert
 
   # private=true binds privileged :80/:443 inside the container; the image's default drops
   # ALL capabilities, so add back only NET_BIND_SERVICE.
