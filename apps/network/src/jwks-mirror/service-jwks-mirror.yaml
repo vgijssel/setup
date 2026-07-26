@@ -1,0 +1,16 @@
+# ClusterIP Service fronting the JWKS mirror. Exposed to the secret cluster over NetBird
+# by a NetworkResource (spec.serviceRef -> this Service) in ../netbird-config.
+apiVersion: v1
+kind: Service
+metadata:
+  name: jwks-mirror
+  namespace: netbird
+  labels:
+    app: jwks-mirror
+spec:
+  selector:
+    app: jwks-mirror
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

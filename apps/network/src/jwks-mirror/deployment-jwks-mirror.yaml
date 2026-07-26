@@ -1,0 +1,52 @@
+# nginx (unprivileged, non-root, listens on 8080) reverse-proxying the apiserver's
+# anonymous OIDC discovery endpoints. Pinned image per repo dependency policy.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jwks-mirror
+  namespace: netbird
+  labels:
+    app: jwks-mirror
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jwks-mirror
+  template:
+    metadata:
+      labels:
+        app: jwks-mirror
+    spec:
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.27.3-alpine
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
+      volumes:
+        - name: config
+          configMap:
+            name: jwks-mirror

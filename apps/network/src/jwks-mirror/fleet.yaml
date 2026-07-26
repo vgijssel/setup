@@ -1,0 +1,25 @@
+# JWKS HTTP mirror — serves the network apiserver's anonymous /openid/v1/jwks over plain
+# HTTP so the secret cluster's OpenBao jwt-network backend can fetch it over NetBird
+# (WireGuard-encrypted) via a NetworkResource, WITHOUT the apiserver-cert-SAN problem a
+# raw NetworkResource->apiserver would hit: OpenBao's jwt backend verifies the TLS
+# hostname, and the apiserver's serving cert does not cover NetBird hostnames. The JWKS
+# is public, signed data and the NetBird overlay encrypts transport, so plain HTTP here
+# is acceptable. This replaces the anonymous-JWKS role of the retired Tailscale
+# api-network kube-apiserver ProxyGroup (the NetworkResource fronting it lives in
+# ../netbird-config).
+#
+# dependsOn the netbird-operator bundle so namespace `netbird` exists before these
+# resources apply.
+labels:
+  fleet.vgijssel.nl/bundle: jwks-mirror
+defaultNamespace: netbird
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+# network-ONLY.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network

@@ -1,0 +1,39 @@
+# nginx config for the JWKS mirror. Reverse-proxies the two anonymous OIDC discovery
+# endpoints from the in-cluster apiserver over HTTP on :8080. proxy_ssl_verify is off
+# because the upstream is the in-cluster apiserver over its own ClusterIP (the response
+# is public signed JWKS, not a secret), and any inbound Authorization header is stripped
+# so the request stays anonymous (authorized by the oidc-discovery-unauthenticated CRB).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jwks-mirror
+  namespace: netbird
+data:
+  nginx.conf: |
+    worker_processes 1;
+    error_log /dev/stderr warn;
+    pid /tmp/nginx.pid;
+    events { worker_connections 128; }
+    http {
+      access_log /dev/stdout;
+      server {
+        listen 8080;
+
+        location = /healthz {
+          add_header Content-Type text/plain;
+          return 200 "ok\n";
+        }
+
+        location = /openid/v1/jwks {
+          proxy_pass https://kubernetes.default.svc.cluster.local:443/openid/v1/jwks;
+          proxy_ssl_verify off;
+          proxy_set_header Authorization "";
+        }
+
+        location = /.well-known/openid-configuration {
+          proxy_pass https://kubernetes.default.svc.cluster.local:443/.well-known/openid-configuration;
+          proxy_ssl_verify off;
+          proxy_set_header Authorization "";
+        }
+      }
+    }
