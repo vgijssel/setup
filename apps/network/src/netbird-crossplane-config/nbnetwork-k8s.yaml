@@ -1,0 +1,13 @@
+# NetBird Network grouping this cluster's cross-cluster resources. NbNetworkRouter (a
+# routing peer in the network cluster) and NbNetworkResource (domain-type resources like
+# the JWKS mirror, and later OpenBao) attach to it by network_name.
+apiVersion: vpn.netbird.crossplane.io/v1alpha1
+kind: NbNetwork
+metadata:
+  name: k8s-net
+spec:
+  forProvider:
+    name: k8s-net
+    description: cross-cluster k8s services
+  providerConfigRef:
+    name: netbird
