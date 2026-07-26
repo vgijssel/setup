@@ -1,0 +1,18 @@
+[Unit]
+Description=NetBird site-to-VPN routing peer (IPv4 forward + LAN SNAT)
+# Run after NetBird so our SNAT rule lands after NetBird's own firewall init (NetBird
+# rebuilds the nat table on start; adding our rule afterwards keeps it in place). Wants,
+# not Requires: IPv4 forwarding is harmless without wt0 and the -o wt0 rule simply does not
+# match until the interface exists, so routing should still come up if NetBird is degraded.
+After=netbird@netbird.service
+Wants=netbird@netbird.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=NB_ROUTING_LAN_CIDR={{ lan_cidr }}
+Environment=NB_ROUTING_IFACE={{ iface }}
+ExecStart=/usr/local/bin/setup-netbird-routing.sh
+
+[Install]
+WantedBy=multi-user.target

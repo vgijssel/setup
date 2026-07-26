@@ -30,6 +30,7 @@ Behaviour reproduced verbatim from https://docs.pikvm.org/netbird/ (asset files 
 """
 
 import hashlib
+import ipaddress
 import os
 from io import StringIO
 from pathlib import Path
@@ -528,3 +529,110 @@ if static_ip_needs_rw:
             f"networkctl reconfigure {STATIC_IFACE}",
         ],
     )
+
+
+# ── NetBird site-to-VPN routing peer (Task 9) ────────────────────────────────────
+# Turn the box into a NetBird routing peer for the *site-to-VPN* direction: LAN devices
+# that do NOT run NetBird reach peers inside the mesh (e.g. the Omada controller) by
+# routing through this box. Reference: https://docs.netbird.io/use-cases/remote-access/site-to-vpn
+#
+# Two pieces of *runtime* state are required and neither survives the read-only rootfs, so --
+# exactly like the NetBird overlay slice above -- a boot-time oneshot re-asserts them on every
+# boot (netbird-routing.service), and the deploy applies them immediately by starting it:
+#   1. IPv4 forwarding (net.ipv4.ip_forward=1).
+#   2. A SNAT/masquerade rule rewriting LAN source addresses onto the NetBird interface so
+#      the destination mesh peer sees this peer's NetBird IP (its access-control policy
+#      recognises it). The dashboard "Masquerade" route flag only covers the mesh->LAN
+#      direction, so the LAN->mesh rule is installed here explicitly (per the docs).
+# The unit orders After=netbird@netbird.service so the rule lands after NetBird rebuilds the
+# nat table on start; the setup script is idempotent (iptables -C guard), so the boot
+# re-assert and the deploy's reconcile never stack duplicate rules.
+#
+# MANUAL OPERATOR STEPS -- managed in the NetBird dashboard and on the LAN router, NOT here
+# (this repo does not manage the NetBird account policy or the router):
+#   1. NetBird dashboard -> Network Routing: designate this peer (via its group) as a routing
+#      peer and add an Access Control policy permitting the LAN source group -> the mesh
+#      destination (e.g. the Omada resource/peer). Without the route + policy NetBird does not
+#      distribute the network to this peer and traffic is dropped.
+#   2. LAN router: add a static route for the NetBird account block 100.65.0.0/16 -> this
+#      box's LAN IP (192.168.1.31), or push it via DHCP option 121, so LAN devices send
+#      mesh-bound traffic here. The SNAT rule below then rewrites their source to wt0.
+#
+# LAN CIDR defaults to the network of the Task 8 static IP (single source of truth for this
+# box's LAN); the NetBird interface defaults to wt0. Both are overridable by env for reuse.
+
+ROUTING_LAN_CIDR = os.environ.get(
+    "PIKVM_LAN_CIDR",
+    str(ipaddress.ip_network(f"{STATIC_IP}/{STATIC_PREFIX}", strict=False)),
+)
+ROUTING_IFACE = os.environ.get("PIKVM_NETBIRD_IFACE", "wt0")
+
+ROUTING_SCRIPT_SRC = os.path.join(FILES, "setup-netbird-routing.sh")
+ROUTING_SCRIPT_REMOTE = "/usr/local/bin/setup-netbird-routing.sh"
+ROUTING_UNIT_SRC = os.path.join(FILES, "netbird-routing.service.j2")
+ROUTING_UNIT_REMOTE = "/etc/systemd/system/netbird-routing.service"
+ROUTING_WANTS_LINK = (
+    "/etc/systemd/system/multi-user.target.wants/netbird-routing.service"
+)
+
+# Render the unit here (single source of the injected values) so the rw gate's sha256
+# exactly matches what is written -> empty diff on a converged box. The setup script is a
+# static asset (shellcheck-clean) that reads the values from the unit's Environment=.
+_routing_unit_template = Path(ROUTING_UNIT_SRC).read_text(encoding="utf-8")
+_routing_unit_rendered = Template(
+    _routing_unit_template,
+    keep_trailing_newline=True,
+).render(lan_cidr=ROUTING_LAN_CIDR, iface=ROUTING_IFACE)
+_routing_unit_sha = hashlib.sha256(_routing_unit_rendered.encode()).hexdigest()
+
+routing_needs_rw = (
+    _file_out_of_sync(ROUTING_SCRIPT_REMOTE, ROUTING_SCRIPT_SRC)
+    or host.get_fact(Sha256File, path=ROUTING_UNIT_REMOTE) != _routing_unit_sha
+    or host.get_fact(Link, path=ROUTING_WANTS_LINK) is None
+)
+
+with rootfs.writable(changed_if=routing_needs_rw):
+    # Capture the results so the reconcile below restarts the unit (change detection) only
+    # when an asset actually changed -- a changed script/unit needs a re-run to apply.
+    routing_script = files.put(
+        name="Routing peer: install setup-netbird-routing.sh",
+        src=ROUTING_SCRIPT_SRC,
+        dest=ROUTING_SCRIPT_REMOTE,
+        mode="755",
+    )
+    routing_unit = files.put(
+        name="Routing peer: install netbird-routing.service",
+        src=StringIO(_routing_unit_rendered),
+        dest=ROUTING_UNIT_REMOTE,
+        mode="644",
+    )
+    if routing_needs_rw:
+        # Enable only (running=None); started below. daemon_reload gated on the change
+        # condition so a converged box reloads nothing.
+        systemd.service(
+            name="Routing peer: enable netbird-routing.service",
+            service="netbird-routing.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the unit is active so the rule is applied now, not just at next boot. For a
+# RemainAfterExit oneshot this is a no-op once it has run, so a converged box makes no
+# change. Unlike the netbird up reconcile this does not bounce wt0, so the SSH session is
+# not at risk -- a plain systemd start/restart is safe over either inventory.
+systemd.service(
+    name="Routing peer: ensure netbird-routing.service is running",
+    service="netbird-routing.service",
+    running=True,
+)
+# Re-run the setup script when an asset changed this apply (change detection). A oneshot's
+# ExecStart only re-runs on restart, so daemon-reload + restart applies the new script/unit.
+server.shell(
+    name="Routing peer: re-apply rule after config change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart netbird-routing.service",
+    ],
+    _if=lambda: routing_script.did_change() or routing_unit.did_change(),
+)
