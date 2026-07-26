@@ -41,6 +41,8 @@ from pyinfra.operations import files, pacman, server, systemd
 from pyinfra_custom.facts import (
     NetbirdConnected,
     NetbirdDnsDisabled,
+    NetbirdServerSshAllowed,
+    NetbirdSshRootEnabled,
     NetbirdVersion,
     OpenBaoSecret,
     PacmanUpgradablePackages,
@@ -324,7 +326,19 @@ with rootfs.writable(changed_if=netbird_needs_rw):
         )
 
 
-# ── netbird up (DNS enabled) + config-change restart (Task 6) ────────────────────
+# ── netbird up (DNS + native SSH enabled) + config-change restart (Task 6) ───────
+# NATIVE SSH: NetBird's built-in SSH server is enabled here (`allow_server_ssh=True`)
+# with root login permitted (`enable_ssh_root=True`) so the box stays reachable as
+# `root` the same way it is today, but authenticated by NetBird/IdP identity (JWT) over
+# the wt0 overlay instead of a static authorized_keys entry. Both flags are persisted by
+# NetBird in /var/lib/netbird/default.json (ServerSSHAllowed / EnableSSHRoot), so they
+# are passed explicitly on every `netbird up` to make the desired state deterministic,
+# and the reconcile below is gated on facts that read those persisted values so a
+# converged box makes no changes. JWT auth is left ON (we do NOT pass --disable-ssh-auth);
+# access is still governed by an Access Control policy in the NetBird dashboard, so the
+# SSH server does no useful thing until that policy exists. The LAN root authorized_keys
+# fallback (bootstrap slice above) is intentionally kept as a break-glass path.
+#
 # DNS is ENABLED here (`disable_dns=False`). The stock PiKVM guide passes
 # `--disable-dns` to stop NetBird writing /etc/resolv.conf on the read-only rootfs, but
 # that assumes NetBird's *file* DNS backend. This box runs systemd-resolved (active,
@@ -354,6 +368,10 @@ with rootfs.writable(changed_if=netbird_needs_rw):
 netbird_connected = host.get_fact(NetbirdConnected)
 # Current persisted DNS setting; only meaningful once registered (False before).
 dns_currently_disabled = host.get_fact(NetbirdDnsDisabled)
+# Current persisted native-SSH settings; both False before registration (no config yet),
+# which correctly drives the reconcile to turn them on.
+ssh_server_allowed = host.get_fact(NetbirdServerSshAllowed)
+ssh_root_enabled = host.get_fact(NetbirdSshRootEnabled)
 
 if not netbird_connected:
     # First bring-up: start services, register with DNS enabled, persist state.
@@ -370,9 +388,11 @@ if not netbird_connected:
     # netbird.up passes the setup key via per-command _env ($NB_SETUP_KEY) -- never in
     # argv or --dry.
     netbird.up(
-        name="NetBird: register with setup key (DNS enabled)",
+        name="NetBird: register with setup key (DNS + native SSH enabled)",
         setup_key=_secret("netbird_setup_key"),
         disable_dns=False,
+        allow_server_ssh=True,
+        enable_ssh_root=True,
     )
     with rootfs.writable(changed_if=True):
         server.shell(
@@ -394,7 +414,8 @@ else:
             "systemctl restart netbird@netbird.service; "
             "sleep 1; "
             "netbird down || true; "
-            "netbird up --disable-dns=false; "
+            "netbird up --disable-dns=false "
+            "--allow-server-ssh=true --enable-ssh-root=true; "
             "rw; cp -a /tmp/netbird-state/. /root/netbird-state/; ro"
             "'",
         ],
@@ -404,6 +425,8 @@ else:
             or overlay_script.did_change()
             or netbird_needs_install
             or dns_currently_disabled
+            or not ssh_server_allowed
+            or not ssh_root_enabled
         ),
     )
 
