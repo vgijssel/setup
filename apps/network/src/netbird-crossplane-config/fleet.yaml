@@ -1,0 +1,20 @@
+# Crossplane-managed NetBird config for the network cluster: the netbird ProviderConfig
+# (+ its admin-token credential from OpenBao) and the NbNetwork / NbNetworkRouter /
+# NbNetworkResource that expose in-cluster Services cross-cluster over NetBird as
+# domain-type resources (no NetBird DNS zone required).
+#
+# dependsOn crossplane-provider: the netbird.crossplane.io / vpn.netbird.crossplane.io
+# CRDs (ProviderConfig, NbNetwork, ...) come from the provider install.
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane-provider
+labels:
+  fleet.vgijssel.nl/bundle: netbird-crossplane-config
+defaultNamespace: crossplane-system
+# network-ONLY.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
