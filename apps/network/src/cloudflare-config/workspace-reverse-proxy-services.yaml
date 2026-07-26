@@ -1,0 +1,128 @@
+# Manages the NetBird reverse-proxy SERVICES (as opposed to the DNS/domain, which is the
+# sibling reverse-proxy-dns Workspace). These are NetBird-Only *private* services served by the
+# in-cluster BYOP proxy (apps/network/src/netbird-reverse-proxy) — mesh-only, no interstitial,
+# straight through to the in-cluster backend.
+#
+# WHY the restapi provider (not netbirdio/netbird): the netbird TF provider v0.0.9 (and main)
+# has NO `private` / `access_groups` fields and no target `options` (direct_upstream,
+# skip_tls_verify), so it cannot express a private service (tracked upstream in
+# terraform-provider-netbird PR #162). We manage the service directly against the NetBird
+# management API via Mastercard/restapi (a popular, maintained REST provider with full
+# POST/GET/PUT/DELETE lifecycle), pinned 3.0.0. When the netbird provider (or the k8s operator,
+# kubernetes-operator PR #335) gains native support, migrate this to that and drop restapi.
+#
+# The netbirdio/netbird provider is STILL used here, only as a data source, to resolve the
+# `homelab` group id by name (peers in that group — the Mac + pikvm routing peer — are the
+# access_groups allowed to reach the service over the tunnel).
+#
+# Auth: NB_PAT (netbird data source) + TF_VAR_nb_pat (restapi Authorization header) are the same
+# per-cluster PAT from OpenBao (ESO netbird-mgmt-api-token), management_url https://api.netbird.io.
+# State: shared kubernetes backend (ProviderConfig), keyed per-workspace.
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: reverse-proxy-services
+spec:
+  forProvider:
+    source: Inline
+    env:
+      # netbirdio/netbird provider reads NB_PAT from the environment automatically.
+      - name: NB_PAT
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+      # restapi provider has no env auth; surface the same PAT as a TF variable
+      # (TF_VAR_nb_pat -> var.nb_pat) for the Authorization header.
+      - name: TF_VAR_nb_pat
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+    vars:
+      - key: access_group_name
+        value: homelab
+      - key: omada_backend
+        value: omada-omada-controller.omada.svc.cluster.local
+      - key: omada_port
+        value: "8043"
+    module: |
+      terraform {
+        required_providers {
+          netbird = {
+            source  = "netbirdio/netbird"
+            version = "0.0.9"
+          }
+          restapi = {
+            source  = "Mastercard/restapi"
+            version = "3.0.0"
+          }
+        }
+      }
+
+      variable "nb_pat" {
+        type      = string
+        sensitive = true
+      }
+      variable "access_group_name" { type = string }
+      variable "omada_backend" { type = string }
+      variable "omada_port" { type = number }
+
+      provider "netbird" {}
+
+      provider "restapi" {
+        uri                  = "https://api.netbird.io"
+        write_returns_object = true
+        id_attribute         = "id"
+        create_method        = "POST"
+        update_method        = "PUT"
+        destroy_method       = "DELETE"
+        headers = {
+          Authorization = "Token ${var.nb_pat}"
+          Content-Type  = "application/json"
+        }
+      }
+
+      # Resolve the access group id by name (stable across service edits, portable to a
+      # fresh account) instead of hardcoding a generated id.
+      data "netbird_group" "access" {
+        name = var.access_group_name
+      }
+
+      # NetBird-Only private service for the Omada UI. proxy_cluster is derived by NetBird from
+      # the domain -> the BYOP private cluster. target_type=cluster + direct_upstream makes the
+      # in-cluster BYOP proxy dial the Omada ClusterIP via its own pod network stack;
+      # skip_tls_verify because Omada's 8043 cert is for omada.network.vgijssel.nl, not the
+      # ClusterIP DNS dial name. ignore_server_additions so NetBird's server-set fields
+      # (meta, proxy_cluster, port_auto_assigned, ...) don't churn the plan.
+      resource "restapi_object" "omada" {
+        path                    = "/api/reverse-proxies/services"
+        id_attribute            = "id"
+        ignore_server_additions = true
+        force_new               = ["domain"]
+
+        data = jsonencode({
+          name          = "omada-network"
+          domain        = "omada.network.vgijssel.nl"
+          enabled       = true
+          private       = true
+          mode          = "http"
+          access_groups = [data.netbird_group.access.id]
+          targets = [{
+            enabled     = true
+            target_type = "cluster"
+            target_id   = var.omada_backend
+            host        = var.omada_backend
+            port        = var.omada_port
+            protocol    = "https"
+            options = {
+              direct_upstream = true
+              skip_tls_verify = true
+            }
+          }]
+        })
+      }
+
+      output "service_id" {
+        value = restapi_object.omada.id
+      }
