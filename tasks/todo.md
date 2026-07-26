@@ -19,8 +19,8 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [ ] 0.2 `ClusterProxy` kubectl (impersonation) works; capture endpoint + CNAME target
 - [✗] 0.3 **JWKS through the ClusterProxy — INFEASIBLE** (netbird-kubeapi-proxy v0.0.4 forwards only `/api`+`/apis`; `/openid/v1/jwks` 404s). Chosen fallback: **JWKS HTTP mirror + NetworkResource** (maintainer).
   - [x] JWKS HTTP mirror (`apps/network/src/jwks-mirror/`, nginx→apiserver anon /openid/v1/jwks over HTTP) — live, HTTP 200 with real keys.
-  - [ ] NetworkResource fronting the mirror — blocked on NetBird **DNS zone** decision (dnsZoneRef needs an existing zone; account dns_domain empty). Investigating operator CRDs + netbird-crossplane-provider.
-  - [ ] secret OpenBao `jwt-network` jwksUrl → mirror over NetBird (http).
+  - [x] Exposed cross-cluster via **operator v1 stack** (`NBRoutingPeer` + Service `netbird.io/expose` → domain `NBResource` jwks-mirror.netbird.svc.cluster.local + auto-policy; no DNS zone, no crossplane). **Validated: JWKS fetched over NetBird from a peer, HTTP 200 real keys.** (netbird-crossplane-provider evaluated & reverted; Crossplane **core** kept on network for Cloudflare.)
+  - [ ] secret OpenBao `jwt-network` jwksUrl → `http://jwks-mirror.netbird.svc.cluster.local/openid/v1/jwks` (Phase 2; needs secret consumer in group `secret`).
 - [ ] 0.4 NetBird auto-TLS on L7 custom domain confirmed; Omada L4 device-adoption cert nuance resolved
 - [ ] 0.5 **Live-validate nested hostnames** (`api.network.vgijssel.nl`, `api.secret`, `omada.network`, `openbao.secret`) forward into NetBird via the single `*.vgijssel.nl` wildcard; fallback = explicit per-host CNAMEs
 - [ ] **Checkpoint:** record `proxy_cname_target`; review with maintainer
