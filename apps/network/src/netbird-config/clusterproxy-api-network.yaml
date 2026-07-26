@@ -1,0 +1,24 @@
+# NetBird ClusterProxy exposing this cluster's kube-apiserver over the mesh, replacing
+# the retired Tailscale api-network kube-apiserver ProxyGroup. The operator provisions a
+# Deployment of NetBird proxy peers (group network-k8s) that front the apiserver with
+# per-caller impersonation (see serviceaccount-clusterproxy.yaml). Reachable NetBird-
+# natively via `netbird kubernetes write-kubeconfig`, and — once vgijssel.nl is
+# registered as a NetBird custom domain with the *.vgijssel.nl CNAME in place — at
+# https://api.network.vgijssel.nl. clusterName is immutable.
+#
+# The network cluster's anonymous JWKS (/openid/v1/jwks) rides this same proxy: the
+# OpenBao (secret cluster) NetBird group is bound to
+# system:service-account-issuer-discovery so its impersonated read is authorized (see
+# clusterrolebinding-oidc-discovery in ../config) — no separate anonymous path.
+apiVersion: netbird.io/v1alpha1
+kind: ClusterProxy
+metadata:
+  name: api-network
+  namespace: netbird
+spec:
+  clusterName: network
+  apiServer: https://kubernetes.default.svc.cluster.local/
+  serviceAccountName: netbird-clusterproxy
+  groups:
+    - localRef:
+        name: network-k8s
