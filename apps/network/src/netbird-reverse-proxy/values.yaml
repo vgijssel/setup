@@ -1,0 +1,58 @@
+# NetBird BYOP reverse proxy for the network cluster. This runs the `netbirdio/reverse-proxy`
+# image as an embedded `netbird proxy` peer inside a WireGuard tunnel, which makes the proxy
+# cluster advertise the `Private` capability — the shared NetBird Cloud cluster
+# (eu1.netbird.services) reports supports_private:false, so this is the ONLY way to get
+# NetBird-Only (private, mesh-only, no interstitial) reverse-proxy services on Cloud. See
+# https://netbird.io/knowledge-hub/netbird-only-private-services
+#
+# Values are keyed under the subchart name (`netbird-reverse-proxy`), mirroring the
+# netbird-operator umbrella bundle.
+netbird-reverse-proxy:
+  proxy:
+    # Advertise Private (NetBird-Only) support. Binds an extra :80/:443 listener pair
+    # regardless of proxy.address, so the container needs NET_BIND_SERVICE (added below).
+    private: true
+
+    # Base domain for the proxy. Private services carry their own explicit hostnames
+    # (e.g. omada.network.vgijssel.nl); this mainly sets the self-signed cert subject.
+    domain: vgijssel.nl
+
+    managementServer:
+      # Empty => NetBird Cloud default (https://api.netbird.io:443). Kept implicit so a
+      # future self-hosted management cutover only edits this one value.
+      address: ""
+      # NetBird Cloud management gRPC is TLS — do NOT allow an insecure (plaintext)
+      # connection (chart default is true, which is only appropriate for a local
+      # self-hosted management server).
+      allowInsecure: false
+      auth:
+        # Proxy token minted via POST /api/reverse-proxies/proxy-tokens, stored in OpenBao
+        # (kv/network-netbird-proxy#token) and surfaced by the ExternalSecret in this
+        # bundle as a Secret with a `token` key.
+        existingSecret: netbird-proxy-token
+
+    tls:
+      # Self-signed cert: private services are reached ONLY by mesh peers over the
+      # WireGuard tunnel (never the public internet), so a publicly-trusted cert is neither
+      # needed nor obtainable (ACME needs internet-reachable :443, which a mesh-only proxy
+      # is not). Clients trust the mesh, not the operator credential. Revisit with a mounted
+      # cert (source: secret) if a trusted cert is wanted for the Omada admin UI.
+      source: selfSigned
+
+  # private=true binds privileged :80/:443 inside the container; the image's default drops
+  # ALL capabilities, so add back only NET_BIND_SERVICE.
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - NET_BIND_SERVICE
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+
+  # Inbound private traffic arrives over the WireGuard tunnel (the embedded netbird peer),
+  # NOT via a Kubernetes Service, so no LoadBalancer/VIP is needed — keep it ClusterIP.
+  service:
+    type: ClusterIP

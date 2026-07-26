@@ -1,0 +1,25 @@
+# Fleet bundle for the NetBird BYOP reverse proxy (network cluster only). Fleet detects the
+# umbrella Chart.yaml and deploys it with values.yaml, plus the sibling ExternalSecret that
+# feeds the proxy its management token. Deployed into the `netbird` namespace (owned by the
+# netbird-operator bundle), so it dependsOn that bundle — both so the namespace exists and so
+# the overlay control plane is up first.
+#
+# Once this proxy connects to NetBird Cloud it registers as a Private-capable proxy cluster,
+# which is what unlocks NetBird-Only (private, mesh-only) reverse-proxy services for exposing
+# Omada (and later OpenBao) at their custom domains without a public interstitial.
+labels:
+  fleet.vgijssel.nl/bundle: netbird-reverse-proxy
+defaultNamespace: netbird
+helm:
+  releaseName: netbird-reverse-proxy
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly to keep the BYOP proxy off the secret cluster.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network

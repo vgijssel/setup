@@ -1,0 +1,6 @@
+dependencies:
+- name: netbird-reverse-proxy
+  repository: file://../../../../third_party/vendir/charts/netbird-reverse-proxy
+  version: 0.1.0
+digest: sha256:8fc57a3e0d3f155d4a83cb885697d7f58fa4c8316a1e62f9395bfa4805d01ae4
+generated: "2026-07-26T19:50:51.171141+02:00"
