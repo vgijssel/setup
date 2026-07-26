@@ -1,0 +1,6 @@
+dependencies:
+- name: crossplane
+  repository: file://../../../../third_party/vendir/charts/crossplane
+  version: 2.3.3
+digest: sha256:40e88475b8b3247bc9dcb6c87a9aaf37a11a2bd0851b462d77c8775d82c15182
+generated: "2026-07-26T07:55:31.007619+02:00"
