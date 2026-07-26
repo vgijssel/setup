@@ -6,7 +6,7 @@
 # this cluster later. Mirrors apps/secret/scripts/start.sh.
 #
 # `start` now runs the full bring-up end-to-end: create the cluster, seed the
-# Tailscale operator OAuth client (network:tailscale_auth — breaks the operator/ESO
+# NetBird operator management API PAT (network:netbird_auth — breaks the operator/ESO
 # chicken-and-egg), then install Fleet + apply every bundle (network:apply).
 #
 # Idempotent: creates the cluster, or just reconnects if it already exists.
@@ -57,18 +57,18 @@ done
 echo "==> Waiting for the node to become Ready"
 kubectl wait --for=condition=Ready nodes --all --timeout=180s
 
-# No qemu/binfmt registration: every operator/app image this cluster runs (tailscale,
+# No qemu/binfmt registration: every operator/app image this cluster runs (netbird-operator,
 # cert-manager, external-secrets, external-dns, the Percona MongoDB operator + server,
-# crossplane + provider-upjet-tailscale, and mbentley/omada-controller) is multi-arch
+# crossplane + provider-upjet-cloudflare, and mbentley/omada-controller) is multi-arch
 # (arm64), so no amd64 emulation is needed on this host.
 
 CURRENT_CONTEXT="$(kubectl config current-context)"
 echo "==> Cluster ready; kubectl context: ${CURRENT_CONTEXT}"
 
-# Seed the Tailscale operator OAuth client BEFORE apply, so the operator finds
-# operator-oauth on first start and can bring up the tailnet egress ESO needs.
-echo "==> Seeding the Tailscale operator OAuth client (scripts/tailscale_auth.sh)"
-"${SCRIPT_DIR}/tailscale_auth.sh"
+# Seed the NetBird operator management API PAT BEFORE apply, so the operator finds
+# netbird-mgmt-api-key on first start and can bring up the routing-peer egress ESO needs.
+echo "==> Seeding the NetBird operator management API PAT (scripts/netbird_auth.sh)"
+"${SCRIPT_DIR}/netbird_auth.sh"
 
 # ── Install the Fleet controller + label THIS cluster ─────────────────────────
 # Done HERE (not in apply.sh) while the kube-context is known-good: start.sh has just

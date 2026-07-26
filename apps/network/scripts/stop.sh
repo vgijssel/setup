@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Stop the network cluster: delete the vind vcluster (and its kube context). All
-# in-cluster state is destroyed. Durable state lives elsewhere: the Tailscale OAuth
-# client + api_key + kv secrets remain in the remote OpenBao, and the tailnet ACL
-# persists, so a fresh `network:start` (which re-runs tailscale_auth + apply) fully
-# re-creates the cluster. Mirrors apps/secret/scripts/stop.sh.
+# in-cluster state is destroyed. Durable state lives elsewhere: the NetBird management
+# API PAT + kv secrets remain in the remote OpenBao, and the NetBird account (groups,
+# policies, peers) persists, so a fresh `network:start` (which re-runs netbird_auth +
+# apply) fully re-creates the cluster. Mirrors apps/secret/scripts/stop.sh.
 #
 # Idempotent: deletes the cluster, or a no-op if it is already absent.
 set -euo pipefail
