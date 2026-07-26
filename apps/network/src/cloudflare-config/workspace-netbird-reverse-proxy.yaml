@@ -1,0 +1,45 @@
+# Workspace A of the DNS pipeline: query NetBird (netbirdio/netbird TF provider) for the
+# reverse-proxy cluster address — the value the CNAME must point at — and publish it to a
+# Kubernetes Secret, instead of hardcoding "eu1.netbird.services". If NetBird moves the
+# cluster, the CNAME (Workspace B) follows automatically.
+#
+# The data source returns clusters[].address ("Cluster address used for CNAME targets").
+# We take [0] (single-region homelab); adjust the index/filter if NetBird lists more.
+# Auth: NB_PAT env from the ESO-synced netbird-mgmt-api-token Secret (management_url defaults
+# to https://api.netbird.io). The output is written to the connection Secret
+# `netbird-reverse-proxy-cluster` (key `cluster_address`), which Workspace B consumes.
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: netbird-reverse-proxy
+spec:
+  forProvider:
+    source: Inline
+    env:
+      - name: NB_PAT
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+    module: |
+      terraform {
+        required_providers {
+          netbird = {
+            source  = "netbirdio/netbird"
+            version = "~> 0.0.9"
+          }
+        }
+      }
+
+      provider "netbird" {}
+
+      data "netbird_reverse_proxy_clusters" "all" {}
+
+      output "cluster_address" {
+        value = data.netbird_reverse_proxy_clusters.all.clusters[0].address
+      }
+  writeConnectionSecretToRef:
+    name: netbird-reverse-proxy-cluster
+    namespace: crossplane-system
+  providerConfigRef:
+    name: default

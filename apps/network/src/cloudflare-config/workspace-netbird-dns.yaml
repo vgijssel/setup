@@ -1,0 +1,67 @@
+# Workspace B of the DNS pipeline: the Cloudflare CNAME fronting the NetBird reverse proxy,
+# managed as inline OpenTofu (cloudflare/cloudflare v5, cloudflare_dns_record). Replaces
+# external-dns for this name.
+#
+# record_content is NOT hardcoded — it comes from the netbird-reverse-proxy-cluster Secret
+# that Workspace A writes from the NetBird API (TF_VAR_record_content env). Workspace B
+# reconciles once that Secret exists (Crossplane retries until then); no explicit dependsOn.
+# record_name is static (`*.vgijssel.nl`, the apex wildcard covering the NetBird-minted
+# per-service hostnames). proxied=false (DNS-only / grey-cloud); ttl=1 = automatic.
+# `tofu init` pulls the cloudflare v5 plugin (arm64); CLOUDFLARE_API_TOKEN (from the
+# ESO-synced cloudflare-credentials Secret) authenticates it — no token in HCL.
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: netbird-dns
+  # opentofu.upbound.io Workspaces are cluster-scoped (the .m.upbound.io variant is the
+  # namespaced one) — no namespace here. The env secretKeyRefs below still name the
+  # Secrets' namespace (crossplane-system).
+spec:
+  forProvider:
+    source: Inline
+    env:
+      - name: CLOUDFLARE_API_TOKEN
+        secretKeyRef:
+          namespace: crossplane-system
+          name: cloudflare-credentials
+          key: token
+      - name: TF_VAR_record_content
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-reverse-proxy-cluster
+          key: cluster_address
+    vars:
+      - key: zone_id
+        value: 8e5a9db0a62108e5fff87072dbb939d0 # vgijssel.nl
+      - key: record_name
+        value: "*.vgijssel.nl"
+    module: |
+      terraform {
+        required_providers {
+          cloudflare = {
+            source  = "cloudflare/cloudflare"
+            version = "~> 5.0"
+          }
+        }
+      }
+
+      provider "cloudflare" {}
+
+      variable "zone_id" { type = string }
+      variable "record_name" { type = string }
+      variable "record_content" { type = string }
+
+      resource "cloudflare_dns_record" "netbird_proxy" {
+        zone_id = var.zone_id
+        name    = var.record_name
+        type    = "CNAME"
+        content = var.record_content
+        ttl     = 1
+        proxied = false
+      }
+
+      output "record_id" {
+        value = cloudflare_dns_record.netbird_proxy.id
+      }
+  providerConfigRef:
+    name: default
