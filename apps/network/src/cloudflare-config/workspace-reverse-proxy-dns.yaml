@@ -1,0 +1,77 @@
+# ReverseProxyDNS: a single inline-OpenTofu Workspace that, in one module, queries NetBird
+# for its reverse-proxy cluster address and points the Cloudflare wildcard CNAME at it.
+# Replaces external-dns for this name and keeps the CNAME in lock-step with NetBird — no
+# hardcoded target, no intermediate Secret between two workspaces.
+#
+# Providers:
+#   - netbirdio/netbird: data.netbird_reverse_proxy_clusters -> clusters[].address (the value
+#     NetBird documents as the CNAME target, currently "eu1.netbird.services"). Auth: NB_PAT env
+#     (ESO netbird-mgmt-api-token); management_url defaults to https://api.netbird.io. We take
+#     clusters[0] (single-region homelab) — adjust the index/filter if NetBird lists more.
+#   - cloudflare/cloudflare v5: cloudflare_dns_record. Auth: CLOUDFLARE_API_TOKEN env (ESO
+#     cloudflare-credentials). proxied=false (DNS-only / grey-cloud); ttl=1 = automatic.
+# record_name is the apex wildcard covering the NetBird-minted per-service hostnames.
+# `tofu init` pulls both plugins (arm64) at runtime; state is the shared kubernetes backend
+# (ProviderConfig). Reconciles only when the network cluster can reach api.netbird.io.
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: reverse-proxy-dns
+spec:
+  forProvider:
+    source: Inline
+    env:
+      - name: NB_PAT
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+      - name: CLOUDFLARE_API_TOKEN
+        secretKeyRef:
+          namespace: crossplane-system
+          name: cloudflare-credentials
+          key: token
+    vars:
+      - key: zone_id
+        value: 8e5a9db0a62108e5fff87072dbb939d0 # vgijssel.nl
+      - key: record_name
+        value: "*.vgijssel.nl"
+    module: |
+      terraform {
+        required_providers {
+          netbird = {
+            source  = "netbirdio/netbird"
+            version = "~> 0.0.9"
+          }
+          cloudflare = {
+            source  = "cloudflare/cloudflare"
+            version = "~> 5.0"
+          }
+        }
+      }
+
+      provider "netbird" {}
+      provider "cloudflare" {}
+
+      variable "zone_id" { type = string }
+      variable "record_name" { type = string }
+
+      data "netbird_reverse_proxy_clusters" "all" {}
+
+      resource "cloudflare_dns_record" "reverse_proxy" {
+        zone_id = var.zone_id
+        name    = var.record_name
+        type    = "CNAME"
+        content = data.netbird_reverse_proxy_clusters.all.clusters[0].address
+        ttl     = 1
+        proxied = false
+      }
+
+      output "cluster_address" {
+        value = data.netbird_reverse_proxy_clusters.all.clusters[0].address
+      }
+      output "record_id" {
+        value = cloudflare_dns_record.reverse_proxy.id
+      }
+  providerConfigRef:
+    name: default
