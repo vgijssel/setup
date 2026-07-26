@@ -1,0 +1,17 @@
+# Reusable SetupKey that auto-joins the `network-k8s` group. Used to enroll this
+# cluster's NetBird routing peer(s) (NetworkRouter) so cross-cluster reachability and the
+# apiserver ClusterProxy can advertise over the mesh. Non-ephemeral (peers persist across
+# restarts). The operator creates the key in NetBird via the management API and records
+# the id in status.setupKeyID — a live proof the operator's PAT has write scope.
+apiVersion: netbird.io/v1alpha1
+kind: SetupKey
+metadata:
+  name: network-k8s
+  namespace: netbird
+spec:
+  name: network-k8s
+  ephemeral: false
+  allowExtraDnsLabels: true
+  autoGroups:
+    - localRef:
+        name: network-k8s

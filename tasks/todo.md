@@ -26,7 +26,7 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [x] 1.1 Vendor `netbird-operator` `0.8.0` in `vendir.yml`
 - [x] 1.2 `apps/platform/src/netbird-operator/` Fleet bundle (ns `netbird`, PAT secret, mgmt URL var) — deployed to BOTH clusters; operator `Running 1/1`, `netbird-mgmt-api-key` ExternalSecret `SecretSynced` (per-cluster `kv/<cluster>-netbird-operator#access_token`)
 - [ ] 1.3 `tailscale_auth.sh` → `netbird_auth.sh`; seed PAT + setup-key; rename moon task; edit `start.sh`
-- [ ] 1.4 `apps/network/src/netbird-config/` — SetupKey, Group, ClusterProxy; swap OIDC CRB from `system:unauthenticated` → OpenBao NetBird group
+- [~] 1.4 `apps/network/src/netbird-config/` — Group `network-k8s` + SetupKey **Ready** (groupID/setupKeyID populated) after enigma role→admin + operator restart. ClusterProxy + OIDC CRB swap still pending custom-domain/DNS confirmation.
 - [ ] 1.5 Omada: drop Tailscale LB; UI via NetBird L7, device ports via L4 NetworkResource; delete `certificate-omada.yaml`
 - [ ] 1.6 network `config/` — ESO setup-key ES (`kv/network-netbird`); remote `openbao` store host over NetBird
 - [ ] 1.7 Add Crossplane core + `provider-upjet-cloudflare` to network; single DNS-only wildcard `Record` MR — `*.vgijssel.nl` → `eu1.netbird.services`

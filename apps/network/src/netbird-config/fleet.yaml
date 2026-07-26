@@ -1,0 +1,27 @@
+# Raw-manifest Fleet bundle carrying the network cluster's NetBird account config
+# (netbird.io CRs the operator reconciles into NetBird Cloud via the management API):
+#   - group-network-k8s.yaml   : the `network-k8s` Group (isolated new group; does not
+#     touch shared policy or other peers like PiKVM).
+#   - setupkey-network-k8s.yaml: a reusable SetupKey auto-joining `network-k8s`, used to
+#     enroll this cluster's routing peer(s).
+# ClusterProxy / NetworkResource (api.network.vgijssel.nl + cross-cluster reachability)
+# are added in later slices once the custom-domain + DNS prerequisites are confirmed.
+#
+# dependsOn the netbird-operator bundle (label selector, portable across the standalone
+# Fleet -> Rancher GitRepo move) so Fleet only deploys it once the operator's CRDs are
+# established — otherwise a fresh-cluster install deadlocks (the CR's CRD isn't
+# registered yet).
+defaultNamespace: netbird
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+labels:
+  fleet.vgijssel.nl/bundle: netbird-config
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
+# cluster explicitly — this keeps the bundle off the secret cluster.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
