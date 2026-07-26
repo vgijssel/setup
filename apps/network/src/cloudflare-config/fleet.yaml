@@ -1,0 +1,22 @@
+# Raw-manifest Fleet bundle: the provider-opentofu ProviderConfig + the ESO ExternalSecret
+# feeding it the Cloudflare token, and the Workspace MR that manages the NetBird reverse-proxy
+# CNAME record (inline OpenTofu, cloudflare/cloudflare v5).
+#
+# dependsOn crossplane-provider (label selector): the opentofu.upbound.io CRDs (ProviderConfig,
+# Workspace) are registered by the provider, so it must be installed before these CRs apply —
+# else the atomic Helm release fails on unknown CRDs. (Same split/ordering as secret's
+# openbao-config -> crossplane-provider.)
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane-provider
+labels:
+  fleet.vgijssel.nl/bundle: cloudflare-config
+defaultNamespace: crossplane-system
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
+# cluster explicitly.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network

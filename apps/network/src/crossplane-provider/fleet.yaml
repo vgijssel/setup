@@ -1,0 +1,27 @@
+# Raw-manifest Fleet bundle: the upbound/provider-opentofu Provider + its
+# DeploymentRuntimeConfig (pkg.crossplane.io kinds, CRDs from crossplane core) and the RBAC
+# its OpenTofu Kubernetes state backend needs. Installing the provider registers the
+# opentofu.upbound.io CRDs (Workspace, ProviderConfig).
+#
+# The ProviderConfig + Workspace MRs deliberately live in the cloudflare-config bundle, NOT
+# here: Fleet deploys each bundle as one atomic Helm release, so a CR whose CRD this bundle
+# installs would fail the whole release (CRD not yet registered). Splitting lets this bundle
+# apply cleanly; cloudflare-config then dependsOn it. (Same split as secret's
+# crossplane-provider / openbao-config.)
+#
+# dependsOn crossplane (label selector): the pkg.crossplane.io CRDs (Provider) must exist
+# before these CRs apply.
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane
+labels:
+  fleet.vgijssel.nl/bundle: crossplane-provider
+defaultNamespace: crossplane-system
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
+# cluster explicitly (network runs its own crossplane; secret has provider-vault).
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
