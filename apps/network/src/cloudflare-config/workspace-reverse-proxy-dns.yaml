@@ -1,16 +1,19 @@
 # ReverseProxyDNS: a single inline-OpenTofu Workspace that, in one module, queries NetBird
-# for its reverse-proxy cluster address and points the Cloudflare wildcard CNAME at it.
-# Replaces external-dns for this name and keeps the CNAME in lock-step with NetBird — no
-# hardcoded target, no intermediate Secret between two workspaces.
+# for its reverse-proxy cluster address, registers vgijssel.nl as a NetBird custom
+# reverse-proxy domain, AND points the Cloudflare wildcard CNAME at that cluster — the full
+# "own the reverse-proxy DNS" resource. Replaces external-dns for this name and keeps
+# everything in lock-step with NetBird: no hardcoded target.
 #
 # Providers:
 #   - netbirdio/netbird: data.netbird_reverse_proxy_clusters -> clusters[].address (the value
-#     NetBird documents as the CNAME target, currently "eu1.netbird.services"). Auth: NB_PAT env
-#     (ESO netbird-mgmt-api-token); management_url defaults to https://api.netbird.io. We take
-#     clusters[0] (single-region homelab) — adjust the index/filter if NetBird lists more.
+#     NetBird documents as the CNAME target, currently "eu1.netbird.services"), and
+#     netbird_reverse_proxy_domain to register vgijssel.nl (validated against that cluster via
+#     the wildcard CNAME below). Auth: NB_PAT env (ESO netbird-mgmt-api-token); management_url
+#     defaults to https://api.netbird.io. We take clusters[0] (single-region homelab).
 #   - cloudflare/cloudflare v5: cloudflare_dns_record. Auth: CLOUDFLARE_API_TOKEN env (ESO
 #     cloudflare-credentials). proxied=false (DNS-only / grey-cloud); ttl=1 = automatic.
-# record_name is the apex wildcard covering the NetBird-minted per-service hostnames.
+# record_name is the apex wildcard covering the NetBird-minted per-service hostnames; the
+# reverse_proxy_domain is validated via that wildcard, so it depends_on the CNAME.
 # `tofu init` pulls both plugins (arm64) at runtime; state is the shared kubernetes backend
 # (ProviderConfig). Reconciles only when the network cluster can reach api.netbird.io.
 apiVersion: opentofu.upbound.io/v1beta1
@@ -36,6 +39,8 @@ spec:
         value: 8e5a9db0a62108e5fff87072dbb939d0 # vgijssel.nl
       - key: record_name
         value: "*.vgijssel.nl"
+      - key: proxy_domain
+        value: vgijssel.nl
     module: |
       terraform {
         required_providers {
@@ -55,6 +60,7 @@ spec:
 
       variable "zone_id" { type = string }
       variable "record_name" { type = string }
+      variable "proxy_domain" { type = string }
 
       data "netbird_reverse_proxy_clusters" "all" {}
 
@@ -67,11 +73,27 @@ spec:
         proxied = false
       }
 
+      # Register vgijssel.nl as a NetBird custom reverse-proxy domain, validated against the
+      # cluster via the wildcard CNAME above — hence depends_on, so the DNS record exists
+      # before NetBird attempts validation. `validated` flips true async once NetBird checks.
+      resource "netbird_reverse_proxy_domain" "vgijssel" {
+        domain         = var.proxy_domain
+        target_cluster = data.netbird_reverse_proxy_clusters.all.clusters[0].address
+
+        depends_on = [cloudflare_dns_record.reverse_proxy]
+      }
+
       output "cluster_address" {
         value = data.netbird_reverse_proxy_clusters.all.clusters[0].address
       }
       output "record_id" {
         value = cloudflare_dns_record.reverse_proxy.id
+      }
+      output "domain_id" {
+        value = netbird_reverse_proxy_domain.vgijssel.id
+      }
+      output "domain_validated" {
+        value = netbird_reverse_proxy_domain.vgijssel.validated
       }
   providerConfigRef:
     name: default
