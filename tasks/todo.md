@@ -43,10 +43,24 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   (`cloudflare-config/workspace-reverse-proxy-services.yaml`), and the dead vendored chart/vendir entry.
   Tailscale LB kept for now, renamed `omada`→`omada-tailscale` (`service-omada-tailscale.yaml`) to free
   the canonical name; will be retired with the Tailscale migration.
-  **PENDING:** (a) live-validate the single NBResource end-to-end (UI + device adoption) from the Mac and
-  via the pikvm routing peer on a fresh `network:start`; (b) THEN cut Omada off Tailscale — delete
-  `service-omada-tailscale.yaml` + its external-dns A record; (c) custom domain
-  `omada.network.vgijssel.nl` on the NBResource + external-dns IP sync for non-NetBird devices.
+  **APPLIED & VALIDATED LIVE (2026-07-27, `moon run network:apply`):** NBResource `omada` Ready with all
+  13 ports; from the Mac (homelab peer) over the mesh — `https://omada.omada.svc.cluster.local:8043`→**HTTP
+  200**, `:8088`→302 (→HTTPS), device TCP `:29814`→connect OK. BYOP proxy fully gone: `netbird-reverse-proxy`
+  Deployment absent, Bundle deleted, orphaned `netbird-reverse-proxy-cert` Secret deleted, and the NetBird
+  account `/api/reverse-proxies/services` now returns **0** (the `omada-network` private service was
+  destroyed when Fleet pruned the Workspace). Also cleaned stale manually-applied `omada-adopt`
+  Service/NBResource/NBGroup + its lingering NBPolicy CR (needed a manual `kubectl delete nbpolicy` — the
+  operator left it after the resource was removed, which had blocked the NBGroup cleanup).
+  **GOTCHA hit during apply:** the `router` NBRoutingPeer peer had a **SessionExpired** (~24h peer login
+  expiry) and could not re-login (`PermissionDenied: no peer auth method`), so `network` had
+  `routing_peers_count=0` and NO homelab peer got routes for omada/jwks-mirror. Fixed by
+  `kubectl -n netbird rollout restart deploy/router` (re-enrolls via the operator setup key). **This will
+  recur every ~24h** — needs a durable fix (non-expiring/ephemeral routing-peer setup key or operator re-auth);
+  tracked as a follow-up. See [[netbird-operator-token-scope]].
+  **STILL PENDING:** (a) validate the pikvm routing-peer path for physical device adoption (non-NetBird
+  devices); (b) THEN cut Omada off Tailscale — delete `service-omada-tailscale.yaml` + its external-dns A
+  record; (c) custom domain `omada.network.vgijssel.nl` on the NBResource + external-dns IP sync;
+  (d) durable fix for the routing-peer session expiry above.
   Prior BYOP approach (validated 2026-07-26, `https://omada.network.vgijssel.nl` HTTP 200 over the mesh;
   proxy token `kv/network-netbird-proxy#token` — now unused, left in OpenBao) superseded because one
   proxy version could not serve both the HTTPS UI and raw TCP L4 (netbirdio/netbird#6400).
