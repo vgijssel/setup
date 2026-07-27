@@ -1,8 +1,14 @@
-# Tailnet exposure for the Omada controller: a single Tailscale LoadBalancer Service
-# fronted by the network-ingress ProxyGroup (a stable VIP), advertising the full
-# documented Omada TCP/UDP port set. external-dns publishes the VIP as the A record for
-# omada.network.vgijssel.nl (SPEC Q2/Q3). The chart's own Service is ClusterIP; this is
-# the one that reaches the tailnet.
+# DEPRECATING — legacy Tailnet exposure for the Omada controller: a single Tailscale
+# LoadBalancer Service fronted by the network-ingress ProxyGroup (a stable VIP),
+# advertising the full documented Omada TCP/UDP port set. external-dns publishes the VIP
+# as the A record for omada.network.vgijssel.nl (SPEC Q2/Q3). The chart's own Service is
+# ClusterIP.
+#
+# Omada is now primarily exposed over the NetBird mesh as a single NetworkResource — the
+# `omada` NBResource Service (service-omada.yaml) carries this same port set. This
+# Tailscale path is kept only until the Tailscale→NetBird migration retires it; hence the
+# Service object is renamed `omada-tailscale` so the canonical `omada` name belongs to the
+# mesh Service.
 #
 # Omada requires port == targetPort for every port, so each entry targets the same
 # number on the pod. UDP is exposed too (same-subnet discovery); cross-tailnet adoption
@@ -14,7 +20,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: omada
+  name: omada-tailscale
   namespace: {{ .Release.Namespace }}
   # hostname -> the Tailscale Service (VIP) name svc:omada-network, which the tailnet
   # ACL autoApprovers/grants reference. The public A record (external-dns below) is
