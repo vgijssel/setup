@@ -20,10 +20,16 @@ queries the already-running daemon and requests rspecish output for that one req
 | # | Assertion | goss resource |
 |---|-----------|---------------|
 | 1 | Host is **connected to NetBird** (management connected) | `command` → `netbird status` |
-| 2 | Host can **ping IP `100.65.134.8`** | `command` → `ping -c … 100.65.134.8` |
-| 3 | Host can **resolve FQDN `macbook-pro-van-maarten.netbird.cloud`** | `dns` (fallback: `command` + `getent hosts`) |
+| 2 | Host can **resolve the in-cluster Omada Service `omada.omada.svc.cluster.local`** | `command` → `getent hosts` |
+| 3 | Host can **TCP-connect to Omada on every documented TCP port** (8088/8043/8843/29811–29817), over NetBird cross-cluster routing | `command` → `timeout bash -c 'exec 3<>/dev/tcp/…'` (one check per port) |
 | 4 | **`netbird@netbird.service` is running** (and enabled) | `service` |
 | 5 | **goss daemon listens on `127.0.0.1:8080` and NOT `0.0.0.0`** | `port` with explicit `ip: [127.0.0.1]` |
+
+The reachability target is the **Omada controller** (the whole point of the routing peer),
+not the operator laptop: the laptop is frequently offline and runs NetBird in userspace
+mode (no ICMP responder), so pinging it is unreliable. The Omada Service is always-on and
+reachable over cross-cluster routing. UDP discovery ports (27001/29810/19810) are L2-only
+and connectionless, so they are intentionally not connect-tested.
 
 ### Success looks like
 
@@ -154,7 +160,8 @@ server.shell(
 )
 ```
 
-**`files/goss.yaml`** — the assertion contract (bind-check enforces localhost-only):
+**`files/goss.yaml`** — the assertion contract (bind-check enforces localhost-only). The
+Omada TCP block below is one entry per port; see the deployed file for all ten:
 
 ```yaml
 command:
@@ -163,14 +170,16 @@ command:
     exit-status: 0
     stdout:
       - "Management: Connected"
-  ping-100.65.134.8:
-    exec: "ping -c 2 -W 2 100.65.134.8"
+  # Resolve the in-cluster Omada Service (getent, not goss's dns resource -- Go's
+  # resolver won't traverse the systemd-resolved 127.0.0.53 D-Bus stub).
+  omada-dns:
+    exec: "getent hosts omada.omada.svc.cluster.local"
     exit-status: 0
-
-dns:
-  macbook-pro-van-maarten.netbird.cloud:
-    resolvable: true
-    timeout: 5000
+  # One TCP-connect check per Omada TCP port (nc is absent; /bin/sh is bash):
+  omada-tcp-8088-manage-http:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8088'"
+    exit-status: 0
+  # … 8043, 8843, 29811, 29812, 29813, 29814, 29815, 29816, 29817 (same shape)
 
 service:
   netbird@netbird:
@@ -261,8 +270,8 @@ cat "$out"; rm -f "$out"
       `0.0.0.0`), and survives a reboot.
 - [ ] `curl -s localhost:8080/healthz` returns Prometheus verbose output with one metric
       per assertion (netdata-scrapeable).
-- [ ] All 5 assertions (netbird connected, ping `100.65.134.8`, resolve
-      `macbook-pro-van-maarten.netbird.cloud`, `netbird@netbird` running, goss on localhost)
+- [ ] All assertions (netbird connected, resolve `omada.omada.svc.cluster.local`, TCP
+      reachability to every Omada TCP port, `netbird@netbird` running, goss on localhost)
       report correctly on a healthy box.
 - [ ] `deploy.py --dry` shows no changes on a converged host (idempotent).
 - [ ] `moon run pikvm:lint` passes.

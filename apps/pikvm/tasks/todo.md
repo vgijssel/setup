@@ -42,7 +42,10 @@ apply was done over `ssh root@100.65.192.152` executing Task 10's exact operatio
 - [ ] `reboot` survival — NOT tested (would disrupt the box; `is-enabled=enabled` so expected to survive) — **left for user**
 - [x] Commit (6 commits on `worktree-pikvm-routing-peer`)
 
-## OPEN — needs user decision (SPEC "ask first")
-- [ ] `validate` check #2 `ping 100.65.134.8` fails: the laptop runs NetBird **userspace/netstack**
-      mode and does not answer ICMP echo (peer is P2P-Connected; TCP/UDP fine). Pick an
-      ICMP-answering target or a TCP reachability check (e.g. `nc -z`) instead of ping.
+## Reachability check — RESOLVED (replaced laptop ping with Omada)
+- [x] Dropped macbook ping + macbook DNS (laptop often offline, userspace mode = no ICMP)
+- [x] Added `omada-dns` (getent resolve `omada.omada.svc.cluster.local`) + one TCP-connect
+      check per Omada TCP port (8088/8043/8843/29811–29817) over NetBird cross-cluster routing
+- [x] UDP 27001/29810/19810 excluded (L2-only, connectionless, not connect-testable)
+- [x] Verified live: **17/17 checks pass, validate exit 0**, one prometheus metric per port,
+      box goss.yaml sha == repo (idempotent)
