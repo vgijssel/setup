@@ -1,9 +1,0 @@
-apiVersion: v2
-name: netbird-reverse-proxy
-description: NetBird BYOP reverse proxy (self-hosted Private-capable proxy cluster)
-version: 1.0.0
-appVersion: 0.72.4
-dependencies:
-  - name: netbird-reverse-proxy
-    version: 0.1.0
-    repository: file://../../../../third_party/vendir/charts/netbird-reverse-proxy
