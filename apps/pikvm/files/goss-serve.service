@@ -1,0 +1,16 @@
+[Unit]
+Description=goss system-health server (localhost only)
+After=network-online.target netbird@netbird.service
+Wants=network-online.target
+
+[Service]
+# Bind to loopback only; default response format is prometheus/verbose so netdata can
+# scrape one metric per assertion. The `validate` client requests rspecish per-request
+# via an Accept header. The daemon re-reads /etc/goss/goss.yaml on every request.
+ExecStart=/usr/local/bin/goss --gossfile /etc/goss/goss.yaml serve --listen-addr 127.0.0.1:8080 --endpoint /healthz --format prometheus --format-options verbose
+Restart=on-failure
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target

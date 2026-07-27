@@ -40,6 +40,7 @@ from pyinfra import host
 from pyinfra.facts.files import Directory, File, Link, Sha256File
 from pyinfra.operations import files, pacman, server, systemd
 from pyinfra_custom.facts import (
+    GossVersion,
     NetbirdConnected,
     NetbirdDnsDisabled,
     NetbirdServerSshAllowed,
@@ -56,6 +57,20 @@ FILES = os.path.join(HERE, "files")
 # OpenBao KV v2 location for this host's secrets (see libs/pyinfra-custom OpenBaoSecret).
 SECRET_MOUNT = "kv"
 SECRET_PATH = "pikvm"
+
+# Escape hatch for running the deploy when OpenBao is unreachable (pyinfra has no
+# Ansible-style per-task tags). When set, the OpenBao-backed slices are skipped:
+#   * Task 7 (PiKVM admin + root passwords) is skipped entirely.
+#   * Task 6 first-bring-up registration (reads the setup key) is refused with a clear
+#     error -- an unregistered box genuinely cannot register without the key. A box that
+#     is already connected takes the secret-free reconcile branch, so skipping is safe.
+# Every non-secret slice (goss health, NetBird overlay/routing, static IP, ...) still
+# runs. Set PIKVM_SKIP_SECRETS=1 (or true/yes) to enable.
+SKIP_SECRETS = os.environ.get("PIKVM_SKIP_SECRETS", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 
 def _secret(field: str) -> str:
@@ -374,6 +389,15 @@ dns_currently_disabled = host.get_fact(NetbirdDnsDisabled)
 ssh_server_allowed = host.get_fact(NetbirdServerSshAllowed)
 ssh_root_enabled = host.get_fact(NetbirdSshRootEnabled)
 
+if not netbird_connected and SKIP_SECRETS:
+    # Registration needs the setup key from OpenBao; there is no secret-free path to
+    # bring an unregistered box onto the mesh. Fail loudly rather than silently skip.
+    raise RuntimeError(
+        "PIKVM_SKIP_SECRETS is set but the box is not yet registered with NetBird: "
+        "first bring-up requires the setup key from OpenBao. Unset PIKVM_SKIP_SECRETS "
+        "and provide OpenBao access for the initial registration.",
+    )
+
 if not netbird_connected:
     # First bring-up: start services, register with DNS enabled, persist state.
     systemd.service(
@@ -444,13 +468,18 @@ else:
 
 PASSWORD_FP_FILE = "/root/.pikvm-provision-secrets.sha256"
 
-_admin_password = _secret("admin_password")
-_root_password = _secret("root_password")
-_desired_password_fp = _fingerprint(_admin_password, _root_password)
-_desired_fp_sha = hashlib.sha256(_desired_password_fp.encode()).hexdigest()
-passwords_need_update = (
-    host.get_fact(Sha256File, path=PASSWORD_FP_FILE) != _desired_fp_sha
-)
+if SKIP_SECRETS:
+    # OpenBao is unavailable -> leave the existing passwords untouched. Every other
+    # (secret-free) slice still reconciles.
+    passwords_need_update = False
+else:
+    _admin_password = _secret("admin_password")
+    _root_password = _secret("root_password")
+    _desired_password_fp = _fingerprint(_admin_password, _root_password)
+    _desired_fp_sha = hashlib.sha256(_desired_password_fp.encode()).hexdigest()
+    passwords_need_update = (
+        host.get_fact(Sha256File, path=PASSWORD_FP_FILE) != _desired_fp_sha
+    )
 
 if passwords_need_update:
     with rootfs.writable(changed_if=True):
@@ -635,4 +664,119 @@ server.shell(
         "systemctl restart netbird-routing.service",
     ],
     _if=lambda: routing_script.did_change() or routing_unit.did_change(),
+)
+
+
+# ── System-health validation via goss serve (Task 10) ────────────────────────────
+# Install goss (pinned, sha256-verified) and run it as a long-lived `goss serve` daemon
+# bound to 127.0.0.1:8080, driven by a declarative /etc/goss/goss.yaml. A thin `validate`
+# client queries the daemon for a human-readable (rspecish) pass/fail report; netdata can
+# scrape the same endpoint as prometheus/verbose (one metric per assertion). See SPEC.md.
+#
+# Read-only-rootfs split: the goss binary and `validate` live under /usr/local/bin, which
+# is on the *separate* read-only /usr partition that PiKVM's stock `rw` helper does NOT
+# remount -- so those writes are wrapped in rootfs.writable_usr. The config + unit live on
+# the root partition (/etc, /etc/systemd/system) and use the ordinary rootfs.writable.
+GOSS_VERSION = "0.4.10"
+GOSS_ARCH = "arm64"
+GOSS_SHA256 = "90a59612b4d67d9f1a9038634c000790136bb82526a69de1e81ac075c2f6d2c6"
+GOSS_URL = (
+    f"https://github.com/goss-org/goss/releases/download/v{GOSS_VERSION}/"
+    f"goss_{GOSS_VERSION}_linux_{GOSS_ARCH}.tar.gz"
+)
+
+GOSS_BIN_REMOTE = "/usr/local/bin/goss"
+GOSS_YAML_SRC = os.path.join(FILES, "goss.yaml")
+GOSS_YAML_REMOTE = "/etc/goss/goss.yaml"
+VALIDATE_SRC = os.path.join(FILES, "validate")
+VALIDATE_REMOTE = "/usr/local/bin/validate"
+GOSS_UNIT_SRC = os.path.join(FILES, "goss-serve.service")
+GOSS_UNIT_REMOTE = "/etc/systemd/system/goss-serve.service"
+
+# Install gate: only download/verify/install when the pinned version is absent. The AUR
+# never applies here (goss is a direct pinned binary, not a package), so this is the sole
+# source of the version -- a mismatch (Renovate bumps the pin) triggers a reinstall.
+goss_needs_install = GOSS_VERSION not in host.get_fact(GossVersion)
+
+# /usr writes: the binary (when out of date) and the validate client.
+usr_needs_rw = goss_needs_install or _file_out_of_sync(VALIDATE_REMOTE, VALIDATE_SRC)
+# root-partition writes: the assertion spec and the systemd unit.
+etc_needs_rw = (
+    host.get_fact(Directory, path="/etc/goss") is None
+    or _file_out_of_sync(GOSS_YAML_REMOTE, GOSS_YAML_SRC)
+    or _file_out_of_sync(GOSS_UNIT_REMOTE, GOSS_UNIT_SRC)
+)
+
+with rootfs.writable_usr(changed_if=usr_needs_rw):
+    if goss_needs_install:
+        # Download + sha256-verify + install is a bespoke one-shot (no operation
+        # equivalent); documented shell. The pinned digest guards against a tampered or
+        # wrong-arch download before it ever lands on PATH.
+        server.shell(
+            name=f"goss: install {GOSS_VERSION} to {GOSS_BIN_REMOTE} (verified sha256)",
+            commands=[
+                "set -e",
+                "tmp=$(mktemp -d)",
+                f'curl -fsSL -o "$tmp/goss.tgz" {GOSS_URL}',
+                f"echo '{GOSS_SHA256}  '\"$tmp/goss.tgz\" | sha256sum -c -",
+                'tar -xzf "$tmp/goss.tgz" -C "$tmp" goss',
+                f'install -m 0755 "$tmp/goss" {GOSS_BIN_REMOTE}',
+                'rm -rf "$tmp"',
+            ],
+        )
+    files.put(
+        name="goss: install validate client to /usr/local/bin",
+        src=VALIDATE_SRC,
+        dest=VALIDATE_REMOTE,
+        mode="755",
+    )
+
+with rootfs.writable(changed_if=etc_needs_rw):
+    files.directory(
+        name="goss: ensure /etc/goss",
+        path="/etc/goss",
+        present=True,
+    )
+    # Capture the results so the reconcile below restarts the daemon (change detection)
+    # only when the spec or unit actually changed.
+    goss_cfg = files.put(
+        name="goss: install assertion spec /etc/goss/goss.yaml",
+        src=GOSS_YAML_SRC,
+        dest=GOSS_YAML_REMOTE,
+        mode="644",
+    )
+    goss_unit = files.put(
+        name="goss: install goss-serve.service unit",
+        src=GOSS_UNIT_SRC,
+        dest=GOSS_UNIT_REMOTE,
+        mode="644",
+    )
+    if etc_needs_rw:
+        # Enable only (running=None); started below. daemon_reload gated on the change
+        # condition so a converged box reloads nothing.
+        systemd.service(
+            name="goss: enable goss-serve.service",
+            service="goss-serve.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the daemon is up now, not just at next boot. Idempotent: a converged box makes
+# no change.
+systemd.service(
+    name="goss: ensure goss-serve.service is running",
+    service="goss-serve.service",
+    running=True,
+)
+# Restart to pick up a changed spec/unit (change detection). goss re-reads the spec on
+# every request, but a changed *serve* flag or bind address lives in the unit, so a
+# daemon-reload + restart is the safe way to apply either.
+server.shell(
+    name="goss: restart goss-serve after spec/unit change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart goss-serve.service",
+    ],
+    _if=lambda: goss_cfg.did_change() or goss_unit.did_change(),
 )

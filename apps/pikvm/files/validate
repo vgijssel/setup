@@ -1,0 +1,18 @@
+#!/bin/bash
+# Query the local goss serve daemon for a human-readable system-health report.
+#
+# The daemon (goss-serve.service) listens on 127.0.0.1:8080 and re-runs the assertion
+# spec (/etc/goss/goss.yaml) on every request. We ask for the rspecish format via the
+# Accept header and exit non-zero when any assertion fails: goss serve returns HTTP 200
+# when all checks pass and 503 when any fails.
+set -euo pipefail
+
+out="$(mktemp)"
+trap 'rm -f "$out"' EXIT
+
+code="$(curl -sS -o "$out" -w '%{http_code}' \
+  -H 'Accept: application/vnd.goss-rspecish' \
+  http://127.0.0.1:8080/healthz)"
+
+cat "$out"
+[ "$code" = "200" ]

@@ -1,0 +1,10 @@
+# PiKVM system-health assertions, read by goss-serve.service on every request.
+# Phase B: minimal self-check only -- the daemon must be listening on loopback. Phase C
+# layers the remaining assertions (netbird connected, ping, dns, service) on top.
+port:
+  tcp:8080:
+    listening: true
+    ip:
+      # Fails if the daemon is bound to 0.0.0.0 instead of loopback -- enforces
+      # localhost-only exposure.
+      - 127.0.0.1
