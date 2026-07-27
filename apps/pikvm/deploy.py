@@ -769,9 +769,10 @@ systemd.service(
     service="goss-serve.service",
     running=True,
 )
-# Restart to pick up a changed spec/unit (change detection). goss re-reads the spec on
-# every request, but a changed *serve* flag or bind address lives in the unit, so a
-# daemon-reload + restart is the safe way to apply either.
+# Restart to pick up a changed spec/unit (change detection). `goss serve` parses the
+# gossfile ONCE at startup -- it re-runs the checks on every request but does not re-read
+# the file -- so a spec change needs a restart, as does a changed serve flag / bind
+# address in the unit. daemon-reload + restart applies either.
 server.shell(
     name="goss: restart goss-serve after spec/unit change",
     commands=[

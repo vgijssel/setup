@@ -1,6 +1,7 @@
-# PiKVM system-health assertions, read by goss-serve.service on every request.
-# `validate` renders these as an rspecish report; netdata scrapes them as one prometheus
-# metric per assertion. See apps/pikvm/SPEC.md for the contract.
+# PiKVM system-health assertions. goss-serve.service parses this file once at startup and
+# re-runs the checks on every request (deploy.py restarts the daemon when this file
+# changes). `validate` renders these as an rspecish report; netdata scrapes them as one
+# prometheus metric per assertion. See apps/pikvm/SPEC.md for the contract.
 command:
   # 1. NetBird management plane is connected (the mesh is up).
   netbird-connected:
