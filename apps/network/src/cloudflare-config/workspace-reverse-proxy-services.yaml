@@ -1,0 +1,146 @@
+# Manages the NetBird reverse-proxy SERVICES (as opposed to the DNS/domain, which is the
+# sibling reverse-proxy-dns / reverse-proxy-dns-secret Workspaces). These are NetBird-Only
+# *private* services served by a BYOP proxy — mesh-only, no interstitial, straight through to
+# the in-cluster backend. Today: OpenBao on the secret cluster.
+#
+# WHY the restapi provider (not netbirdio/netbird): the netbird TF provider v0.0.9 (and main)
+# has NO `private` / `access_groups` fields and no target `options` (direct_upstream,
+# skip_tls_verify), so it cannot express a private service. We manage the service directly
+# against the NetBird management API via Mastercard/restapi (a maintained REST provider with a
+# full POST/GET/PUT/DELETE lifecycle), pinned 3.0.0. When the netbird provider (or the k8s
+# operator, netbirdio/kubernetes-operator PR #335) gains native support, migrate to that and
+# drop restapi.
+#
+# The netbirdio/netbird provider is STILL used here, only as a data source, to resolve the
+# access-group ids by name (peers in those groups may reach the service over the tunnel):
+#   - homelab     : the Mac workstation + pikvm routing peer (human UI/CLI access)
+#   - network     : the network cluster's operator/routing peers (so its external-secrets can
+#                   read OpenBao over the mesh — the cross-cluster secret path)
+#   - network-k8s : the network cluster's in-cluster peers group
+#
+# The OpenBao service routes through the secret cluster's OWN proxy cluster (address
+# secret.vgijssel.nl — see apps/secret/src/netbird-reverse-proxy proxy.domain), which NetBird
+# derives from the domain being the most-specific subdomain of that cluster address. That proxy
+# is co-located with OpenBao, so target_type=cluster + direct_upstream makes it dial the OpenBao
+# ClusterIP via its own pod network stack. protocol=http (OpenBao listens plaintext / tls_disable
+# on :8200), so NO skip_tls_verify is needed. ignore_server_additions so NetBird's server-set
+# fields (meta, proxy_cluster, port_auto_assigned, ...) don't churn the plan.
+#
+# Auth: NB_PAT (netbird data source) + TF_VAR_nb_pat (restapi Authorization header) are the same
+# per-cluster PAT from OpenBao (ESO netbird-mgmt-api-token), management_url https://api.netbird.io.
+# State: shared kubernetes backend (ProviderConfig), keyed per-workspace.
+#
+# Reconciles only once the secret cluster's BYOP proxy is online (its account cluster registered);
+# until then NetBird may reject the domain or bind it to the wrong cluster, and the MR retries.
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: reverse-proxy-services
+spec:
+  forProvider:
+    source: Inline
+    env:
+      # netbirdio/netbird provider reads NB_PAT from the environment automatically.
+      - name: NB_PAT
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+      # restapi provider has no env auth; surface the same PAT as a TF variable
+      # (TF_VAR_nb_pat -> var.nb_pat) for the Authorization header.
+      - name: TF_VAR_nb_pat
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+    vars:
+      - key: openbao_backend
+        value: openbao.secret.svc.cluster.local
+      - key: openbao_port
+        value: "8200"
+    module: |
+      terraform {
+        required_providers {
+          netbird = {
+            source  = "netbirdio/netbird"
+            version = "0.0.9"
+          }
+          restapi = {
+            source  = "Mastercard/restapi"
+            version = "3.0.0"
+          }
+        }
+      }
+
+      variable "nb_pat" {
+        type      = string
+        sensitive = true
+      }
+      variable "openbao_backend" { type = string }
+      variable "openbao_port" { type = number }
+
+      locals {
+        # Access groups (by name, stable across service edits and portable to a fresh account)
+        # allowed to reach the OpenBao service over the tunnel.
+        access_group_names = ["homelab", "network", "network-k8s"]
+      }
+
+      provider "netbird" {}
+
+      provider "restapi" {
+        uri                  = "https://api.netbird.io"
+        write_returns_object = true
+        id_attribute         = "id"
+        create_method        = "POST"
+        update_method        = "PUT"
+        destroy_method       = "DELETE"
+        headers = {
+          Authorization = "Token ${var.nb_pat}"
+          Content-Type  = "application/json"
+        }
+      }
+
+      # Resolve each access-group id by name.
+      data "netbird_group" "access" {
+        for_each = toset(local.access_group_names)
+        name     = each.value
+      }
+
+      # NetBird-Only private service for OpenBao. proxy_cluster is derived by NetBird from the
+      # domain -> the secret cluster's BYOP private cluster (secret.vgijssel.nl). target_type=
+      # cluster + direct_upstream makes that in-cluster proxy dial the OpenBao ClusterIP via its
+      # own pod network stack; protocol=http because OpenBao listens plaintext on :8200.
+      # force_new on domain (a domain change is a replace); ignore_server_additions so NetBird's
+      # server-set fields don't churn the plan.
+      resource "restapi_object" "openbao" {
+        path                    = "/api/reverse-proxies/services"
+        id_attribute            = "id"
+        ignore_server_additions = true
+        force_new               = ["domain"]
+
+        data = jsonencode({
+          name          = "openbao-secret"
+          domain        = "openbao.secret.vgijssel.nl"
+          enabled       = true
+          private       = true
+          mode          = "http"
+          access_groups = [for g in data.netbird_group.access : g.id]
+          targets = [{
+            enabled     = true
+            target_type = "cluster"
+            target_id   = var.openbao_backend
+            host        = var.openbao_backend
+            port        = var.openbao_port
+            protocol    = "http"
+            options = {
+              direct_upstream = true
+            }
+          }]
+        })
+      }
+
+      output "service_id" {
+        value = restapi_object.openbao.id
+      }
+  providerConfigRef:
+    name: default
