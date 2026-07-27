@@ -20,8 +20,8 @@ queries the already-running daemon and requests rspecish output for that one req
 | # | Assertion | goss resource |
 |---|-----------|---------------|
 | 1 | Host is **connected to NetBird** (management connected) | `command` → `netbird status` |
-| 2 | Host can **resolve the in-cluster Omada Service `omada.omada.svc.cluster.local`** | `command` → `getent hosts` |
-| 3 | Host can **TCP-connect to Omada on every documented TCP port** (8088/8043/8843/29811–29817), over NetBird cross-cluster routing | `command` → `bash -c 'exec 3<>/dev/tcp/…'` (one check per port; goss's own `timeout` bounds it) |
+| 2 | Host can **resolve the in-cluster Omada Service `omada.omada.svc.cluster.local`** | `dns` (`resolvable: true`) |
+| 3 | Host can **TCP-connect to Omada on every documented TCP port** (8088/8043/8843/29811–29817), over NetBird cross-cluster routing | `addr` (`tcp://host:port`, `reachable: true`) — one check per port |
 | 4 | **`netbird@netbird.service` is running** (and enabled) | `service` |
 | 5 | **goss daemon listens on `127.0.0.1:8080` and NOT `0.0.0.0`** | `port` with explicit `ip: [127.0.0.1]` |
 
@@ -32,12 +32,14 @@ reachable over cross-cluster routing. UDP discovery ports (27001/29810/19810) ar
 and connectionless, so they are intentionally not connect-tested.
 
 goss's `port` resource checks only **local** listening sockets (hence its use for the
-`:8080` loopback self-check), not outbound reachability. goss's remote-reachability builtin
-`addr` (`tcp://host:port`) *is* used-worthy, but here it only works against the Service's
-ClusterIP — with the stable hostname it fails, because goss's static Go resolver does not
-traverse the systemd-resolved split-DNS stub (same limitation as the `dns` resource). Since
-the ClusterIP is not stable, assertion #3 uses `command` + bash `/dev/tcp`, which resolves
-the stable hostname via libc NSS on every check.
+`:8080` loopback self-check), not outbound reachability — assertion #3 uses the remote
+builtin `addr` instead. Both `addr` and `dns` need goss (a static Go binary) to resolve the
+`*.svc.cluster.local` name, which fails against this box's default `/etc/resolv.conf`
+(systemd-resolved's *uplink* file, `nameserver 192.168.1.1` → NXDOMAIN for mesh names). The
+fix is scoped to the daemon: `goss-serve.service` binds resolved's *stub* resolv.conf
+(`nameserver 127.0.0.53`) over `/etc/resolv.conf` via `BindReadOnlyPaths` (leading `-` = no-op
+if absent), so goss's resolver traverses NetBird's split-DNS routing to `wt0`. No system-wide
+resolv.conf change; goss manages its own per-check timeouts.
 
 ### Success looks like
 
@@ -178,16 +180,16 @@ command:
     exit-status: 0
     stdout:
       - "Management: Connected"
-  # Resolve the in-cluster Omada Service (getent, not goss's dns resource -- Go's
-  # resolver won't traverse the systemd-resolved 127.0.0.53 D-Bus stub).
-  omada-dns:
-    exec: "getent hosts omada.omada.svc.cluster.local"
-    exit-status: 0
-  # One TCP-connect check per Omada TCP port. goss bounds each check with its own
-  # `timeout` (default 10s), so no external `timeout` wrapper is needed.
-  omada-tcp-8088-manage-http:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8088'"
-    exit-status: 0
+
+# Resolve the in-cluster Omada Service (works via the stub resolv.conf the unit binds).
+dns:
+  omada.omada.svc.cluster.local:
+    resolvable: true
+
+# TCP reachability to every Omada TCP port (one addr check per port):
+addr:
+  tcp://omada.omada.svc.cluster.local:8088:   # manage-http
+    reachable: true
   # … 8043, 8843, 29811, 29812, 29813, 29814, 29815, 29816, 29817 (same shape)
 
 service:

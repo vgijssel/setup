@@ -42,10 +42,14 @@ apply was done over `ssh root@100.65.192.152` executing Task 10's exact operatio
 - [ ] `reboot` survival — NOT tested (would disrupt the box; `is-enabled=enabled` so expected to survive) — **left for user**
 - [x] Commit (6 commits on `worktree-pikvm-routing-peer`)
 
-## Reachability check — RESOLVED (replaced laptop ping with Omada)
+## Reachability check — RESOLVED (replaced laptop ping with Omada, via goss builtins)
 - [x] Dropped macbook ping + macbook DNS (laptop often offline, userspace mode = no ICMP)
-- [x] Added `omada-dns` (getent resolve `omada.omada.svc.cluster.local`) + one TCP-connect
-      check per Omada TCP port (8088/8043/8843/29811–29817) over NetBird cross-cluster routing
+- [x] Assert Omada reachability with native goss builtins: `dns` (resolve
+      `omada.omada.svc.cluster.local`) + `addr` (`tcp://…:port` reachable) for each Omada TCP
+      port (8088/8043/8843/29811–29817) over NetBird cross-cluster routing
+- [x] Made the builtins resolve split-DNS names: `goss-serve.service` binds resolved's stub
+      resolv.conf (127.0.0.53) over /etc/resolv.conf via `BindReadOnlyPaths` (scoped to the
+      unit; box default resolv.conf is uplink mode → NXDOMAIN for mesh names)
 - [x] UDP 27001/29810/19810 excluded (L2-only, connectionless, not connect-testable)
-- [x] Verified live: **17/17 checks pass, validate exit 0**, one prometheus metric per port,
-      box goss.yaml sha == repo (idempotent)
+- [x] Verified live: **17/17 pass, validate exit 0**, metrics show type=dns + 10×type=addr,
+      box unit+goss.yaml sha == repo (idempotent)

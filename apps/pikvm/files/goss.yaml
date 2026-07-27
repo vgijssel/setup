@@ -3,13 +3,10 @@
 # changes). `validate` renders these as an rspecish report; netdata scrapes them as one
 # prometheus metric per assertion. See apps/pikvm/SPEC.md for the contract.
 #
-# goss manages its own per-check timeouts (default 10s), so no external `timeout` wrapper
-# is used. Remote reachability uses `command` + bash /dev/tcp rather than goss's native
-# `addr` resource: `addr` with the stable hostname fails because goss's static Go resolver
-# does not traverse the systemd-resolved 127.0.0.53 split-DNS stub NetBird configures (the
-# same limitation that rules out the `dns` resource), and its only working form would
-# hardcode the Service's ClusterIP, which is not stable. bash uses libc NSS, which resolves
-# omada.omada.svc.cluster.local, and re-resolves it on every check.
+# The dns/addr resources below rely on goss seeing systemd-resolved's stub resolver
+# (127.0.0.53) -- goss-serve.service binds the stub resolv.conf into the unit so goss's
+# Go resolver traverses NetBird's split-DNS routing to *.svc.cluster.local. goss manages
+# its own per-check timeouts.
 command:
   # 1. NetBird management plane is connected (the mesh is up).
   netbird-connected:
@@ -18,46 +15,36 @@ command:
     stdout:
       - "Management: Connected"
 
-  # 2. NetBird DNS resolves the in-cluster Omada Service name across the mesh (NSS, not
-  #    goss's `dns` resource -- see the header note on the resolver stub).
-  omada-dns:
-    exec: "getent hosts omada.omada.svc.cluster.local"
-    exit-status: 0
+# 2. NetBird DNS resolves the in-cluster Omada Service name across the mesh.
+dns:
+  omada.omada.svc.cluster.local:
+    resolvable: true
 
-  # 3. TCP reachability to the Omada controller on every documented TCP port, over NetBird
-  #    cross-cluster routing (host is the in-cluster Service, not the public tailnet name).
-  #    Ports mirror apps/network/src/omada/templates/service-omada.yaml (TCP only -- the
-  #    UDP 27001/29810/19810 entries are L2-only discovery and cannot be connect-tested).
-  omada-tcp-8088-manage-http:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8088'"
-    exit-status: 0
-  omada-tcp-8043-manage-https:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8043'"
-    exit-status: 0
-  omada-tcp-8843-portal-https:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8843'"
-    exit-status: 0
-  omada-tcp-29811-manager-v1:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29811'"
-    exit-status: 0
-  omada-tcp-29812-adopt-v1:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29812'"
-    exit-status: 0
-  omada-tcp-29813-upgrade-v1:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29813'"
-    exit-status: 0
-  omada-tcp-29814-manager-v2:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29814'"
-    exit-status: 0
-  omada-tcp-29815-transfer-v2:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29815'"
-    exit-status: 0
-  omada-tcp-29816-rtty:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29816'"
-    exit-status: 0
-  omada-tcp-29817-device-monitor:
-    exec: "bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29817'"
-    exit-status: 0
+# 3. TCP reachability to the Omada controller on every documented TCP port, over NetBird
+#    cross-cluster routing (target is the in-cluster Service, not the public tailnet name).
+#    Ports mirror apps/network/src/omada/templates/service-omada.yaml (TCP only -- the UDP
+#    27001/29810/19810 entries are L2-only discovery and cannot be connect-tested).
+addr:
+  tcp://omada.omada.svc.cluster.local:8088:      # manage-http
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:8043:      # manage-https
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:8843:      # portal-https
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29811:     # manager-v1
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29812:     # adopt-v1
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29813:     # upgrade-v1
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29814:     # manager-v2
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29815:     # transfer-v2
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29816:     # rtty
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29817:     # device-monitor
+    reachable: true
 
 # 4. The NetBird systemd instance is enabled (survives reboot) and running.
 service:
