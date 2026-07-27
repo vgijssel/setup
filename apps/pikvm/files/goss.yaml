@@ -14,14 +14,14 @@ command:
     exec: "ping -c 2 -W 2 100.65.134.8"
     exit-status: 0
     timeout: 10000
-
-# 3. NetBird DNS resolves a mesh FQDN. Uses goss's native resolver (Go net -> the
-#    systemd-resolved 127.0.0.53 stub NetBird configures over D-Bus). If this proves
-#    flaky on-box, swap to a `command: getent hosts <fqdn>` (exit-status 0) check.
-dns:
-  macbook-pro-van-maarten.netbird.cloud:
-    resolvable: true
-    timeout: 5000
+  # 3. NetBird DNS resolves a mesh FQDN. Verified on-box that goss's native `dns`
+  #    resource (Go's resolver) does NOT traverse the systemd-resolved 127.0.0.53 stub
+  #    that NetBird configures over D-Bus (returns resolvable:false), whereas NSS via
+  #    `getent hosts` does resolve it -- so we assert resolution through getent.
+  dns-macbook-pro-van-maarten:
+    exec: "getent hosts macbook-pro-van-maarten.netbird.cloud"
+    exit-status: 0
+    timeout: 6000
 
 # 4. The NetBird systemd instance is enabled (survives reboot) and running.
 service:
