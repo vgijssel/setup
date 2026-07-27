@@ -55,6 +55,22 @@ directories:
           version: 0.8.0
           repository:
             url: oci://ghcr.io/netbirdio/helm-charts
+  # NetBird BYOP (Bring-Your-Own-Proxy) reverse proxy — a self-hosted `netbird proxy`
+  # peer that runs embedded in a WireGuard tunnel and so advertises the `Private`
+  # capability the shared NetBird Cloud cluster (eu1.netbird.services) does NOT
+  # (supports_private:false). Deploying it on the secret cluster unlocks NetBird-Only
+  # (private) reverse-proxy services — mesh-only, no login interstitial, straight through
+  # — for exposing OpenBao at openbao.secret.vgijssel.nl. Chart pinned 0.1.0,
+  # image netbirdio/reverse-proxy:0.72.4 (chart appVersion). See
+  # https://netbird.io/knowledge-hub/netbird-only-private-services
+  - path: charts/netbird-reverse-proxy
+    contents:
+      - path: .
+        helmChart:
+          name: netbird-reverse-proxy
+          version: 0.1.0
+          repository:
+            url: https://charts.christianhuth.de
   - path: charts/external-dns
     contents:
       - path: .
