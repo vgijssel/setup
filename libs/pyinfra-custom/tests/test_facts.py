@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pyinfra_custom.facts import (
+    GossVersion,
     NetbirdConnected,
     NetbirdDnsDisabled,
     NetbirdServerSshAllowed,
@@ -10,6 +11,20 @@ from pyinfra_custom.facts import (
     NetbirdVersion,
     PacmanUpgradablePackages,
 )
+
+
+def test_goss_version_requires_command_and_parses():
+    fact = GossVersion()
+    assert fact.requires_command() == "goss"
+    assert fact.command() == "goss --version"
+    # goss prints e.g. "goss version v0.4.10 (linux/arm64)"; the pinned "0.4.10" install
+    # gate looks for its version substring, which this output contains.
+    assert (
+        fact.process(["goss version v0.4.10 (linux/arm64)", ""])
+        == "goss version v0.4.10 (linux/arm64)"
+    )
+    assert "0.4.10" in fact.process(["goss version v0.4.10 (linux/arm64)"])
+    assert GossVersion.default() == ""
 
 
 def test_netbird_version_requires_command_and_parses():
