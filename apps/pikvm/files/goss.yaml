@@ -10,17 +10,59 @@ command:
     timeout: 10000
     stdout:
       - "Management: Connected"
-  # 2. This peer can reach the operator laptop's NetBird IP (mesh data path works).
-  ping-100.65.134.8:
-    exec: "ping -c 2 -W 2 100.65.134.8"
+
+  # 2. NetBird DNS resolves the in-cluster Omada Service name across the mesh. goss's
+  #    native `dns` resource can't traverse the systemd-resolved 127.0.0.53 D-Bus stub
+  #    NetBird configures, so we assert resolution through NSS (`getent hosts`).
+  omada-dns:
+    exec: "getent hosts omada.omada.svc.cluster.local"
     exit-status: 0
-    timeout: 10000
-  # 3. NetBird DNS resolves a mesh FQDN. Verified on-box that goss's native `dns`
-  #    resource (Go's resolver) does NOT traverse the systemd-resolved 127.0.0.53 stub
-  #    that NetBird configures over D-Bus (returns resolvable:false), whereas NSS via
-  #    `getent hosts` does resolve it -- so we assert resolution through getent.
-  dns-macbook-pro-van-maarten:
-    exec: "getent hosts macbook-pro-van-maarten.netbird.cloud"
+    timeout: 6000
+
+  # 3. TCP reachability to the Omada controller on every documented TCP port, over NetBird
+  #    cross-cluster routing (host is the in-cluster Service, not the public tailnet name).
+  #    `timeout N bash -c 'exec 3<>/dev/tcp/host/port'` opens a real connection (nc is not
+  #    installed; /bin/sh is bash so /dev/tcp works) and caps a hung connect at N seconds.
+  #    Ports mirror apps/network/src/omada/templates/service-omada.yaml (TCP only -- the
+  #    UDP 27001/29810/19810 entries are L2-only discovery and cannot be connect-tested).
+  omada-tcp-8088-manage-http:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8088'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-8043-manage-https:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8043'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-8843-portal-https:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/8843'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-29811-manager-v1:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29811'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-29812-adopt-v1:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29812'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-29813-upgrade-v1:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29813'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-29814-manager-v2:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29814'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-29815-transfer-v2:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29815'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-29816-rtty:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29816'"
+    exit-status: 0
+    timeout: 6000
+  omada-tcp-29817-device-monitor:
+    exec: "timeout 4 bash -c 'exec 3<>/dev/tcp/omada.omada.svc.cluster.local/29817'"
     exit-status: 0
     timeout: 6000
 
