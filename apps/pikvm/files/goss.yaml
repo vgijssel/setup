@@ -1,0 +1,61 @@
+# PiKVM system-health assertions. goss-serve.service parses this file once at startup and
+# re-runs the checks on every request (deploy.py restarts the daemon when this file
+# changes). `validate` renders these as an rspecish report; netdata scrapes them as one
+# prometheus metric per assertion. See apps/pikvm/SPEC.md for the contract.
+#
+# The dns/addr resources below rely on goss seeing systemd-resolved's stub resolver
+# (127.0.0.53) -- goss-serve.service binds the stub resolv.conf into the unit so goss's
+# Go resolver traverses NetBird's split-DNS routing to *.svc.cluster.local. goss manages
+# its own per-check timeouts.
+command:
+  # 1. NetBird management plane is connected (the mesh is up).
+  netbird-connected:
+    exec: "netbird status"
+    exit-status: 0
+    stdout:
+      - "Management: Connected"
+
+# 2. NetBird DNS resolves the in-cluster Omada Service name across the mesh.
+dns:
+  omada.omada.svc.cluster.local:
+    resolvable: true
+
+# 3. TCP reachability to the Omada controller on every documented TCP port, over NetBird
+#    cross-cluster routing (target is the in-cluster Service, not the public tailnet name).
+#    Ports mirror apps/network/src/omada/templates/service-omada.yaml (TCP only -- the UDP
+#    27001/29810/19810 entries are L2-only discovery and cannot be connect-tested).
+addr:
+  tcp://omada.omada.svc.cluster.local:8088:      # manage-http
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:8043:      # manage-https
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:8843:      # portal-https
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29811:     # manager-v1
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29812:     # adopt-v1
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29813:     # upgrade-v1
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29814:     # manager-v2
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29815:     # transfer-v2
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29816:     # rtty
+    reachable: true
+  tcp://omada.omada.svc.cluster.local:29817:     # device-monitor
+    reachable: true
+
+# 4. The NetBird systemd instance is enabled (survives reboot) and running.
+service:
+  netbird@netbird:
+    enabled: true
+    running: true
+
+# 5. The goss daemon itself is listening on loopback only -- fails if bound to 0.0.0.0,
+#    enforcing localhost-only exposure.
+port:
+  tcp:8080:
+    listening: true
+    ip:
+      - 127.0.0.1

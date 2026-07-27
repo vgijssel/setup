@@ -1,0 +1,25 @@
+[Unit]
+Description=goss system-health server (localhost only)
+After=network-online.target netbird@netbird.service systemd-resolved.service
+Wants=network-online.target
+
+[Service]
+# goss uses Go's static resolver, which reads /etc/resolv.conf. On this box that is
+# systemd-resolved's UPLINK resolv.conf (nameserver 192.168.1.1), which cannot resolve
+# NetBird split-DNS names like *.svc.cluster.local (the router returns NXDOMAIN). Bind
+# resolved's STUB resolv.conf (nameserver 127.0.0.53) over /etc/resolv.conf for THIS
+# service only, so goss's native dns/addr resources resolve mesh names through resolved's
+# split-DNS routing (to wt0). The leading '-' makes this a no-op if the stub file is
+# absent, so the daemon still starts. Scoped to the unit's mount namespace -- no
+# system-wide resolv.conf change.
+BindReadOnlyPaths=-/run/systemd/resolve/stub-resolv.conf:/etc/resolv.conf
+# Default response format is prometheus/verbose so netdata can scrape one metric per
+# assertion. The `validate` client requests rspecish per-request via an Accept header.
+# The daemon re-reads /etc/goss/goss.yaml on startup (restart to apply spec changes).
+ExecStart=/usr/local/bin/goss --gossfile /etc/goss/goss.yaml serve --listen-addr 127.0.0.1:8080 --endpoint /healthz --format prometheus --format-options verbose
+Restart=on-failure
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -30,6 +30,7 @@ Behaviour reproduced verbatim from https://docs.pikvm.org/netbird/ (asset files 
 """
 
 import hashlib
+import ipaddress
 import os
 from io import StringIO
 from pathlib import Path
@@ -39,6 +40,7 @@ from pyinfra import host
 from pyinfra.facts.files import Directory, File, Link, Sha256File
 from pyinfra.operations import files, pacman, server, systemd
 from pyinfra_custom.facts import (
+    GossVersion,
     NetbirdConnected,
     NetbirdDnsDisabled,
     NetbirdServerSshAllowed,
@@ -55,6 +57,20 @@ FILES = os.path.join(HERE, "files")
 # OpenBao KV v2 location for this host's secrets (see libs/pyinfra-custom OpenBaoSecret).
 SECRET_MOUNT = "kv"
 SECRET_PATH = "pikvm"
+
+# Escape hatch for running the deploy when OpenBao is unreachable (pyinfra has no
+# Ansible-style per-task tags). When set, the OpenBao-backed slices are skipped:
+#   * Task 7 (PiKVM admin + root passwords) is skipped entirely.
+#   * Task 6 first-bring-up registration (reads the setup key) is refused with a clear
+#     error -- an unregistered box genuinely cannot register without the key. A box that
+#     is already connected takes the secret-free reconcile branch, so skipping is safe.
+# Every non-secret slice (goss health, NetBird overlay/routing, static IP, ...) still
+# runs. Set PIKVM_SKIP_SECRETS=1 (or true/yes) to enable.
+SKIP_SECRETS = os.environ.get("PIKVM_SKIP_SECRETS", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
 
 
 def _secret(field: str) -> str:
@@ -373,6 +389,15 @@ dns_currently_disabled = host.get_fact(NetbirdDnsDisabled)
 ssh_server_allowed = host.get_fact(NetbirdServerSshAllowed)
 ssh_root_enabled = host.get_fact(NetbirdSshRootEnabled)
 
+if not netbird_connected and SKIP_SECRETS:
+    # Registration needs the setup key from OpenBao; there is no secret-free path to
+    # bring an unregistered box onto the mesh. Fail loudly rather than silently skip.
+    raise RuntimeError(
+        "PIKVM_SKIP_SECRETS is set but the box is not yet registered with NetBird: "
+        "first bring-up requires the setup key from OpenBao. Unset PIKVM_SKIP_SECRETS "
+        "and provide OpenBao access for the initial registration.",
+    )
+
 if not netbird_connected:
     # First bring-up: start services, register with DNS enabled, persist state.
     systemd.service(
@@ -443,13 +468,18 @@ else:
 
 PASSWORD_FP_FILE = "/root/.pikvm-provision-secrets.sha256"
 
-_admin_password = _secret("admin_password")
-_root_password = _secret("root_password")
-_desired_password_fp = _fingerprint(_admin_password, _root_password)
-_desired_fp_sha = hashlib.sha256(_desired_password_fp.encode()).hexdigest()
-passwords_need_update = (
-    host.get_fact(Sha256File, path=PASSWORD_FP_FILE) != _desired_fp_sha
-)
+if SKIP_SECRETS:
+    # OpenBao is unavailable -> leave the existing passwords untouched. Every other
+    # (secret-free) slice still reconciles.
+    passwords_need_update = False
+else:
+    _admin_password = _secret("admin_password")
+    _root_password = _secret("root_password")
+    _desired_password_fp = _fingerprint(_admin_password, _root_password)
+    _desired_fp_sha = hashlib.sha256(_desired_password_fp.encode()).hexdigest()
+    passwords_need_update = (
+        host.get_fact(Sha256File, path=PASSWORD_FP_FILE) != _desired_fp_sha
+    )
 
 if passwords_need_update:
     with rootfs.writable(changed_if=True):
@@ -528,3 +558,226 @@ if static_ip_needs_rw:
             f"networkctl reconfigure {STATIC_IFACE}",
         ],
     )
+
+
+# ── NetBird site-to-VPN routing peer (Task 9) ────────────────────────────────────
+# Turn the box into a NetBird routing peer for the *site-to-VPN* direction: LAN devices
+# that do NOT run NetBird reach peers inside the mesh (e.g. the Omada controller) by
+# routing through this box. Reference: https://docs.netbird.io/use-cases/remote-access/site-to-vpn
+#
+# Two pieces of *runtime* state are required and neither survives the read-only rootfs, so --
+# exactly like the NetBird overlay slice above -- a boot-time oneshot re-asserts them on every
+# boot (netbird-routing.service), and the deploy applies them immediately by starting it:
+#   1. IPv4 forwarding (net.ipv4.ip_forward=1).
+#   2. A SNAT/masquerade rule rewriting LAN source addresses onto the NetBird interface so
+#      the destination mesh peer sees this peer's NetBird IP (its access-control policy
+#      recognises it). The dashboard "Masquerade" route flag only covers the mesh->LAN
+#      direction, so the LAN->mesh rule is installed here explicitly (per the docs).
+# The unit orders After=netbird@netbird.service so the rule lands after NetBird rebuilds the
+# nat table on start; the setup script is idempotent (iptables -C guard), so the boot
+# re-assert and the deploy's reconcile never stack duplicate rules.
+#
+# MANUAL OPERATOR STEPS -- managed in the NetBird dashboard and on the LAN router, NOT here
+# (this repo does not manage the NetBird account policy or the router):
+#   1. NetBird dashboard -> Network Routing: designate this peer (via its group) as a routing
+#      peer and add an Access Control policy permitting the LAN source group -> the mesh
+#      destination (e.g. the Omada resource/peer). Without the route + policy NetBird does not
+#      distribute the network to this peer and traffic is dropped.
+#   2. LAN router: add a static route for the NetBird account block 100.65.0.0/16 -> this
+#      box's LAN IP (192.168.1.31), or push it via DHCP option 121, so LAN devices send
+#      mesh-bound traffic here. The SNAT rule below then rewrites their source to wt0.
+#
+# LAN CIDR defaults to the network of the Task 8 static IP (single source of truth for this
+# box's LAN); the NetBird interface defaults to wt0. Both are overridable by env for reuse.
+
+ROUTING_LAN_CIDR = os.environ.get(
+    "PIKVM_LAN_CIDR",
+    str(ipaddress.ip_network(f"{STATIC_IP}/{STATIC_PREFIX}", strict=False)),
+)
+ROUTING_IFACE = os.environ.get("PIKVM_NETBIRD_IFACE", "wt0")
+
+ROUTING_SCRIPT_SRC = os.path.join(FILES, "setup-netbird-routing.sh")
+ROUTING_SCRIPT_REMOTE = "/usr/local/bin/setup-netbird-routing.sh"
+ROUTING_UNIT_SRC = os.path.join(FILES, "netbird-routing.service.j2")
+ROUTING_UNIT_REMOTE = "/etc/systemd/system/netbird-routing.service"
+ROUTING_WANTS_LINK = (
+    "/etc/systemd/system/multi-user.target.wants/netbird-routing.service"
+)
+
+# Render the unit here (single source of the injected values) so the rw gate's sha256
+# exactly matches what is written -> empty diff on a converged box. The setup script is a
+# static asset (shellcheck-clean) that reads the values from the unit's Environment=.
+_routing_unit_template = Path(ROUTING_UNIT_SRC).read_text(encoding="utf-8")
+_routing_unit_rendered = Template(
+    _routing_unit_template,
+    keep_trailing_newline=True,
+).render(lan_cidr=ROUTING_LAN_CIDR, iface=ROUTING_IFACE)
+_routing_unit_sha = hashlib.sha256(_routing_unit_rendered.encode()).hexdigest()
+
+routing_needs_rw = (
+    _file_out_of_sync(ROUTING_SCRIPT_REMOTE, ROUTING_SCRIPT_SRC)
+    or host.get_fact(Sha256File, path=ROUTING_UNIT_REMOTE) != _routing_unit_sha
+    or host.get_fact(Link, path=ROUTING_WANTS_LINK) is None
+)
+
+with rootfs.writable(changed_if=routing_needs_rw):
+    # Capture the results so the reconcile below restarts the unit (change detection) only
+    # when an asset actually changed -- a changed script/unit needs a re-run to apply.
+    routing_script = files.put(
+        name="Routing peer: install setup-netbird-routing.sh",
+        src=ROUTING_SCRIPT_SRC,
+        dest=ROUTING_SCRIPT_REMOTE,
+        mode="755",
+    )
+    routing_unit = files.put(
+        name="Routing peer: install netbird-routing.service",
+        src=StringIO(_routing_unit_rendered),
+        dest=ROUTING_UNIT_REMOTE,
+        mode="644",
+    )
+    if routing_needs_rw:
+        # Enable only (running=None); started below. daemon_reload gated on the change
+        # condition so a converged box reloads nothing.
+        systemd.service(
+            name="Routing peer: enable netbird-routing.service",
+            service="netbird-routing.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the unit is active so the rule is applied now, not just at next boot. For a
+# RemainAfterExit oneshot this is a no-op once it has run, so a converged box makes no
+# change. Unlike the netbird up reconcile this does not bounce wt0, so the SSH session is
+# not at risk -- a plain systemd start/restart is safe over either inventory.
+systemd.service(
+    name="Routing peer: ensure netbird-routing.service is running",
+    service="netbird-routing.service",
+    running=True,
+)
+# Re-run the setup script when an asset changed this apply (change detection). A oneshot's
+# ExecStart only re-runs on restart, so daemon-reload + restart applies the new script/unit.
+server.shell(
+    name="Routing peer: re-apply rule after config change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart netbird-routing.service",
+    ],
+    _if=lambda: routing_script.did_change() or routing_unit.did_change(),
+)
+
+
+# ── System-health validation via goss serve (Task 10) ────────────────────────────
+# Install goss (pinned, sha256-verified) and run it as a long-lived `goss serve` daemon
+# bound to 127.0.0.1:8080, driven by a declarative /etc/goss/goss.yaml. A thin `validate`
+# client queries the daemon for a human-readable (rspecish) pass/fail report; netdata can
+# scrape the same endpoint as prometheus/verbose (one metric per assertion). See SPEC.md.
+#
+# Read-only-rootfs split: the goss binary and `validate` live under /usr/local/bin, which
+# is on the *separate* read-only /usr partition that PiKVM's stock `rw` helper does NOT
+# remount -- so those writes are wrapped in rootfs.writable_usr. The config + unit live on
+# the root partition (/etc, /etc/systemd/system) and use the ordinary rootfs.writable.
+GOSS_VERSION = "0.4.10"
+GOSS_ARCH = "arm64"
+GOSS_SHA256 = "90a59612b4d67d9f1a9038634c000790136bb82526a69de1e81ac075c2f6d2c6"
+GOSS_URL = (
+    f"https://github.com/goss-org/goss/releases/download/v{GOSS_VERSION}/"
+    f"goss_{GOSS_VERSION}_linux_{GOSS_ARCH}.tar.gz"
+)
+
+GOSS_BIN_REMOTE = "/usr/local/bin/goss"
+GOSS_YAML_SRC = os.path.join(FILES, "goss.yaml")
+GOSS_YAML_REMOTE = "/etc/goss/goss.yaml"
+VALIDATE_SRC = os.path.join(FILES, "validate")
+VALIDATE_REMOTE = "/usr/local/bin/validate"
+GOSS_UNIT_SRC = os.path.join(FILES, "goss-serve.service")
+GOSS_UNIT_REMOTE = "/etc/systemd/system/goss-serve.service"
+
+# Install gate: only download/verify/install when the pinned version is absent. The AUR
+# never applies here (goss is a direct pinned binary, not a package), so this is the sole
+# source of the version -- a mismatch (Renovate bumps the pin) triggers a reinstall.
+goss_needs_install = GOSS_VERSION not in host.get_fact(GossVersion)
+
+# /usr writes: the binary (when out of date) and the validate client.
+usr_needs_rw = goss_needs_install or _file_out_of_sync(VALIDATE_REMOTE, VALIDATE_SRC)
+# root-partition writes: the assertion spec and the systemd unit.
+etc_needs_rw = (
+    host.get_fact(Directory, path="/etc/goss") is None
+    or _file_out_of_sync(GOSS_YAML_REMOTE, GOSS_YAML_SRC)
+    or _file_out_of_sync(GOSS_UNIT_REMOTE, GOSS_UNIT_SRC)
+)
+
+with rootfs.writable_usr(changed_if=usr_needs_rw):
+    if goss_needs_install:
+        # Download + sha256-verify + install is a bespoke one-shot (no operation
+        # equivalent); documented shell. The pinned digest guards against a tampered or
+        # wrong-arch download before it ever lands on PATH.
+        server.shell(
+            name=f"goss: install {GOSS_VERSION} to {GOSS_BIN_REMOTE} (verified sha256)",
+            commands=[
+                "set -e",
+                "tmp=$(mktemp -d)",
+                f'curl -fsSL -o "$tmp/goss.tgz" {GOSS_URL}',
+                f"echo '{GOSS_SHA256}  '\"$tmp/goss.tgz\" | sha256sum -c -",
+                'tar -xzf "$tmp/goss.tgz" -C "$tmp" goss',
+                f'install -m 0755 "$tmp/goss" {GOSS_BIN_REMOTE}',
+                'rm -rf "$tmp"',
+            ],
+        )
+    files.put(
+        name="goss: install validate client to /usr/local/bin",
+        src=VALIDATE_SRC,
+        dest=VALIDATE_REMOTE,
+        mode="755",
+    )
+
+with rootfs.writable(changed_if=etc_needs_rw):
+    files.directory(
+        name="goss: ensure /etc/goss",
+        path="/etc/goss",
+        present=True,
+    )
+    # Capture the results so the reconcile below restarts the daemon (change detection)
+    # only when the spec or unit actually changed.
+    goss_cfg = files.put(
+        name="goss: install assertion spec /etc/goss/goss.yaml",
+        src=GOSS_YAML_SRC,
+        dest=GOSS_YAML_REMOTE,
+        mode="644",
+    )
+    goss_unit = files.put(
+        name="goss: install goss-serve.service unit",
+        src=GOSS_UNIT_SRC,
+        dest=GOSS_UNIT_REMOTE,
+        mode="644",
+    )
+    if etc_needs_rw:
+        # Enable only (running=None); started below. daemon_reload gated on the change
+        # condition so a converged box reloads nothing.
+        systemd.service(
+            name="goss: enable goss-serve.service",
+            service="goss-serve.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the daemon is up now, not just at next boot. Idempotent: a converged box makes
+# no change.
+systemd.service(
+    name="goss: ensure goss-serve.service is running",
+    service="goss-serve.service",
+    running=True,
+)
+# Restart to pick up a changed spec/unit (change detection). `goss serve` parses the
+# gossfile ONCE at startup -- it re-runs the checks on every request but does not re-read
+# the file -- so a spec change needs a restart, as does a changed serve flag / bind
+# address in the unit. daemon-reload + restart applies either.
+server.shell(
+    name="goss: restart goss-serve after spec/unit change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart goss-serve.service",
+    ],
+    _if=lambda: goss_cfg.did_change() or goss_unit.did_change(),
+)
