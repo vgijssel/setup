@@ -1,11 +1,6 @@
-# Raw-manifest Fleet bundle: the provider-opentofu ProviderConfig + the ESO ExternalSecrets
-# feeding it the Cloudflare + NetBird tokens, and the inline-OpenTofu Workspace MRs that manage
-# the NetBird reverse-proxy DNS/domains and services:
-#   - reverse-proxy-dns.yaml            : vgijssel.nl domain + *.vgijssel.nl CNAME.
-#   - reverse-proxy-dns-secret.yaml     : secret.vgijssel.nl domain + *.secret.vgijssel.nl CNAME
-#                                         (the secret cluster's proxy domain).
-#   - reverse-proxy-services.yaml       : the OpenBao NetBird-only private service
-#                                         (Mastercard/restapi), openbao.secret.vgijssel.nl.
+# Raw-manifest Fleet bundle: the provider-opentofu ProviderConfig + the ESO ExternalSecret
+# feeding it the Cloudflare token, and the Workspace MR that manages the NetBird reverse-proxy
+# CNAME record (inline OpenTofu, cloudflare/cloudflare v5).
 #
 # dependsOn crossplane-provider (label selector): the opentofu.upbound.io CRDs (ProviderConfig,
 # Workspace) are registered by the provider, so it must be installed before these CRs apply —
