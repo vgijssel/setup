@@ -31,6 +31,16 @@ tasks:
       runInCI: false
       interactive: true
       cache: false
+  # Mint the NetBird reverse-proxy proxy token the secret cluster's BYOP proxy authenticates
+  # with, and stash it in the secret cluster's OpenBao (kv/secret-netbird-proxy#token) for ESO
+  # to surface. Uses VAULT_TOKEN (secret root) from .env. Idempotent (skips if already set;
+  # FORCE=1 re-mints). Standalone only — not part of `start`. See scripts/netbird_proxy_auth.sh.
+  netbird_proxy_auth:
+    command: scripts/netbird_proxy_auth.sh
+    options:
+      runInCI: false
+      interactive: true
+      cache: false
   # Install the Fleet controller, label the local cluster network, and apply every
   # bundle via bin/fleet-apply. Invoked by `start`; also runnable standalone. Idempotent.
   apply:
