@@ -1,0 +1,106 @@
+# The ENTIRE Omada controller — admin UI/portal (HTTP/HTTPS) AND the device
+# adoption/management L4 ports — exposed over NetBird as a single *Network Resource*
+# (operator v1 stack). This replaces the BYOP reverse proxy entirely: the reverse proxy
+# could carry only the HTTPS admin UI as a NetBird-Only private service and CANNOT serve
+# Omada's raw TCP device ports on the current image (netbirdio/netbird#6400 makes mode=tcp
+# L4 services silently not bind on reverse-proxy 0.72.x, and the private-services feature
+# is 0.72-only, so no single proxy version served both). NetBird Networks (routing peer +
+# NBResource) forward all TCP/UDP at L3/L4, so one resource covers every port.
+#
+# The netbird.io/expose annotation makes the operator create a domain-type NBResource
+# (address omada.omada.svc.cluster.local) on the `router` NBRoutingPeer's network
+# (apps/network/src/netbird-config/nbroutingpeer-router.yaml) plus an access policy from the
+# `homelab` group (the Mac + the pikvm routing peer) to it. Requires operator
+# ingress.allowAutomaticPolicyCreation=true. Omitting policy-protocol/policy-ports lets the
+# auto-policy allow both TCP and UDP on all ports to homelab (all Omada traffic is trusted
+# homelab traffic); the routed ports are bound by this Service's port list below.
+#
+# The admin UI is reached over the mesh on 8043 (HTTPS); Omada serves the LE cert for
+# omada.network.vgijssel.nl there (certificate-omada.yaml, mounted at /cert), so mesh
+# clients get a trusted cert with no reverse proxy in the path. Physical Omada devices are
+# not NetBird clients: they resolve the public omada.network.vgijssel.nl name and route the
+# NetBird range through the pikvm routing peer on their LAN (custom domain + external-dns IP
+# sync are wired in follow-up tasks). This Service's ClusterIP is what the in-cluster
+# routing peer dials; the selector matches the omada-controller subchart pods exactly (a
+# mismatch leaves it with zero endpoints).
+apiVersion: v1
+kind: Service
+metadata:
+  name: omada
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    netbird.io/expose: "true"
+    netbird.io/groups: omada
+    netbird.io/policy: omada
+    netbird.io/policy-source-groups: homelab
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: omada-controller
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    # management/portal HTTP (redirects to HTTPS)
+    - name: manage-http
+      port: 8088
+      targetPort: 8088
+      protocol: TCP
+    # management UI HTTPS — the omada.network.vgijssel.nl endpoint
+    - name: manage-https
+      port: 8043
+      targetPort: 8043
+      protocol: TCP
+    # portal HTTPS
+    - name: portal-https
+      port: 8843
+      targetPort: 8843
+      protocol: TCP
+    # device manager v1
+    - name: manager-v1
+      port: 29811
+      targetPort: 29811
+      protocol: TCP
+    # device adopt v1
+    - name: adopt-v1
+      port: 29812
+      targetPort: 29812
+      protocol: TCP
+    # device upgrade v1
+    - name: upgrade-v1
+      port: 29813
+      targetPort: 29813
+      protocol: TCP
+    # device manager v2
+    - name: manager-v2
+      port: 29814
+      targetPort: 29814
+      protocol: TCP
+    # device transfer v2
+    - name: transfer-v2
+      port: 29815
+      targetPort: 29815
+      protocol: TCP
+    # rtty (remote terminal)
+    - name: rtty
+      port: 29816
+      targetPort: 29816
+      protocol: TCP
+    # device monitor (Omada 6)
+    - name: device-monitor
+      port: 29817
+      targetPort: 29817
+      protocol: TCP
+    # app discovery
+    - name: app-discovery
+      port: 27001
+      targetPort: 27001
+      protocol: UDP
+    # device discovery
+    - name: udp-discovery
+      port: 29810
+      targetPort: 29810
+      protocol: UDP
+    # device management UDP
+    - name: udp-management
+      port: 19810
+      targetPort: 19810
+      protocol: UDP
