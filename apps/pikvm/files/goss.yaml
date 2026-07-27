@@ -1,10 +1,38 @@
 # PiKVM system-health assertions, read by goss-serve.service on every request.
-# Phase B: minimal self-check only -- the daemon must be listening on loopback. Phase C
-# layers the remaining assertions (netbird connected, ping, dns, service) on top.
+# `validate` renders these as an rspecish report; netdata scrapes them as one prometheus
+# metric per assertion. See apps/pikvm/SPEC.md for the contract.
+command:
+  # 1. NetBird management plane is connected (the mesh is up).
+  netbird-connected:
+    exec: "netbird status"
+    exit-status: 0
+    timeout: 10000
+    stdout:
+      - "Management: Connected"
+  # 2. This peer can reach the operator laptop's NetBird IP (mesh data path works).
+  ping-100.65.134.8:
+    exec: "ping -c 2 -W 2 100.65.134.8"
+    exit-status: 0
+    timeout: 10000
+
+# 3. NetBird DNS resolves a mesh FQDN. Uses goss's native resolver (Go net -> the
+#    systemd-resolved 127.0.0.53 stub NetBird configures over D-Bus). If this proves
+#    flaky on-box, swap to a `command: getent hosts <fqdn>` (exit-status 0) check.
+dns:
+  macbook-pro-van-maarten.netbird.cloud:
+    resolvable: true
+    timeout: 5000
+
+# 4. The NetBird systemd instance is enabled (survives reboot) and running.
+service:
+  netbird@netbird:
+    enabled: true
+    running: true
+
+# 5. The goss daemon itself is listening on loopback only -- fails if bound to 0.0.0.0,
+#    enforcing localhost-only exposure.
 port:
   tcp:8080:
     listening: true
     ip:
-      # Fails if the daemon is bound to 0.0.0.0 instead of loopback -- enforces
-      # localhost-only exposure.
       - 127.0.0.1
