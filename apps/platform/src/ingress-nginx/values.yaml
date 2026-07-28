@@ -1,25 +1,13 @@
-# ingress-nginx (rke2's default controller). Its external controller Service is a
-# LoadBalancer with loadBalancerClass=tailscale, so the Tailscale operator fronts
-# it on the tailnet — the ONLY way in is via the tailnet. TLS terminates here on
-# the cert-manager LE cert carried by the OpenBao Ingress
-# (apps/secret/src/config/ingress-openbao.yaml); the tailnet path stays L3/TCP so that
-# LE cert is what clients see (no Tailscale .ts.net cert in the way).
-#
-# tailscale.com/proxy-group binds this Service to the `secret-ingress` ProxyGroup
-# (apps/platform/src/tailscale/templates/proxygroup.yaml) instead of a single
-# dedicated proxy, so the operator advertises it through a STABLE Tailscale
-# Service (VIP). external-dns (source=service) reads the VIP from the Service's
-# loadBalancer status and the hostname annotation, and publishes
-# openbao.secret.vgijssel.nl in Cloudflare. Because the VIP is stable, the A record
-# no longer churns when a proxy Pod is recreated. (The tailnet VIP name stays
-# `secret` — only the published public hostname is openbao.secret.vgijssel.nl.)
+# ingress-nginx (rke2's default controller). ClusterIP-only: OpenBao is no longer exposed on
+# the tailnet — it is reached over the NetBird mesh via the BYOP reverse proxy
+# (openbao.secret.vgijssel.nl, apps/secret/src/netbird-reverse-proxy). The former tailnet path
+# (LoadBalancer loadBalancerClass=tailscale → the `secret-ingress` ProxyGroup / svc:secret VIP,
+# with external-dns publishing openbao.secret.vgijssel.nl) is retired: the OpenBao Ingress +
+# per-host cert + secret-ingress ProxyGroup were removed, so external-dns (policy: sync) prunes
+# the A record. The controller stays as a plain ClusterIP for any remaining in-cluster Ingress
+# (e.g. netdata's local host); no tailnet VIP, no public DNS.
 ingress-nginx:
   controller:
     replicaCount: 1
     service:
-      type: LoadBalancer
-      loadBalancerClass: tailscale
-      annotations:
-        tailscale.com/hostname: secret
-        tailscale.com/proxy-group: secret-ingress
-        external-dns.alpha.kubernetes.io/hostname: openbao.secret.vgijssel.nl
+      type: ClusterIP
