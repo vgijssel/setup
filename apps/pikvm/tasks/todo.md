@@ -31,7 +31,8 @@ See `tasks/plan.md` for full context. Netdata Agent on the PiKVM: system metrics
 - [x] `/opt` partition confirmed + correct write-window helper (root partition → `rootfs.writable`; `/usr` = ro bind-mount of same device)
 - [x] Pinned static asset name/URL/sha256 confirmed (v2.10.4 `sha256sums.txt`)
 - [x] SBC memory footprint acceptable — netdata RSS ~51 MB of 7.7 GB (box 657 MB used / 7.1 GB avail)
-- [x] On-box apply DONE (manual, netdata-only, over `ssh root@100.65.192.152` via `systemd-run` in PID1 mount-ns). Not-yet-verified: reboot-start (enabled + RuntimeDirectory recreates dirs each boot — confirm on next reboot; Phase D covers Cloud-identity reboot durability).
+- [x] On-box apply DONE (manual, netdata-only, over `ssh root@100.65.192.152` via `systemd-run` in PID1 mount-ns).
+- [x] Reboot-start VERIFIED (2026-07-28): rebooted the box over NetBird, back in ~55s; netdata came up active+enabled, `/run/netdata{,/cache,/lib,/log}` recreated on tmpfs, 127.0.0.1:19999 only, `/`=ro, api JSON; all core units (netbird-overlay/@netbird/routing, goss-serve, kvmd, kvmd-nginx) active+enabled, 0 failed units. NOTE: netdata machine GUID (in tmpfs `/run/netdata/lib/registry`) regenerates each boot → Phase D lib overlay must persist it to avoid Cloud node duplication.
 
 ## Phase C — scrape goss `/healthz`
 - [ ] `files/go.d/prometheus.conf` — job `pikvm-goss` → `http://127.0.0.1:8080/healthz`
