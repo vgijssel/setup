@@ -1,201 +1,174 @@
-# Plan: PiKVM System-Health Validation (goss serve + `validate`)
+# Plan: PiKVM Netdata agent (Task 11) — scrape goss + system metrics, claim to Netdata Cloud
+
+> The previous contents of this file (the completed goss / Task 10 plan) are preserved in git
+> history and summarised in `apps/pikvm/SPEC.md`.
 
 ## Context
 
-The PiKVM host currently has no continuous, machine-readable signal of whether its
-critical subsystems (NetBird mesh connectivity, DNS, the NetBird service) are healthy.
-An operator has to manually poke around after every change or reboot, and there's no
-scrape target for future netdata dashboards/alerts.
+The PiKVM box already exposes a machine-readable health signal: **Task 10 (goss)** runs
+`goss serve` on `127.0.0.1:8080/healthz` emitting Prometheus/verbose text (one metric per
+assertion). `apps/pikvm/SPEC.md` explicitly names **netdata** as the future consumer of that
+endpoint. Right now nothing scrapes it, and the box has no CPU/mem/disk/temperature history or
+alerting.
 
-This change installs [`goss`](https://github.com/goss-org/goss) `v0.4.10` as a
-long-lived daemon (`goss serve`) bound to **localhost only** (`127.0.0.1:8080`), driven
-by a declarative `goss.yaml` of 5 health assertions, plus a thin `validate` client that
-queries the daemon for a human-readable pass/fail report. Outcome:
+This change adds **Task 11**: install the **netdata Agent** on the PiKVM and wire it up to
+(a) collect the box's system metrics and (b) scrape the goss `/healthz` Prometheus endpoint, then
+**claim the agent to Netdata Cloud** for remote dashboards/alerting. Decisions confirmed with the
+user:
 
-- `validate` on the box → rspecish report, exit `0` when all 5 checks pass, non-zero otherwise.
-- `curl -s localhost:8080/healthz` → Prometheus verbose text, one metric per assertion (netdata-ready).
-- Daemon is systemd-enabled (survives reboot) and reachable only from the box itself.
+- **Install** = pinned netdata **static build**, sha256-verified (mirrors the goss binary install;
+  version-gated by a new `NetdataVersion` fact). Not pacman/AUR.
+- **Scope** = goss health **+ full system metrics**, with the time-series DB kept in **RAM/tmpfs**
+  so the read-only rootfs is never written at runtime.
+- **Access** = **Netdata Cloud claim**. Because Cloud reaches the agent over its outbound ACLK
+  link, the local dashboard (`:19999`) stays **bound to `127.0.0.1` only** — no inbound port is
+  opened on the LAN or the mesh (strictest posture, matches the goss localhost-only discipline).
 
-Full contract lives in `apps/pikvm/SPEC.md`. This plan is grounded in the existing
-declarative, fact-gated, read-only-rootfs discipline of `apps/pikvm/deploy.py`.
+PiKVM is Arch Linux ARM with a **read-only rootfs** (and a separate ro `/usr`). Netdata is a
+stateful, constantly-writing agent, so its runtime dirs must live on tmpfs and its Cloud identity
+must be persisted/restored across reboots. Both problems have a proven template in this repo: the
+**NetBird overlay slice** (`deploy.py` Task 4 — `files/netbird-overlay.service` +
+`files/setup-netbird-overlay.sh`, restore-at-boot / copy-back-on-stop, state in `/root/netbird-state`).
+We reuse that idiom.
 
-## Decisions (resolved with user)
+> Data-classification note: claiming ships this box's **homelab** system metrics + node metadata to
+> Netdata Cloud (a third party). This is personal `vgijssel.nl` telemetry — **no HackerOne /
+> customer data is involved**. The claim token is a secret, stored in OpenBao `kv/pikvm` like the
+> existing NetBird setup key and passwords.
 
-1. **Install gate = new `GossVersion` custom fact** in `libs/pyinfra-custom` (mirrors
-   `NetbirdVersion`), with a unit test — over an inline generic `Command` fact. Keeps
-   the codebase consistent and testable. (SPEC "ask first" item — approved.)
-2. **DNS assertion = goss native `dns` resource first, with a `getent hosts` fallback.**
-   Implement the `dns` resource, verify on-host at the functional checkpoint, swap to
-   `command: getent hosts <fqdn>` (exit-status 0) only if the Go resolver fails to
-   traverse the systemd-resolved `127.0.0.53` stub (see repo memory `pikvm-netbird-dns`).
+## Reusable patterns
+
+| Need | Reuse | Location |
+|------|-------|----------|
+| Version fact + install gate | `GossVersion` | `libs/pyinfra-custom/src/pyinfra_custom/facts/goss.py` |
+| Fact unit test shape | `test_goss_version_requires_command_and_parses` | `libs/pyinfra-custom/tests/test_facts.py` |
+| Pinned binary install (curl + `sha256sum -c`, version-gated) | goss install | `deploy.py` Task 10 |
+| Read-only rootfs write windows | `rootfs.writable` / `rootfs.writable_usr` | `libs/pyinfra-custom/.../operations/rootfs.py` |
+| tmpfs overlay + persist/restore across reboot | `netbird-overlay.service` + `setup-netbird-overlay.sh` | `deploy.py` Task 4, `files/` |
+| systemd drop-in override | `netbird@.service.d/pikvm.conf` | `deploy.py` Task 5, `files/` |
+| Change-gated daemon restart | goss `_if=lambda: cfg.did_change()` | `deploy.py` Task 10 |
+| Secret via OpenBao + `SKIP_SECRETS` gate | `_secret()`, passwords slice | `deploy.py` Task 7 |
 
 ## Dependency graph
 
 ```
-GossVersion fact (libs/pyinfra-custom)         ← Phase A (foundation, standalone-testable)
-        │  used by
+NetdataVersion fact (libs/pyinfra-custom)         ← Phase A (standalone, unit-tested)
+        │ used by
         ▼
-goss binary install (download+sha256+install)  ← Phase B
-        │
-        ├── files/goss-serve.service (unit)     ┐
-        ├── files/validate (client)             │  all written in one rw window,
-        └── files/goss.yaml (assertions)        ┘  Sha256File-gated
-                    │
-                    ▼
-        systemd enable + start + conditional restart on change
-                    │
-                    ▼
-        on-host functional verification (port free? localhost-only? validate works?)
-                    │
-                    ▼
-        expand goss.yaml to all 5 assertions    ← Phase C
+netdata static install → /opt/netdata (version-gated, sha256)   ← Phase B
+        ├── netdata.conf (RAM db, dirs→tmpfs, bind 127.0.0.1, telemetry off)
+        ├── netdata.service.d/pikvm.conf (RuntimeDirectory, After ordering)
+        └── enable + start + change-gated restart  → dashboard live on localhost
+        ▼
+go.d/prometheus.conf → scrape http://127.0.0.1:8080/healthz   ← Phase C
+        ▼
+Cloud claim + persist lib (GUID + cloud.d) via overlay/restore  ← Phase D
+        ▼
+node visible in Netdata Cloud, survives reboot
 ```
 
-Phase B is the thinnest complete end-to-end path (install → daemon → client → curl),
-proven with a **minimal** `goss.yaml` (just the port self-check). Phase C layers the
-remaining 4 assertions once the pipeline is known-good. Phase A is an independent
-library change gated only by its own unit test.
+Phase B is the thinnest complete path (install → run → localhost dashboard, all runtime data on
+tmpfs, rootfs stays `ro`). C adds the goss scrape job. D adds Cloud identity + reboot-durable claim.
+A is an independent library change gated only by its own unit test.
 
-## Phase A — `GossVersion` fact (foundation)
+## Phase A — `NetdataVersion` fact (foundation) — DONE
 
-**Files:**
-- `libs/pyinfra-custom/src/pyinfra_custom/facts/goss.py` (new)
-- `libs/pyinfra-custom/src/pyinfra_custom/facts/__init__.py` (edit: import + `__all__`)
-- `libs/pyinfra-custom/tests/test_facts.py` (edit: add test)
+- `libs/pyinfra-custom/src/pyinfra_custom/facts/netdata.py` — `NetdataVersion(FactBase[str])`,
+  mirrors `GossVersion` (`requires_command → "netdata"`, `command → "netdata -v"`).
+- Exported from `facts/__init__.py`; unit test added to `tests/test_facts.py`.
+- **Verify:** `moon run pyinfra-custom:test` + `:lint`. ✅ 28 tests pass, lint clean.
 
-**What:** New `GossVersion(FactBase[str])` mirroring `NetbirdVersion`
-(`facts/netbird.py:13`): `default = str`, `requires_command → "goss"`,
-`command → "goss --version"`, `process → "\n".join(output).strip()`. Confirm the exact
-CLI flag (`goss --version` vs `goss version`) against the pinned release during build.
-Export it from `facts/__init__.py` alongside the other facts.
+## Phase B — install netdata + run locally (RAM db, localhost-only)
 
-**Acceptance criteria:**
-- `GossVersion` importable via `from pyinfra_custom.facts import GossVersion`.
-- Returns `""` when goss absent; returns the version string otherwise.
-- New unit test follows the `test_netbird_version_requires_command_and_parses` pattern
-  (`tests/test_facts.py:15`): asserts `requires_command()`, `command()`, and `process()`.
+**Files:** `files/netdata.conf` (new), `files/netdata.service.d/pikvm.conf` (new),
+`deploy.py` (edit — Task 11 section + `NetdataVersion` import).
 
-**Verify:**
-- `moon run libs/pyinfra-custom:test`
-- `moon run libs/pyinfra-custom:lint`
+- `netdata.conf`: `[db] mode = ram` + small retention (no disk TSDB); `[directories]` cache/lib/log
+  → tmpfs under `/run/netdata`; `[web] bind to = 127.0.0.1` port `19999`; telemetry off.
+- drop-in: `RuntimeDirectory=netdata` (auto-creates `/run/netdata` tmpfs each boot),
+  `After=network-online.target`, hardening/`ReadWritePaths` as needed for the ro rootfs.
+- deploy.py Task 11 (mirror Task 10): constants `NETDATA_VERSION`/`NETDATA_ARCH="aarch64"`/
+  `NETDATA_SHA256`/`NETDATA_URL`; install gate `NETDATA_VERSION not in host.get_fact(NetdataVersion)`;
+  gated install inside the correct write window for `/opt` (verify `writable` vs `writable_usr`):
+  `curl` the `.gz.run`, `sha256sum -c`, run installer non-interactively
+  (`--accept -- --dont-start-it --disable-telemetry --no-updates --stable-channel`); sha-gated
+  `files.put` of config + drop-in; enable + start + change-gated restart.
 
-### ✅ Checkpoint 1 — lib green before touching the deploy
-`moon run libs/pyinfra-custom:test` and `:lint` both pass. Do not proceed until green.
+**Acceptance:** `pikvm:lint` passes; on box `systemctl is-active netdata`=active,
+`ss -ltn :19999` → `127.0.0.1` only, `curl -s localhost:19999/api/v1/info` JSON, system charts
+populated; `findmnt -no OPTIONS /` = `ro` under load; idempotent re-apply.
 
-## Phase B — minimal end-to-end goss daemon + `validate`
+### ✅ Checkpoint 2 — agent runs, localhost-only, rootfs untouched at runtime (on-box)
+Resolve: exact `/opt` partition (writable vs writable_usr); pinned asset name/URL/sha256; SBC memory
+footprint (tune retention / disable heavy collectors if needed).
 
-**Files:**
-- `apps/pikvm/files/goss-serve.service` (new) — unit per SPEC (§ "files/goss-serve.service"):
-  `ExecStart=/usr/local/bin/goss --gossfile /etc/goss/goss.yaml serve --listen-addr
-  127.0.0.1:8080 --endpoint /healthz --format prometheus --format-options verbose`,
-  `After=network-online.target netbird@netbird.service`, `Restart=on-failure`, `User=root`.
-- `apps/pikvm/files/validate` (new) — curl client per SPEC (§ "files/validate"):
-  `Accept: application/vnd.goss-rspecish`, prints body, exits non-zero unless HTTP 200.
-- `apps/pikvm/files/goss.yaml` (new) — **minimal**: only the `port: tcp:8080` assertion
-  (`listening: true`, `ip: [127.0.0.1]`) so the pipeline self-tests before real checks.
-- `apps/pikvm/deploy.py` (edit) — add `# ── Task 10: goss system-health validation ──`
-  section at the end (after Task 9, ~line 638), and add `GossVersion` to the
-  `pyinfra_custom.facts` import block (`deploy.py:42`).
+## Phase C — scrape goss `/healthz`
 
-**Task 10 structure** (follows the existing fact-gated / `rootfs.writable` idiom — see
-Task 5 `deploy.py:250` for install-gating and Task 8 `deploy.py:476` for config+unit):
-- Constants: `GOSS_VERSION="0.4.10"`, `GOSS_ARCH="arm64"`, `GOSS_SHA256=...`, `GOSS_URL`.
-- Install gate: `goss_needs_install = GOSS_VERSION not in host.get_fact(GossVersion)`.
-  When true, inside `rootfs.writable(changed_if=True)` run a `server.shell` that
-  `curl`s the tarball, `sha256sum -c`, extracts, and `install -m 0755` to `/usr/local/bin/goss`.
-- Read the three `files/` payloads (`Path(...).read_text` like Task 8 `deploy.py:496`),
-  compute `hashlib.sha256` of each, build `goss_needs_rw` from `Sha256File` facts for
-  `/etc/goss/goss.yaml`, `/usr/local/bin/validate`, `/etc/systemd/system/goss-serve.service`.
-- `with rootfs.writable(changed_if=goss_needs_rw):` → `files.directory(/etc/goss)`,
-  `files.put` for goss.yaml (644), validate (755), unit (644); capture the goss.yaml and
-  unit `files.put` results.
-- `systemd.service(service="goss-serve.service", running=None, enabled=True,
-  daemon_reload=True)` gated by `if goss_needs_rw:` (enable-only, matching Task 5
-  `deploy.py:318`), then `systemd.service(..., running=True)` to ensure it's up.
-- Conditional restart via `server.shell(..., _if=lambda: goss_cfg.did_change() or
-  goss_unit.did_change())` doing `systemctl daemon-reload; systemctl restart
-  goss-serve.service` — mirrors Task 9 `deploy.py:631`.
+**Files:** `files/go.d/prometheus.conf` (new) → `/etc/netdata/go.d/prometheus.conf`:
+```yaml
+jobs:
+  - name: pikvm-goss
+    url: http://127.0.0.1:8080/healthz
+```
+`deploy.py` (edit) — sha-gated `files.put` in the same write window; include in restart `_if`.
 
-**Acceptance criteria:**
-- `moon run pikvm:lint` passes.
-- First `--dry` shows the install + writes + enable; a second `--dry` after a real apply
-  shows **no changes** for Task 10 (idempotency).
-- On-host: `systemctl is-active goss-serve.service` → `active`; `ss -ltnp 'sport = :8080'`
-  → bound to `127.0.0.1:8080` only (never `0.0.0.0`); `validate` prints rspecish and exits `0`;
-  `curl -s localhost:8080/healthz` → Prometheus text.
+**Acceptance:** netdata shows a `prometheus`/`pikvm-goss` chart family with the goss assertion
+metrics; `allmetrics?format=prometheus | grep -i goss` shows the series; idempotent; lint passes.
 
-**Verify:**
-- `moon run pikvm:lint`
-- `cd apps/pikvm && uv run pyinfra inventories/production.py deploy.py --dry` (or
-  `inventories/local.py` for LAN first bring-up) — inspect Task 10 diff.
-- `moon run pikvm:apply` (or `pikvm:apply_local`), then re-run `--dry` → Task 10 clean.
-- On box: the four on-host commands above.
+### ✅ Checkpoint 3 — goss metrics visible in netdata
 
-### ✅ Checkpoint 2 — pipeline proven + open questions resolved (needs human + on-host)
-Resolve SPEC Open Questions before Phase C:
-1. **Port 8080 free?** `ss -ltnp 'sport = :8080'` on the box shows nothing else owns it.
-   If taken → **ask first** (SPEC boundary), pick another loopback port, update the
-   `port` assertion accordingly.
-2. **`ping` privileges** — confirm `net.ipv4.ping_group_range` allows root ICMP (Phase C).
-3. **DNS** — decision to `dns`-first/`getent`-fallback carries into Phase C.
-Do not proceed until the daemon is confirmed localhost-only and `validate` works E2E.
+## Phase D — claim to Netdata Cloud + reboot-durable identity
 
-## Phase C — full 5-assertion contract
+**Prerequisite (manual):** add `netdata_claim_token` + `netdata_claim_rooms` to OpenBao `kv/pikvm`
+(Netdata Cloud → Space → Connect Nodes). The deploy reads them; it cannot create them.
 
-**Files:**
-- `apps/pikvm/files/goss.yaml` (edit) — expand from the single port check to all 5
-  assertions per the SPEC contract (§ "files/goss.yaml"):
-  1. `command: netbird-connected` — `netbird status`, exit 0, stdout contains `Management: Connected`.
-  2. `command: ping-100.65.134.8` — `ping -c 2 -W 2 100.65.134.8`, exit 0.
-  3. `dns: macbook-pro-van-maarten.netbird.cloud` — `resolvable: true` (fallback: `command: getent hosts <fqdn>` exit 0).
-  4. `service: netbird@netbird` — `enabled: true`, `running: true`.
-  5. `port: tcp:8080` — `listening: true`, `ip: [127.0.0.1]` (carried from Phase B).
+**Files:** `files/setup-netdata-overlay.sh` (new), `files/netdata-overlay.service` (new),
+`files/netdata.conf` (edit — `[directories] lib` → persisted path), `deploy.py` (edit).
 
-Only `goss.yaml` changes — the daemon reads it fresh on every request, and the
-Sha256File gate + conditional restart from Phase B already handle redeploy/reload.
+- Overlay: tmpfs over netdata's lib dir; restore `cloud.d/` + registry machine GUID from
+  `/root/netdata-state` on start, copy back on stop; `Before=netdata.service`. Keeps the Cloud node
+  identity stable (no duplicates).
+- Claim (gated on `not SKIP_SECRETS` and not-already-claimed): `_secret("netdata_claim_token")` /
+  `_secret("netdata_claim_rooms")` → `/opt/netdata/bin/netdata-claim.sh -token=$TOK -rooms=$ROOMS
+  -url=https://app.netdata.cloud`, token via per-command `_env` (never argv/`--dry`); persist state.
 
-**Acceptance criteria:**
-- On a healthy box, `validate` shows all 5 checks passing, exit `0`; `curl` Prometheus
-  output has one metric line per assertion.
-- Failure injection: stop/disconnect NetBird → `validate` flips to failing + non-zero exit,
-  and the corresponding metric(s) report failure.
-- `--dry` idempotent on a converged host; `moon run pikvm:lint` passes.
+**Acceptance:** node **Live** in Netdata Cloud with box charts + pikvm-goss; `PIKVM_SKIP_SECRETS=1`
+skips claiming cleanly; token never in argv/`--dry`; **reboot** → same node reconnects (no
+duplicate); idempotent.
 
-**Verify:**
-- Redeploy (`pikvm:apply` / `apply_local`), re-run `--dry` → clean.
-- On box: `validate` (all pass), then `netbird down` (or stop the service) → `validate`
-  fails non-zero → restore → passes again.
-- `curl -s localhost:8080/healthz` → 5 per-test metric lines.
-- Confirm the `dns` resource resolves the FQDN; if not, swap assertion #3 to the `getent`
-  form and redeploy.
+### ✅ Checkpoint 4 — Cloud claim durable + final sign-off
+Node Live, reboot-durable, localhost-only bind, rootfs `ro` at runtime, lint green, idempotent → commit.
 
-### ✅ Checkpoint 3 — reboot survival + final sign-off
-`reboot` the box; after boot `goss-serve.service` is enabled + active and `validate`
-passes. Tick every box in SPEC.md "Success Criteria". Then commit.
+## Applying (transport caveat)
+
+`moon run pikvm:apply` over NetBird is **broken** (paramiko can't do `none` auth through NetBird
+native-SSH JWT — repo memory `pikvm-apply-ops`). Apply Task-11 operations over `ssh root@<box>`
+directly, or LAN `apply_local` if reachable. `--dry` over NetBird hits the same wall.
 
 ## Files touched (summary)
 
 | Path | Change |
 |------|--------|
-| `libs/pyinfra-custom/src/pyinfra_custom/facts/goss.py` | new — `GossVersion` fact |
-| `libs/pyinfra-custom/src/pyinfra_custom/facts/__init__.py` | edit — export `GossVersion` |
-| `libs/pyinfra-custom/tests/test_facts.py` | edit — `GossVersion` unit test |
-| `apps/pikvm/files/goss.yaml` | new — 5-assertion spec (minimal in B, full in C) |
-| `apps/pikvm/files/goss-serve.service` | new — systemd unit (localhost bind) |
-| `apps/pikvm/files/validate` | new — rspecish client → `/usr/local/bin/validate` |
-| `apps/pikvm/deploy.py` | edit — Task 10 section + `GossVersion` import |
-
-No changes to `moon.yml` or inventories. `hashlib`/`StringIO` already imported in `deploy.py`.
+| `libs/pyinfra-custom/.../facts/netdata.py` | new — `NetdataVersion` fact (Phase A ✅) |
+| `libs/pyinfra-custom/.../facts/__init__.py` | edit — export `NetdataVersion` (✅) |
+| `libs/pyinfra-custom/tests/test_facts.py` | edit — `NetdataVersion` test (✅) |
+| `apps/pikvm/files/netdata.conf` | new — RAM db, tmpfs dirs, localhost bind |
+| `apps/pikvm/files/netdata.service.d/pikvm.conf` | new — RuntimeDirectory + ordering drop-in |
+| `apps/pikvm/files/go.d/prometheus.conf` | new — goss scrape job |
+| `apps/pikvm/files/setup-netdata-overlay.sh` | new — lib tmpfs + restore/persist claim state |
+| `apps/pikvm/files/netdata-overlay.service` | new — overlay unit (Before=netdata) |
+| `apps/pikvm/deploy.py` | edit — Task 11 section + `NetdataVersion` import |
+| OpenBao `kv/pikvm` | add `netdata_claim_token`, `netdata_claim_rooms` (manual prerequisite) |
 
 ## Risks / notes
 
-- **`apply` over NetBird is currently broken** (repo memory `pikvm-apply-ops`: paramiko
-  can't do `none` auth through `netbird ssh proxy` since native-SSH). Prefer
-  `pikvm:apply_local` (LAN) for bring-up, or run pyinfra against a working transport. Flag
-  to the user if `pikvm:apply` fails on auth.
-- Read-only rootfs: `/usr` is now a separate ro partition; the install writes to
-  `/usr/local/bin` — confirm `rootfs.writable` remount covers `/usr/local` on this box
-  (part of Checkpoint 2 on-host check). If not, adjust the remount target.
-- `_if` reconcile always shows a "conditional change" line in `--dry` (expected, per repo
-  memory) — idempotency is judged on the `files.*`/install diffs, not the guarded shell.
-- No secrets involved; `--dry` output is safe to share in the PR.
+- **Read-only rootfs is the central risk** — all runtime writes must land on tmpfs (`/run/netdata`
+  via `RuntimeDirectory`) or the persisted lib overlay; verify `findmnt / → ro` under load.
+  `[db] mode = ram` avoids a disk TSDB.
+- **Static installer is a big opaque one-shot** — gated on `NetdataVersion` so it runs once;
+  `--no-updates` disables self-update. Confirm pinned asset name/URL/sha256 at build (like goss).
+- **`/opt` partition** must be confirmed to pick `rootfs.writable` vs `writable_usr`.
+- **Cloud node duplication** if the machine GUID isn't persisted — the lib overlay prevents it.
+- **Off-box telemetry** is deliberate (Cloud claim); homelab data only, token in OpenBao,
+  `SKIP_SECRETS` leaves the agent unclaimed.
+- Apply over NetBird broken → apply over `ssh root@<box>`.
