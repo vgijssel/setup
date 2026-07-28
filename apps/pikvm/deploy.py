@@ -46,6 +46,7 @@ from pyinfra_custom.facts import (
     NetbirdServerSshAllowed,
     NetbirdSshRootEnabled,
     NetbirdVersion,
+    NetdataVersion,
     OpenBaoSecret,
     PacmanUpgradablePackages,
 )
@@ -780,4 +781,126 @@ server.shell(
         "systemctl restart goss-serve.service",
     ],
     _if=lambda: goss_cfg.did_change() or goss_unit.did_change(),
+)
+
+
+# ── netdata Agent: install + run locally (RAM db, localhost-only) (Task 11, Phase B) ─
+# Install the netdata Agent from the pinned, sha256-verified static build (mirrors the
+# goss binary install) and run it as a long-lived daemon bound to 127.0.0.1:19999 -- no
+# LAN/mesh inbound port. netdata collects the box's system metrics; Phase C adds a goss
+# /healthz scrape and Phase D claims the agent to Netdata Cloud. See SPEC.md + tasks/plan.md.
+#
+# Read-only-rootfs discipline -- everything netdata lands on the ROOT partition, so the
+# stock `rw` helper (rootfs.writable) covers it; NO /usr remount is needed:
+#   * The static build installs under /opt/netdata (a directory on the root partition).
+#   * With /usr left `ro`, the installer's get_systemd_service_dir() finds
+#     /usr/lib/systemd/system non-writable and falls through to /etc/systemd/system, so
+#     the base unit lands on the root partition too. (Its one unconditional write to
+#     /usr/lib/systemd/journald@netdata.conf.d fails NON-fatally on the ro /usr -- the
+#     installer's run_failed only records a warning -- and journald integration is not
+#     used here.)
+# Runtime writes never touch the rootfs: [db] mode = ram keeps the TSDB in RAM and
+# [directories] point cache/lib/log at the /run/netdata tmpfs (created each boot by the
+# drop-in's RuntimeDirectory=netdata). Cloud identity persistence across reboot is Phase D.
+#
+# Install flags: --dont-start-it (pyinfra owns start), --disable-telemetry (opt out of
+# anonymous stats), --stable-channel. --auto-update is deliberately NOT passed, so the
+# bundled updater is installed but never enabled -- the version is pinned here and bumped
+# by Renovate, exactly like the goss/NetBird pins.
+NETDATA_VERSION = "2.10.4"
+NETDATA_ARCH = "aarch64"
+NETDATA_SHA256 = "6de02a2d39eac1db49efcc62c9ebfb08fa537eb07f896d8865acc37841b474ac"
+NETDATA_URL = (
+    f"https://github.com/netdata/netdata/releases/download/v{NETDATA_VERSION}/"
+    f"netdata-{NETDATA_ARCH}-v{NETDATA_VERSION}.gz.run"
+)
+
+NETDATA_PREFIX = "/opt/netdata"
+NETDATA_CONF_SRC = os.path.join(FILES, "netdata.conf")
+NETDATA_CONF_REMOTE = f"{NETDATA_PREFIX}/etc/netdata/netdata.conf"
+NETDATA_DROPIN_DIR = "/etc/systemd/system/netdata.service.d"
+NETDATA_DROPIN_SRC = os.path.join(FILES, "netdata.service.d", "pikvm.conf")
+NETDATA_DROPIN_REMOTE = os.path.join(NETDATA_DROPIN_DIR, "pikvm.conf")
+
+# Install gate: only download/verify/install when the pinned version is absent (the
+# static build is the sole source of the version, so a mismatch triggers a reinstall).
+netdata_needs_install = NETDATA_VERSION not in host.get_fact(NetdataVersion)
+
+# Config-drift window: the netdata.conf override (which the installer also writes, so we
+# replace its default) and the systemd drop-in, both on the root partition.
+netdata_config_needs_rw = (
+    host.get_fact(Directory, path=NETDATA_DROPIN_DIR) is None
+    or _file_out_of_sync(NETDATA_CONF_REMOTE, NETDATA_CONF_SRC)
+    or _file_out_of_sync(NETDATA_DROPIN_REMOTE, NETDATA_DROPIN_SRC)
+)
+
+if netdata_needs_install:
+    with rootfs.writable(changed_if=True):
+        # Download + sha256-verify + run the self-extracting static installer is a
+        # bespoke one-shot (no operation equivalent); documented shell. The pinned digest
+        # guards against a tampered or wrong-arch download before it ever executes as root.
+        # `sh <file>.gz.run --accept -- <opts>`: --accept auto-accepts the makeself
+        # extraction, `--` passes the remaining flags to the bundled netdata installer.
+        server.shell(
+            name=f"netdata: install {NETDATA_VERSION} to {NETDATA_PREFIX} (verified sha256)",
+            commands=[
+                "set -e",
+                "tmp=$(mktemp -d)",
+                f'curl -fsSL -o "$tmp/netdata.gz.run" {NETDATA_URL}',
+                f"echo '{NETDATA_SHA256}  '\"$tmp/netdata.gz.run\" | sha256sum -c -",
+                'sh "$tmp/netdata.gz.run" --accept -- '
+                "--dont-start-it --disable-telemetry --stable-channel",
+                'rm -rf "$tmp"',
+            ],
+        )
+
+with rootfs.writable(changed_if=netdata_config_needs_rw):
+    files.directory(
+        name="netdata: ensure systemd drop-in dir",
+        path=NETDATA_DROPIN_DIR,
+        present=True,
+    )
+    # Capture the results so the reconcile below restarts the daemon (change detection)
+    # only when the config or drop-in actually changed.
+    netdata_conf = files.put(
+        name="netdata: install netdata.conf (RAM db, tmpfs dirs, localhost bind)",
+        src=NETDATA_CONF_SRC,
+        dest=NETDATA_CONF_REMOTE,
+        mode="644",
+    )
+    netdata_dropin = files.put(
+        name="netdata: install netdata.service.d/pikvm.conf drop-in",
+        src=NETDATA_DROPIN_SRC,
+        dest=NETDATA_DROPIN_REMOTE,
+        mode="644",
+    )
+    if netdata_config_needs_rw:
+        # Enable only (running=None); started below. daemon_reload gated on the change
+        # condition so a converged box reloads nothing. (The installer already enables the
+        # unit; this re-asserts it idempotently.)
+        systemd.service(
+            name="netdata: enable netdata.service",
+            service="netdata.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the daemon is up now, not just at next boot. Idempotent: a converged box makes
+# no change.
+systemd.service(
+    name="netdata: ensure netdata.service is running",
+    service="netdata.service",
+    running=True,
+)
+# Restart to pick up a changed netdata.conf / drop-in (change detection). netdata reads
+# netdata.conf at startup and the drop-in only takes effect after daemon-reload + restart,
+# so a config change needs a restart. Gated on change detection -> converged box no-op.
+server.shell(
+    name="netdata: restart netdata after config/drop-in change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart netdata.service",
+    ],
+    _if=lambda: netdata_conf.did_change() or netdata_dropin.did_change(),
 )

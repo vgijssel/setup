@@ -15,12 +15,12 @@ See `tasks/plan.md` for full context. Netdata Agent on the PiKVM: system metrics
 ### ✅ Checkpoint 1 — lib green — PASSED
 
 ## Phase B — install netdata + run locally (RAM db, localhost-only)
-- [ ] Pin `NETDATA_VERSION` + confirm aarch64 static asset name/URL + `NETDATA_SHA256` (release checksums)
-- [ ] `files/netdata.conf` — `[db] mode = ram` + small retention; dirs → `/run/netdata` tmpfs; bind `127.0.0.1:19999`; telemetry off
-- [ ] `files/netdata.service.d/pikvm.conf` — `RuntimeDirectory=netdata`, `After=network-online.target`, ro-rootfs hardening
-- [ ] `deploy.py` Task 11: `NetdataVersion` import; install gate; gated static install (curl + `sha256sum -c` + `.gz.run --accept -- --dont-start-it --disable-telemetry --no-updates --stable-channel`); sha-gated config/drop-in `files.put`; enable + start + change-gated restart
-- [ ] Confirm `/opt` partition → `rootfs.writable` vs `writable_usr`
-- [ ] `moon run pikvm:lint` passes
+- [x] Pin `NETDATA_VERSION` (2.10.4) + aarch64 static asset `netdata-aarch64-v2.10.4.gz.run` + `NETDATA_SHA256` (from release `sha256sums.txt`)
+- [x] `files/netdata.conf` — `[db] mode = ram` + retention 3600; dirs → `/run/netdata` tmpfs; bind `127.0.0.1:19999`; telemetry off (installer `--disable-telemetry`)
+- [x] `files/netdata.service.d/pikvm.conf` — `RuntimeDirectory=netdata`, `After=network-online.target`
+- [x] `deploy.py` Task 11: `NetdataVersion` import; install gate; gated static install (curl + `sha256sum -c` + `.gz.run --accept -- --dont-start-it --disable-telemetry --stable-channel`); sha-gated config/drop-in `files.put`; enable + start + change-gated restart
+- [x] Confirm `/opt` partition → `rootfs.writable` (root partition, NOT `writable_usr`): `/opt/netdata` + `/etc/systemd/system` are both on root; `/usr` stays `ro` so the installer falls through to `/etc/systemd/system` for the unit (journald conf write to `/usr` fails non-fatally, unused)
+- [x] `moon run pikvm:lint` passes
 - [ ] On box: `systemctl is-active netdata` = active, `is-enabled` = enabled
 - [ ] On box: `ss -ltn 'sport = :19999'` → `127.0.0.1` only (never `0.0.0.0`)
 - [ ] On box: `curl -s localhost:19999/api/v1/info` → JSON; system charts populated
@@ -28,9 +28,10 @@ See `tasks/plan.md` for full context. Netdata Agent on the PiKVM: system metrics
 - [ ] Idempotent re-apply (box config sha == repo sha)
 
 ### ⬜ Checkpoint 2 — agent runs, localhost-only, rootfs untouched at runtime
-- [ ] `/opt` partition confirmed + correct write-window helper
-- [ ] Pinned static asset name/URL/sha256 confirmed
-- [ ] SBC memory footprint acceptable (tune retention / disable heavy collectors if needed)
+- [x] `/opt` partition confirmed + correct write-window helper (root partition → `rootfs.writable`; reasoned from the installer's `get_systemd_service_dir` fall-through — verify live on first apply)
+- [x] Pinned static asset name/URL/sha256 confirmed (v2.10.4 `sha256sums.txt`)
+- [ ] SBC memory footprint acceptable (tune `[db] retention` / disable heavy collectors if needed) — on-box
+- [ ] **On-box apply pending** (manual, over `ssh root@pikvm` — apply over NetBird is broken): run the deploy, then verify the four on-box acceptance checks above.
 
 ## Phase C — scrape goss `/healthz`
 - [ ] `files/go.d/prometheus.conf` — job `pikvm-goss` → `http://127.0.0.1:8080/healthz`
