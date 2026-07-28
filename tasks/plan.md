@@ -1,5 +1,13 @@
 # Implementation Plan: Migrate `apps/secret` + `apps/network` from Tailscale to NetBird
 
+> **⚠️ PARTLY SUPERSEDED (reconciled 2026-07-28).** This is the original design record. Several tasks
+> shipped via **different, committed approaches** — see the RECONCILED banner in `tasks/todo.md` (the live
+> status). In short: JWKS rides a **mirror + `jwks-gateway`**, not the ClusterProxy (0.3); network ESO →
+> OpenBao is a **client sidecar** (`eso-sidecar`), not a repointed store (1.6); DNS is Crossplane
+> **`provider-opentofu`**, not `provider-upjet-cloudflare` (1.7); Omada is a **single all-ports NBResource**,
+> not L7+L4 split (1.5); operator is pinned **v0.7.0**, not 0.8.0; OpenBao exposure has its own sub-plan
+> (`tasks/plan-openbao-netbird-reverse-proxy.md`). Read `todo.md` first.
+
 ## Context
 
 Both home-lab vind clusters (`network`, `secret`) currently use **Tailscale** for three

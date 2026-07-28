@@ -3,6 +3,22 @@
 Source of truth: `SPEC.md` (repo root) + `tasks/plan.md`. Order: **network first, then secret.**
 Verify every phase on a **freshly recreated** cluster (`stop` → `start`).
 
+> **RECONCILED 2026-07-28** — this `todo.md` (not `plan.md`) is the live status. Audited the
+> committed branch (`mg/feat/netbird-migration`, HEAD `8c257f8d`) against the checkboxes. Key
+> corrections applied below: several tasks landed via **different, committed approaches** than
+> `plan.md` describes, so `plan.md` is now partly stale by design (kept as the original design record):
+> - **Operator re-pinned `0.8.0` → `v0.7.0`** (`e081b4d8`/`d0fa9861`) — the 0.8.0 sidecar DNS
+>   regression (#383) broke the ESO client sidecar; v0.7.0 rewrites the shared `/etc/resolv.conf` in place.
+> - **1.6 (network ESO → OpenBao) is implemented via a NetBird *client sidecar*** (`apps/network/src/eso-sidecar/`,
+>   `0da1bea5`), **not** the plan's "setup-key ES + repoint store host." OpenBao's Tailscale VIP was
+>   **retired** (`8c257f8d`) — reachable mesh-only at `openbao.secret.vgijssel.nl` via a BYOP reverse proxy.
+> - **1.7 DNS is managed by Crossplane `provider-opentofu`** (inline HCL / `restapi`), **not**
+>   `provider-upjet-cloudflare` (rejected on arm64). Records are per-reverse-proxy-service CNAMEs.
+> - **Omada (1.5) is a single all-ports `NBResource`** — the BYOP reverse-proxy path was removed.
+> - **OpenBao exposure has its own sub-plan:** `tasks/plan-openbao-netbird-reverse-proxy.md`
+>   (T1–T4,T7,T8,T10 done; T9 live bring-up + T5 network-cutover + T6 tailnet-removal remaining).
+> Everything still open is a **live cluster/secret/DNS mutation** (Ask-first).
+
 Maintainer directives baked in: JWKS via **ClusterProxy (auth/impersonation)**, no separate/anonymous
 path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove cert-manager + external-dns**
 (NetBird manages TLS, Crossplane manages DNS).
@@ -15,18 +31,18 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [ ] `kv/cloudflare#credential` — already exists; confirm Zone:Read + DNS:Edit
 
 ## Phase 0 — De-risk spike (network, throwaway)
-- [ ] 0.1 Operator + peer enrollment → **Connected** in group `network-k8s`
-- [ ] 0.2 `ClusterProxy` kubectl (impersonation) works; capture endpoint + CNAME target
+- [x] 0.1 Operator + peer enrollment → **Connected** in group `network-k8s` (done — see 1.1/1.2/1.4)
+- [x] 0.2 `ClusterProxy` kubectl (impersonation) works (done — `clusterproxy-api-network` Ready, 3/3 proxy peers; see 1.4)
 - [✗] 0.3 **JWKS through the ClusterProxy — INFEASIBLE** (netbird-kubeapi-proxy v0.0.4 forwards only `/api`+`/apis`; `/openid/v1/jwks` 404s). Chosen fallback: **JWKS HTTP mirror + NetworkResource** (maintainer).
   - [x] JWKS HTTP mirror (`apps/network/src/jwks-mirror/`, nginx→apiserver anon /openid/v1/jwks over HTTP) — live, HTTP 200 with real keys.
   - [x] Exposed cross-cluster via **operator v1 stack** (`NBRoutingPeer` + Service `netbird.io/expose` → domain `NBResource` jwks-mirror.netbird.svc.cluster.local + auto-policy; no DNS zone, no crossplane). **Validated: JWKS fetched over NetBird from a peer, HTTP 200 real keys.** (netbird-crossplane-provider evaluated & reverted; Crossplane **core** kept on network for Cloudflare.)
   - [x] secret OpenBao `jwt-network` jwksUrl → `http://jwks-gateway.netbird.svc.cluster.local/openid/v1/jwks` — **DONE & VALIDATED end-to-end on NetBird (2026-07-26).** secret NBRoutingPeer → auto-group `secret` (id d9ius9jl0ubs73flnbb0); network jwks-mirror NBPolicy source resolves to it. `openbao-0` is not a netbird client, so instead of injecting a sidecar into OpenBao (DNS-rewrite risk), a disposable **`jwks-gateway`** socat Pod (SidecarProfile → netbird sidecar in group `secret`) re-serves the mesh mirror on a plain ClusterIP; OpenBao reaches it via normal cluster DNS. Proven: openbao-0 fetches JWKS (kid `ZqpF3JeB…` matches network apiserver), AuthBackend Synced/Ready, and a **fresh network ESO login validates → ClusterSecretStore openbao Valid, no errors.** SPEC success-criterion (a) met on NetBird.
-- [ ] 0.4 NetBird auto-TLS on L7 custom domain confirmed; Omada L4 device-adoption cert nuance resolved
-- [ ] 0.5 **Live-validate nested hostnames** (`api.network.vgijssel.nl`, `api.secret`, `omada.network`, `openbao.secret`) forward into NetBird via the single `*.vgijssel.nl` wildcard; fallback = explicit per-host CNAMEs
+- [~] 0.4 Omada L4 device-adoption **validated** over the mesh (devices adopt; UI on 8043 serves the LE cert — see 1.5). NetBird L7 auto-TLS question **superseded**: Omada uses a single NBResource + mesh domain (no L7 proxy), and OpenBao's public cert now comes from the BYOP reverse proxy (openbao sub-plan), not a NetBird-minted L7 domain.
+- [~] 0.5 Wildcard depth **validated** (`*.vgijssel.nl` answers arbitrary depth on Cloudflare — see `[[cloudflare-wildcard-arbitrary-depth]]`). Approach evolved: DNS is now **per-reverse-proxy-service CNAMEs via opentofu** (`cloudflare-config/workspace-reverse-proxy-dns.yaml`), not one apex wildcard `Record`.
 - [ ] **Checkpoint:** record `proxy_cname_target`; review with maintainer
 
 ## Phase 1 — network migration
-- [x] 1.1 Vendor `netbird-operator` `0.8.0` in `vendir.yml`
+- [x] 1.1 Vendor `netbird-operator` in `vendir.yml` — **re-pinned `0.8.0` → `v0.7.0`** (`e081b4d8`/`d0fa9861`; 0.8.0 sidecar DNS regression #383)
 - [x] 1.2 `apps/platform/src/netbird-operator/` Fleet bundle (ns `netbird`, PAT secret, mgmt URL var) — deployed to BOTH clusters; operator `Running 1/1`, `netbird-mgmt-api-key` ExternalSecret `SecretSynced` (per-cluster `kv/<cluster>-netbird-operator#access_token`)
 - [x] 1.3 `tailscale_auth.sh` → `netbird_auth.sh`; seeds `netbird-mgmt-api-key` PAT (`kv/network-netbird-operator#access_token`) — operator mints its own SetupKeys, so no setup-key seeding; renamed moon task `tailscale_auth`→`netbird_auth`; rewired `start.sh`/`apply.sh`/`stop.sh` comments
 - [~] 1.4 `apps/network/src/netbird-config/` — Group `network-k8s` + SetupKey **Ready**; ClusterProxy `api-network` **Ready** (3/3 proxy peers `connected` in network-k8s, kube-apiserver fronted w/ impersonation RBAC, kubectl-only). **SUPERSEDED:** the "OIDC-discovery CRB swap (JWKS-via-ClusterProxy)" is dropped — JWKS now rides the mirror (`jwks-mirror` bundle, anonymous apiserver read), so the anonymous `clusterrolebinding-oidc-discovery.yaml` must **stay** (its comments still reference the retired Tailscale ProxyGroup — cleanup pending in 1.8). **Still pending:** custom-domain `api.network.vgijssel.nl` reachability (NetBird custom domain + Cloudflare CNAME — Ask-first, 1.7).
@@ -64,16 +80,40 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   Prior BYOP approach (validated 2026-07-26, `https://omada.network.vgijssel.nl` HTTP 200 over the mesh;
   proxy token `kv/network-netbird-proxy#token` — now unused, left in OpenBao) superseded because one
   proxy version could not serve both the HTTPS UI and raw TCP L4 (netbirdio/netbird#6400).
-- [ ] 1.6 network `config/` — ESO setup-key ES (`kv/network-netbird`); remote `openbao` store host over NetBird
-- [ ] 1.7 Add Crossplane core + `provider-upjet-cloudflare` to network; single DNS-only wildcard `Record` MR — `*.vgijssel.nl` → `eu1.netbird.services`
-- [ ] 1.8 Remove `apps/network/src/tailscale-proxygroup/`; retarget platform tailscale bundle `secret`-only
+- [~] 1.6 network ESO → OpenBao over the mesh. **APPROACH CHANGED (committed `0da1bea5`):** implemented
+  as a NetBird **client sidecar** for the external-secrets pod (`apps/network/src/eso-sidecar/`:
+  `setupkey-external-secrets.yaml` + `sidecarprofile-external-secrets.yaml` + `fleet.yaml`), **not** the
+  plan's "setup-key ES + repoint store host." The `openbao` ClusterSecretStore keeps
+  `server: https://openbao.secret.vgijssel.nl`, now resolved **over the mesh** by the sidecar's NetBird DNS
+  (secret's Tailscale VIP retired in `8c257f8d`). Requires operator **v0.7.0** (sidecar DNS, #383).
+  The plan's "convert `externalsecret-operator-oauth.yaml` to a setup-key ES" is **superseded** — the
+  operator mints its own setup keys (1.3); that Tailscale-operator OAuth ES is now **dead surface → delete in 1.8**.
+  **PENDING:** live-validate a network ESO sync over the sidecar on a fresh cluster (post v0.7.0 re-pin);
+  scrub stale tailnet comments in `config/{clustersecretstore-openbao,fleet}.yaml`.
+- [~] 1.7 Crossplane on network — **APPROACH CHANGED:** DNS managed by Crossplane **`provider-opentofu`**
+  (inline HCL via `restapi`), **not** `provider-upjet-cloudflare` (rejected on arm64 — see
+  `[[network-cloudflare-dns-opentofu]]`). **DONE:** crossplane core (`crossplane/`, pin 2.3.3),
+  `crossplane-provider/` (provider-opentofu + backend RBAC), `cloudflare-config/` (ESO creds +
+  `providerconfig-opentofu.yaml` + `workspace-reverse-proxy-dns.yaml`). Records are **per-reverse-proxy CNAMEs**,
+  not one apex wildcard. **PENDING:** confirm `api.network.vgijssel.nl` (kubectl custom domain) is covered.
+- [ ] 1.8 Remove `apps/network/src/tailscale-proxygroup/`; delete dead `config/externalsecret-operator-oauth.yaml`
+  (Tailscale-operator OAuth); scrub stale tailnet comments; retarget platform tailscale bundle `secret`-only.
+  **GATED:** `service-omada-tailscale.yaml` stays until the **PiKVM routing-peer path for physical Omada
+  device adoption** is live-validated (see 1.5.a) — don't delete the Omada Tailscale LB before then.
 - [ ] **Checkpoint:** fresh `network:start`; Connected; kubectl+JWKS via ClusterProxy; Omada UI+devices; CNAMEs resolve; ESO syncs; no tailscale refs
 
 ## Phase 2 — secret migration
-- [~] 2.1 `apps/secret/src/netbird-config/` — **DONE:** `NBRoutingPeer router` (v1 stack) live + auto-group `secret` Connected — the consumer half of the cross-cluster JWKS path (proven, see 0.3). **PENDING:** ClusterProxy (`api.secret`) for kubectl; exposing OpenBao to `network-k8s` for network ESO (the reverse direction — has the cert/SNI wrinkle since ESO uses the public `openbao.secret.vgijssel.nl` name, not the mesh domain).
+- [~] 2.1 `apps/secret/src/netbird-config/` — **DONE:** `NBRoutingPeer router` (v1 stack) live + auto-group `secret` Connected — the consumer half of the cross-cluster JWKS path (proven, see 0.3). **PENDING:** ClusterProxy (`api.secret`) for kubectl; exposing OpenBao to `network-k8s` for network ESO. **RECONCILED 2026-07-28:** the OpenBao-exposure half is now delivered by the **BYOP reverse proxy** (openbao sub-plan) + the network **eso-sidecar** consumer (1.6), not a `NetworkResource` here; ClusterProxy `api.secret` for kubectl is still pending (see 2.4).
 - [x] 2.2 `authbackend-jwt-network.yaml` `jwksUrl` → `http://jwks-gateway.netbird.svc.cluster.local/openid/v1/jwks` (mesh gateway, plain HTTP — no `jwksCaPem` needed; the ClusterProxy/custom-domain path was superseded by the mirror+gateway). Applied live, AuthBackend Synced/Ready, network ESO validated. See 0.3 + `apps/secret/src/jwks-gateway/`.
-- [ ] 2.3 secret `config/` — ESO setup-key ES (`kv/secret-netbird`); OpenBao UI via NetBird L7; ingress-nginx off Tailscale LB; delete `certificate-secret.yaml`
-- [ ] 2.4 Remove `apps/secret/src/tailscale-proxygroup/`, `apps/platform/src/tailscale/`, vendir `tailscale-operator` entry
+- [~] 2.3 secret OpenBao exposure — **largely DONE (`8c257f8d`):** deleted `certificate-secret.yaml` +
+  `ingress-openbao.yaml`, moved `ingress-nginx` off the Tailscale LB (ClusterIP). OpenBao is now exposed
+  **mesh-only via the BYOP reverse proxy** at `openbao.secret.vgijssel.nl` (see openbao sub-plan T2/T9),
+  not a NetBird-minted L7 domain. The "ESO setup-key ES" part is **superseded** (operator mints keys).
+  **PENDING:** live bring-up validation (openbao sub-plan **T9**).
+- [~] 2.4 Remove secret Tailscale surface — **partial:** `8c257f8d` deleted the OpenBao VIP
+  `tailscale-proxygroup/proxygroup.yaml`. **STILL PRESENT:** `tailscale-proxygroup/proxygroup-apiserver.yaml`
+  (the `api-secret` kube-apiserver VIP — pending replacement by a NetBird `ClusterProxy api.secret`, see 2.1),
+  `apps/platform/src/tailscale/`, and the vendir `tailscale-operator` entry.
 - [ ] **Checkpoint:** fresh `secret:start`; Connected; `api.secret` kubectl; `jwt-network` reconciles; **network ESO → secret OpenBao JWT sync**; OpenBao UI over NetBird; `secret:auth`/`forward`
 
 ## Phase 3 — remove cert-manager + external-dns + cleanup (Ask-first for account edits)
