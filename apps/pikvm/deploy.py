@@ -790,18 +790,18 @@ server.shell(
 # LAN/mesh inbound port. netdata collects the box's system metrics; Phase C adds a goss
 # /healthz scrape and Phase D claims the agent to Netdata Cloud. See SPEC.md + tasks/plan.md.
 #
-# Read-only-rootfs discipline -- everything netdata lands on the ROOT partition, so the
-# stock `rw` helper (rootfs.writable) covers it; NO /usr remount is needed:
+# Read-only-rootfs discipline -- the single `rw` helper (rootfs.writable) covers the whole
+# install; NO separate writable_usr remount is needed (verified on-box):
 #   * The static build installs under /opt/netdata (a directory on the root partition).
-#   * With /usr left `ro`, the installer's get_systemd_service_dir() finds
-#     /usr/lib/systemd/system non-writable and falls through to /etc/systemd/system, so
-#     the base unit lands on the root partition too. (Its one unconditional write to
-#     /usr/lib/systemd/journald@netdata.conf.d fails NON-fatally on the ro /usr -- the
-#     installer's run_failed only records a warning -- and journald integration is not
-#     used here.)
+#   * /usr is a read-only BIND MOUNT of the same block device as / (findmnt shows
+#     `/dev/mmcblk0p3[/usr]`), so remounting / read-write also makes /usr's paths writable.
+#     The installer's get_systemd_service_dir() then writes the base unit to
+#     /usr/lib/systemd/system/netdata.service; our drop-in in /etc/systemd/system overrides
+#     it regardless of where the base unit lives.
 # Runtime writes never touch the rootfs: [db] mode = ram keeps the TSDB in RAM and
-# [directories] point cache/lib/log at the /run/netdata tmpfs (created each boot by the
-# drop-in's RuntimeDirectory=netdata). Cloud identity persistence across reboot is Phase D.
+# [directories] point cache/lib/log at the /run/netdata tmpfs. netdata only creates its
+# leaf dirs, so the drop-in lists cache/lib/log as RuntimeDirectory to make systemd create
+# /run/netdata{,/cache,/lib,/log} each boot. Cloud identity persistence is Phase D.
 #
 # Install flags: --dont-start-it (pyinfra owns start), --disable-telemetry (opt out of
 # anonymous stats), --stable-channel. --auto-update is deliberately NOT passed, so the
