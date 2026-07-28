@@ -39,11 +39,15 @@ Tailscale VIP + external-dns exposure; migrate network's cross-cluster reads to 
   provider-opentofu + proxy; proxy registers `secret.vgijssel.nl`; workspaces reconcile the
   domain/CNAME/service). Validate `curl https://openbao.secret.vgijssel.nl` over mesh → 200.
   *Live NetBird/OpenBao/Cloudflare mutations — gated on maintainer.*
-- [ ] **T5 — Cut network over to mesh.** Confirm network ESO reads OpenBao over mesh (same
-  hostname) WHILE tailnet still up; adjust access_groups if the network egress peer's group differs.
-- [ ] **T6 — LAST: remove tailnet exposure.** Delete openbao `Ingress` + per-host `Certificate`;
-  remove `secret-ingress` ProxyGroup + ingress-nginx tailscale annotations (external-dns prunes
-  the A record). Re-validate. Rollback: `git revert`.
+- [~] **T5 — Cut network over to mesh — BLOCKED (upstream).** A private reverse-proxy service
+  rejects non-client-peers (peer-of-origin auth), so network's ESO (routing-peer-only) can't reach
+  it. Correct fix = a NetBird **client sidecar** for the ESO pod (operator `SidecarProfile` +
+  `SetupKey`, autoGroups incl. a group in the service access_groups, `ephemeral: true`). BLOCKED on
+  netbird-operator v0.8.0 DNS bug #383 (resolv.conf not mounted to the app container); fix PR #389
+  OPEN. Keep tailnet for network until #389 ships. Client peers (Mac) already work over mesh.
+- [ ] **T6 — LAST: remove tailnet exposure — DEFERRED.** Requires T5. When the sidecar ships:
+  delete openbao `Ingress` + per-host `Certificate`; remove `secret-ingress` ProxyGroup +
+  ingress-nginx tailscale annotations (external-dns prunes the A record). Rollback: `git revert`.
 
 ## Uncertainties validated live (not guessed)
 - Exact proxy-token mint response field name — script captures + validates.
