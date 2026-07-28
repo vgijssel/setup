@@ -43,16 +43,24 @@ directories:
             url: https://pkgs.tailscale.com/helmcharts
   # NetBird Kubernetes operator — replaces the Tailscale operator as the overlay
   # network control plane (cross-cluster reachability + kube-apiserver exposure via
-  # custom domains). OCI chart from GHCR, pinned to 0.8.0
-  # (digest sha256:d836ce83f06e7749f826a2ebe680bbec17a9545c7ed4645c4d6217a472d94b8d,
-  # app v0.8.0). The operator authenticates to the NetBird management API with a PAT
-  # (netbird-mgmt-api-key / NB_API_KEY) and mints setup keys via its own CRDs.
+  # custom domains). OCI chart from GHCR, pinned to 0.7.0 (app v0.7.0). The operator
+  # authenticates to the NetBird management API with a PAT (netbird-mgmt-api-key /
+  # NB_API_KEY) and mints setup keys via its own CRDs.
+  #
+  # PINNED TO 0.7.0 (NOT the newer 0.8.0) on purpose: 0.8.0 regressed sidecar DNS
+  # (netbirdio/kubernetes-operator#383 — the mesh-rewritten /etc/resolv.conf is mounted
+  # only into the netbird sidecar, never the app container, so a SidecarProfile-injected
+  # workload can't resolve mesh domains). 0.7.0 rewrites /etc/resolv.conf in place so the
+  # app container inherits the mesh resolver — which the external-secrets sidecar (network
+  # cluster) needs to reach OpenBao over the mesh. CRDs are schema-identical across 0.7.0
+  # and 0.8.0 (only NetworkEgress is new in 0.8.0, unused here). Bump past 0.8.0 once the
+  # fix (PR #389) is released.
   - path: charts/netbird-operator
     contents:
       - path: .
         helmChart:
           name: netbird-operator
-          version: 0.8.0
+          version: 0.7.0
           repository:
             url: oci://ghcr.io/netbirdio/helm-charts
   # NetBird BYOP (Bring-Your-Own-Proxy) reverse proxy — a self-hosted `netbird proxy`
