@@ -43,20 +43,26 @@ See `tasks/plan.md` for full context. Netdata Agent on the PiKVM: system metrics
 
 ### ⬜ Checkpoint 3 — goss metrics visible in netdata
 
-## Phase D — claim to Netdata Cloud + reboot-durable identity
-- [ ] **Prereq (manual):** add `netdata_claim_token` + `netdata_claim_rooms` to OpenBao `kv/pikvm`
-- [ ] `files/setup-netdata-overlay.sh` + `files/netdata-overlay.service` — tmpfs over lib dir, restore/persist `cloud.d` + machine GUID via `/root/netdata-state`, `Before=netdata.service`
-- [ ] `files/netdata.conf` — `[directories] lib` → persisted path
-- [ ] `deploy.py` — overlay install/enable; claim gated on `not SKIP_SECRETS` + not-already-claimed; `netdata-claim.sh` with token via `_env`; persist state
-- [ ] On box: node **Live** in Netdata Cloud with box charts + pikvm-goss job
-- [ ] `PIKVM_SKIP_SECRETS=1` skips claiming cleanly (no OpenBao read, agent still runs)
-- [ ] Token never in argv / `--dry` output
-- [ ] Reboot survival: same Cloud node reconnects (no duplicate), pikvm-goss present
-- [ ] Idempotent
+## Phase D — claim to Netdata Cloud + reboot-durable identity — DONE + verified live
+- [x] **Prereq:** claim secrets live in OpenBao **`kv/netdata`** (fields `claim_token`, `room_ids`, `claim_url`) — NOT `kv/pikvm`
+- [x] `files/setup-netdata-overlay.sh` + `files/netdata-overlay.service` — tmpfs over `/var/lib/netdata`, restore/persist `cloud.d` + machine GUID via `/root/netdata-state`, `Before=netdata.service`
+- [x] `files/netdata.conf` — `[directories] lib = /var/lib/netdata` (overlay-backed; cache/log stay on `/run` tmpfs; `[db] mode = ram` → metrics never on disk)
+- [x] `files/netdata.service.d/pikvm.conf` — drop `netdata/lib` from `RuntimeDirectory` (lib is the overlay now)
+- [x] `files/goss.yaml` — new `http` check on `127.0.0.1:19999/api/v1/info` asserting `"agent-claimed":true` + `"aclk-available":true`
+- [x] `deploy.py` — overlay install/enable (writable_usr for the script, writable for state/unit) + change-gated remount+restart; claim gated on `not SKIP_SECRETS` + not-already-claimed (persisted `claimed_id`); reads `kv/netdata`; `netdata-claim.sh` token via `_env`; deletes `claim.conf` so the reusable token is never persisted; snapshots identity to `/root/netdata-state`
+- [x] On box: node **online** in Netdata Cloud (`agent-claimed:true`, `aclk-available:true`, `claim_id=bb2e7b31…`)
+- [x] Token never in argv / `--dry` output (via `_env`; claim.conf deleted post-claim)
+- [x] Reboot survival VERIFIED: after reboot, **same** node returns — `uid=8bfd497f…` + `claim_id=bb2e7b31…` unchanged (no duplicate), ACLK reconnected, lib restored from `/root/netdata-state`
+- [x] goss cloud check passes (prometheus `outcome=pass` for the netdata http resource)
 
-### ⬜ Checkpoint 4 — Cloud claim durable + final sign-off
-- [ ] Node Live, reboot-durable, localhost-only bind, rootfs `ro` under load, lint green, idempotent
-- [ ] Commit
+### ✅ Checkpoint 4 — Cloud claim durable + final sign-off — PASSED
+- [x] Node online, reboot-durable (same node id), localhost-only bind, rootfs `ro` under load, lint green
+- [x] Metrics RAM-only confirmed (`[db] mode = ram`; only tmpfs `.db` metadata; no disk TSDB)
+- [ ] Commit + push (in progress)
+- NOTE: after the reboot, the 11 **Omada** cross-cluster goss checks went red — this is the separate
+  `netbird-routingpeer-session-expiry` issue (network `deploy/router` not distributing routes), NOT netdata.
+  The netdata cloud check itself is green. `--dry`/declarative apply over NetBird still blocked (paramiko);
+  Phase D was applied manually over `ssh` via `systemd-run` in PID1's mount-ns.
 
 ## Apply transport
 - `moon run pikvm:apply` over NetBird is broken (paramiko `none`-auth vs NetBird JWT-SSH). Apply

@@ -896,7 +896,7 @@ systemd.service(
 # Restart to pick up a changed netdata.conf / drop-in (change detection). netdata reads
 # netdata.conf at startup and the drop-in only takes effect after daemon-reload + restart,
 # so a config change needs a restart. Gated on change detection -> converged box no-op.
-server.shell(
+netdata_config_restart = server.shell(
     name="netdata: restart netdata after config/drop-in change",
     commands=[
         "systemctl daemon-reload",
@@ -904,3 +904,162 @@ server.shell(
     ],
     _if=lambda: netdata_conf.did_change() or netdata_dropin.did_change(),
 )
+
+
+# ── netdata Cloud claim + reboot-durable identity (Task 11, Phase D) ──────────────
+# Connect the agent to Netdata Cloud so the box appears in the Space, and keep that
+# identity stable across reboots. Two independent pieces:
+#
+# (a) IDENTITY OVERLAY (mirrors the NetBird overlay, Task 4). netdata.conf puts the metrics
+#     DB in RAM ([db] mode = ram) and cache/log on the /run tmpfs, so METRICS never touch
+#     disk. Only netdata's *identity* -- the machine GUID (lib/registry) and the Cloud claim
+#     (lib/cloud.d: claimed_id + this node's private key, a few KB) -- must survive reboot,
+#     or a fresh GUID each boot would spawn a DUPLICATE Cloud node. netdata-overlay.service
+#     (Before=netdata) tmpfs-mounts /var/lib/netdata and restores /root/netdata-state into it
+#     on start, and snapshots it back on stop. The mount target /var/lib/netdata is created
+#     persistently here (rw) -- the ro rootfs cannot mkdir it at boot otherwise.
+#
+# (b) CLAIM (gated on `not SKIP_SECRETS` AND not-already-claimed). The reusable claim token
+#     is read from OpenBao `kv/netdata` and passed to netdata-claim.sh via per-command _env
+#     (never in argv / --dry / on disk). The claim writes only the per-node identity to
+#     cloud.d; the token itself is never persisted. After claiming we snapshot the identity
+#     to /root/netdata-state immediately so even a hard reboot before a graceful stop keeps
+#     the node stable. netdata-claim.sh warns it is deprecated but still works on v2.10.4;
+#     the alternative (a persisted claim.conf) would write the reusable token to the rootfs,
+#     which we deliberately avoid.
+
+NETDATA_STATE_DIR = "/root/netdata-state"
+NETDATA_LIB_DIR = "/var/lib/netdata"
+NETDATA_OVERLAY_SCRIPT_SRC = os.path.join(FILES, "setup-netdata-overlay.sh")
+NETDATA_OVERLAY_SCRIPT_REMOTE = "/usr/local/bin/setup-netdata-overlay.sh"
+NETDATA_OVERLAY_UNIT_SRC = os.path.join(FILES, "netdata-overlay.service")
+NETDATA_OVERLAY_UNIT_REMOTE = "/etc/systemd/system/netdata-overlay.service"
+NETDATA_OVERLAY_WANTS_LINK = (
+    "/etc/systemd/system/multi-user.target.wants/netdata-overlay.service"
+)
+
+# The overlay script lives under /usr/local/bin (separate ro /usr -> writable_usr); the
+# state dir, mount target, and unit live on the root partition (rootfs.writable).
+netdata_overlay_usr_needs_rw = _file_out_of_sync(
+    NETDATA_OVERLAY_SCRIPT_REMOTE,
+    NETDATA_OVERLAY_SCRIPT_SRC,
+)
+netdata_overlay_etc_needs_rw = (
+    host.get_fact(Directory, path=NETDATA_STATE_DIR) is None
+    or host.get_fact(Directory, path=NETDATA_LIB_DIR) is None
+    or _file_out_of_sync(NETDATA_OVERLAY_UNIT_REMOTE, NETDATA_OVERLAY_UNIT_SRC)
+    or host.get_fact(Link, path=NETDATA_OVERLAY_WANTS_LINK) is None
+)
+
+with rootfs.writable_usr(changed_if=netdata_overlay_usr_needs_rw):
+    netdata_overlay_script = files.put(
+        name="netdata overlay: install setup-netdata-overlay.sh",
+        src=NETDATA_OVERLAY_SCRIPT_SRC,
+        dest=NETDATA_OVERLAY_SCRIPT_REMOTE,
+        mode="755",
+    )
+
+with rootfs.writable(changed_if=netdata_overlay_etc_needs_rw):
+    files.directory(
+        name="netdata overlay: persistent identity state dir",
+        path=NETDATA_STATE_DIR,
+        present=True,
+    )
+    files.directory(
+        name="netdata overlay: tmpfs mount target /var/lib/netdata",
+        path=NETDATA_LIB_DIR,
+        present=True,
+    )
+    netdata_overlay_unit = files.put(
+        name="netdata overlay: install netdata-overlay.service",
+        src=NETDATA_OVERLAY_UNIT_SRC,
+        dest=NETDATA_OVERLAY_UNIT_REMOTE,
+        mode="644",
+    )
+    if netdata_overlay_etc_needs_rw:
+        systemd.service(
+            name="netdata overlay: enable netdata-overlay.service",
+            service="netdata-overlay.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the overlay is active so /var/lib/netdata is the restored tmpfs before netdata
+# (re)starts. A RemainAfterExit oneshot is a no-op once run, so a converged box changes
+# nothing. If the overlay assets changed, or netdata's config restart fired this apply,
+# cycle overlay->netdata so the new lib mount + restored identity take effect in order.
+systemd.service(
+    name="netdata overlay: ensure netdata-overlay.service is running",
+    service="netdata-overlay.service",
+    running=True,
+)
+server.shell(
+    name="netdata overlay: re-mount + restart netdata after overlay/config change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart netdata-overlay.service",
+        "systemctl restart netdata.service",
+    ],
+    _if=lambda: (
+        netdata_overlay_script.did_change()
+        or netdata_overlay_unit.did_change()
+        or netdata_config_restart.did_change()
+    ),
+)
+
+# Claim to Netdata Cloud. Gate: skip when secrets are unavailable, and skip when the
+# identity already carries a claim (persisted claimed_id) so a converged box never
+# re-claims. The token/rooms/url come from OpenBao kv/netdata (NOT kv/pikvm).
+netdata_already_claimed = (
+    host.get_fact(File, path=f"{NETDATA_STATE_DIR}/cloud.d/claimed_id") is not None
+)
+netdata_needs_claim = not SKIP_SECRETS and not netdata_already_claimed
+
+if netdata_needs_claim:
+    _claim_token = host.get_fact(
+        OpenBaoSecret,
+        mount=SECRET_MOUNT,
+        path="netdata",
+        field="claim_token",
+    )
+    _claim_rooms = host.get_fact(
+        OpenBaoSecret,
+        mount=SECRET_MOUNT,
+        path="netdata",
+        field="room_ids",
+    )
+    _claim_url = host.get_fact(
+        OpenBaoSecret,
+        mount=SECRET_MOUNT,
+        path="netdata",
+        field="claim_url",
+    )
+    # netdata-claim.sh writes the REUSABLE token into /opt/netdata/etc/netdata/claim.conf
+    # (on the rootfs) and runs `netdatacli reload-claiming-state`, which claims and writes
+    # the durable PER-NODE identity (claimed_id + private key) into netdata's lib dir
+    # (/var/lib/netdata, the overlay tmpfs). We then: wait for the async claim to land,
+    # DELETE claim.conf so the reusable token is never persisted, and snapshot the identity
+    # to /root/netdata-state so the node survives reboot. Token rides in _env
+    # ($NETDATA_CLAIM_TOKEN) -- never argv/--dry. Runs inside rootfs.writable because
+    # claim.conf lives on the ro rootfs.
+    with rootfs.writable(changed_if=True):
+        server.shell(
+            name="netdata: claim to Netdata Cloud (ephemeral token; identity persisted)",
+            commands=[
+                "set -e",
+                "/opt/netdata/bin/netdata-claim.sh "
+                '-token="$NETDATA_CLAIM_TOKEN" '
+                f"-rooms='{_claim_rooms}' -url='{_claim_url}'",
+                # Wait for the ACLK claim to persist the node identity.
+                f"for i in $(seq 1 30); do [ -f {NETDATA_LIB_DIR}/cloud.d/claimed_id ] "
+                "&& break; sleep 1; done",
+                # Remove the reusable token from disk + snapshot identity; fail loudly if
+                # the claim never completed (leaving claim.conf for the next apply to retry).
+                f"if [ -f {NETDATA_LIB_DIR}/cloud.d/claimed_id ]; then "
+                "rm -f /opt/netdata/etc/netdata/claim.conf; "
+                f"cp -a {NETDATA_LIB_DIR}/. {NETDATA_STATE_DIR}/; "
+                'else echo "netdata claim did not complete" >&2; exit 1; fi',
+            ],
+            _env={"NETDATA_CLAIM_TOKEN": _claim_token},
+        )
