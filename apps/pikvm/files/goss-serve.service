@@ -4,15 +4,11 @@ After=network-online.target netbird@netbird.service systemd-resolved.service
 Wants=network-online.target
 
 [Service]
-# goss uses Go's static resolver, which reads /etc/resolv.conf. On this box that is
-# systemd-resolved's UPLINK resolv.conf (nameserver 192.168.1.1), which cannot resolve
-# NetBird split-DNS names like *.svc.cluster.local (the router returns NXDOMAIN). Bind
-# resolved's STUB resolv.conf (nameserver 127.0.0.53) over /etc/resolv.conf for THIS
-# service only, so goss's native dns/addr resources resolve mesh names through resolved's
-# split-DNS routing (to wt0). The leading '-' makes this a no-op if the stub file is
-# absent, so the daemon still starts. Scoped to the unit's mount namespace -- no
-# system-wide resolv.conf change.
-BindReadOnlyPaths=-/run/systemd/resolve/stub-resolv.conf:/etc/resolv.conf
+# goss uses Go's static resolver, which reads /etc/resolv.conf. That file is now a static
+# resolv.conf pointing at systemd-resolved's stub (127.0.0.53, set by deploy.py), so goss's
+# native dns/addr resources resolve NetBird split-DNS names (*.svc.cluster.local -> wt0)
+# box-wide -- no per-unit resolv.conf bind is needed. After=systemd-resolved.service keeps
+# the stub listener available before goss starts.
 # Default response format is prometheus/verbose so netdata can scrape one metric per
 # assertion. The `validate` client requests rspecish per-request via an Accept header.
 # The daemon re-reads /etc/goss/goss.yaml on startup (restart to apply spec changes).

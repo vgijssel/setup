@@ -147,6 +147,44 @@ with rootfs.writable(changed_if=ssh_key_needs_rw):
     )
 
 
+# ── System DNS: route /etc/resolv.conf through the systemd-resolved stub ──────────
+# PiKVM ships /etc/resolv.conf as a symlink to systemd-resolved's UPLINK resolv.conf
+# (nameserver 192.168.1.1, the LAN router), so every resolver that reads the file directly
+# (Go's static resolver in goss/netbird, dig, ...) queries the router and NXDOMAINs NetBird
+# split-DNS names like *.svc.cluster.local. Replace it with a static file pointing at the
+# resolved STUB (127.0.0.53): resolved then applies split-DNS (mesh -> wt0, public ->
+# upstream) for EVERY resolver uniformly. This supersedes the per-unit resolv.conf bind in
+# goss-serve.service and removes its boot-race (that optional bind no-op'd before resolved
+# had created its stub file). SSH reaches the box by IP, so a DNS change cannot lock us out.
+RESOLV_CONF_REMOTE = "/etc/resolv.conf"
+_resolv_conf = Path(os.path.join(FILES, "resolv.conf")).read_text(encoding="utf-8")
+_resolv_conf_sha = hashlib.sha256(_resolv_conf.encode()).hexdigest()
+
+# It is out of sync if it is still the resolved-managed symlink, or a plain file whose
+# contents differ from ours. A converged box (our static file already in place) does nothing.
+resolv_is_symlink = host.get_fact(Link, path=RESOLV_CONF_REMOTE) is not None
+resolv_needs_rw = (
+    resolv_is_symlink
+    or host.get_fact(Sha256File, path=RESOLV_CONF_REMOTE) != _resolv_conf_sha
+)
+
+with rootfs.writable(changed_if=resolv_needs_rw):
+    if resolv_is_symlink:
+        # Drop the symlink first so files.put writes a real file rather than following the
+        # link and rewriting resolved's managed target. Guarded so a converged box no-ops.
+        files.link(
+            name="System DNS: remove the uplink resolv.conf symlink",
+            path=RESOLV_CONF_REMOTE,
+            present=False,
+        )
+    files.put(
+        name="System DNS: static resolv.conf -> resolved stub (127.0.0.53)",
+        src=StringIO(_resolv_conf),
+        dest=RESOLV_CONF_REMOTE,
+        mode="644",
+    )
+
+
 # ── PiKVM OS update (must run before NetBird) ────────────────────────────────────
 # Follow the official OS-update path (docs.pikvm.org/_update_os): `pikvm-update`
 # remounts rw, force-refreshes the db, self-updates the updater, runs the curated
