@@ -1,20 +1,19 @@
-# Make the OIDC discovery endpoints anonymously readable so the secret cluster's
-# OpenBao can fetch this cluster's JWKS over the tailnet WITHOUT credentials — OpenBao's
-# jwks_url fetch is unauthenticated. The kube-apiserver ProxyGroup (api-network,
-# mode: noauth — apps/network/src/tailscale-proxygroup) forwards the anonymous request
-# straight through, so the apiserver sees system:anonymous and this binding is what
-# authorizes the read.
+# Make the OIDC discovery endpoints anonymously readable so the in-cluster jwks-mirror
+# can serve this cluster's JWKS WITHOUT credentials — the mirror's nginx does an
+# unauthenticated apiserver read of /openid/v1/jwks and re-serves it over the NetBird mesh
+# to the secret cluster's OpenBao. The mirror reads the apiserver as system:anonymous, so
+# this binding is what authorizes the read.
 #
 # system:service-account-issuer-discovery is a built-in ClusterRole that grants GET on
 # EXACTLY two non-resource URLs — /openid/v1/jwks and /.well-known/openid-configuration
 # (public key material) — and nothing else. Binding it to the system:unauthenticated
 # group lets anonymous callers read only those two endpoints; every other API path stays
-# denied for system:anonymous. Reachability is further gated by the tailnet ACL, which
-# only permits the secret cluster's egress to reach the api-network proxy on 443.
+# denied for system:anonymous. Cross-cluster reachability is gated by NetBird policy (the
+# jwks-mirror NBResource names group "secret" as its source), not the apiserver.
 #
-# Paired with the api-network kube-apiserver ProxyGroup
-# (apps/network/src/tailscale-proxygroup) and the jwt-network backend's jwksUrl
-# (https://api-network.tail2c33e2.ts.net/openid/v1/jwks, apps/secret/src/openbao-config).
+# Paired with the jwks-mirror bundle (apps/network/src/jwks-mirror) and the jwt-network
+# backend's jwksUrl (http://jwks-gateway.netbird.svc.cluster.local/openid/v1/jwks,
+# apps/secret/src/openbao-config). The ClusterProxy (api-network) does NOT serve JWKS.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

@@ -2,8 +2,8 @@
 # the shared letsencrypt-prod ClusterIssuer (apps/platform/src/config). cert-manager
 # writes the chain into omada-network-vgijssel-nl-tls in the `omada` namespace, which
 # the Omada controller mounts at /cert (config.tlsSecretName) and serves on 8043 — so
-# tailnet clients hitting the VIP get a valid public cert, no *.ts.net in the path
-# (SPEC R3). Lives in the omada bundle so it shares the omada namespace with the pod
+# mesh clients reaching the omada NBResource get a valid public cert with no proxy in the
+# path (SPEC R3). Lives in the omada bundle so it shares the omada namespace with the pod
 # that mounts it.
 #
 # Stays NotReady until the cloudflare-api-token Secret is synced from OpenBao

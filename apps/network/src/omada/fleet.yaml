@@ -1,12 +1,14 @@
 # Portable Fleet bundle for the Omada controller. Fleet detects the umbrella
 # Chart.yaml here and deploys it with values.yaml, plus the sibling raw manifests
-# (the LE Certificate, the mongodb-uri ExternalSecret, and the Tailscale LoadBalancer
+# (the LE Certificate, the mongodb-uri ExternalSecret, and the mesh-exposed omada
 # Service in templates/). Owns the `omada` namespace.
 #
 # dependsOn the mongodb bundle so the database is up before Omada connects. The pod
-# also needs the mongodb-uri + TLS Secrets (ESO/cert-manager) and the network-ingress
-# ProxyGroup (tailscale) before it is fully Ready + exposed; Fleet error-and-retries
-# until then, which is expected during bootstrap (and until ACL-A/ACL-B are applied).
+# also needs the mongodb-uri + TLS Secrets (ESO/cert-manager) before it is fully Ready;
+# Omada is exposed cross-cluster over the NetBird mesh via service-omada.yaml (a ClusterIP
+# annotated netbird.io/expose → an NBResource on the netbird-config `router` routing peer),
+# so there is no LoadBalancer/VIP dependency. Fleet error-and-retries during
+# bootstrap until the DB + secrets exist, which is expected.
 labels:
   fleet.vgijssel.nl/bundle: network-omada
 defaultNamespace: omada

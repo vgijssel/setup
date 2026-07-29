@@ -1,16 +1,17 @@
 # TP-Link Omada controller, run rootless against EXTERNAL MongoDB, with a Let's
 # Encrypt cert mounted at /cert (no ingress-nginx on this cluster — the controller
-# terminates TLS itself on 8043). Exposure to the tailnet is a separate LoadBalancer
-# Service (templates/service-omada.yaml) fronted by the network-ingress ProxyGroup;
-# the chart's own Service is ClusterIP-only here.
+# terminates TLS itself on 8043). Exposure is over the NetBird mesh: a dedicated
+# ClusterIP Service (templates/service-omada.yaml) annotated netbird.io/expose, which the
+# operator turns into a domain NBResource on the `router` routing peer; the chart's own
+# Service stays ClusterIP-only here.
 omada-controller-helm:
   config:
     # Rootless mode is the chart's supported external-MongoDB path.
     rootless: true
 
     # Mount the cert-manager-issued LE cert (certificate-omada.yaml) at /cert. The
-    # controller serves it on 8043, so tailnet clients hitting the VIP get a valid
-    # omada.network.vgijssel.nl cert (SPEC R3).
+    # controller serves it on 8043, so mesh clients reaching the omada NBResource get a
+    # valid omada.network.vgijssel.nl cert with no proxy in the path (SPEC R3).
     tlsSecretName: omada-network-vgijssel-nl-tls
 
     # External MongoDB connection string from the ESO-synced mongodb-uri Secret
@@ -22,8 +23,9 @@ omada-controller-helm:
 
     timezone: Europe/Amsterdam
 
-  # The tailnet LoadBalancer is a dedicated Service in this umbrella chart's
-  # templates/; keep the chart's built-in Service internal.
+  # The mesh-exposed Service is a dedicated Service in this umbrella chart's
+  # templates/ (service-omada.yaml, netbird.io/expose); keep the chart's built-in
+  # Service internal.
   service:
     type: ClusterIP
 

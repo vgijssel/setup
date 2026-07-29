@@ -4,9 +4,8 @@
 # raw NetworkResource->apiserver would hit: OpenBao's jwt backend verifies the TLS
 # hostname, and the apiserver's serving cert does not cover NetBird hostnames. The JWKS
 # is public, signed data and the NetBird overlay encrypts transport, so plain HTTP here
-# is acceptable. This replaces the anonymous-JWKS role of the retired Tailscale
-# api-network kube-apiserver ProxyGroup (the NetworkResource fronting it lives in
-# ../netbird-config).
+# is acceptable. This carries the anonymous-JWKS role cross-cluster (the NetworkResource
+# fronting it lives in ../netbird-config); the api-network ClusterProxy does not serve JWKS.
 #
 # dependsOn the netbird-operator bundle so namespace `netbird` exists before these
 # resources apply.

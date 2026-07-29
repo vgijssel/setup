@@ -1,5 +1,5 @@
 # NetBird ClusterProxy exposing this cluster's kube-apiserver over the mesh, replacing
-# the retired Tailscale api-network kube-apiserver ProxyGroup. The operator provisions a
+# the retired tailnet kube-apiserver exposure. The operator provisions a
 # Deployment of NetBird proxy peers (group network-k8s) that front the apiserver with
 # per-caller impersonation (see serviceaccount-clusterproxy.yaml). Reachable NetBird-
 # natively via `netbird kubernetes write-kubeconfig`. NOTE: NetBird ClusterProxy does not
