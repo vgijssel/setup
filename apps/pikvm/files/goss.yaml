@@ -59,3 +59,27 @@ port:
     listening: true
     ip:
       - 127.0.0.1
+
+# 6. netdata is claimed to Netdata Cloud and its outbound ACLK link is live. The agent's
+#    localhost info endpoint reports both flags; asserting them here turns the health
+#    daemon (and its prometheus scrape) red if the Cloud connection ever drops. netdata
+#    binds 127.0.0.1:19999 only, so this stays a loopback check.
+http:
+  http://127.0.0.1:19999/api/v1/info:
+    status: 200
+    timeout: 5000
+    body:
+      - '"agent-claimed":true'
+      - '"aclk-available":true'
+
+# 7. /etc/resolv.conf routes ALL resolution through the systemd-resolved stub (127.0.0.53).
+#    Regression guard: this file was the root cause of goss's Go resolver querying the LAN
+#    router (192.168.1.1) and NXDOMAINing *.svc.cluster.local. It must be a real FILE (not
+#    the old resolved "uplink" symlink) whose nameserver is the stub -- so mesh/split-DNS
+#    resolves box-wide. deploy.py owns the contents; this asserts they are in place.
+file:
+  /etc/resolv.conf:
+    exists: true
+    filetype: file
+    contains:
+      - "nameserver 127.0.0.53"

@@ -8,6 +8,8 @@
   guarded by ``requires_command('pacman')``.
 - :class:`~pyinfra_custom.facts.goss.GossVersion` — installed goss version, guarded by
   ``requires_command('goss')``.
+- :class:`~pyinfra_custom.facts.netdata.NetdataVersion` — installed netdata version,
+  guarded by ``requires_command('netdata')``.
 """
 
 from pyinfra_custom.facts.goss import GossVersion
@@ -18,6 +20,7 @@ from pyinfra_custom.facts.netbird import (
     NetbirdSshRootEnabled,
     NetbirdVersion,
 )
+from pyinfra_custom.facts.netdata import NetdataVersion
 from pyinfra_custom.facts.openbao import OpenBaoSecret, SecretsError
 from pyinfra_custom.facts.pacman import PacmanUpgradablePackages
 
@@ -28,6 +31,7 @@ __all__ = [
     "NetbirdServerSshAllowed",
     "NetbirdSshRootEnabled",
     "NetbirdVersion",
+    "NetdataVersion",
     "OpenBaoSecret",
     "PacmanUpgradablePackages",
     "SecretsError",

@@ -46,6 +46,7 @@ from pyinfra_custom.facts import (
     NetbirdServerSshAllowed,
     NetbirdSshRootEnabled,
     NetbirdVersion,
+    NetdataVersion,
     OpenBaoSecret,
     PacmanUpgradablePackages,
 )
@@ -143,6 +144,44 @@ with rootfs.writable(changed_if=ssh_key_needs_rw):
         src=StringIO(_authorized_keys),
         dest=ROOT_AUTHORIZED_KEYS,
         mode="600",
+    )
+
+
+# ── System DNS: route /etc/resolv.conf through the systemd-resolved stub ──────────
+# PiKVM ships /etc/resolv.conf as a symlink to systemd-resolved's UPLINK resolv.conf
+# (nameserver 192.168.1.1, the LAN router), so every resolver that reads the file directly
+# (Go's static resolver in goss/netbird, dig, ...) queries the router and NXDOMAINs NetBird
+# split-DNS names like *.svc.cluster.local. Replace it with a static file pointing at the
+# resolved STUB (127.0.0.53): resolved then applies split-DNS (mesh -> wt0, public ->
+# upstream) for EVERY resolver uniformly. This supersedes the per-unit resolv.conf bind in
+# goss-serve.service and removes its boot-race (that optional bind no-op'd before resolved
+# had created its stub file). SSH reaches the box by IP, so a DNS change cannot lock us out.
+RESOLV_CONF_REMOTE = "/etc/resolv.conf"
+_resolv_conf = Path(os.path.join(FILES, "resolv.conf")).read_text(encoding="utf-8")
+_resolv_conf_sha = hashlib.sha256(_resolv_conf.encode()).hexdigest()
+
+# It is out of sync if it is still the resolved-managed symlink, or a plain file whose
+# contents differ from ours. A converged box (our static file already in place) does nothing.
+resolv_is_symlink = host.get_fact(Link, path=RESOLV_CONF_REMOTE) is not None
+resolv_needs_rw = (
+    resolv_is_symlink
+    or host.get_fact(Sha256File, path=RESOLV_CONF_REMOTE) != _resolv_conf_sha
+)
+
+with rootfs.writable(changed_if=resolv_needs_rw):
+    if resolv_is_symlink:
+        # Drop the symlink first so files.put writes a real file rather than following the
+        # link and rewriting resolved's managed target. Guarded so a converged box no-ops.
+        files.link(
+            name="System DNS: remove the uplink resolv.conf symlink",
+            path=RESOLV_CONF_REMOTE,
+            present=False,
+        )
+    files.put(
+        name="System DNS: static resolv.conf -> resolved stub (127.0.0.53)",
+        src=StringIO(_resolv_conf),
+        dest=RESOLV_CONF_REMOTE,
+        mode="644",
     )
 
 
@@ -781,3 +820,318 @@ server.shell(
     ],
     _if=lambda: goss_cfg.did_change() or goss_unit.did_change(),
 )
+
+
+# ── netdata Agent: install + run locally (RAM db, localhost-only) (Task 11, Phase B) ─
+# Install the netdata Agent from the pinned, sha256-verified static build (mirrors the
+# goss binary install) and run it as a long-lived daemon bound to 127.0.0.1:19999 -- no
+# LAN/mesh inbound port. netdata collects the box's system metrics; Phase C adds a goss
+# /healthz scrape and Phase D claims the agent to Netdata Cloud. See SPEC.md + tasks/plan.md.
+#
+# Read-only-rootfs discipline -- the single `rw` helper (rootfs.writable) covers the whole
+# install; NO separate writable_usr remount is needed (verified on-box):
+#   * The static build installs under /opt/netdata (a directory on the root partition).
+#   * /usr is a read-only BIND MOUNT of the same block device as / (findmnt shows
+#     `/dev/mmcblk0p3[/usr]`), so remounting / read-write also makes /usr's paths writable.
+#     The installer's get_systemd_service_dir() then writes the base unit to
+#     /usr/lib/systemd/system/netdata.service; our drop-in in /etc/systemd/system overrides
+#     it regardless of where the base unit lives.
+# Runtime writes never touch the rootfs: [db] mode = ram keeps the TSDB in RAM and
+# [directories] point cache/lib/log at the /run/netdata tmpfs. netdata only creates its
+# leaf dirs, so the drop-in lists cache/lib/log as RuntimeDirectory to make systemd create
+# /run/netdata{,/cache,/lib,/log} each boot. Cloud identity persistence is Phase D.
+#
+# Install flags: --dont-start-it (pyinfra owns start), --disable-telemetry (opt out of
+# anonymous stats), --stable-channel. --auto-update is deliberately NOT passed, so the
+# bundled updater is installed but never enabled -- the version is pinned here and bumped
+# by Renovate, exactly like the goss/NetBird pins.
+NETDATA_VERSION = "2.10.4"
+NETDATA_ARCH = "aarch64"
+NETDATA_SHA256 = "6de02a2d39eac1db49efcc62c9ebfb08fa537eb07f896d8865acc37841b474ac"
+NETDATA_URL = (
+    f"https://github.com/netdata/netdata/releases/download/v{NETDATA_VERSION}/"
+    f"netdata-{NETDATA_ARCH}-v{NETDATA_VERSION}.gz.run"
+)
+
+NETDATA_PREFIX = "/opt/netdata"
+NETDATA_CONF_SRC = os.path.join(FILES, "netdata.conf")
+NETDATA_CONF_REMOTE = f"{NETDATA_PREFIX}/etc/netdata/netdata.conf"
+NETDATA_DROPIN_DIR = "/etc/systemd/system/netdata.service.d"
+NETDATA_DROPIN_SRC = os.path.join(FILES, "netdata.service.d", "pikvm.conf")
+NETDATA_DROPIN_REMOTE = os.path.join(NETDATA_DROPIN_DIR, "pikvm.conf")
+
+# Install gate: only download/verify/install when the pinned version is absent (the
+# static build is the sole source of the version, so a mismatch triggers a reinstall).
+netdata_needs_install = NETDATA_VERSION not in host.get_fact(NetdataVersion)
+
+# Config-drift window: the netdata.conf override (which the installer also writes, so we
+# replace its default) and the systemd drop-in, both on the root partition.
+netdata_config_needs_rw = (
+    host.get_fact(Directory, path=NETDATA_DROPIN_DIR) is None
+    or _file_out_of_sync(NETDATA_CONF_REMOTE, NETDATA_CONF_SRC)
+    or _file_out_of_sync(NETDATA_DROPIN_REMOTE, NETDATA_DROPIN_SRC)
+)
+
+if netdata_needs_install:
+    with rootfs.writable(changed_if=True):
+        # Download + sha256-verify + run the self-extracting static installer is a
+        # bespoke one-shot (no operation equivalent); documented shell. The pinned digest
+        # guards against a tampered or wrong-arch download before it ever executes as root.
+        # `sh <file>.gz.run --accept -- <opts>`: --accept auto-accepts the makeself
+        # extraction, `--` passes the remaining flags to the bundled netdata installer.
+        server.shell(
+            name=f"netdata: install {NETDATA_VERSION} to {NETDATA_PREFIX} (verified sha256)",
+            commands=[
+                "set -e",
+                "tmp=$(mktemp -d)",
+                f'curl -fsSL -o "$tmp/netdata.gz.run" {NETDATA_URL}',
+                f"echo '{NETDATA_SHA256}  '\"$tmp/netdata.gz.run\" | sha256sum -c -",
+                'sh "$tmp/netdata.gz.run" --accept -- '
+                "--dont-start-it --disable-telemetry --stable-channel",
+                'rm -rf "$tmp"',
+            ],
+        )
+
+with rootfs.writable(changed_if=netdata_config_needs_rw):
+    files.directory(
+        name="netdata: ensure systemd drop-in dir",
+        path=NETDATA_DROPIN_DIR,
+        present=True,
+    )
+    # Capture the results so the reconcile below restarts the daemon (change detection)
+    # only when the config or drop-in actually changed.
+    netdata_conf = files.put(
+        name="netdata: install netdata.conf (RAM db, tmpfs dirs, localhost bind)",
+        src=NETDATA_CONF_SRC,
+        dest=NETDATA_CONF_REMOTE,
+        mode="644",
+    )
+    netdata_dropin = files.put(
+        name="netdata: install netdata.service.d/pikvm.conf drop-in",
+        src=NETDATA_DROPIN_SRC,
+        dest=NETDATA_DROPIN_REMOTE,
+        mode="644",
+    )
+    if netdata_config_needs_rw:
+        # Enable only (running=None); started below. daemon_reload gated on the change
+        # condition so a converged box reloads nothing. (The installer already enables the
+        # unit; this re-asserts it idempotently.)
+        systemd.service(
+            name="netdata: enable netdata.service",
+            service="netdata.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the daemon is up now, not just at next boot. Idempotent: a converged box makes
+# no change.
+systemd.service(
+    name="netdata: ensure netdata.service is running",
+    service="netdata.service",
+    running=True,
+)
+# Restart to pick up a changed netdata.conf / drop-in (change detection). netdata reads
+# netdata.conf at startup and the drop-in only takes effect after daemon-reload + restart,
+# so a config change needs a restart. Gated on change detection -> converged box no-op.
+netdata_config_restart = server.shell(
+    name="netdata: restart netdata after config/drop-in change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart netdata.service",
+    ],
+    _if=lambda: netdata_conf.did_change() or netdata_dropin.did_change(),
+)
+
+
+# ── netdata scrapes the goss /healthz endpoint (Task 11, Phase C) ─────────────────
+# Point netdata's go.d prometheus collector at the goss health daemon (127.0.0.1:8080/
+# healthz, prometheus format) so the box's declarative assertions become netdata charts +
+# alerts alongside the system metrics. The go.d dir is on the root partition
+# (/opt/netdata/etc/netdata/go.d) -> rootfs.writable. netdata reads go.d job configs at
+# startup, so a change needs a restart (change-gated so a converged box is a no-op).
+NETDATA_GOD_DIR = f"{NETDATA_PREFIX}/etc/netdata/go.d"
+NETDATA_PROM_SRC = os.path.join(FILES, "go.d", "prometheus.conf")
+NETDATA_PROM_REMOTE = f"{NETDATA_GOD_DIR}/prometheus.conf"
+
+netdata_scrape_needs_rw = host.get_fact(
+    Directory, path=NETDATA_GOD_DIR
+) is None or _file_out_of_sync(NETDATA_PROM_REMOTE, NETDATA_PROM_SRC)
+
+with rootfs.writable(changed_if=netdata_scrape_needs_rw):
+    files.directory(
+        name="netdata scrape: ensure go.d config dir",
+        path=NETDATA_GOD_DIR,
+        present=True,
+    )
+    netdata_prom = files.put(
+        name="netdata scrape: install go.d/prometheus.conf (goss /healthz job)",
+        src=NETDATA_PROM_SRC,
+        dest=NETDATA_PROM_REMOTE,
+        mode="644",
+    )
+
+server.shell(
+    name="netdata scrape: restart netdata to load the goss scrape job",
+    commands=["systemctl restart netdata.service"],
+    _if=lambda: netdata_prom.did_change(),
+)
+
+
+# ── netdata Cloud claim + reboot-durable identity (Task 11, Phase D) ──────────────
+# Connect the agent to Netdata Cloud so the box appears in the Space, and keep that
+# identity stable across reboots. Two independent pieces:
+#
+# (a) IDENTITY OVERLAY (mirrors the NetBird overlay, Task 4). netdata.conf puts the metrics
+#     DB in RAM ([db] mode = ram) and cache/log on the /run tmpfs, so METRICS never touch
+#     disk. Only netdata's *identity* -- the machine GUID (lib/registry) and the Cloud claim
+#     (lib/cloud.d: claimed_id + this node's private key, a few KB) -- must survive reboot,
+#     or a fresh GUID each boot would spawn a DUPLICATE Cloud node. netdata-overlay.service
+#     (Before=netdata) tmpfs-mounts /var/lib/netdata and restores /root/netdata-state into it
+#     on start, and snapshots it back on stop. The mount target /var/lib/netdata is created
+#     persistently here (rw) -- the ro rootfs cannot mkdir it at boot otherwise.
+#
+# (b) CLAIM (gated on `not SKIP_SECRETS` AND not-already-claimed). The reusable claim token
+#     is read from OpenBao `kv/netdata` and passed to netdata-claim.sh via per-command _env
+#     (never in argv / --dry / on disk). The claim writes only the per-node identity to
+#     cloud.d; the token itself is never persisted. After claiming we snapshot the identity
+#     to /root/netdata-state immediately so even a hard reboot before a graceful stop keeps
+#     the node stable. netdata-claim.sh warns it is deprecated but still works on v2.10.4;
+#     the alternative (a persisted claim.conf) would write the reusable token to the rootfs,
+#     which we deliberately avoid.
+
+NETDATA_STATE_DIR = "/root/netdata-state"
+NETDATA_LIB_DIR = "/var/lib/netdata"
+NETDATA_OVERLAY_SCRIPT_SRC = os.path.join(FILES, "setup-netdata-overlay.sh")
+NETDATA_OVERLAY_SCRIPT_REMOTE = "/usr/local/bin/setup-netdata-overlay.sh"
+NETDATA_OVERLAY_UNIT_SRC = os.path.join(FILES, "netdata-overlay.service")
+NETDATA_OVERLAY_UNIT_REMOTE = "/etc/systemd/system/netdata-overlay.service"
+NETDATA_OVERLAY_WANTS_LINK = (
+    "/etc/systemd/system/multi-user.target.wants/netdata-overlay.service"
+)
+
+# The overlay script lives under /usr/local/bin (separate ro /usr -> writable_usr); the
+# state dir, mount target, and unit live on the root partition (rootfs.writable).
+netdata_overlay_usr_needs_rw = _file_out_of_sync(
+    NETDATA_OVERLAY_SCRIPT_REMOTE,
+    NETDATA_OVERLAY_SCRIPT_SRC,
+)
+netdata_overlay_etc_needs_rw = (
+    host.get_fact(Directory, path=NETDATA_STATE_DIR) is None
+    or host.get_fact(Directory, path=NETDATA_LIB_DIR) is None
+    or _file_out_of_sync(NETDATA_OVERLAY_UNIT_REMOTE, NETDATA_OVERLAY_UNIT_SRC)
+    or host.get_fact(Link, path=NETDATA_OVERLAY_WANTS_LINK) is None
+)
+
+with rootfs.writable_usr(changed_if=netdata_overlay_usr_needs_rw):
+    netdata_overlay_script = files.put(
+        name="netdata overlay: install setup-netdata-overlay.sh",
+        src=NETDATA_OVERLAY_SCRIPT_SRC,
+        dest=NETDATA_OVERLAY_SCRIPT_REMOTE,
+        mode="755",
+    )
+
+with rootfs.writable(changed_if=netdata_overlay_etc_needs_rw):
+    files.directory(
+        name="netdata overlay: persistent identity state dir",
+        path=NETDATA_STATE_DIR,
+        present=True,
+    )
+    files.directory(
+        name="netdata overlay: tmpfs mount target /var/lib/netdata",
+        path=NETDATA_LIB_DIR,
+        present=True,
+    )
+    netdata_overlay_unit = files.put(
+        name="netdata overlay: install netdata-overlay.service",
+        src=NETDATA_OVERLAY_UNIT_SRC,
+        dest=NETDATA_OVERLAY_UNIT_REMOTE,
+        mode="644",
+    )
+    if netdata_overlay_etc_needs_rw:
+        systemd.service(
+            name="netdata overlay: enable netdata-overlay.service",
+            service="netdata-overlay.service",
+            running=None,
+            enabled=True,
+            daemon_reload=True,
+        )
+
+# Ensure the overlay is active so /var/lib/netdata is the restored tmpfs before netdata
+# (re)starts. A RemainAfterExit oneshot is a no-op once run, so a converged box changes
+# nothing. If the overlay assets changed, or netdata's config restart fired this apply,
+# cycle overlay->netdata so the new lib mount + restored identity take effect in order.
+systemd.service(
+    name="netdata overlay: ensure netdata-overlay.service is running",
+    service="netdata-overlay.service",
+    running=True,
+)
+server.shell(
+    name="netdata overlay: re-mount + restart netdata after overlay/config change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart netdata-overlay.service",
+        "systemctl restart netdata.service",
+    ],
+    _if=lambda: (
+        netdata_overlay_script.did_change()
+        or netdata_overlay_unit.did_change()
+        or netdata_config_restart.did_change()
+    ),
+)
+
+# Claim to Netdata Cloud. Gate: skip when secrets are unavailable, and skip when the
+# identity already carries a claim (persisted claimed_id) so a converged box never
+# re-claims. The token/rooms/url come from OpenBao kv/netdata (NOT kv/pikvm).
+netdata_already_claimed = (
+    host.get_fact(File, path=f"{NETDATA_STATE_DIR}/cloud.d/claimed_id") is not None
+)
+netdata_needs_claim = not SKIP_SECRETS and not netdata_already_claimed
+
+if netdata_needs_claim:
+    _claim_token = host.get_fact(
+        OpenBaoSecret,
+        mount=SECRET_MOUNT,
+        path="netdata",
+        field="claim_token",
+    )
+    _claim_rooms = host.get_fact(
+        OpenBaoSecret,
+        mount=SECRET_MOUNT,
+        path="netdata",
+        field="room_ids",
+    )
+    _claim_url = host.get_fact(
+        OpenBaoSecret,
+        mount=SECRET_MOUNT,
+        path="netdata",
+        field="claim_url",
+    )
+    # netdata-claim.sh writes the REUSABLE token into /opt/netdata/etc/netdata/claim.conf
+    # (on the rootfs) and runs `netdatacli reload-claiming-state`, which claims and writes
+    # the durable PER-NODE identity (claimed_id + private key) into netdata's lib dir
+    # (/var/lib/netdata, the overlay tmpfs). We then: wait for the async claim to land,
+    # DELETE claim.conf so the reusable token is never persisted, and snapshot the identity
+    # to /root/netdata-state so the node survives reboot. Token rides in _env
+    # ($NETDATA_CLAIM_TOKEN) -- never argv/--dry. Runs inside rootfs.writable because
+    # claim.conf lives on the ro rootfs.
+    with rootfs.writable(changed_if=True):
+        server.shell(
+            name="netdata: claim to Netdata Cloud (ephemeral token; identity persisted)",
+            commands=[
+                "set -e",
+                "/opt/netdata/bin/netdata-claim.sh "
+                '-token="$NETDATA_CLAIM_TOKEN" '
+                f"-rooms='{_claim_rooms}' -url='{_claim_url}'",
+                # Wait for the ACLK claim to persist the node identity.
+                f"for i in $(seq 1 30); do [ -f {NETDATA_LIB_DIR}/cloud.d/claimed_id ] "
+                "&& break; sleep 1; done",
+                # Remove the reusable token from disk + snapshot identity; fail loudly if
+                # the claim never completed (leaving claim.conf for the next apply to retry).
+                f"if [ -f {NETDATA_LIB_DIR}/cloud.d/claimed_id ]; then "
+                "rm -f /opt/netdata/etc/netdata/claim.conf; "
+                f"cp -a {NETDATA_LIB_DIR}/. {NETDATA_STATE_DIR}/; "
+                'else echo "netdata claim did not complete" >&2; exit 1; fi',
+            ],
+            _env={"NETDATA_CLAIM_TOKEN": _claim_token},
+        )

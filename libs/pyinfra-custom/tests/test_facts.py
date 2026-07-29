@@ -9,6 +9,7 @@ from pyinfra_custom.facts import (
     NetbirdServerSshAllowed,
     NetbirdSshRootEnabled,
     NetbirdVersion,
+    NetdataVersion,
     PacmanUpgradablePackages,
 )
 
@@ -25,6 +26,19 @@ def test_goss_version_requires_command_and_parses():
     )
     assert "0.4.10" in fact.process(["goss version v0.4.10 (linux/arm64)"])
     assert GossVersion.default() == ""
+
+
+def test_netdata_version_requires_command_and_parses():
+    fact = NetdataVersion()
+    # The static build is not on PATH, so the fact invokes netdata by absolute path --
+    # otherwise an installed box returns the empty default and the install re-runs forever.
+    assert fact.requires_command() == "/opt/netdata/bin/netdata"
+    assert fact.command() == "/opt/netdata/bin/netdata -v"
+    # netdata prints e.g. "netdata v2.10.4"; the pinned "2.10.4" install gate looks for
+    # its version substring, which this output contains.
+    assert fact.process(["netdata v2.10.4", ""]) == "netdata v2.10.4"
+    assert "2.10.4" in fact.process(["netdata v2.10.4"])
+    assert NetdataVersion.default() == ""
 
 
 def test_netbird_version_requires_command_and_parses():
