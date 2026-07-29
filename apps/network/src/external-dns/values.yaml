@@ -1,0 +1,38 @@
+# external-dns, Cloudflare provider, on the NETWORK cluster. Publishes the omada
+# controller's pinned ClusterIP as a grey-cloud (DNS-only) A record for
+# omada.network.vgijssel.nl, so every NetBird client (regardless of resolver — getaddrinfo,
+# dig, or DoH browsers) resolves the hostname to the ClusterIP and reaches Omada over the
+# mesh with a valid LE cert. See apps/network/src/omada/templates/service-omada.yaml.
+#
+# source=service + publish-internal-services makes external-dns publish ClusterIP Services;
+# it only touches Services carrying external-dns.alpha.kubernetes.io/hostname, so the omada
+# Service's annotation is the scope (no other Service is annotated). policy=sync lets it
+# create AND remove the records it owns. proxied defaults to false; the omada Service also
+# sets cloudflare-proxied=false explicitly (an orange-cloud record would hand back
+# Cloudflare edge IPs instead of the mesh-routable ClusterIP).
+#
+# The Cloudflare API token comes from the external-dns-cloudflare-api-token Secret
+# (templates/externalsecret-external-dns.yaml, synced from OpenBao kv/cloudflare#credential).
+# domainFilters + txtOwnerId scope external-dns to the vgijssel.nl zone and tag its TXT
+# ownership records to THIS cluster — the secret cluster's external-dns MUST use a different
+# owner id or the two would delete each other's records (historically observed).
+external-dns:
+  provider:
+    name: cloudflare
+  sources:
+    - service
+  policy: sync
+  registry: txt
+  txtOwnerId: network-cluster
+  domainFilters:
+    - vgijssel.nl
+  # Publish ClusterIP Services' cluster IPs (external-dns skips ClusterIP Services by
+  # default). Still gated to Services with the hostname annotation.
+  extraArgs:
+    - --publish-internal-services
+  env:
+    - name: CF_API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: external-dns-cloudflare-api-token
+          key: api-token
