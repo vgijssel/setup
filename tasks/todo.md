@@ -88,7 +88,12 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   (secret's Tailscale VIP retired in `8c257f8d`). Requires operator **v0.7.0** (sidecar DNS, #383).
   The plan's "convert `externalsecret-operator-oauth.yaml` to a setup-key ES" is **superseded** — the
   operator mints its own setup keys (1.3); that Tailscale-operator OAuth ES is now **dead surface → delete in 1.8**.
-  **PENDING:** live-validate a network ESO sync over the sidecar on a fresh cluster (post v0.7.0 re-pin);
+  **LIVE-VALIDATED 2026-07-28:** the injected sidecar (native init-container `netbird`,
+  `restartPolicy=Always`) connects to the mesh (Relay), and network ESO reaches
+  `https://openbao.secret.vgijssel.nl/v1/auth/jwt-network/login` over NetBird — the `openbao`
+  ClusterSecretStore went **Valid/Ready ("store validated")**. Full cross-cluster JWT loop closed
+  (ESO sidecar → mesh → OpenBao → JWKS via `jwks-gateway` → mesh → network `jwks-mirror` → validated).
+  **PENDING:** confirm downstream ExternalSecrets actually sync (interrupted when OrbStack went down);
   scrub stale tailnet comments in `config/{clustersecretstore-openbao,fleet}.yaml`.
 - [~] 1.7 Crossplane on network — **APPROACH CHANGED:** DNS managed by Crossplane **`provider-opentofu`**
   (inline HCL via `restapi`), **not** `provider-upjet-cloudflare` (rejected on arm64 — see
