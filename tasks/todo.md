@@ -80,7 +80,7 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   Prior BYOP approach (validated 2026-07-26, `https://omada.network.vgijssel.nl` HTTP 200 over the mesh;
   proxy token `kv/network-netbird-proxy#token` — now unused, left in OpenBao) superseded because one
   proxy version could not serve both the HTTPS UI and raw TCP L4 (netbirdio/netbird#6400).
-- [~] 1.6 network ESO → OpenBao over the mesh. **APPROACH CHANGED (committed `0da1bea5`):** implemented
+- [x] 1.6 network ESO → OpenBao over the mesh. **APPROACH CHANGED (committed `0da1bea5`):** implemented
   as a NetBird **client sidecar** for the external-secrets pod (`apps/network/src/eso-sidecar/`:
   `setupkey-external-secrets.yaml` + `sidecarprofile-external-secrets.yaml` + `fleet.yaml`), **not** the
   plan's "setup-key ES + repoint store host." The `openbao` ClusterSecretStore keeps
@@ -95,8 +95,13 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   (ESO sidecar → mesh → OpenBao → JWKS via `jwks-gateway` → mesh → network `jwks-mirror` → validated).
   **DONE 2026-07-29:** scrubbed stale tailnet comments in `config/{clustersecretstore-openbao,fleet}.yaml`
   (now describe the NetBird eso-sidecar path; dropped the dead `service-openbao-egress.yaml`/`certificate-omada.yaml`
-  bundle-inventory refs and the `ACL-A`/`SPEC R8` tailnet-egress language). **PENDING:** confirm downstream
-  ExternalSecrets actually sync on a live cluster (interrupted when OrbStack went down).
+  bundle-inventory refs and the `ACL-A`/`SPEC R8` tailnet-egress language).
+  **DONE 2026-07-29 — LIVE-VALIDATED downstream sync:** on a fresh dual-cluster bring-up, all **7**
+  `openbao`-store ExternalSecrets on network (cert-manager/cloudflare-api-token, crossplane
+  cloudflare-credentials + netbird-mgmt-api-token, external-dns token, netbird-mgmt-api-key, netdata-claim,
+  tailscale operator-oauth) are `Ready=True / SecretSynced` with fresh `refreshTime` (~07:39Z, post-start),
+  and the ESO pod's `netbird` sidecar reports `Status: Connected` (relay). Full cross-cluster secret path
+  proven end-to-end. **1.6 complete.**
 - [~] 1.7 Crossplane on network — **APPROACH CHANGED:** DNS managed by Crossplane **`provider-opentofu`**
   (inline HCL via `restapi`), **not** `provider-upjet-cloudflare` (rejected on arm64 — see
   `[[network-cloudflare-dns-opentofu]]`). **DONE:** crossplane core (`crossplane/`, pin 2.3.3),
