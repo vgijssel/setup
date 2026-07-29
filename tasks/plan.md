@@ -7,6 +7,12 @@
 > **`provider-opentofu`**, not `provider-upjet-cloudflare` (1.7); Omada is a **single all-ports NBResource**,
 > not L7+L4 split (1.5); operator is pinned **v0.7.0**, not 0.8.0; OpenBao exposure has its own sub-plan
 > (`tasks/plan-openbao-netbird-reverse-proxy.md`). Read `todo.md` first.
+>
+> **2026-07-29 — API custom domains DROPPED (maintainer).** The kube-apiservers are exposed via NetBird
+> `ClusterProxy` (impersonation, consumed by `netbird kubernetes write-kubeconfig`), which does **not**
+> support custom domains yet — so `api.network.vgijssel.nl` / `api.secret.vgijssel.nl` are **skipped**, and
+> every plan step below that "verifies" or "repoints to" those API hostnames (0.5 end-to-end forward, 1.4/2.1
+> ClusterProxy custom domain, 2.2 `jwksUrl`, checkpoints) is superseded — SPEC.md is authoritative.
 
 ## Context
 

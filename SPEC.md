@@ -17,12 +17,13 @@ things across these two apps:
 
 After this change the same capabilities are provided by **NetBird Cloud** via the
 [NetBird Kubernetes operator](https://github.com/netbirdio/kubernetes-operator), and the
-two cluster API servers are exposed on **custom domains** —
-`https://api.secret.vgijssel.nl` and `https://api.network.vgijssel.nl` — using
-[NetBird's custom-domain reverse proxy](https://docs.netbird.io/manage/reverse-proxy/custom-domains)
-(no extra in-cluster proxy, TLS auto-terminated by NetBird). All
-`*.tail2c33e2.ts.net` names, ProxyGroups, the Tailscale operator, its OAuth clients, and
-the tailnet ACL are deleted.
+two cluster API servers are exposed via NetBird's **`ClusterProxy`** — a kube-apiserver
+reverse proxy with per-caller **impersonation**, consumed through
+`netbird kubernetes write-kubeconfig`. **No API custom domain is used:** NetBird
+`ClusterProxy` does not support custom domains yet, so `api.secret.vgijssel.nl` /
+`api.network.vgijssel.nl` are intentionally **skipped** (revisit if/when ClusterProxy gains
+custom-domain support). All `*.tail2c33e2.ts.net` names, ProxyGroups, the Tailscale
+operator, its OAuth clients, and the tailnet ACL are deleted.
 
 **Why NetBird** (maintainer's stated motivation, preserved as design intent):
 self-hostable in future, custom domains instead of the fixed `*.tail2c33e2.ts.net`,
@@ -32,8 +33,9 @@ Kubernetes-native config, and multiple config sources for ACLs.
 clusters brought up fresh with the existing `moon run <app>:*` flow, enrolled in NetBird
 Cloud, with (a) `secret` OpenBao fetching the `network` JWKS over NetBird and validating the
 `network` external-secrets JWT, (b) `network` external-secrets pulling from `secret` OpenBao
-over NetBird, (c) both API servers reachable at their `api.<cluster>.vgijssel.nl` custom
-domains, (d) Omada reachable at `omada.network.vgijssel.nl`, and (e) **zero** Tailscale
+over NetBird, (c) both API servers reachable via NetBird's `ClusterProxy` (impersonation
+kubeconfig from `netbird kubernetes write-kubeconfig`; no custom domain), (d) Omada
+reachable at `omada.network.vgijssel.nl`, and (e) **zero** Tailscale
 resources, secrets, or DNS names remaining in either app.
 
 ### Decisions (from clarification)
@@ -41,8 +43,11 @@ resources, secrets, or DNS names remaining in either app.
 - **Control plane:** NetBird **Cloud** (`app.netbird.io`). Self-hosting is a future option;
   structure config so management URL / setup keys / API tokens are variables + OpenBao-held
   secrets, not hardcoded, but do **not** stand up a self-hosted management server now.
-- **API exposure:** NetBird **custom-domain reverse proxy** for both API servers. TLS is
-  auto-terminated by NetBird at its proxy cluster; clients hit `api.<cluster>.vgijssel.nl`.
+- **API exposure:** NetBird **`ClusterProxy`** (per-caller impersonation) for both API
+  servers, consumed via `netbird kubernetes write-kubeconfig`. **Custom domains are not
+  used** — NetBird `ClusterProxy` does not support them yet, so `api.<cluster>.vgijssel.nl`
+  is skipped. *(Original intent was a custom-domain reverse proxy; revisit if ClusterProxy
+  later gains custom-domain support.)*
 - **Config-as-code:** use the **NetBird operator CRDs** (`SetupKey`, `Group`,
   `NetworkResource`, `NetworkRouter`, etc.) for this migration. The
   [`netbird-crossplane-provider`](https://github.com/netbirdio/netbird-crossplane-provider)
@@ -64,7 +69,8 @@ resources, secrets, or DNS names remaining in either app.
   change from a `*.ts.net` value to a NetBird/custom-domain value.
 - **No migration of other clusters** (e.g. `network-controllers-prod`, PiKVM — PiKVM is
   already on NetBird) as part of this change.
-- **No new proxy** for the API servers — the whole point of custom domains is to avoid one.
+- **No new *in-cluster* proxy** for the API servers — NetBird's `ClusterProxy` fronts the
+  kube-apiserver from the NetBird side (no extra pod in the cluster).
 
 ## Tech Stack
 
@@ -76,8 +82,12 @@ resources, secrets, or DNS names remaining in either app.
   chart to an **exact version** (per repo dependency policy — no floating tags). CRDs
   (`netbird.io/v1alpha1`): `SetupKey`, `Group`, `NetworkResource`, `NetworkRouter`,
   `NetworkEgress`, `SidecarProfile`, `ClusterProxy`.
-- **NetBird custom-domain reverse proxy** — wildcard `CNAME *.vgijssel.nl`-style delegation
-  (scoped to the API subdomains) to NetBird's proxy cluster; NetBird issues/renews TLS.
+- **NetBird `ClusterProxy`** — kube-apiserver reverse proxy with per-caller impersonation;
+  no custom domain (kubeconfig via `netbird kubernetes write-kubeconfig`).
+- **NetBird custom-domain reverse proxy** — used **only for service domains**
+  (`omada.network.vgijssel.nl`, `openbao.secret.vgijssel.nl`) via a wildcard
+  `CNAME *.vgijssel.nl` to NetBird's proxy cluster; NetBird issues/renews TLS. **Not** used
+  for the API servers.
 - **Existing, unchanged:** vind (vcluster docker driver, arm64), Fleet (bundle discovery via
   `bin/fleet-apply`), Crossplane core + provider-vault (secret), external-secrets,
   cert-manager (for `omada.network.vgijssel.nl` and `openbao.secret.vgijssel.nl`),
@@ -129,9 +139,9 @@ scoped to swapping the Tailscale bundles for NetBird bundles and updating cross-
 |--------|------|-------|
 | **Remove** | `tailscale-proxygroup/` | ProxyGroup CRs (`network-ingress`, `api-network`) deleted. |
 | **Add** | `netbird-operator/` | Helm bundle for `netbird-operator` (pinned chart), ns `netbird`. |
-| **Add** | `netbird-config/` | NetBird operator CRs: `SetupKey`, `Group`(s), `NetworkResource` for the API server + JWKS and for Omada. Replaces ProxyGroups + tailnet ACL content. |
+| **Add** | `netbird-config/` | NetBird operator CRs: `SetupKey`, `Group`(s), `ClusterProxy` for the kube-apiserver (impersonation, **no custom domain**), and routing (`NBRoutingPeer`/`NetworkResource`) for JWKS + Omada. Replaces ProxyGroups + tailnet ACL content. |
 | **Edit** | `config/externalsecret-operator-oauth.yaml` | Becomes a NetBird **setup-key** ExternalSecret (remote key `kv/network-netbird`), target Secret consumed by the operator. |
-| **Edit** | `config/` OIDC/JWKS wiring | JWKS is now published at `https://api.network.vgijssel.nl/openid/v1/jwks`; keep the anonymous-JWKS ClusterRoleBinding. |
+| **Edit** | `config/` OIDC/JWKS wiring | JWKS is served by an in-cluster **`jwks-mirror`** (anonymous apiserver read) exposed cross-cluster over NetBird; keep the anonymous-JWKS ClusterRoleBinding. |
 | **Edit** | `omada/templates/service-omada.yaml` | Drop Tailscale `loadBalancerClass`/annotations; expose Omada via a NetBird `NetworkResource` (still surfaced as `omada.network.vgijssel.nl` via external-dns/custom domain). |
 
 ### `apps/secret/src/`
@@ -140,8 +150,8 @@ scoped to swapping the Tailscale bundles for NetBird bundles and updating cross-
 |--------|------|-------|
 | **Remove** | `tailscale-proxygroup/` | `secret-ingress` + `api-secret` ProxyGroups deleted. |
 | **Add** | `netbird-operator/` | Helm bundle for `netbird-operator`, ns `netbird`. |
-| **Add** | `netbird-config/` | `SetupKey`, `Group`(s), `NetworkResource` for the `secret` API server (`api.secret.vgijssel.nl`) and any egress to `network`. |
-| **Edit** | `openbao-config/authbackend-jwt-network.yaml` | `jwksUrl` → `https://api.network.vgijssel.nl/openid/v1/jwks`. |
+| **Add** | `netbird-config/` | `SetupKey`, `Group`(s), `ClusterProxy` for the `secret` kube-apiserver (impersonation, **no custom domain**) and routing to/from `network`. |
+| **Edit** | `openbao-config/authbackend-jwt-network.yaml` | `jwksUrl` → the mesh `jwks-gateway` (`http://jwks-gateway.netbird.svc.cluster.local/openid/v1/jwks`). |
 | **Edit** | `config/externalsecret-operator-oauth.yaml` | Becomes NetBird setup-key ExternalSecret (remote key `kv/secret-netbird`). |
 | **Edit** | `config/ingress-openbao.yaml` | Drop Tailscale `loadBalancerClass`; keep cert-manager cert for `openbao.secret.vgijssel.nl` (reachable over NetBird). |
 
@@ -178,13 +188,12 @@ these clusters are already exercised.
 
 1. **Enrollment** — after `moon run network:start` / `secret:start`, each cluster's NetBird
    operator peer shows **Connected** in the NetBird dashboard, in the correct group.
-2. **API custom domains** — `kubectl --server https://api.network.vgijssel.nl ...` and
-   `https://api.secret.vgijssel.nl ...` succeed with a **publicly trusted** cert (no
-   `*.ts.net`, no cert override). Validate that client auth still works through the L7
-   reverse proxy (see Risks).
+2. **API via ClusterProxy** — `netbird kubernetes write-kubeconfig` yields a working
+   kubeconfig for each cluster and `kubectl` maps the NetBird identity to RBAC via
+   impersonation (no `*.ts.net`, **no custom domain** — ClusterProxy doesn't support them yet).
 3. **JWKS reachability** — from the `secret` cluster, the `jwt-network` AuthBackend
-   reconciles: `curl https://api.network.vgijssel.nl/openid/v1/jwks` returns keys
-   anonymously.
+   reconciles by fetching the `network` JWKS over NetBird via the in-cluster `jwks-gateway`
+   → `jwks-mirror` (anonymous apiserver read; returns keys).
 4. **Cross-cluster JWT** — the `network` cluster's external-secrets successfully logs into
    `secret` OpenBao's `jwt-network` backend over NetBird and syncs a known kv key.
 5. **Omada** — `omada.network.vgijssel.nl` resolves and serves the Omada UI over NetBird;
@@ -212,11 +221,10 @@ bootstrap correctness, not just convergence on a long-lived cluster.
 - Run `trunk fmt` + `trunk check` and verify on a fresh cluster before declaring done.
 
 ### Ask first
-- **How the kube-apiserver is fronted by the L7 custom-domain proxy** — whether NetBird's
-  terminating reverse proxy preserves the auth path kubectl needs (bearer tokens vs client
-  certs), and whether the anonymous JWKS path is exposed correctly. If the reverse proxy
-  can't cleanly front a raw kube-apiserver, fall back to a NetBird `NetworkResource` + DNS
-  name with the apiserver's own cert — **confirm the approach before building it**.
+- **How the kube-apiserver is fronted — RESOLVED (no custom domain).** Settled on NetBird
+  `ClusterProxy` (per-caller impersonation, cluster PKI) via `netbird kubernetes
+  write-kubeconfig`; the anonymous JWKS path rides the separate `jwks-mirror`/`jwks-gateway`.
+  API custom domains are **not** used (ClusterProxy doesn't support them yet).
 - Any DNS delegation change at the registrar/Cloudflare for `*.vgijssel.nl`
   (CNAME to NetBird proxy) — outward-facing, confirm before applying.
 - Changing NetBird **account-level** ACL policies/groups that could affect other peers
@@ -237,13 +245,14 @@ bootstrap correctness, not just convergence on a long-lived cluster.
 
 ## Key Risks / Open Questions
 
-1. **kube-apiserver behind an L7 terminating proxy.** NetBird custom domains terminate TLS
-   at NetBird's proxy and re-originate — a kube-apiserver expects to terminate its own TLS
-   and do client-cert / token auth. This is the single biggest technical unknown; item under
-   *Ask first*. Fallback: `NetworkResource` + NetBird DNS name + apiserver's own cert.
-2. **Anonymous JWKS through the proxy.** The JWKS endpoint must stay anonymously reachable
-   at `api.network.vgijssel.nl/openid/v1/jwks`; confirm the reverse proxy doesn't inject
-   auth.
+1. **kube-apiserver exposure — RESOLVED.** Rather than a TLS-terminating custom-domain
+   proxy, the API server is fronted by NetBird's **`ClusterProxy`** (per-caller
+   impersonation, cluster PKI), consumed via `netbird kubernetes write-kubeconfig` — kubectl
+   auth maps cleanly and no custom domain is needed. API custom domains
+   (`api.<cluster>.vgijssel.nl`) are **not** used (unsupported by ClusterProxy today).
+2. **Anonymous JWKS — RESOLVED.** JWKS is served by the anonymous in-cluster `jwks-mirror`
+   and reached cross-cluster via the `jwks-gateway` over NetBird — not through any API
+   custom domain, so there is no terminating-proxy auth-injection concern.
 3. **Cross-cluster egress ordering.** Big-bang per app means a brief window where `secret`
    can't reach `network` until both are on NetBird — mitigated by the network-first order.
 4. **Crossplane provider immaturity.** Deferring it means NetBird ACL/config is operator-CRD
