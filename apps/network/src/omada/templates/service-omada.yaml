@@ -1,26 +1,42 @@
 # The ENTIRE Omada controller — admin UI/portal (HTTP/HTTPS) AND the device
 # adoption/management L4 ports — exposed over NetBird as a single *Network Resource*
-# (operator v1 stack). This replaces the BYOP reverse proxy entirely: the reverse proxy
-# could carry only the HTTPS admin UI as a NetBird-Only private service and CANNOT serve
-# Omada's raw TCP device ports on the current image (netbirdio/netbird#6400 makes mode=tcp
-# L4 services silently not bind on reverse-proxy 0.72.x, and the private-services feature
-# is 0.72-only, so no single proxy version served both). NetBird Networks (routing peer +
-# NBResource) forward all TCP/UDP at L3/L4, so one resource covers every port.
+# (operator v1 stack), reachable from mesh clients at its real hostname
+# omada.network.vgijssel.nl with a valid public cert.
 #
-# The netbird.io/expose annotation makes the operator create a domain-type NBResource
-# (address omada.omada.svc.cluster.local) on the `router` NBRoutingPeer's network
-# (apps/network/src/netbird-config/nbroutingpeer-router.yaml) plus an access policy from the
-# `homelab` group (the Mac + the pikvm routing peer) to it. Requires operator
-# ingress.allowAutomaticPolicyCreation=true. Omitting policy-protocol/policy-ports lets the
+# HOW THE HOSTNAME RESOLVES (approach validated in the omada-resolution spike):
+#   * netbird.io/expose makes the operator create a domain NBResource with address
+#     omada.omada.svc.cluster.local on the `router` NBRoutingPeer's network
+#     (apps/network/src/netbird-config/nbroutingpeer-router.yaml). The routing peer
+#     resolves that to THIS Service's ClusterIP and NetBird installs a /32 route to the
+#     ClusterIP on every `homelab` client. That route is IP-based, not name-based.
+#   * external-dns (apps/network/src/external-dns) publishes a grey-cloud (DNS-only)
+#     Cloudflare A record omada.network.vgijssel.nl -> this Service's ClusterIP, driven by
+#     the external-dns.alpha.kubernetes.io/hostname annotation below (only annotated
+#     ClusterIP Services are published, so this is self-scoping). Because every resolver
+#     (getaddrinfo, dig, DoH browsers) then returns the ClusterIP, and the ClusterIP already
+#     routes through the mesh, clients reach omada.network.vgijssel.nl over NetBird and hit
+#     the LE cert served on 8043 — no reverse proxy, no NetBird DNS zone, no split-brain.
+#     A specific A record shadows the *.vgijssel.nl wildcard (which otherwise CNAMEs to
+#     NetBird cloud). Off-mesh the ClusterIP is unroutable, so the service stays mesh-only.
+#
+# The ClusterIP is PINNED (spec.clusterIP below) to a static-band address in the
+# 10.96.0.0/12 service CIDR so it survives cluster rebuilds and external-dns always
+# publishes the same stable IP. clusterIP is immutable — changing it requires deleting and
+# recreating this Service.
+#
+# This replaces the BYOP reverse proxy entirely: the reverse proxy could carry only the
+# HTTPS admin UI as a NetBird-Only private service and CANNOT serve Omada's raw TCP device
+# ports on the current image (netbirdio/netbird#6400 makes mode=tcp L4 services silently
+# not bind on reverse-proxy 0.72.x, and the private-services feature is 0.72-only, so no
+# single proxy version served both). NetBird Networks (routing peer + NBResource) forward
+# all TCP/UDP at L3/L4, so one resource covers every port. Requires operator
+# ingress.allowAutomaticPolicyCreation=true; omitting policy-protocol/policy-ports lets the
 # auto-policy allow both TCP and UDP on all ports to homelab (all Omada traffic is trusted
 # homelab traffic); the routed ports are bound by this Service's port list below.
 #
-# The admin UI is reached over the mesh on 8043 (HTTPS); Omada serves the LE cert for
-# omada.network.vgijssel.nl there (certificate-omada.yaml, mounted at /cert), so mesh
-# clients get a trusted cert with no reverse proxy in the path. Physical Omada devices are
-# not NetBird clients: they resolve the public omada.network.vgijssel.nl name and route the
-# NetBird range through the pikvm routing peer on their LAN (custom domain + external-dns IP
-# sync are wired in follow-up tasks). This Service's ClusterIP is what the in-cluster
+# Physical Omada devices are not NetBird clients: they resolve the same public
+# omada.network.vgijssel.nl name (now a real A record) and route the NetBird range through
+# the pikvm routing peer on their LAN. This Service's ClusterIP is what the in-cluster
 # routing peer dials; the selector matches the omada-controller subchart pods exactly (a
 # mismatch leaves it with zero endpoints).
 apiVersion: v1
@@ -33,8 +49,16 @@ metadata:
     netbird.io/groups: omada
     netbird.io/policy: omada
     netbird.io/policy-source-groups: homelab
+    # external-dns publishes a grey-cloud (DNS-only) A record for this hostname pointing at
+    # the ClusterIP below. proxied=false is required — an orange-cloud record would return
+    # Cloudflare edge IPs instead of the mesh-routable ClusterIP.
+    external-dns.alpha.kubernetes.io/hostname: omada.network.vgijssel.nl
+    external-dns.alpha.kubernetes.io/cloudflare-proxied: "false"
 spec:
   type: ClusterIP
+  # Pinned, static-band ClusterIP (see header). Stable across rebuilds; external-dns
+  # publishes this exact address for omada.network.vgijssel.nl.
+  clusterIP: 10.96.0.20
   selector:
     app.kubernetes.io/name: omada-controller
     app.kubernetes.io/instance: {{ .Release.Name }}

@@ -1,0 +1,21 @@
+# Portable Fleet bundle for external-dns on the network cluster. Fleet detects the umbrella
+# Chart.yaml here and deploys it with values.yaml, plus the sibling ExternalSecret template.
+# Needs the external-dns-cloudflare-api-token Secret (synced from OpenBao by the template
+# below); until that exists external-dns crash-loops on the missing token, expected during
+# bootstrap.
+#
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly — this keeps external-dns (and its network-cluster txtOwnerId) off the secret
+# cluster. If the secret cluster ever needs its own external-dns it MUST declare a distinct
+# txtOwnerId, or the two clusters would treat each other's records as orphans and delete
+# them (a hard boundary observed with omada.network.vgijssel.nl).
+labels:
+  fleet.vgijssel.nl/bundle: network-external-dns
+defaultNamespace: external-dns
+helm:
+  releaseName: external-dns
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
