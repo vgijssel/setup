@@ -1,6 +1,6 @@
 apiVersion: v2
 name: crossplane
-description: Crossplane core — reconciler for NetBird config (netbird-crossplane-provider) and Cloudflare DNS on the network cluster
+description: Crossplane core — reconciler for Cloudflare DNS (provider-opentofu) on the network cluster
 version: 1.0.0
 appVersion: 2.3.3
 # Fleet resolves this file:// dependency against the vendir-vendored chart at
