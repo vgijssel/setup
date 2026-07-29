@@ -93,8 +93,10 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   `https://openbao.secret.vgijssel.nl/v1/auth/jwt-network/login` over NetBird — the `openbao`
   ClusterSecretStore went **Valid/Ready ("store validated")**. Full cross-cluster JWT loop closed
   (ESO sidecar → mesh → OpenBao → JWKS via `jwks-gateway` → mesh → network `jwks-mirror` → validated).
-  **PENDING:** confirm downstream ExternalSecrets actually sync (interrupted when OrbStack went down);
-  scrub stale tailnet comments in `config/{clustersecretstore-openbao,fleet}.yaml`.
+  **DONE 2026-07-29:** scrubbed stale tailnet comments in `config/{clustersecretstore-openbao,fleet}.yaml`
+  (now describe the NetBird eso-sidecar path; dropped the dead `service-openbao-egress.yaml`/`certificate-omada.yaml`
+  bundle-inventory refs and the `ACL-A`/`SPEC R8` tailnet-egress language). **PENDING:** confirm downstream
+  ExternalSecrets actually sync on a live cluster (interrupted when OrbStack went down).
 - [~] 1.7 Crossplane on network — **APPROACH CHANGED:** DNS managed by Crossplane **`provider-opentofu`**
   (inline HCL via `restapi`), **not** `provider-upjet-cloudflare` (rejected on arm64 — see
   `[[network-cloudflare-dns-opentofu]]`). **DONE:** crossplane core (`crossplane/`, pin 2.3.3),
