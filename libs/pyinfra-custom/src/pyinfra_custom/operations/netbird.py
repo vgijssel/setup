@@ -6,7 +6,12 @@ from pyinfra.api import StringCommand, operation
 
 
 @operation(is_idempotent=False)
-def up(setup_key: str | None = None, disable_dns: bool = False):
+def up(
+    setup_key: str | None = None,
+    disable_dns: bool = False,
+    allow_server_ssh: bool = False,
+    enable_ssh_root: bool = False,
+):
     """Run ``netbird up`` to register / (re)connect the peer.
 
     Args:
@@ -16,15 +21,29 @@ def up(setup_key: str | None = None, disable_dns: bool = False):
             an already-registered peer.
         disable_dns: passed through as ``--disable-dns=<true|false>``. NetBird persists
             this flag, so it must be set explicitly to flip it; ``False`` keeps DNS on.
+        allow_server_ssh: passed through as ``--allow-server-ssh=<true|false>`` to enable
+            NetBird's native SSH server on the peer. NetBird persists this in its config
+            (``ServerSSHAllowed``), so it is always set explicitly to make the desired
+            state deterministic.
+        enable_ssh_root: passed through as ``--enable-ssh-root=<true|false>`` to permit
+            root login on the native SSH server. Only meaningful when ``allow_server_ssh``
+            is ``True``; likewise persisted (``EnableSSHRoot``), so set explicitly.
 
     Not idempotent: ``netbird up`` on an already-connected peer is itself a no-op, but
     pyinfra cannot know that, so callers gate this with ``_if`` / a connected fact.
     """
-    flag = "true" if disable_dns else "false"
+    dns_flag = "true" if disable_dns else "false"
+    ssh_flag = "true" if allow_server_ssh else "false"
+    ssh_root_flag = "true" if enable_ssh_root else "false"
+    args = (
+        f"--disable-dns={dns_flag} "
+        f"--allow-server-ssh={ssh_flag} "
+        f"--enable-ssh-root={ssh_root_flag}"
+    )
     if setup_key is not None:
         yield StringCommand(
-            f'netbird up --setup-key "$NB_SETUP_KEY" --disable-dns={flag}',
+            f'netbird up --setup-key "$NB_SETUP_KEY" {args}',
             _env={"NB_SETUP_KEY": setup_key},
         )
     else:
-        yield StringCommand(f"netbird up --disable-dns={flag}")
+        yield StringCommand(f"netbird up {args}")

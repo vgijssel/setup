@@ -1,0 +1,15 @@
+[Unit]
+Description=Persist netdata Cloud identity across reboots (tmpfs over /var/lib/netdata)
+After=local-fs.target tmp.mount
+Before=netdata.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-netdata-overlay.sh
+# Snapshot the identity back to the read-only rootfs on stop (graceful shutdown/reboot);
+# the deploy also persists explicitly right after claiming so a hard reboot is covered.
+ExecStop=/bin/sh -c 'cp -a /var/lib/netdata/. /root/netdata-state/'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

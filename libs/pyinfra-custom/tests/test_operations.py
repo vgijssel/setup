@@ -23,6 +23,9 @@ def test_netbird_up_with_setup_key_uses_env_not_argv():
     assert "super-secret-key" not in raw
     assert "$NB_SETUP_KEY" in raw
     assert "--disable-dns=false" in raw
+    # SSH flags default off and are always emitted explicitly.
+    assert "--allow-server-ssh=false" in raw
+    assert "--enable-ssh-root=false" in raw
 
 
 def test_netbird_up_without_setup_key_has_no_env():
@@ -30,12 +33,33 @@ def test_netbird_up_without_setup_key_has_no_env():
     assert len(commands) == 1
     cmd = commands[0]
     assert cmd.connector_arguments.get("_env") is None
-    assert cmd.get_raw_value() == "netbird up --disable-dns=false"
+    assert cmd.get_raw_value() == (
+        "netbird up --disable-dns=false "
+        "--allow-server-ssh=false --enable-ssh-root=false"
+    )
 
 
 def test_netbird_up_disable_dns_true():
     commands = list(netbird.up._inner(setup_key=None, disable_dns=True))
-    assert commands[0].get_raw_value() == "netbird up --disable-dns=true"
+    assert commands[0].get_raw_value() == (
+        "netbird up --disable-dns=true "
+        "--allow-server-ssh=false --enable-ssh-root=false"
+    )
+
+
+def test_netbird_up_allow_server_ssh_and_root():
+    commands = list(
+        netbird.up._inner(
+            setup_key=None,
+            disable_dns=False,
+            allow_server_ssh=True,
+            enable_ssh_root=True,
+        )
+    )
+    assert commands[0].get_raw_value() == (
+        "netbird up --disable-dns=false "
+        "--allow-server-ssh=true --enable-ssh-root=true"
+    )
 
 
 # ── pikvm.htpasswd ───────────────────────────────────────────────────────────────
@@ -66,5 +90,31 @@ def test_writable_remounts_when_changed(mocker):
 def test_writable_noop_when_unchanged(mocker):
     calls = mocker.patch.object(rootfs, "remount")
     with rootfs.writable(changed_if=False):
+        pass
+    calls.assert_not_called()
+
+
+# ── rootfs.remount_usr / writable_usr (separate /usr partition) ────────────────────
+def test_remount_usr_yields_usr_mount_commands():
+    # PiKVM's `rw`/`ro` helpers only remount / and /boot; /usr is a separate partition,
+    # so it needs an explicit remount to write /usr/local/bin.
+    assert list(rootfs.remount_usr._inner(read_write=True)) == [
+        "mount -o remount,rw /usr"
+    ]
+    assert list(rootfs.remount_usr._inner(read_write=False)) == [
+        "mount -o remount,ro /usr"
+    ]
+
+
+def test_writable_usr_remounts_when_changed(mocker):
+    calls = mocker.patch.object(rootfs, "remount_usr")
+    with rootfs.writable_usr(changed_if=True):
+        pass
+    assert [c.kwargs["read_write"] for c in calls.call_args_list] == [True, False]
+
+
+def test_writable_usr_noop_when_unchanged(mocker):
+    calls = mocker.patch.object(rootfs, "remount_usr")
+    with rootfs.writable_usr(changed_if=False):
         pass
     calls.assert_not_called()

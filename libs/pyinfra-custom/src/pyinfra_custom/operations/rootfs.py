@@ -37,6 +37,19 @@ def remount(read_write: bool):
     yield "rw" if read_write else "ro"
 
 
+@operation(is_idempotent=False)
+def remount_usr(read_write: bool):
+    """Remount the separate ``/usr`` partition read-write or read-only.
+
+    On current PiKVM images ``/usr`` is its own partition mounted ``ro``, and the stock
+    ``rw``/``ro`` helpers only touch ``/`` and ``/boot`` -- so writing under
+    ``/usr/local`` (e.g. installing a binary to ``/usr/local/bin``) needs an explicit
+    ``/usr`` remount. Not idempotent (a bare ``mount -o remount``); prefer the
+    :func:`writable_usr` context manager, which gates the remount on real changes.
+    """
+    yield f"mount -o remount,{'rw' if read_write else 'ro'} /usr"
+
+
 @contextmanager
 def writable(changed_if: bool) -> Iterator[None]:
     """Group rootfs writes; remount ``rw`` before and ``ro`` after **iff** ``changed_if``.
@@ -54,3 +67,20 @@ def writable(changed_if: bool) -> Iterator[None]:
     finally:
         if changed_if:
             remount(name="Remount rootfs read-only", read_write=False)
+
+
+@contextmanager
+def writable_usr(changed_if: bool) -> Iterator[None]:
+    """Group ``/usr`` writes; remount ``/usr`` ``rw`` before and ``ro`` after **iff** ``changed_if``.
+
+    The ``/usr`` companion to :func:`writable`, for the separate ``ro`` ``/usr`` partition
+    that the stock ``rw``/``ro`` helpers do not cover. Same ``changed_if`` discipline: a
+    converged box queues no remount and keeps ``--dry`` empty.
+    """
+    if changed_if:
+        remount_usr(name="Remount /usr read-write", read_write=True)
+    try:
+        yield
+    finally:
+        if changed_if:
+            remount_usr(name="Remount /usr read-only", read_write=False)

@@ -1,0 +1,21 @@
+[Unit]
+Description=goss system-health server (localhost only)
+After=network-online.target netbird@netbird.service systemd-resolved.service
+Wants=network-online.target
+
+[Service]
+# goss uses Go's static resolver, which reads /etc/resolv.conf. That file is now a static
+# resolv.conf pointing at systemd-resolved's stub (127.0.0.53, set by deploy.py), so goss's
+# native dns/addr resources resolve NetBird split-DNS names (*.svc.cluster.local -> wt0)
+# box-wide -- no per-unit resolv.conf bind is needed. After=systemd-resolved.service keeps
+# the stub listener available before goss starts.
+# Default response format is prometheus/verbose so netdata can scrape one metric per
+# assertion. The `validate` client requests rspecish per-request via an Accept header.
+# The daemon re-reads /etc/goss/goss.yaml on startup (restart to apply spec changes).
+ExecStart=/usr/local/bin/goss --gossfile /etc/goss/goss.yaml serve --listen-addr 127.0.0.1:8080 --endpoint /healthz --format prometheus --format-options verbose
+Restart=on-failure
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target
