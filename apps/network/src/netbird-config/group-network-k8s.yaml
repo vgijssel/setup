@@ -1,0 +1,12 @@
+# The `network-k8s` NetBird group — this cluster's identity in NetBird ACLs. A new,
+# isolated group scoped to this cluster (the directional replacement for the former
+# tag:network-k8s); it does not modify shared policy or affect other peers (e.g. PiKVM).
+# The operator creates it in NetBird via the management API and records the id in
+# status.groupID.
+apiVersion: netbird.io/v1alpha1
+kind: Group
+metadata:
+  name: network-k8s
+  namespace: netbird
+spec:
+  name: network-k8s

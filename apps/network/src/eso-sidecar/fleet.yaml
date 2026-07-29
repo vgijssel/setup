@@ -1,0 +1,23 @@
+# external-secrets NetBird client-sidecar bundle (network cluster). A SetupKey + SidecarProfile
+# that inject a netbird client sidecar into the ESO controller pod so it becomes a mesh peer and
+# can read OpenBao over the private reverse-proxy service (openbao.secret.vgijssel.nl) — the
+# cross-cluster secret path that replaces the old tailnet route. Mirrors the secret cluster's
+# jwks-gateway sidecar (apps/secret/src/jwks-gateway). See [[netbird-crosscluster-routing]].
+#
+# dependsOn the netbird-operator bundle so the SidecarProfile/SetupKey CRDs + the mutating
+# webhook + the setupkey controller exist before these resources apply (otherwise the webhook
+# denies the pod, or the CRs have no CRD, or the setup key is never minted).
+labels:
+  fleet.vgijssel.nl/bundle: eso-sidecar
+defaultNamespace: external-secrets
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly — the ESO consumer of OpenBao lives here.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network

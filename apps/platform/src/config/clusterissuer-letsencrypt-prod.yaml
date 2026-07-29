@@ -1,7 +1,7 @@
 # Let's Encrypt production issuer. TLS for the *.vgijssel.nl hostnames is
-# solved over Cloudflare DNS-01 (Tailscale's built-in certs only cover the
-# tailnet DNS name), so we bring our own cert here. Stays NotReady until the
-# cloudflare-api-token ExternalSecret below is populated from OpenBao.
+# solved over Cloudflare DNS-01, so we bring our own publicly-trusted cert here
+# (consumed by the OpenBao BYOP reverse-proxy wildcard and the Omada cert). Stays
+# NotReady until the cloudflare-api-token ExternalSecret below is populated from OpenBao.
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:

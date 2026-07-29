@@ -1,0 +1,24 @@
+# ProviderConfig for provider-opentofu. Its CRD is registered by the provider
+# (src/crossplane-provider), so this CR must be in a separate, dependsOn-ordered bundle
+# (Fleet atomic-release rule).
+#
+# `configuration` is injected as a shared .tf file into EVERY workspace using this config.
+# We keep only the remote-state backend here (shared by all network workspaces), because
+# provider-opentofu does NOT persist state itself. Each Workspace declares its own
+# required_providers + provider block in its module, so the netbird-data workspace and the
+# cloudflare-record workspace only pull the plugin they actually use. State Secret + lock
+# Lease land in crossplane-system via the provider pod's SA (RBAC in src/crossplane-provider);
+# `secret_suffix` scopes the state-secret names, and tofu keys them per workspace on top.
+apiVersion: opentofu.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  configuration: |
+    terraform {
+      backend "kubernetes" {
+        secret_suffix     = "network-opentofu"
+        namespace         = "crossplane-system"
+        in_cluster_config = true
+      }
+    }

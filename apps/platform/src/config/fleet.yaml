@@ -1,19 +1,19 @@
 # Portable, SHARED Fleet bundle deployed to BOTH clusters (secret + network) on the
-# default target: the ExternalSecrets that sync cloudflare / tailscale / netdata
-# secrets out of OpenBao into the consuming namespaces, plus the ClusterIssuer
-# (LE prod, Cloudflare DNS-01). These are cluster-agnostic — the ExternalSecrets
-# reference the store only by name (`openbao`).
+# default target: the ExternalSecrets that sync cloudflare / netdata secrets out of
+# OpenBao into the consuming namespaces, plus the ClusterIssuer (LE prod, Cloudflare
+# DNS-01). These are cluster-agnostic — the ExternalSecrets reference the store only by
+# name (`openbao`).
 #
 # The ClusterSecretStore itself is NOT here: it's the one piece that differs per
 # cluster, so each cluster owns its own store named `openbao` — secret's in-cluster
 # kubernetes-auth store in apps/secret/src/config, network's remote JWT-auth store in
 # apps/network/src/config. That is what lets this one ExternalSecret set serve both.
 #
-# The consuming namespaces (tailscale/netdata/external-dns) are owned by their
-# operator Helm bundles (Fleet defaultNamespace), not created here — declaring
-# them in both bundles causes a Fleet ownership conflict. On a fresh bootstrap the
-# ExternalSecrets targeting those namespaces error-and-retry until the operator
-# bundle creates the namespace, which Fleet reconciles continuously (expected).
+# The consuming namespace (netdata) is owned by its operator Helm bundle (Fleet
+# defaultNamespace), not created here — declaring it in both bundles causes a Fleet
+# ownership conflict. On a fresh bootstrap the ExternalSecrets targeting that namespace
+# error-and-retry until the operator bundle creates the namespace, which Fleet
+# reconciles continuously (expected).
 #
 # Depends on the external-secrets CRDs (external-secrets chart) and on OpenBao
 # being initialised + the `external-secrets` policy/role reconciled by Crossplane

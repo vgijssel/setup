@@ -1,0 +1,35 @@
+# upbound/provider-opentofu — runs OpenTofu (Terraform-compatible) inside Crossplane via
+# Workspace CRs with inline HCL. Used here to manage the Cloudflare DNS record(s) fronting
+# the NetBird reverse proxy with the actively-maintained cloudflare/cloudflare TF provider
+# (v5, cloudflare_dns_record), rather than a Crossplane-native Cloudflare provider.
+#
+# Why this over the Crossplane Cloudflare providers: crossplane-contrib/provider-upjet-
+# cloudflare has no published release (unpinnable); wildbitca's images ship with NO os/arch
+# metadata (architecture: None) so the kubelet can't schedule them on this arm64 node;
+# cdloh is arm64-native but stale. provider-opentofu is Upbound-official, multi-arch
+# (arm64 + amd64 — verified), and just runs `tofu`, which pulls the arm64 cloudflare
+# provider plugin at init time.
+#
+# Pinned by tag + multi-arch index digest.
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-opentofu
+spec:
+  package: xpkg.upbound.io/upbound/provider-opentofu:v1.1.5@sha256:3b5580b52acc0b33b882ff48521b68f4d717c9151636f7f7617debce2416921d
+  runtimeConfigRef:
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    name: provider-opentofu
+---
+# Pin the provider pod's ServiceAccount to a STABLE name so the RBAC below (which grants it
+# the Kubernetes-backend state permissions) keeps binding across provider upgrades. Without
+# this Crossplane names the SA after the ProviderRevision hash.
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-opentofu
+spec:
+  serviceAccountTemplate:
+    metadata:
+      name: provider-opentofu

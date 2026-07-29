@@ -1,0 +1,6 @@
+dependencies:
+- name: netbird-operator
+  repository: file://../../../../third_party/vendir/charts/netbird-operator
+  version: 0.7.0
+digest: sha256:a27dfe924a1884e449044286201c9cbfa0c54cf92394de52cf9653e9c2bc303a
+generated: "2026-07-28T12:19:44.342406+02:00"

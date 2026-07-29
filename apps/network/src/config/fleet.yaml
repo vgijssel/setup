@@ -1,25 +1,23 @@
 # Portable Fleet bundle for the network cluster's per-cluster ESO wiring:
 #   - clustersecretstore-openbao.yaml : the REMOTE, JWT-auth ClusterSecretStore
 #     named `openbao` (the shared ExternalSecrets in apps/platform/src/config reference
-#     it by name and deploy to both clusters).
-#   - service-openbao-egress.yaml     : the Tailscale operator egress to
-#     openbao.secret.vgijssel.nl (SPEC R8).
+#     it by name and deploy to both clusters). Reachability to openbao.secret.vgijssel.nl
+#     is over the NetBird mesh via the eso-sidecar bundle (apps/network/src/eso-sidecar).
 #   - clusterrolebinding-oidc-discovery.yaml : makes /openid/v1/jwks anonymously
-#     readable so secret's OpenBao can fetch this cluster's JWKS live over the tailnet.
-#   - certificate-omada.yaml          : the Let's Encrypt cert mounted into Omada (T14).
+#     readable so secret's OpenBao can fetch this cluster's JWKS live over the mesh.
+#   - externalsecret-netbird-mgmt-api-key.yaml : the NetBird operator PAT ExternalSecret.
 #
-# The ExternalSecrets themselves are NOT here — they live in the shared platform-config
-# bundle. The consuming namespace external-secrets is owned by the external-secrets
-# operator bundle (Fleet defaultNamespace), not created here, to avoid an ownership
-# conflict; the egress Service sets its namespace explicitly.
+# The shared ExternalSecrets themselves are NOT here — they live in the shared
+# platform-config bundle. The consuming namespace external-secrets is owned by the
+# external-secrets operator bundle (Fleet defaultNamespace), not created here, to avoid
+# an ownership conflict.
 #
-# Depends on the external-secrets + cert-manager CRDs; until OpenBao grants network
-# access (T8) and the egress is approved (ACL-A), the store stays NotReady and ESO
-# error-and-retries, which is expected.
+# Depends on the external-secrets CRDs; until the eso-sidecar peer connects and OpenBao
+# grants network access, the store stays NotReady and ESO error-and-retries, which is expected.
 defaultNamespace: external-secrets
 # network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
 # cluster explicitly (previously scoped only by network:apply's static list). This is
-# critical here: this bundle's ClusterSecretStore `openbao` is the REMOTE tailnet+JWT
+# critical here: this bundle's ClusterSecretStore `openbao` is the REMOTE mesh+JWT
 # store, and without targeting it deploys on the secret cluster too and CLOBBERS
 # secret's own same-named store (internal service + kubernetes auth). Targeting keeps
 # the secret cluster on its internal-service store.

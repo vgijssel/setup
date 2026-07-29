@@ -1,6 +1,0 @@
-dependencies:
-- name: external-dns
-  repository: file://../../../../third_party/vendir/charts/external-dns
-  version: 1.19.0
-digest: sha256:5bb80b28f6af4522e9d240780d983aa2d38a9891edb8d19d9b553478083129b9
-generated: "2026-07-18T23:04:44.929274+02:00"

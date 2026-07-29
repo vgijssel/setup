@@ -3,7 +3,7 @@
 # Mirrors apps/secret/scripts/apply.sh.
 #
 # network:start brings the cluster up: it creates the vind cluster, seeds the
-# Tailscale operator OAuth client (tailscale_auth), installs the Fleet controller,
+# NetBird operator management API PAT (netbird_auth), installs the Fleet controller,
 # and labels the standalone Fleet `local` cluster cluster.vgijssel.nl/name=network.
 # THIS script only pushes bundles — it neither installs Fleet nor labels the cluster.
 #
@@ -53,4 +53,4 @@ echo "==> Applying Fleet bundles (bin/fleet-apply — global discovery)"
 echo "==> Applied. Bundles:"
 kubectl -n "${FLEET_NS}" get bundles 2>/dev/null || true
 
-echo "==> Applied. (network:start runs tailscale_auth + labels the cluster before this.)"
+echo "==> Applied. (network:start runs netbird_auth + labels the cluster before this.)"

@@ -1,0 +1,16 @@
+# NetBird routing peer for the network cluster (operator v1 stack). Deploys a netbird
+# client that routes traffic for domain-type NBResources (Services annotated
+# netbird.io/expose) to their in-cluster ClusterIPs — how the JWKS mirror (and later
+# other Services) are reached cross-cluster over NetBird, with NO DNS zone and NO
+# kube-egress-forwarder (that's only the zone-based v1alpha1 NetworkRouter stack).
+#
+# The operator auto-creates the backing NetBird Network + group + reusable setup key
+# (named after the operator's --cluster-name, i.e. "network") and writes the setup key to
+# a Secret named after this CR. Single replica is plenty for the homelab.
+apiVersion: netbird.io/v1
+kind: NBRoutingPeer
+metadata:
+  name: router
+  namespace: netbird
+spec:
+  replicas: 1
