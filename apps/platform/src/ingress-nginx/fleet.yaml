@@ -1,12 +1,12 @@
 # Portable Fleet bundle for ingress-nginx. Fleet detects the umbrella Chart.yaml
-# here and deploys it with values.yaml. Its external Service stays <pending> until
-# the Tailscale operator assigns a tailnet IP (loadBalancerClass=tailscale), which
-# is expected until the operator is up and authenticated.
+# here and deploys it with values.yaml. The controller is a plain ClusterIP (OpenBao
+# is reached over the NetBird mesh via the BYOP reverse proxy, not a LoadBalancer VIP),
+# so there is no external Service to wait on.
 defaultNamespace: ingress-nginx
 helm:
   releaseName: ingress-nginx
-# secret-ONLY. The network cluster exposes Omada directly through its own Tailscale
-# LoadBalancer Service and runs no ingress-nginx (SPEC Q3). A single secret target
+# secret-ONLY. The network cluster exposes Omada directly through its own NetBird
+# NBResource and runs no ingress-nginx (SPEC Q3). A single secret target
 # gates this bundle: on `network` (label cluster.vgijssel.nl/name=network) nothing
 # matches, so Fleet produces no BundleDeployment there. `secret` inherits the base
 # values.yaml unchanged (byte-for-byte identical rendering).

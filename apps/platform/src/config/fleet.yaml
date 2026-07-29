@@ -1,5 +1,5 @@
 # Portable, SHARED Fleet bundle deployed to BOTH clusters (secret + network) on the
-# default target: the ExternalSecrets that sync cloudflare / tailscale / netdata
+# default target: the ExternalSecrets that sync cloudflare / external-dns / netdata
 # secrets out of OpenBao into the consuming namespaces, plus the ClusterIssuer
 # (LE prod, Cloudflare DNS-01). These are cluster-agnostic — the ExternalSecrets
 # reference the store only by name (`openbao`).
@@ -9,7 +9,7 @@
 # kubernetes-auth store in apps/secret/src/config, network's remote JWT-auth store in
 # apps/network/src/config. That is what lets this one ExternalSecret set serve both.
 #
-# The consuming namespaces (tailscale/netdata/external-dns) are owned by their
+# The consuming namespaces (netdata/external-dns) are owned by their
 # operator Helm bundles (Fleet defaultNamespace), not created here — declaring
 # them in both bundles causes a Fleet ownership conflict. On a fresh bootstrap the
 # ExternalSecrets targeting those namespaces error-and-retry until the operator

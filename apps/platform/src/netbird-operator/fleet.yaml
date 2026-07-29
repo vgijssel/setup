@@ -5,11 +5,11 @@
 # not-Ready, which is expected during bootstrap.
 #
 # This bundle OWNS the `netbird` namespace (Fleet defaultNamespace). The per-cluster
-# credential ExternalSecret targets this namespace but is declared in the config bundle
-# (independent per-cluster root of trust), mirroring how the Tailscale operator-oauth
-# ExternalSecret lives in the config bundle while ns tailscale is owned by the operator
-# bundle. The netbird-config bundles (SetupKey, ClusterProxy, NetworkResource, …)
-# dependsOn this bundle so the operator's CRDs are registered before their CRs apply.
+# credential ExternalSecret (netbird-mgmt-api-key) targets this namespace but is declared
+# in the config bundle (independent per-cluster root of trust), so the credential lives
+# with the other cluster secrets while the namespace stays owned here. The netbird-config
+# bundles (SetupKey, ClusterProxy, NetworkResource, …) dependsOn this bundle so the
+# operator's CRDs are registered before their CRs apply.
 labels:
   fleet.vgijssel.nl/bundle: netbird-operator
 defaultNamespace: netbird
