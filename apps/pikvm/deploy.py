@@ -906,6 +906,40 @@ netdata_config_restart = server.shell(
 )
 
 
+# ── netdata scrapes the goss /healthz endpoint (Task 11, Phase C) ─────────────────
+# Point netdata's go.d prometheus collector at the goss health daemon (127.0.0.1:8080/
+# healthz, prometheus format) so the box's declarative assertions become netdata charts +
+# alerts alongside the system metrics. The go.d dir is on the root partition
+# (/opt/netdata/etc/netdata/go.d) -> rootfs.writable. netdata reads go.d job configs at
+# startup, so a change needs a restart (change-gated so a converged box is a no-op).
+NETDATA_GOD_DIR = f"{NETDATA_PREFIX}/etc/netdata/go.d"
+NETDATA_PROM_SRC = os.path.join(FILES, "go.d", "prometheus.conf")
+NETDATA_PROM_REMOTE = f"{NETDATA_GOD_DIR}/prometheus.conf"
+
+netdata_scrape_needs_rw = host.get_fact(
+    Directory, path=NETDATA_GOD_DIR
+) is None or _file_out_of_sync(NETDATA_PROM_REMOTE, NETDATA_PROM_SRC)
+
+with rootfs.writable(changed_if=netdata_scrape_needs_rw):
+    files.directory(
+        name="netdata scrape: ensure go.d config dir",
+        path=NETDATA_GOD_DIR,
+        present=True,
+    )
+    netdata_prom = files.put(
+        name="netdata scrape: install go.d/prometheus.conf (goss /healthz job)",
+        src=NETDATA_PROM_SRC,
+        dest=NETDATA_PROM_REMOTE,
+        mode="644",
+    )
+
+server.shell(
+    name="netdata scrape: restart netdata to load the goss scrape job",
+    commands=["systemctl restart netdata.service"],
+    _if=lambda: netdata_prom.did_change(),
+)
+
+
 # ── netdata Cloud claim + reboot-durable identity (Task 11, Phase D) ──────────────
 # Connect the agent to Netdata Cloud so the box appears in the Space, and keep that
 # identity stable across reboots. Two independent pieces:
