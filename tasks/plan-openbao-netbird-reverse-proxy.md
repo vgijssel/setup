@@ -35,16 +35,18 @@ Tailscale VIP + external-dns exposure; migrate network's cross-cluster reads to 
 - [x] T10 — `provider-opentofu` on the secret cluster.
 - [x] T7 — `reverse-proxy-services` Workspace on secret (`Mastercard/restapi`).
 - [x] T8 — `reverse-proxy-dns-secret` Workspace on secret.
-- [ ] **T9 — LIVE bring-up + validate.** `secret:netbird_proxy_auth` → `secret:apply` (installs
-  provider-opentofu + proxy; proxy registers `secret.vgijssel.nl`; workspaces reconcile the
-  domain/CNAME/service). Validate `curl https://openbao.secret.vgijssel.nl` over mesh → 200.
-  *Live NetBird/OpenBao/Cloudflare mutations — gated on maintainer.*
-- [~] **T5 — Cut network over to mesh — BLOCKED (upstream).** A private reverse-proxy service
-  rejects non-client-peers (peer-of-origin auth), so network's ESO (routing-peer-only) can't reach
-  it. Correct fix = a NetBird **client sidecar** for the ESO pod (operator `SidecarProfile` +
-  `SetupKey`, autoGroups incl. a group in the service access_groups, `ephemeral: true`). BLOCKED on
-  netbird-operator v0.8.0 DNS bug #383 (resolv.conf not mounted to the app container); fix PR #389
-  OPEN. Keep tailnet for network until #389 ships. Client peers (Mac) already work over mesh.
+- [x] **T9 — LIVE bring-up + validate — DONE 2026-07-29.** On a fresh dual-cluster bring-up:
+  `provider-opentofu` + `provider-vault` Healthy on secret; workspaces `reverse-proxy-services` +
+  `reverse-proxy-dns-secret` both SYNCED/READY; BYOP `netbird-reverse-proxy`, `jwks-gateway` (2/2),
+  `router`, and `openbao-0` all Running. `curl https://openbao.secret.vgijssel.nl/v1/sys/health` over
+  the mesh (from the Mac client peer) → **HTTP 200**. `secret.vgijssel.nl` reverse-proxy domain nested
+  under `vgijssel.nl` accepted (no conflict).
+- [x] **T5 — network cut over to mesh — DONE (unblocked by v0.7.0).** The predicted fix shipped: a NetBird
+  **client sidecar** for the ESO pod (`apps/network/src/eso-sidecar/` — `SetupKey` + `SidecarProfile`),
+  committed `0da1bea5`. #383 was sidestepped by pinning the operator to **v0.7.0** (rewrites the shared
+  `/etc/resolv.conf` in place), not by waiting on #389. **LIVE-VALIDATED 2026-07-29:** all 7 network
+  `openbao`-store ExternalSecrets `Ready/SecretSynced` over the mesh; ESO sidecar `Status: Connected`.
+  See todo.md Task 1.6.
 - [ ] **T6 — LAST: remove tailnet exposure — DEFERRED.** Requires T5. When the sidecar ships:
   delete openbao `Ingress` + per-host `Certificate`; remove `secret-ingress` ProxyGroup +
   ingress-nginx tailscale annotations (external-dns prunes the A record). Rollback: `git revert`.
