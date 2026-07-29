@@ -45,7 +45,7 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
 - [x] 1.1 Vendor `netbird-operator` in `vendir.yml` — **re-pinned `0.8.0` → `v0.7.0`** (`e081b4d8`/`d0fa9861`; 0.8.0 sidecar DNS regression #383)
 - [x] 1.2 `apps/platform/src/netbird-operator/` Fleet bundle (ns `netbird`, PAT secret, mgmt URL var) — deployed to BOTH clusters; operator `Running 1/1`, `netbird-mgmt-api-key` ExternalSecret `SecretSynced` (per-cluster `kv/<cluster>-netbird-operator#access_token`)
 - [x] 1.3 `tailscale_auth.sh` → `netbird_auth.sh`; seeds `netbird-mgmt-api-key` PAT (`kv/network-netbird-operator#access_token`) — operator mints its own SetupKeys, so no setup-key seeding; renamed moon task `tailscale_auth`→`netbird_auth`; rewired `start.sh`/`apply.sh`/`stop.sh` comments
-- [~] 1.4 `apps/network/src/netbird-config/` — Group `network-k8s` + SetupKey **Ready**; ClusterProxy `api-network` **Ready** (3/3 proxy peers `connected` in network-k8s, kube-apiserver fronted w/ impersonation RBAC, kubectl-only). **SUPERSEDED:** the "OIDC-discovery CRB swap (JWKS-via-ClusterProxy)" is dropped — JWKS now rides the mirror (`jwks-mirror` bundle, anonymous apiserver read), so the anonymous `clusterrolebinding-oidc-discovery.yaml` must **stay** (its comments still reference the retired Tailscale ProxyGroup — cleanup pending in 1.8). **Still pending:** custom-domain `api.network.vgijssel.nl` reachability (NetBird custom domain + Cloudflare CNAME — Ask-first, 1.7).
+- [~] 1.4 `apps/network/src/netbird-config/` — Group `network-k8s` + SetupKey **Ready**; ClusterProxy `api-network` **Ready** (3/3 proxy peers `connected` in network-k8s, kube-apiserver fronted w/ impersonation RBAC, kubectl-only). **SUPERSEDED:** the "OIDC-discovery CRB swap (JWKS-via-ClusterProxy)" is dropped — JWKS now rides the mirror (`jwks-mirror` bundle, anonymous apiserver read), so the anonymous `clusterrolebinding-oidc-discovery.yaml` must **stay** (its comments still reference the retired Tailscale ProxyGroup — cleanup pending in 1.8). **DNS-VALIDATED 2026-07-29:** `api.network.vgijssel.nl` resolves via the `*.vgijssel.nl` wildcard CNAME → `eu1.netbird.services` (see 1.7). **NUANCE:** the `api-network` ClusterProxy exposes **no custom domain** in its spec (fronts `kubernetes.default.svc` for group `network-k8s`); kubectl over NetBird rides `netbird kubernetes write-kubeconfig` (NetBird-provided endpoint), so `api.network.vgijssel.nl` is DNS-covered but **not consumed by kubectl** today — nothing further required for the kubectl path.
 - [~] 1.5 Omada over NetBird. **Approach revised again (2026-07-27, maintainer):** expose the
   **entire** Omada controller as a **single NetworkResource** — no reverse proxy at all. The
   `netbird.io/expose` ClusterIP Service `omada` (`apps/network/src/omada/templates/service-omada.yaml`)
@@ -102,12 +102,19 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   tailscale operator-oauth) are `Ready=True / SecretSynced` with fresh `refreshTime` (~07:39Z, post-start),
   and the ESO pod's `netbird` sidecar reports `Status: Connected` (relay). Full cross-cluster secret path
   proven end-to-end. **1.6 complete.**
-- [~] 1.7 Crossplane on network — **APPROACH CHANGED:** DNS managed by Crossplane **`provider-opentofu`**
+- [x] 1.7 Crossplane on network — **APPROACH CHANGED:** DNS managed by Crossplane **`provider-opentofu`**
   (inline HCL via `restapi`), **not** `provider-upjet-cloudflare` (rejected on arm64 — see
   `[[network-cloudflare-dns-opentofu]]`). **DONE:** crossplane core (`crossplane/`, pin 2.3.3),
   `crossplane-provider/` (provider-opentofu + backend RBAC), `cloudflare-config/` (ESO creds +
-  `providerconfig-opentofu.yaml` + `workspace-reverse-proxy-dns.yaml`). Records are **per-reverse-proxy CNAMEs**,
-  not one apex wildcard. **PENDING:** confirm `api.network.vgijssel.nl` (kubectl custom domain) is covered.
+  `providerconfig-opentofu.yaml` + `workspace-reverse-proxy-dns.yaml`).
+  **LIVE-VALIDATED 2026-07-29:** `provider-opentofu` Healthy/Installed; workspace `reverse-proxy-dns`
+  SYNCED/READY. It manages a **single apex wildcard** `*.vgijssel.nl` CNAME → `eu1.netbird.services`
+  (grey-cloud, `proxied=false`) and registers `vgijssel.nl` as a NetBird reverse-proxy domain
+  (`domain_validated=true`) — **NOT** per-reverse-proxy CNAMEs (that earlier note was wrong; corrected here).
+  `dig` confirms `api.network.vgijssel.nl`, `openbao.secret.vgijssel.nl`, and arbitrary depth
+  (`a.b.c.vgijssel.nl`) all → `eu1.netbird.services` (RFC 4592 deep-match, `[[cloudflare-wildcard-arbitrary-depth]]`).
+  `omada.network.vgijssel.nl` is (expected) shadowed by the still-present `omada-tailscale` external-dns
+  A record (`100.121.98.244`) — clears when Omada leaves Tailscale (1.5.b, gated on PiKVM path). **1.7 complete.**
 - [ ] 1.8 Remove `apps/network/src/tailscale-proxygroup/`; delete dead `config/externalsecret-operator-oauth.yaml`
   (Tailscale-operator OAuth); scrub stale tailnet comments; retarget platform tailscale bundle `secret`-only.
   **GATED:** `service-omada-tailscale.yaml` stays until the **PiKVM routing-peer path for physical Omada
