@@ -20,8 +20,10 @@ Verify every phase on a **freshly recreated** cluster (`stop` → `start`).
 > Everything still open is a **live cluster/secret/DNS mutation** (Ask-first).
 
 Maintainer directives baked in: JWKS via **ClusterProxy (auth/impersonation)**, no separate/anonymous
-path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove cert-manager + external-dns**
-(NetBird manages TLS, Crossplane manages DNS).
+path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove external-dns** (Crossplane
+manages DNS). NOTE: the original "remove cert-manager (NetBird manages TLS)" directive was **retracted** —
+NetBird doesn't mint certs for private/BYOP services, so cert-manager stays for the OpenBao reverse-proxy
+wildcard + Omada certs (see Phase 3 3.1). SPEC §Testing 6 already assumes the cert-manager cert.
 
 ## Prerequisite — seed OpenBao (`secret:forward` + `secret:auth`)
 - [ ] `kv/netbird#api_token` — NetBird Cloud PAT
@@ -173,16 +175,24 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   re-enroll. **Note:** the ~24h peer session expiry is now confirmed to affect EVERY long-lived NetBird client peer
   (routers, eso-sidecar, reverse-proxy) — a durable non-expiring-key fix is still needed [[netbird-routingpeer-session-expiry]].
 
-## Phase 3 — remove cert-manager + external-dns + cleanup (Ask-first for account edits)
-> **RECONCILE NOTE 2026-07-29:** 3.1/3.2 as written in `plan.md` are **blocked by live consumers**, NOT
-> removable yet: Omada **keeps** its Let's Encrypt cert (`certificate-omada.yaml`, mounted at /cert, served on
-> 8043 over the mesh — todo 1.5), so **cert-manager still has a consumer**; and external-dns still publishes the
-> `omada-tailscale` A record until Omada leaves Tailscale (1.8 apply, gated on the PiKVM path). Do NOT delete
-> cert-manager/external-dns while these consumers exist.
-- [ ] 3.1 Remove `apps/platform/src/cert-manager/` + `clusterissuer-letsencrypt-prod.yaml` + DNS-01 token ES —
-  **BLOCKED:** Omada's LE cert still uses cert-manager. Requires first moving Omada off the LE cert (self-signed).
-- [ ] 3.2 Remove `apps/platform/src/external-dns/` + `externalsecret-external-dns.yaml` — **BLOCKED** until the
-  Omada tailnet LB (`service-omada-tailscale.yaml`, now removed in code) is applied/pruned so its A record clears.
+## Phase 3 — remove external-dns + cleanup (cert-manager STAYS; Ask-first for account edits)
+> **RECONCILE NOTE 2026-07-29 (v2):** the plan's premise "NetBird manages TLS → remove cert-manager" is
+> **WRONG for the committed architecture** and 3.1 is **retired**, not merely blocked. NetBird does **not**
+> auto-provision certs for private/BYOP services, so the OpenBao exposure the migration itself built depends on
+> cert-manager: `apps/secret/src/netbird-reverse-proxy/templates/certificate-netbird-reverse-proxy.yaml` issues
+> the `*.secret.vgijssel.nl` wildcard the BYOP proxy serves. Omada's LE cert (`certificate-omada.yaml`) is a
+> second consumer. **cert-manager + `clusterissuer-letsencrypt-prod.yaml` + the cloudflare-api-token ES stay.**
+- [✗] 3.1 Remove cert-manager — **RETIRED (do not do).** Load-bearing for OpenBao's own mesh exposure (BYOP
+  reverse-proxy `*.secret.vgijssel.nl` cert) AND Omada's LE cert. Not a validation gate — an architectural
+  dependency introduced by the BYOP-reverse-proxy design (openbao sub-plan). cert-manager is now permanent surface.
+- [x] 3.2 Remove `apps/platform/src/external-dns/` + `externalsecret-external-dns.yaml` — **DONE 2026-07-29 (code).**
+  No live `external-dns.alpha.kubernetes.io` annotations remain in network/secret/platform (Omada uses
+  `netbird.io/expose`; the tailnet LB A-record was already pruned at the live cutover; DNS is now Crossplane
+  `provider-opentofu`). Deleted the platform external-dns bundle + its ES; scrubbed external-dns refs in
+  `config/fleet.yaml` + `ingress-nginx/values.yaml`. **Vendored chart `third_party/vendir/charts/external-dns` +
+  vendir entry KEPT** — `apps/enigma-cluster` (out of scope) still consumes it via `helmrelease-external-dns.yaml`.
+  **⚠️ APPLY GATE:** applying prunes live external-dns on BOTH clusters — safe now (no owned records left) but
+  confirm `omada.network.vgijssel.nl` resolves via the Crossplane wildcard CNAME before/after apply.
 - [ ] 3.3 **Account-level (maintainer only — I cannot reach these):** delete Tailscale OAuth clients
   (`tag:network-operator`, `tag:secret-operator`), the tailnet ACL entries for `api-network`/`api-secret`/
   `omada-network`/`svc:secret`, any tailnet Services, and `kv/*-tailscale-*` in OpenBao (`kv/network-tailscale-operator`,
@@ -191,8 +201,10 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   it. Only remove the network/secret-specific entries; leave PiKVM + enigma policy intact. enigma's OAuth is in
   **1Password** (`vaults/setup-enigma-cluster/items/tailscale-operator`), NOT OpenBao, so deleting the homelab
   `kv/*-tailscale-*` does not affect it.
-- [ ] 3.4 Repo-wide grep clean **is met for the migration scope** (`apps/network/src apps/secret/src apps/platform/src`
-  → no tailscale/tail2c33e2/ProxyGroup, verified 2026-07-29). `trunk fmt`/`check` clean on all committed changes.
-  Still pending: full dual-cluster fresh bring-up passing SPEC §Testing 1–7 (live apply). Repo-wide grep still shows
-  tailscale under `apps/enigma-cluster` + `third_party/vendir` (out of scope, intentionally retained) and the
-  historical `apps/network/{SPEC,PLAN}.md` docs (allowed by SPEC §Testing 7).
+- [x] 3.4 Grep clean **NOW ACTUALLY MET 2026-07-29** — the earlier "met" claim was false: `grep -riE
+  "tailscale|tail2c33e2\.ts\.net|proxygroup" apps/network/src apps/secret/src apps/platform/src` had **10 stale
+  comment hits**. Reworded them all (netbird-config groups, per-cluster mgmt-api-key ESs, openbao/values,
+  secret+platform fleet, clusterissuer, netbird-operator/values, ingress-nginx Chart+values) → grep now returns
+  **nothing**. `trunk check` clean. Out-of-scope tailscale under `apps/enigma-cluster` + `third_party/vendir` and
+  the historical `apps/network/{SPEC,PLAN}.md` docs remain (allowed by SPEC §Testing 7).
+  **Still pending:** full dual-cluster fresh bring-up passing SPEC §Testing 1–7 (live apply — Ask-first).

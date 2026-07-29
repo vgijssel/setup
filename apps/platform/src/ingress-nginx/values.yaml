@@ -1,10 +1,10 @@
 # ingress-nginx (rke2's default controller). ClusterIP-only: OpenBao is no longer exposed on
 # a LoadBalancer VIP — it is reached over the NetBird mesh via the BYOP reverse proxy
 # (openbao.secret.vgijssel.nl, apps/secret/src/netbird-reverse-proxy). The former VIP path
-# (a LoadBalancer Service with external-dns publishing openbao.secret.vgijssel.nl) is retired:
-# the OpenBao Ingress + per-host cert + the VIP were removed, so external-dns (policy: sync)
-# prunes the A record. The controller stays as a plain ClusterIP for any remaining in-cluster
-# Ingress (e.g. netdata's local host); no VIP, no public DNS.
+# (a LoadBalancer Service that published openbao.secret.vgijssel.nl) is fully retired: the
+# OpenBao Ingress + per-host cert + the VIP were removed, and external-dns itself has since
+# been removed from the cluster (public DNS is now Crossplane-managed). The controller stays
+# as a plain ClusterIP for any remaining in-cluster Ingress (e.g. netdata's local host).
 ingress-nginx:
   controller:
     replicaCount: 1

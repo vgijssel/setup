@@ -1,6 +1,6 @@
 apiVersion: v2
 name: ingress-nginx
-description: ingress-nginx controller, exposed on the tailnet via the Tailscale operator, terminating the openbao.secret.vgijssel.nl LE cert
+description: ingress-nginx controller (ClusterIP-only) for in-cluster Ingress; OpenBao is now fronted by the NetBird BYOP reverse proxy
 version: 1.0.0
 appVersion: 1.12.0
 dependencies:

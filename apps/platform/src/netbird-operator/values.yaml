@@ -2,7 +2,7 @@
 # `netbird-mgmt-api-key` (key `NB_API_KEY`), populated by the per-cluster
 # ExternalSecret in apps/{network,secret}/src/config. Until that Secret exists the
 # operator stays not-Ready, which is expected during bootstrap — the same
-# chicken-and-egg the Tailscale operator's operator-oauth Secret had.
+# chicken-and-egg the prior operator's operator-oauth Secret had.
 #
 # Values are keyed under the subchart name (`netbird-operator`). `cluster.name` is set
 # per-cluster in fleet.yaml's targetCustomizations (it names the NetBird network +
