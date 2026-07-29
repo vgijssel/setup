@@ -18,11 +18,11 @@ metadata:
     app: jwks-mirror
   annotations:
     netbird.io/expose: "true"
-    netbird.io/groups: "jwks-mirror"
-    netbird.io/policy: "jwks-mirror"
-    netbird.io/policy-protocol: "tcp"
+    netbird.io/groups: jwks-mirror
+    netbird.io/policy: jwks-mirror
+    netbird.io/policy-protocol: tcp
     netbird.io/policy-ports: "80"
-    netbird.io/policy-source-groups: "secret"
+    netbird.io/policy-source-groups: secret
 spec:
   selector:
     app: jwks-mirror
