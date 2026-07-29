@@ -129,7 +129,15 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   the Omada tailnet LB + its external-dns A record for `omada.network.vgijssel.nl`. Do NOT `network:apply` until the
   **PiKVM routing-peer path for physical Omada device adoption** is live-validated (1.5.a). Platform tailscale bundle
   wasn't "retargeted secret-only" — it was **deleted outright** (see Phase 2 platform note).
-- [ ] **Checkpoint:** fresh `network:start`; Connected; kubectl via ClusterProxy; JWKS via mirror/gateway; Omada UI+devices; CNAMEs resolve; ESO syncs; no tailscale refs — **pending live apply**
+- [x] **Checkpoint — LIVE CUTOVER DONE 2026-07-29.** `network:apply` re-applied; deleted stale Fleet bundles
+  `network-tailscale-proxygroup` + `platform-tailscale` → Fleet pruned BundleDeployments; force-removed the orphaned
+  ProxyGroup finalizers (operator was deleted first), deleted the `tailscale` ns + the 5 `tailscale.com` CRDs.
+  **Tailscale fully gone on network** (ns/CRDs/ProxyGroups/operator/omada tailnet LB/fleet bundles all absent).
+  ClusterProxy `api-network` Ready; omada NBResource Ready; `omada.network.vgijssel.nl` now resolves →
+  `eu1.netbird.services` (external-dns pruned the old tailnet A record — 1.7 shadowing cleared); openbao
+  ClusterSecretStore Valid + 6 ExternalSecrets SecretSynced over the mesh. **Gotcha:** ALL long-lived NetBird
+  client peers (router, eso-sidecar) had hit the ~24h session expiry — `rollout restart` re-enrolled them
+  [[netbird-routingpeer-session-expiry]].
 
 ## Phase 2 — secret migration
 - [x] 2.1 `apps/secret/src/netbird-config/` — **DONE.** `NBRoutingPeer router` (v1 stack) live + auto-group `secret`
@@ -156,7 +164,14 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   `helmrelease-tailscale-operator.yaml`. **⚠️ APPLY GATE (not yet applied):** applying prunes the live `api-secret`
   Tailscale ProxyGroup + tears down the shared `tailscale` operator bundle on both clusters — do the `secret:apply`
   (which creates ClusterProxy `api-secret` first) before losing the `api-secret` VIP so kubectl access isn't dropped.
-- [ ] **Checkpoint:** fresh `secret:start`; Connected; `api-secret` kubectl via write-kubeconfig; `jwt-network` reconciles; **network ESO → secret OpenBao JWT sync**; OpenBao UI over NetBird; `secret:auth`/`forward` — **pending live apply**
+- [x] **Checkpoint — LIVE CUTOVER DONE 2026-07-29.** `secret:apply` re-applied → operator provisioned Group
+  `secret-k8s`, SetupKey, ServiceAccount, and **ClusterProxy `api-secret` (Ready, 3 proxy peers)**. THEN deleted
+  stale Fleet bundles `secret-tailscale-proxygroup` + `platform-tailscale`; force-removed the orphaned `api-secret`
+  ProxyGroup finalizer; deleted the `tailscale` ns + CRDs. **Tailscale fully gone on secret.** `jwt-network`
+  AuthBackend Synced/Ready (JWKS over mesh); network ESO → secret OpenBao JWT sync Valid (validated from the network
+  side, above). Secret `router` + `netbird-reverse-proxy` peers had also hit the ~24h session expiry → rolled to
+  re-enroll. **Note:** the ~24h peer session expiry is now confirmed to affect EVERY long-lived NetBird client peer
+  (routers, eso-sidecar, reverse-proxy) — a durable non-expiring-key fix is still needed [[netbird-routingpeer-session-expiry]].
 
 ## Phase 3 — remove cert-manager + external-dns + cleanup (Ask-first for account edits)
 > **RECONCILE NOTE 2026-07-29:** 3.1/3.2 as written in `plan.md` are **blocked by live consumers**, NOT
