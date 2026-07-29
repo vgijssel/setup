@@ -120,28 +120,64 @@ path, no `noauth`; **Cloudflare Crossplane on the network cluster**; **remove ce
   (`a.b.c.vgijssel.nl`) all → `eu1.netbird.services` (RFC 4592 deep-match, `[[cloudflare-wildcard-arbitrary-depth]]`).
   `omada.network.vgijssel.nl` is (expected) shadowed by the still-present `omada-tailscale` external-dns
   A record (`100.121.98.244`) — clears when Omada leaves Tailscale (1.5.b, gated on PiKVM path). **1.7 complete.**
-- [ ] 1.8 Remove `apps/network/src/tailscale-proxygroup/`; delete dead `config/externalsecret-operator-oauth.yaml`
-  (Tailscale-operator OAuth); scrub stale tailnet comments; retarget platform tailscale bundle `secret`-only.
-  **GATED:** `service-omada-tailscale.yaml` stays until the **PiKVM routing-peer path for physical Omada
-  device adoption** is live-validated (see 1.5.a) — don't delete the Omada Tailscale LB before then.
-- [ ] **Checkpoint:** fresh `network:start`; Connected; kubectl+JWKS via ClusterProxy; Omada UI+devices; CNAMEs resolve; ESO syncs; no tailscale refs
+- [x] 1.8 **CODE DONE 2026-07-29 (`dae24785`).** Removed `apps/network/src/tailscale-proxygroup/` (api-network +
+  network-ingress ProxyGroups), deleted dead `config/externalsecret-operator-oauth.yaml` (Tailscale-operator OAuth),
+  removed `omada/templates/service-omada-tailscale.yaml`, scrubbed tailnet comments (omada fleet/values,
+  certificate-omada, clusterrolebinding-oidc-discovery — the anonymous binding STAYS for the jwks-mirror,
+  jwks-mirror/fleet, clusterproxy-api-network). `apps/network/src` grep-clean of tailscale/ProxyGroup.
+  **⚠️ APPLY GATE (not yet applied to the live cluster):** applying prunes the live Tailscale ProxyGroups AND drops
+  the Omada tailnet LB + its external-dns A record for `omada.network.vgijssel.nl`. Do NOT `network:apply` until the
+  **PiKVM routing-peer path for physical Omada device adoption** is live-validated (1.5.a). Platform tailscale bundle
+  wasn't "retargeted secret-only" — it was **deleted outright** (see Phase 2 platform note).
+- [ ] **Checkpoint:** fresh `network:start`; Connected; kubectl via ClusterProxy; JWKS via mirror/gateway; Omada UI+devices; CNAMEs resolve; ESO syncs; no tailscale refs — **pending live apply**
 
 ## Phase 2 — secret migration
-- [~] 2.1 `apps/secret/src/netbird-config/` — **DONE:** `NBRoutingPeer router` (v1 stack) live + auto-group `secret` Connected — the consumer half of the cross-cluster JWKS path (proven, see 0.3). **PENDING:** ClusterProxy (`api.secret`) for kubectl; exposing OpenBao to `network-k8s` for network ESO. **RECONCILED 2026-07-28:** the OpenBao-exposure half is now delivered by the **BYOP reverse proxy** (openbao sub-plan) + the network **eso-sidecar** consumer (1.6), not a `NetworkResource` here; ClusterProxy `api.secret` for kubectl is still pending (see 2.4).
+- [x] 2.1 `apps/secret/src/netbird-config/` — **DONE.** `NBRoutingPeer router` (v1 stack) live + auto-group `secret`
+  Connected — the consumer half of the cross-cluster JWKS path (proven, see 0.3). **ClusterProxy `api-secret` for
+  kubectl now authored 2026-07-29 (`7c8bf9a2`):** added `group-secret-k8s`, `setupkey-secret-k8s`,
+  `serviceaccount-clusterproxy` (impersonation), `clusterproxy-api-secret` — mirrors the network stack; NO custom
+  domain (ClusterProxy limitation), kubectl via `netbird kubernetes write-kubeconfig`. **Validated:** all four
+  manifests pass `kubectl apply --dry-run=server` against the live secret cluster's netbird.io CRDs. **PENDING:**
+  live apply + `write-kubeconfig` smoke test. **RECONCILED 2026-07-28:** OpenBao-exposure half delivered by the
+  **BYOP reverse proxy** (openbao sub-plan) + the network **eso-sidecar** (1.6), not a `NetworkResource` here.
 - [x] 2.2 `authbackend-jwt-network.yaml` `jwksUrl` → `http://jwks-gateway.netbird.svc.cluster.local/openid/v1/jwks` (mesh gateway, plain HTTP — no `jwksCaPem` needed; the ClusterProxy/custom-domain path was superseded by the mirror+gateway). Applied live, AuthBackend Synced/Ready, network ESO validated. See 0.3 + `apps/secret/src/jwks-gateway/`.
 - [~] 2.3 secret OpenBao exposure — **largely DONE (`8c257f8d`):** deleted `certificate-secret.yaml` +
   `ingress-openbao.yaml`, moved `ingress-nginx` off the Tailscale LB (ClusterIP). OpenBao is now exposed
   **mesh-only via the BYOP reverse proxy** at `openbao.secret.vgijssel.nl` (see openbao sub-plan T2/T9),
   not a NetBird-minted L7 domain. The "ESO setup-key ES" part is **superseded** (operator mints keys).
   **PENDING:** live bring-up validation (openbao sub-plan **T9**).
-- [~] 2.4 Remove secret Tailscale surface — **partial:** `8c257f8d` deleted the OpenBao VIP
-  `tailscale-proxygroup/proxygroup.yaml`. **STILL PRESENT:** `tailscale-proxygroup/proxygroup-apiserver.yaml`
-  (the `api-secret` kube-apiserver VIP — pending replacement by a NetBird `ClusterProxy api.secret`, see 2.1),
-  `apps/platform/src/tailscale/`, and the vendir `tailscale-operator` entry.
-- [ ] **Checkpoint:** fresh `secret:start`; Connected; `api.secret` kubectl; `jwt-network` reconciles; **network ESO → secret OpenBao JWT sync**; OpenBao UI over NetBird; `secret:auth`/`forward`
+- [x] 2.4 Remove secret Tailscale surface — **CODE DONE 2026-07-29 (`c623f2d0` + `6128eb1d`).** Deleted
+  `apps/secret/src/tailscale-proxygroup/` (the `api-secret` kube-apiserver VIP — replaced by ClusterProxy
+  `api-secret`, 2.1), deleted dead `apps/secret/src/config/externalsecret-operator-oauth.yaml`, scrubbed tailnet
+  comments (openbao-config mount-kv + authbackend-jwt-network, netbird-config). Deleted `apps/platform/src/tailscale/`
+  (the shared Tailscale operator bundle). `apps/secret` + `apps/platform` grep-clean of tailscale/ProxyGroup.
+  **The vendir `tailscale-operator` entry + vendored chart are INTENTIONALLY KEPT** — `apps/enigma-cluster` (out of
+  scope, SPEC Non-goals) still consumes `third_party/vendir/charts/tailscale-operator` via
+  `helmrelease-tailscale-operator.yaml`. **⚠️ APPLY GATE (not yet applied):** applying prunes the live `api-secret`
+  Tailscale ProxyGroup + tears down the shared `tailscale` operator bundle on both clusters — do the `secret:apply`
+  (which creates ClusterProxy `api-secret` first) before losing the `api-secret` VIP so kubectl access isn't dropped.
+- [ ] **Checkpoint:** fresh `secret:start`; Connected; `api-secret` kubectl via write-kubeconfig; `jwt-network` reconciles; **network ESO → secret OpenBao JWT sync**; OpenBao UI over NetBird; `secret:auth`/`forward` — **pending live apply**
 
 ## Phase 3 — remove cert-manager + external-dns + cleanup (Ask-first for account edits)
-- [ ] 3.1 Remove `apps/platform/src/cert-manager/` + `clusterissuer-letsencrypt-prod.yaml` + DNS-01 token ES
-- [ ] 3.2 Remove `apps/platform/src/external-dns/` + `externalsecret-external-dns.yaml` (DNS now Crossplane-managed)
-- [ ] 3.3 Delete Tailscale Services/OAuth clients/ACL + `kv/*-tailscale-*` (confirm PiKVM/shared-policy scope first)
-- [ ] 3.4 Repo-wide grep clean (tailscale/cert-manager/external-dns/ProxyGroup); `trunk fmt`+`check`; full dual-cluster bring-up passes SPEC §Testing 1–7
+> **RECONCILE NOTE 2026-07-29:** 3.1/3.2 as written in `plan.md` are **blocked by live consumers**, NOT
+> removable yet: Omada **keeps** its Let's Encrypt cert (`certificate-omada.yaml`, mounted at /cert, served on
+> 8043 over the mesh — todo 1.5), so **cert-manager still has a consumer**; and external-dns still publishes the
+> `omada-tailscale` A record until Omada leaves Tailscale (1.8 apply, gated on the PiKVM path). Do NOT delete
+> cert-manager/external-dns while these consumers exist.
+- [ ] 3.1 Remove `apps/platform/src/cert-manager/` + `clusterissuer-letsencrypt-prod.yaml` + DNS-01 token ES —
+  **BLOCKED:** Omada's LE cert still uses cert-manager. Requires first moving Omada off the LE cert (self-signed).
+- [ ] 3.2 Remove `apps/platform/src/external-dns/` + `externalsecret-external-dns.yaml` — **BLOCKED** until the
+  Omada tailnet LB (`service-omada-tailscale.yaml`, now removed in code) is applied/pruned so its A record clears.
+- [ ] 3.3 **Account-level (maintainer only — I cannot reach these):** delete Tailscale OAuth clients
+  (`tag:network-operator`, `tag:secret-operator`), the tailnet ACL entries for `api-network`/`api-secret`/
+  `omada-network`/`svc:secret`, any tailnet Services, and `kv/*-tailscale-*` in OpenBao (`kv/network-tailscale-operator`,
+  `kv/secret-tailscale-operator`, `kv/network-tailscale-config`). **CONFIRM SCOPE FIRST:** the tailnet ACL is SHARED —
+  PiKVM `[[pikvm-netbird-dns]]` and **`apps/enigma-cluster`** (its own `tailscale-operator`, out of scope) also live on
+  it. Only remove the network/secret-specific entries; leave PiKVM + enigma policy intact. enigma's OAuth is in
+  **1Password** (`vaults/setup-enigma-cluster/items/tailscale-operator`), NOT OpenBao, so deleting the homelab
+  `kv/*-tailscale-*` does not affect it.
+- [ ] 3.4 Repo-wide grep clean **is met for the migration scope** (`apps/network/src apps/secret/src apps/platform/src`
+  → no tailscale/tail2c33e2/ProxyGroup, verified 2026-07-29). `trunk fmt`/`check` clean on all committed changes.
+  Still pending: full dual-cluster fresh bring-up passing SPEC §Testing 1–7 (live apply). Repo-wide grep still shows
+  tailscale under `apps/enigma-cluster` + `third_party/vendir` (out of scope, intentionally retained) and the
+  historical `apps/network/{SPEC,PLAN}.md` docs (allowed by SPEC §Testing 7).
