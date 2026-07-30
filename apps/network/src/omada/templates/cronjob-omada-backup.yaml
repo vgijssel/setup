@@ -1,0 +1,181 @@
+# Ship Omada's native Auto Backup .cfg files off-cluster to S3-compatible object storage.
+#
+# WHY: Omada's own Auto Backup engine writes rotated, encrypted .cfg snapshots to
+# /opt/tplink/EAPController/data/autobackup on the data PVC — but that PVC lives on the same
+# OrbStack VM disk as everything else, so a disk/machine loss takes the backups with it. The
+# .cfg is a portable LOGICAL backup (architecture-/host-independent), which is exactly the
+# artifact to restore into the future amd64 cluster; getting it off the box is the whole point.
+#
+# WHAT: daily, an init step (alpine/kubectl) finds the running Omada pod by label and streams
+# the autobackup dir out via `kubectl exec ... -- tar` into a shared emptyDir; then rclone
+# uploads it with `copy` (additive — never deletes) so S3 accumulates full history even after
+# Omada rotates the local copies. rclone's remote `s3:` is configured entirely from env
+# (RCLONE_CONFIG_S3_*), with the access/secret keys coming from the ESO-synced
+# omada-backup-s3 Secret (externalsecret-omada-backup-s3.yaml).
+#
+# PREREQUISITE (one-time, manual): enable Omada Auto Backup in the UI —
+#   Settings > Backup & Restore > Auto Backup: Daily, pick a retained-data range (NOT
+#   "Settings only" if you want client/stats history), set a max file count. Until at least one
+#   .cfg exists the job logs "no .cfg files yet" and exits cleanly.
+#
+# NOTE: assumes the S3 endpoint is reachable over normal internet egress (AWS/B2/public MinIO).
+# If your endpoint is only reachable over the NetBird mesh, add a netbird client sidecar like
+# apps/network/src/eso-sidecar does for OpenBao.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: omada-backup
+  namespace: omada
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  timeZone: {{ .Values.backup.timeZone | quote }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 120
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 600
+      template:
+        spec:
+          serviceAccountName: omada-backup
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            fsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+            # Copy the autobackup .cfg files out of the running Omada container into /work.
+            # alpine/kubectl (not registry.k8s.io/kubectl, which is distroless with no shell) —
+            # the logic runs in /bin/sh, and busybox tar unpacks the stream. Pinned to the
+            # multi-arch index digest, matching the v1.35.0 clusters.
+            - name: fetch-cfg
+              image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
+              env:
+                - name: HOME
+                  value: /tmp
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests: { cpu: 10m, memory: 32Mi }
+                limits: { cpu: 200m, memory: 128Mi }
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+                - name: work
+                  mountPath: /work
+              command: [/bin/sh, -c]
+              args:
+                - |
+                  set -eu
+                  ns=omada
+                  sel='app.kubernetes.io/name=omada-controller,app.kubernetes.io/instance=omada'
+                  # First Running pod matching the selector (StatefulSet is single-replica).
+                  pod="$(kubectl -n "$ns" get pod -l "$sel" \
+                    -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null \
+                    | awk '{print $1}')"
+                  if [ -z "$pod" ]; then
+                    echo "omada-backup: no Running omada pod (selector $sel); nothing to fetch"
+                    exit 0
+                  fi
+                  echo "omada-backup: source pod $pod"
+
+                  dir=/opt/tplink/EAPController/data/autobackup
+                  if ! kubectl -n "$ns" exec "$pod" -c omada-controller -- \
+                        sh -c "ls $dir/*.cfg >/dev/null 2>&1"; then
+                    echo "omada-backup: no .cfg files under $dir yet."
+                    echo "  -> enable Omada Auto Backup: Settings > Backup & Restore > Auto Backup."
+                    exit 0
+                  fi
+
+                  mkdir -p /work/autobackup
+                  # No TTY (-i/-t) so the tar stream stays binary-clean.
+                  kubectl -n "$ns" exec "$pod" -c omada-controller -- \
+                    tar cf - -C /opt/tplink/EAPController/data autobackup | tar xf - -C /work
+                  n="$(ls -1 /work/autobackup/*.cfg 2>/dev/null | wc -l | tr -d ' ')"
+                  echo "omada-backup: fetched ${n} .cfg file(s)"
+          containers:
+            # Upload the fetched .cfg files to S3-compatible storage. rclone/rclone is alpine-based
+            # (has /bin/sh); the `s3:` remote is built from RCLONE_CONFIG_S3_* env. Pinned to the
+            # multi-arch (arm64+amd64) index digest.
+            - name: upload
+              image: rclone/rclone:1.71.1@sha256:d5971950c2b370fb04dd3292541b5bda6d9103143fd7e345aeb435a399388afc
+              env:
+                - name: HOME
+                  value: /tmp
+                - name: RCLONE_CONFIG_S3_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_S3_PROVIDER
+                  value: {{ .Values.backup.s3.provider | quote }}
+                - name: RCLONE_CONFIG_S3_ENDPOINT
+                  valueFrom:
+                    secretKeyRef:
+                      name: omada-backup-s3
+                      key: endpoint
+                - name: RCLONE_CONFIG_S3_REGION
+                  valueFrom:
+                    secretKeyRef:
+                      name: omada-backup-s3
+                      key: region
+                - name: RCLONE_CONFIG_S3_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: omada-backup-s3
+                      key: access_key_id
+                - name: RCLONE_CONFIG_S3_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: omada-backup-s3
+                      key: secret_access_key
+                - name: BUCKET
+                  valueFrom:
+                    secretKeyRef:
+                      name: omada-backup-s3
+                      key: bucket
+                - name: PREFIX
+                  value: {{ .Values.backup.s3.prefix | quote }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests: { cpu: 10m, memory: 32Mi }
+                limits: { cpu: 200m, memory: 128Mi }
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+                - name: work
+                  mountPath: /work
+              command: [/bin/sh, -c]
+              args:
+                - |
+                  set -eu
+                  src=/work/autobackup
+                  if [ ! -d "$src" ] || ! ls "$src"/*.cfg >/dev/null 2>&1; then
+                    echo "omada-backup: nothing to upload"
+                    exit 0
+                  fi
+                  if [ -z "${BUCKET}" ]; then
+                    echo "omada-backup: bucket is empty — set the 'bucket' field in kv/s3-backup" >&2
+                    exit 1
+                  fi
+                  n="$(ls -1 "$src"/*.cfg | wc -l | tr -d ' ')"
+                  dest="s3:${BUCKET}/${PREFIX}"
+                  echo "omada-backup: uploading ${n} .cfg file(s) to ${dest}"
+                  # copy (not sync): additive, never deletes — S3 keeps history beyond Omada's
+                  # local rotation. --s3-no-check-bucket avoids needing CreateBucket permission.
+                  rclone copy "$src" "$dest" --s3-no-check-bucket --stats-one-line -v
+                  echo "omada-backup: upload complete"
+          volumes:
+            - name: tmp
+              emptyDir: {}
+            - name: work
+              emptyDir: {}
