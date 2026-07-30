@@ -36,14 +36,22 @@ NB_API_URL="${NB_API_URL:-https://api.netbird.io}"
 KV_MOUNT="${KV_MOUNT:-kv}"
 KV_PROXY_PATH="${KV_PROXY_PATH:-secret-netbird-proxy}"
 PROXY_TOKEN_NAME="${PROXY_TOKEN_NAME:-secret.vgijssel.nl}"
+CLUSTER_NAME="${SECRET_CLUSTER_NAME:-secret}"
 
 require() { command -v "$1" >/dev/null 2>&1 || {
   echo "ERROR: '$1' is required but not found" >&2
   exit 1
 }; }
+require vcluster
 require kubectl
 require jq
 require curl
+
+# Point kubectl at the '${CLUSTER_NAME}' vind cluster regardless of the ambient
+# kube-context (select the docker driver + connect; idempotent).
+echo "==> Connecting to the '${CLUSTER_NAME}' vind cluster (vcluster connect)"
+vcluster use driver docker >/dev/null 2>&1 || true
+vcluster connect "${CLUSTER_NAME}"
 
 # Fail early if the SA / pod aren't there (wrong cluster/context, or not applied yet).
 if ! kubectl -n "${NS}" get serviceaccount "${SA}" >/dev/null 2>&1; then

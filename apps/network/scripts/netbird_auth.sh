@@ -32,6 +32,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
+CLUSTER_NAME="${NETWORK_CLUSTER_NAME:-network}"
 CONTEXT="${NETWORK_KUBE_CONTEXT:-vcluster-docker_network}"
 NB_NAMESPACE="${NB_NAMESPACE:-netbird}"
 REMOTE_BAO_ADDR="${REMOTE_BAO_ADDR:-https://openbao.secret.vgijssel.nl}"
@@ -42,9 +43,18 @@ require() { command -v "$1" >/dev/null 2>&1 || {
   echo "ERROR: '$1' is required but not found" >&2
   exit 1
 }; }
+require vcluster
 require kubectl
 require jq
 require bao
+
+# Point kubectl at the '${CLUSTER_NAME}' vind cluster regardless of the ambient
+# kube-context (select the docker driver + connect; idempotent). This makes the
+# active context this cluster; the explicit --context "${CONTEXT}" flags below still
+# pin every write to it belt-and-suspenders.
+echo "==> Connecting to the '${CLUSTER_NAME}' vind cluster (vcluster connect)"
+vcluster use driver docker >/dev/null 2>&1 || true
+vcluster connect "${CLUSTER_NAME}"
 
 # Load VAULT_TOKEN (secret-cluster root) from .env if not already exported.
 if [[ -z "${VAULT_TOKEN:-}" && -f "${REPO_ROOT}/.env" ]]; then
