@@ -11,6 +11,7 @@ def up(
     disable_dns: bool = False,
     allow_server_ssh: bool = False,
     enable_ssh_root: bool = False,
+    enable_ssh_sftp: bool = False,
 ):
     """Run ``netbird up`` to register / (re)connect the peer.
 
@@ -28,6 +29,10 @@ def up(
         enable_ssh_root: passed through as ``--enable-ssh-root=<true|false>`` to permit
             root login on the native SSH server. Only meaningful when ``allow_server_ssh``
             is ``True``; likewise persisted (``EnableSSHRoot``), so set explicitly.
+        enable_ssh_sftp: passed through as ``--enable-ssh-sftp=<true|false>`` to serve the
+            SFTP subsystem on the native SSH server. Required for ``pyinfra``'s
+            ``files.put`` (which uploads over SFTP) to work when management runs OVER the
+            NetBird SSH server. Persisted as ``EnableSSHSFTP``, so set explicitly.
 
     Not idempotent: ``netbird up`` on an already-connected peer is itself a no-op, but
     pyinfra cannot know that, so callers gate this with ``_if`` / a connected fact.
@@ -35,10 +40,12 @@ def up(
     dns_flag = "true" if disable_dns else "false"
     ssh_flag = "true" if allow_server_ssh else "false"
     ssh_root_flag = "true" if enable_ssh_root else "false"
+    ssh_sftp_flag = "true" if enable_ssh_sftp else "false"
     args = (
         f"--disable-dns={dns_flag} "
         f"--allow-server-ssh={ssh_flag} "
-        f"--enable-ssh-root={ssh_root_flag}"
+        f"--enable-ssh-root={ssh_root_flag} "
+        f"--enable-ssh-sftp={ssh_sftp_flag}"
     )
     if setup_key is not None:
         yield StringCommand(

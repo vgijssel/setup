@@ -30,7 +30,6 @@ Behaviour reproduced verbatim from https://docs.pikvm.org/netbird/ (asset files 
 """
 
 import hashlib
-import ipaddress
 import os
 from io import StringIO
 from pathlib import Path
@@ -45,6 +44,7 @@ from pyinfra_custom.facts import (
     NetbirdDnsDisabled,
     NetbirdServerSshAllowed,
     NetbirdSshRootEnabled,
+    NetbirdSshSftpEnabled,
     NetbirdVersion,
     NetdataVersion,
     OpenBaoSecret,
@@ -162,7 +162,11 @@ _resolv_conf_sha = hashlib.sha256(_resolv_conf.encode()).hexdigest()
 
 # It is out of sync if it is still the resolved-managed symlink, or a plain file whose
 # contents differ from ours. A converged box (our static file already in place) does nothing.
-resolv_is_symlink = host.get_fact(Link, path=RESOLV_CONF_REMOTE) is not None
+# The Link fact returns a dict for a symlink, False for a non-link file, and None if absent
+# -- so a plain `is not None` wrongly treats an already-converged regular file (False) as a
+# symlink and then errors removing a link that isn't there. Only a dict means "still a
+# symlink we must drop first".
+resolv_is_symlink = isinstance(host.get_fact(Link, path=RESOLV_CONF_REMOTE), dict)
 resolv_needs_rw = (
     resolv_is_symlink
     or host.get_fact(Sha256File, path=RESOLV_CONF_REMOTE) != _resolv_conf_sha
@@ -381,7 +385,14 @@ with rootfs.writable(changed_if=netbird_needs_rw):
         )
 
 
-# ── netbird up (DNS + native SSH enabled) + config-change restart (Task 6) ───────
+# ── netbird up (DNS + native SSH + SFTP enabled) + config-change restart (Task 6) ─
+# SFTP: the native SSH server is started with `--enable-ssh-sftp` (`enable_ssh_sftp=True`)
+# so it serves an SFTP subsystem. pyinfra's `files.put` uploads over SFTP, so WITHOUT this
+# the apply cannot transfer any changed file when it runs over the NetBird SSH server --
+# it fails with "Unable to establish SFTP connection". (The netbird@ systemd override also
+# drops ProtectHome/ProtectSystem so those SSH sessions can write the rootfs at all -- see
+# files/netbird@.service.d/pikvm.conf.) Persisted as EnableSSHSFTP; reconciled below.
+#
 # NATIVE SSH: NetBird's built-in SSH server is enabled here (`allow_server_ssh=True`)
 # with root login permitted (`enable_ssh_root=True`) so the box stays reachable as
 # `root` the same way it is today, but authenticated by NetBird/IdP identity (JWT) over
@@ -427,6 +438,10 @@ dns_currently_disabled = host.get_fact(NetbirdDnsDisabled)
 # which correctly drives the reconcile to turn them on.
 ssh_server_allowed = host.get_fact(NetbirdServerSshAllowed)
 ssh_root_enabled = host.get_fact(NetbirdSshRootEnabled)
+# SFTP subsystem on the native SSH server: pyinfra's files.put uploads over SFTP, so the
+# apply cannot transfer a changed file when it runs OVER the NetBird SSH server unless this
+# is on. Persisted as EnableSSHSFTP; drives the reconcile the same way as the flags above.
+ssh_sftp_enabled = host.get_fact(NetbirdSshSftpEnabled)
 
 if not netbird_connected and SKIP_SECRETS:
     # Registration needs the setup key from OpenBao; there is no secret-free path to
@@ -452,11 +467,12 @@ if not netbird_connected:
     # netbird.up passes the setup key via per-command _env ($NB_SETUP_KEY) -- never in
     # argv or --dry.
     netbird.up(
-        name="NetBird: register with setup key (DNS + native SSH enabled)",
+        name="NetBird: register with setup key (DNS + native SSH + SFTP enabled)",
         setup_key=_secret("netbird_setup_key"),
         disable_dns=False,
         allow_server_ssh=True,
         enable_ssh_root=True,
+        enable_ssh_sftp=True,
     )
     with rootfs.writable(changed_if=True):
         server.shell(
@@ -479,7 +495,7 @@ else:
             "sleep 1; "
             "netbird down || true; "
             "netbird up --disable-dns=false "
-            "--allow-server-ssh=true --enable-ssh-root=true; "
+            "--allow-server-ssh=true --enable-ssh-root=true --enable-ssh-sftp=true; "
             "rw; cp -a /tmp/netbird-state/. /root/netbird-state/; ro"
             "'",
         ],
@@ -491,6 +507,7 @@ else:
             or dns_currently_disabled
             or not ssh_server_allowed
             or not ssh_root_enabled
+            or not ssh_sftp_enabled
         ),
     )
 
@@ -541,60 +558,92 @@ if passwords_need_update:
         )
 
 
-# ── Static IPv4 via systemd-networkd (Task 8) ────────────────────────────────────
-# Assign a static IPv4 by rendering /etc/systemd/network/<iface>.network. The default
-# address equals the current LAN IP (192.168.1.31/24), so a normal apply changes no
-# address -- only pins it. Applying it uses `networkctl reload && reconfigure`, not a
-# networkd restart, so the active SSH session is not severed when the address is
-# unchanged.
+# ── DHCP (untagged) + static VLAN 10 via systemd-networkd (Task 8) ────────────────
+# The PiKVM's switch port is a TRUNK: it carries the untagged/native VLAN plus tagged
+# 802.1Q VLAN 10 (Management). We configure both:
+#   * <iface>.network  -> DHCP=ipv4 on the untagged/native traffic (takes whatever lease
+#     the DHCP server on the native VLAN hands out) AND VLAN=vlan10 to attach the tagged
+#     device on top of the physical link. The default route comes from this DHCP lease.
+#   * vlan10.netdev    -> creates the 802.1Q tagged interface (Kind=vlan, Id=10).
+#   * vlan10.network   -> pins the tagged interface to the static Management address
+#     192.168.10.2/24 (no gateway -- untagged DHCP owns the default route). This is the
+#     stable, predictable address the Omada static route (10.96.0.20 -> pikvm) and the
+#     NetBird site-to-VPN path want as a next-hop, independent of the DHCP lease.
+# Applying it uses `networkctl reload && reconfigure`, not a networkd restart, so the
+# eth0/LAN session used by `apply_local` is not bounced.
 #
-# CONNECTIVITY RISK (SPEC "ask first"): changing PIKVM_STATIC_IP/gateway to values that
-# differ from the live network can drop the box mid-apply. Get operator sign-off before
-# the first real apply; prefer running with `-- --dry` first.
+# CONNECTIVITY: ongoing management (inventories/production.py) targets the PiKVM's
+# *NetBird* IP, not its LAN address, so a changing untagged DHCP lease does NOT affect
+# `pikvm:apply`. RECOMMENDED: still set a DHCP reservation for this box's MAC on the
+# untagged VLAN so console/local access is stable; the management path uses the static
+# 192.168.10.2 on VLAN 10 regardless.
 #
-# The template is rendered here (single source of bytes) and uploaded with files.put so
-# the rw gate's sha256 exactly matches what is written -> empty diff on a converged box.
+# CONNECTIVITY RISK (SPEC "ask first"): the first apply that changes a live interface
+# re-requests the untagged lease and re-attaches the VLAN, so the untagged LAN IP may
+# change mid-apply. Do it with a reservation in place or with console access. Prefer
+# running with `-- --dry` first.
+#
+# The eth0 template is rendered here (single source of bytes) and uploaded with files.put;
+# the two vlan10 files are static assets. All are sha256-gated so a converged box makes
+# no change and produces an empty diff.
 
-STATIC_IFACE = os.environ.get("PIKVM_NET_IFACE", "eth0")
-STATIC_IP = os.environ.get("PIKVM_STATIC_IP", "192.168.1.31")
-STATIC_PREFIX = os.environ.get("PIKVM_STATIC_PREFIX", "24")
-STATIC_GATEWAY = os.environ.get("PIKVM_GATEWAY", "192.168.1.1")
-STATIC_DNS = os.environ.get("PIKVM_DNS", STATIC_GATEWAY)
+NET_IFACE = os.environ.get("PIKVM_NET_IFACE", "eth0")
+VLAN_IFACE = "vlan10"
 
 _network_template = Path(os.path.join(FILES, "eth0.network.j2")).read_text(
     encoding="utf-8",
 )
 _network_rendered = Template(_network_template, keep_trailing_newline=True).render(
-    iface=STATIC_IFACE,
-    address=STATIC_IP,
-    prefix=STATIC_PREFIX,
-    gateway=STATIC_GATEWAY,
-    dns_servers=[dns.strip() for dns in STATIC_DNS.split(",") if dns.strip()],
+    iface=NET_IFACE,
+    vlan=VLAN_IFACE,
 )
-NETWORK_REMOTE = f"/etc/systemd/network/{STATIC_IFACE}.network"
-
+NETWORK_REMOTE = f"/etc/systemd/network/{NET_IFACE}.network"
 _desired_network_sha = hashlib.sha256(_network_rendered.encode()).hexdigest()
-static_ip_needs_rw = (
+
+# The VLAN 10 device (netdev) and its static-address network are fixed-value static
+# assets (Management VLAN 10 -> 192.168.10.2/24), so they are shipped verbatim.
+VLAN_NETDEV_SRC = os.path.join(FILES, f"{VLAN_IFACE}.netdev")
+VLAN_NETDEV_REMOTE = f"/etc/systemd/network/{VLAN_IFACE}.netdev"
+VLAN_NETWORK_SRC = os.path.join(FILES, f"{VLAN_IFACE}.network")
+VLAN_NETWORK_REMOTE = f"/etc/systemd/network/{VLAN_IFACE}.network"
+
+network_needs_rw = (
     host.get_fact(Sha256File, path=NETWORK_REMOTE) != _desired_network_sha
+    or _file_out_of_sync(VLAN_NETDEV_REMOTE, VLAN_NETDEV_SRC)
+    or _file_out_of_sync(VLAN_NETWORK_REMOTE, VLAN_NETWORK_SRC)
 )
 
-with rootfs.writable(changed_if=static_ip_needs_rw):
+with rootfs.writable(changed_if=network_needs_rw):
     files.put(
-        name=f"Static IP: systemd-networkd config for {STATIC_IFACE}",
+        name=f"Network: {NET_IFACE} DHCP (untagged) + attach VLAN {VLAN_IFACE}",
         src=StringIO(_network_rendered),
         dest=NETWORK_REMOTE,
         mode="644",
     )
+    files.put(
+        name=f"Network: {VLAN_IFACE} netdev (802.1Q VLAN 10)",
+        src=VLAN_NETDEV_SRC,
+        dest=VLAN_NETDEV_REMOTE,
+        mode="644",
+    )
+    files.put(
+        name=f"Network: {VLAN_IFACE} static address 192.168.10.2/24",
+        src=VLAN_NETWORK_SRC,
+        dest=VLAN_NETWORK_REMOTE,
+        mode="644",
+    )
 
-if static_ip_needs_rw:
-    # rootfs is already ro (context exited); reconfigure re-reads the link config in
-    # place. networkctl has no pyinfra operation -> documented shell. With an unchanged
-    # address the SSH session survives.
+if network_needs_rw:
+    # rootfs is already ro (context exited); reload picks up the new .netdev/.network
+    # files (creating the vlan10 device) and reconfigure re-reads the link config in
+    # place. networkctl has no pyinfra operation -> documented shell. This re-requests the
+    # untagged DHCP lease and brings up VLAN 10 (see CONNECTIVITY RISK above).
     server.shell(
-        name="Static IP: reconfigure interface (rootfs already ro)",
+        name="Network: reload + reconfigure (DHCP untagged + VLAN 10 static)",
         commands=[
             "networkctl reload",
-            f"networkctl reconfigure {STATIC_IFACE}",
+            f"networkctl reconfigure {NET_IFACE}",
+            f"networkctl reconfigure {VLAN_IFACE}",
         ],
     )
 
@@ -623,16 +672,15 @@ if static_ip_needs_rw:
 #      destination (e.g. the Omada resource/peer). Without the route + policy NetBird does not
 #      distribute the network to this peer and traffic is dropped.
 #   2. LAN router: add a static route for the NetBird account block 100.65.0.0/16 -> this
-#      box's LAN IP (192.168.1.31), or push it via DHCP option 121, so LAN devices send
-#      mesh-bound traffic here. The SNAT rule below then rewrites their source to wt0.
+#      box's LAN IP (its DHCP lease; set a reservation so it is stable), or push it via DHCP
+#      option 121, so LAN devices send mesh-bound traffic here. The SNAT rule below then
+#      rewrites their source to wt0.
 #
-# LAN CIDR defaults to the network of the Task 8 static IP (single source of truth for this
-# box's LAN); the NetBird interface defaults to wt0. Both are overridable by env for reuse.
+# LAN CIDR defaults to 192.168.0.0/16 so the SNAT rule covers every home VLAN whose clients
+# reach the mesh through this box (legacy 192.168.1.0/24 today, 192.168.10/20/30/... after
+# the Omada cutover); the NetBird interface defaults to wt0. Both are overridable by env.
 
-ROUTING_LAN_CIDR = os.environ.get(
-    "PIKVM_LAN_CIDR",
-    str(ipaddress.ip_network(f"{STATIC_IP}/{STATIC_PREFIX}", strict=False)),
-)
+ROUTING_LAN_CIDR = os.environ.get("PIKVM_LAN_CIDR", "192.168.0.0/16")
 ROUTING_IFACE = os.environ.get("PIKVM_NETBIRD_IFACE", "wt0")
 
 ROUTING_SCRIPT_SRC = os.path.join(FILES, "setup-netbird-routing.sh")
