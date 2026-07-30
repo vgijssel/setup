@@ -26,6 +26,7 @@ def test_netbird_up_with_setup_key_uses_env_not_argv():
     # SSH flags default off and are always emitted explicitly.
     assert "--allow-server-ssh=false" in raw
     assert "--enable-ssh-root=false" in raw
+    assert "--enable-ssh-sftp=false" in raw
 
 
 def test_netbird_up_without_setup_key_has_no_env():
@@ -35,7 +36,8 @@ def test_netbird_up_without_setup_key_has_no_env():
     assert cmd.connector_arguments.get("_env") is None
     assert cmd.get_raw_value() == (
         "netbird up --disable-dns=false "
-        "--allow-server-ssh=false --enable-ssh-root=false"
+        "--allow-server-ssh=false --enable-ssh-root=false "
+        "--enable-ssh-sftp=false"
     )
 
 
@@ -43,7 +45,8 @@ def test_netbird_up_disable_dns_true():
     commands = list(netbird.up._inner(setup_key=None, disable_dns=True))
     assert commands[0].get_raw_value() == (
         "netbird up --disable-dns=true "
-        "--allow-server-ssh=false --enable-ssh-root=false"
+        "--allow-server-ssh=false --enable-ssh-root=false "
+        "--enable-ssh-sftp=false"
     )
 
 
@@ -54,11 +57,13 @@ def test_netbird_up_allow_server_ssh_and_root():
             disable_dns=False,
             allow_server_ssh=True,
             enable_ssh_root=True,
+            enable_ssh_sftp=True,
         )
     )
     assert commands[0].get_raw_value() == (
         "netbird up --disable-dns=false "
-        "--allow-server-ssh=true --enable-ssh-root=true"
+        "--allow-server-ssh=true --enable-ssh-root=true "
+        "--enable-ssh-sftp=true"
     )
 
 
