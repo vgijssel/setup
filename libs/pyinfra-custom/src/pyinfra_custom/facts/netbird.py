@@ -112,3 +112,28 @@ class NetbirdSshRootEnabled(FactBase[bool]):
 
     def process(self, output: list[str]) -> bool:
         return any("true" in line.lower() for line in output)
+
+
+class NetbirdSshSftpEnabled(FactBase[bool]):
+    """``True`` when NetBird's persisted config has ``EnableSSHSFTP: true``.
+
+    Drives the SFTP-enable reconcile. The native SSH server serves no SFTP subsystem by
+    default, so ``pyinfra``'s ``files.put`` (an SFTP upload) fails with "Unable to
+    establish SFTP connection" whenever management runs OVER the NetBird SSH server and a
+    file actually needs transferring. Returns ``False`` before registration (the config
+    file does not exist yet), matching "SFTP not enabled".
+    """
+
+    default = bool  # bool() -> False
+
+    def requires_command(self, *args, **kwargs) -> str:
+        return "netbird"
+
+    def command(self) -> str:
+        return (
+            "grep -o '\"EnableSSHSFTP\"[^,]*' /var/lib/netbird/default.json "
+            "2>/dev/null || true"
+        )
+
+    def process(self, output: list[str]) -> bool:
+        return any("true" in line.lower() for line in output)

@@ -12,7 +12,7 @@ set -e
 # are injected by netbird-routing.service (Environment=), baked from the deploy; the defaults
 # match this box's LAN (see deploy.py Task 8/9).
 
-LAN_CIDR="${NB_ROUTING_LAN_CIDR:-192.168.1.0/24}"
+LAN_CIDR="${NB_ROUTING_LAN_CIDR:-192.168.0.0/16}"
 IFACE="${NB_ROUTING_IFACE:-wt0}"
 
 # Forward IPv4 between the LAN and the NetBird interface.
