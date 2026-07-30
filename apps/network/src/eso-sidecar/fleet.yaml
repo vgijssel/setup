@@ -4,6 +4,11 @@
 # cross-cluster secret path that replaces the old tailnet route. Mirrors the secret cluster's
 # jwks-gateway sidecar (apps/secret/src/jwks-gateway). See [[netbird-crosscluster-routing]].
 #
+# serviceaccount-eso-sidecar-watchdog.yaml + cronjob-eso-sidecar-watchdog.yaml add a self-heal
+# watchdog that recycles the ESO controller when its netbird sidecar wedges in
+# NeedsLogin/SessionExpired (e.g. after a host VM suspend/resume), which the sidecar cannot
+# recover from on its own and which surfaces only as ClusterSecretStore InvalidProviderConfig.
+#
 # dependsOn the netbird-operator bundle so the SidecarProfile/SetupKey CRDs + the mutating
 # webhook + the setupkey controller exist before these resources apply (otherwise the webhook
 # denies the pod, or the CRs have no CRD, or the setup key is never minted).

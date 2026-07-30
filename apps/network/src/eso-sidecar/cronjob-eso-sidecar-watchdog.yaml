@@ -1,0 +1,92 @@
+# Self-heal watchdog for the external-secrets netbird sidecar.
+#
+# WHY: the injected netbird native-sidecar (container `netbird` in deploy/external-secrets)
+# logs in only at pod start (SetupKey enrolment). If management forces a re-auth later — a host
+# VM suspend/resume, or a login expiry — it drops to SessionExpired/NeedsLogin and never
+# re-auths on its own. The ClusterSecretStore `openbao` then reports InvalidProviderConfig and
+# every OpenBao-backed ExternalSecret goes SecretSyncedError, silently, until someone runs
+# `kubectl rollout restart deploy/external-secrets` by hand.
+#
+# WHAT: every 5 min, exec `netbird status` in the sidecar. `netbird status` exits 0 even when
+# the session is dead, so the decision is made on the OUTPUT. On a terminal bad state we
+# rollout-restart the controller; the new pod re-injects the sidecar and re-enrolls with the
+# SetupKey. If exec fails (pod rolling / not ready) we skip the cycle so we never race an
+# in-flight restart. Mirrors apps/network/src/netbird-config/cronjob-router-watchdog.yaml.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: netbird-eso-sidecar-watchdog
+  namespace: external-secrets
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          serviceAccountName: netbird-eso-sidecar-watchdog
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            fsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: watchdog
+              # alpine/kubectl (not registry.k8s.io/kubectl, which is distroless with no
+              # shell) — the watchdog logic runs in /bin/sh. Multi-arch, ~22MB. Pinned to the
+              # multi-arch index digest.
+              image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
+              env:
+                - name: HOME
+                  value: /tmp
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -u
+                  ns=external-secrets
+                  dep=external-secrets
+
+                  # netbird status exits 0 even when the session is dead, so decide on the
+                  # output. A non-zero exec means the pod is rolling / not ready — skip.
+                  if ! status="$(kubectl -n "$ns" exec "deploy/$dep" -c netbird -- netbird status 2>&1)"; then
+                    echo "watchdog: cannot reach $dep netbird sidecar (rolling / not ready); skipping this cycle"
+                    printf '%s\n' "$status"
+                    exit 0
+                  fi
+                  printf '%s\n' "$status"
+
+                  # Terminal states the daemon cannot recover from without re-running
+                  # `netbird up` (which only happens at pod start) -> recycle the controller.
+                  if printf '%s' "$status" | grep -qE 'Daemon status: (NeedsLogin|SessionExpired|LoginFailed)'; then
+                    echo "watchdog: $dep netbird sidecar session is dead -> kubectl rollout restart deploy/$dep"
+                    kubectl -n "$ns" rollout restart "deploy/$dep"
+                  else
+                    echo "watchdog: $dep netbird sidecar session healthy"
+                  fi
+          volumes:
+            - name: tmp
+              emptyDir: {}
