@@ -23,6 +23,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+CLUSTER_NAME="${NETWORK_CLUSTER_NAME:-network}"
 FLEET_NS="fleet-local"
 EXPECTED_LABEL="network"
 
@@ -30,8 +31,19 @@ require() { command -v "$1" >/dev/null 2>&1 || {
   echo "ERROR: '$1' is required but not found" >&2
   exit 1
 }; }
+require vcluster
 require fleet
 require kubectl
+
+# ── Point kubectl at THIS cluster regardless of the ambient kube-context ──────
+# Select the vind docker driver (global, idempotent) and connect to the cluster,
+# which rewrites the active kube-context — so an externally-switched context can't
+# send the apply at the wrong cluster. start.sh already connects before it exec's
+# here, so this only matters for a standalone `network:apply`. The label guard below
+# stays the authoritative safety gate.
+echo "==> Connecting to the '${CLUSTER_NAME}' vind cluster (vcluster connect)"
+vcluster use driver docker >/dev/null 2>&1 || true
+vcluster connect "${CLUSTER_NAME}"
 
 # ── Safety guard: refuse to apply against the wrong / unlabelled cluster ──────
 actual_label="$(kubectl -n "${FLEET_NS}" get clusters.fleet.cattle.io local \

@@ -13,9 +13,17 @@ set -euo pipefail
 NS="${SECRET_NAMESPACE:-secret}"
 SVC="${OPENBAO_SERVICE:-openbao}"
 LOCAL_PORT="${LOCAL_PORT:-8200}"
+CLUSTER_NAME="${SECRET_CLUSTER_NAME:-secret}"
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
+require vcluster
 require kubectl
+
+# Point kubectl at the '${CLUSTER_NAME}' vind cluster regardless of the ambient
+# kube-context (select the docker driver + connect; idempotent).
+echo "==> Connecting to the '${CLUSTER_NAME}' vind cluster (vcluster connect)"
+vcluster use driver docker >/dev/null 2>&1 || true
+vcluster connect "${CLUSTER_NAME}"
 
 CURRENT_CONTEXT="$(kubectl config current-context 2>/dev/null || echo "?")"
 echo "==> kubectl context: ${CURRENT_CONTEXT}"

@@ -23,9 +23,19 @@ POD="${OPENBAO_POD:-openbao-0}"
 ROLE="${OPENBAO_ADMIN_ROLE:-admin}"
 SA="${OPENBAO_ADMIN_SA:-openbao-admin}"
 LOCAL_PORT="${LOCAL_PORT:-8200}"
+CLUSTER_NAME="${SECRET_CLUSTER_NAME:-secret}"
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }
+require vcluster
 require kubectl
+
+# Point kubectl at the '${CLUSTER_NAME}' vind cluster regardless of the ambient
+# kube-context (select the docker driver + connect; idempotent). Its output goes to
+# stderr so the `export` lines this script prints on stdout stay eval-clean
+# (`eval "$(moon run --log error secret:auth)"`).
+echo "==> Connecting to the '${CLUSTER_NAME}' vind cluster (vcluster connect)" >&2
+vcluster use driver docker >/dev/null 2>&1 || true
+vcluster connect "${CLUSTER_NAME}" >&2
 
 # Fail early if the SA / pod aren't there (wrong cluster/context, or not bootstrapped).
 if ! kubectl -n "${NS}" get serviceaccount "${SA}" >/dev/null 2>&1; then
