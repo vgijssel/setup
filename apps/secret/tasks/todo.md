@@ -5,34 +5,36 @@ Legend: `[ ]` todo · `[~]` in progress · `[x]` done · **CP** = checkpoint (st
 ## Phase 0 — Prereqs & discovery
 - [ ] 0.1 Verify `kv/s3-backup` has `access_key_id`, `secret_access_key`, `endpoint`, `bucket`
       (`secret:auth` + `secret:forward` → `bao kv get kv/s3-backup`). Seed if missing (ask-first on host).
-- [ ] 0.2 Resolve `openbao-snapshot-agent:0.3.0` `@sha256:` digest.
-- [ ] 0.3 Confirm chart-emitted snapshot SA name == `openbao-snapshot`.
-- [ ] **CP0** creds present · digest resolved · SA name confirmed. If SA name differs, adjust 1.2.
+      → LIVE: deferred to apply phase (needs secret-cluster break-glass).
+- [x] 0.2 Resolve `openbao-snapshot-agent:0.3.0` `@sha256:` digest.
+      → `sha256:d7a8ca9d26b12cf226ce093b9051f243c53aefbb8a419b3dc0b554e7575c931c` (multi-arch amd64+arm64).
+- [x] 0.3 Confirm chart-emitted snapshot SA name == `openbao-snapshot` (chart helper render-confirmed).
+- [x] **CP0** digest resolved · SA name confirmed = `openbao-snapshot` (role bind is correct). creds → live.
 
 ## Phase 1 — Authorization (bundle: openbao-config)
-- [ ] 1.1 Add `apps/secret/src/openbao-config/policy-snapshot.yaml` (Policy, `read` on
+- [x] 1.1 Add `apps/secret/src/openbao-config/policy-snapshot.yaml` (Policy, `read` on
       `sys/storage/raft/snapshot`, Orphan).
-- [ ] 1.2 Add `apps/secret/src/openbao-config/role-snapshot.yaml` (AuthBackendRole, backend
+- [x] 1.2 Add `apps/secret/src/openbao-config/role-snapshot.yaml` (AuthBackendRole, backend
       kubernetes, bind SA `openbao-snapshot`/ns `secret`, tokenPolicies `[snapshot]`, Orphan).
-- [ ] 1.3 Confirm self-init stanza untouched (`init ⊂ crossplane`).
-- [ ] 1.4 Verify: `trunk fmt/check`; `secret:apply`; both MRs `Ready`/`Synced`; `bao policy read
-      snapshot` + `bao read auth/kubernetes/role/snapshot` correct.
+- [x] 1.3 Confirm self-init stanza untouched (`init ⊂ crossplane`).
+- [ ] 1.4 Verify: `trunk fmt/check` (done); LIVE `secret:apply`; both MRs `Ready`/`Synced`; `bao
+      policy read snapshot` + `bao read auth/kubernetes/role/snapshot` correct.
 
 ## Phase 2 — Secret delivery (bundle: openbao)
-- [ ] 2.1 Add `apps/secret/src/openbao/templates/externalsecret-openbao-backup-s3.yaml`
+- [x] 2.1 Add `apps/secret/src/openbao/templates/externalsecret-openbao-backup-s3.yaml`
       (store `openbao`, `remoteRef.key: s3-backup`, template emits AWS_* + S3_HOST scheme-stripped
-      + S3_BUCKET + `S3_URI=s3://<bucket>/openbao/`; Helm-escape the ESO template).
-- [ ] 2.2 Verify: `helm template` shows it; after apply `SecretSynced`; Secret has all 5 keys;
-      `S3_HOST` has no scheme; `S3_URI` ends `/openbao/`.
+      + S3_BUCKET + `S3_URI=s3://<bucket>/openbao/`; Helm-escaped ESO template).
+- [ ] 2.2 Verify: `helm template` shows it (done, verbatim ESO template); LIVE after apply
+      `SecretSynced`; Secret has all 5 keys; `S3_HOST` has no scheme; `S3_URI` ends `/openbao/`.
 
 ## Phase 3 — Snapshot job (bundle: openbao) — **CP**
-- [ ] 3.1 Add additive `openbao.snapshotAgent` block to `apps/secret/src/openbao/values.yaml`
+- [x] 3.1 Add additive `openbao.snapshotAgent` block to `apps/secret/src/openbao/values.yaml`
       (enabled, hourly, image pinned tag+digest, SA create, s3CredentialsSecret,
       extraSecretEnvironmentVars for S3_*, empty config.s3* placeholders, s3ExpireDays 14,
-      baoRole snapshot, hardened securityContext). Do not touch seal/raft/self-init.
-- [ ] 3.2 Verify render: `helm template --show-only .../snapshotagent-cronjob.yaml` →
+      baoRole snapshot, hardened securityContext incl. runAsUser=100). Seal/raft/self-init untouched.
+- [x] 3.2 Verify render: `helm template --show-only .../snapshotagent-cronjob.yaml` →
       `CronJob/openbao-snapshot`, ConfigMap, SA; env has S3_* + AWS_*; `BAO_ROLE=snapshot`;
-      `BAO_ADDR=http://openbao.secret.svc:8200`.
+      `BAO_ADDR=http://openbao-active.secret.svc:8200` (chart HA `-active` leader svc).
 - [ ] 3.3 `secret:apply`; manual run `kubectl -n secret create job openbao-snapshot-manual
       --from=cronjob/openbao-snapshot`; logs show `snapshot`-role login + upload; exit 0.
 - [ ] 3.4 `rclone ls s3:enigma-s3-backup/openbao/` shows a fresh `.snap`; second run adds another.
