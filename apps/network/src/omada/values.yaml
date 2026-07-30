@@ -38,3 +38,32 @@ omada-controller-helm:
     logs:
       enabled: true
       size: 1Gi
+
+# Off-machine backup of Omada's NATIVE Auto Backup .cfg files (templates/cronjob-omada-backup.yaml).
+# Omada's own Auto Backup engine (enable ONCE in the UI: Settings > Backup & Restore > Auto Backup)
+# writes rotated, encrypted .cfg snapshots to /opt/tplink/EAPController/data/autobackup on the data
+# PVC. The CronJob copies those .cfg files out of the running pod (kubectl exec | tar) and uploads
+# them to S3-compatible object storage with rclone (additive `copy`, so S3 keeps full history even
+# after Omada rotates the local copies). The .cfg is a portable logical backup — architecture- and
+# host-independent — so it is the safe artifact for the planned arm64 -> amd64 cluster move.
+#
+# Credentials come from OpenBao (kv/<openbao.key>) via ESO (templates/externalsecret-omada-backup-s3.yaml,
+# the shared `openbao` ClusterSecretStore). Endpoint/bucket/region are NOT secret and live here.
+backup:
+  # Daily at 03:17 Amsterdam — after Omada's own nightly auto-backup has written the day's .cfg.
+  schedule: 17 3 * * *
+  timeZone: Europe/Amsterdam
+  # Hetzner Object Storage (S3-compatible), rclone `s3` backend with the generic `Other` provider.
+  s3:
+    provider: Other
+    prefix: omada # the omada directory within the bucket -> objects at <bucket>/omada/<file>.cfg
+  # Shared/generic S3 backup target in OpenBao (kv/s3-backup), reusable across jobs: the creds,
+  # region, bucket AND endpoint all travel as one secret. Only the omada-specific prefix (and the
+  # rclone provider hint) live here.
+  openbao:
+    key: s3-backup
+    accessKeyProperty: access_key_id
+    secretKeyProperty: secret_access_key
+    regionProperty: region
+    bucketProperty: bucket
+    endpointProperty: endpoint
