@@ -9,12 +9,12 @@ tags:
   - network
 # Entry points. Each manages external cluster / Docker / NetBird / remote-OpenBao
 # state (not file outputs), so none are cached. `start` runs the full bring-up
-# end-to-end (create cluster → netbird_auth → apply); the network cluster is a
-# consumer of secrets, not a producer (no configure/producer step). Mirrors `secret`.
+# end-to-end (create cluster → put_netbird_operator_auth → apply); the network cluster
+# is a consumer of secrets, not a producer (no configure/producer step). Mirrors `secret`.
 tasks:
   # Create (or reconnect to) the vind cluster "network", seed the NetBird operator
-  # management API PAT (netbird_auth), then install Fleet + apply every bundle (apply).
-  # Idempotent. This is the single bring-up command.
+  # management API PAT (put_netbird_operator_auth), then install Fleet + apply every bundle
+  # (apply). Idempotent. This is the single bring-up command.
   start:
     command: scripts/start.sh
     options:
@@ -25,8 +25,8 @@ tasks:
   # OpenBao (VAULT_TOKEN from .env) into the network cluster's netbird-mgmt-api-key
   # Secret — breaks the operator/ESO chicken-and-egg. Invoked by `start`; also runnable
   # standalone. Idempotent.
-  netbird_auth:
-    command: scripts/netbird_auth.sh
+  put_netbird_operator_auth:
+    command: scripts/put_netbird_operator_auth.sh
     options:
       runInCI: false
       interactive: true

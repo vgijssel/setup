@@ -73,7 +73,7 @@ helm template openbao apps/secret/src/openbao \
   --show-only charts/openbao/templates/snapshotagent-cronjob.yaml
 
 # Break-glass admin token (to seed kv/s3-backup or inspect policies)
-moon run secret:auth        # exports BAO_ADDR / BAO_TOKEN
+moon run secret:get_openbao_auth   # exports BAO_ADDR / BAO_TOKEN
 moon run secret:forward     # port-forward OpenBao to the workstation
 
 # One-time: ensure S3 creds exist in OpenBao (shared with Omada — likely already set)

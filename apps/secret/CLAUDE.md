@@ -62,7 +62,7 @@ SA token) and acting directly.
 
 ## Break-glass / human admin
 Self-init revokes root and generates no recovery keys, so admin comes from
-`moon run secret:auth`: it mints a short-lived (1h) SA token, logs in to OpenBao's
+`moon run secret:get_openbao_auth`: it mints a short-lived (1h) SA token, logs in to OpenBao's
 `admin` kubernetes-auth role, and prints `export BAO_ADDR/BAO_TOKEN`. It only works for
 someone with **kubectl admin** on the cluster (they can mint the `openbao-admin` SA token
 and exec the pod) — which already implies full cluster access, so it grants nothing extra.

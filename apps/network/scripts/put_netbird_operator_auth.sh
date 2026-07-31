@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Seed the NetBird operator's management API PAT into the network cluster — the ONE
 # manual step network needs, run automatically by network:start before apply (also
-# runnable standalone as network:netbird_auth).
+# runnable standalone as network:put_netbird_operator_auth).
 #
 # Chicken-and-egg: the netbird-operator needs the `netbird-mgmt-api-key` Secret (key
 # NB_API_KEY) to talk to the NetBird management API and stand up this cluster's routing
