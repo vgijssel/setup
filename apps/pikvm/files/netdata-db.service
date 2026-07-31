@@ -1,0 +1,18 @@
+[Unit]
+Description=netdata dbengine RAM disk (2 GiB tmpfs for 24h metrics history + ML)
+# Mirror netdata-overlay.service: mount the RAM disk after the base filesystems are up and
+# BEFORE netdata starts, so dbengine comes up on the tmpfs. Ordered after the identity
+# overlay so the two netdata tmpfs mounts settle in a stable order (they use distinct paths;
+# the ordering is for determinism, not a data dependency).
+After=local-fs.target tmp.mount netdata-overlay.service
+Before=netdata.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/setup-netdata-db.sh
+# RemainAfterExit so systemd treats the (one-shot) mount as an active unit; no ExecStop --
+# the tmpfs is torn down with the host and its contents are intentionally not persisted.
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

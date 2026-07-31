@@ -760,10 +760,9 @@ server.shell(
 # client queries the daemon for a human-readable (rspecish) pass/fail report; netdata can
 # scrape the same endpoint as prometheus/verbose (one metric per assertion). See SPEC.md.
 #
-# Read-only-rootfs split: the goss binary and `validate` live under /usr/local/bin, which
-# is on the *separate* read-only /usr partition that PiKVM's stock `rw` helper does NOT
-# remount -- so those writes are wrapped in rootfs.writable_usr. The config + unit live on
-# the root partition (/etc, /etc/systemd/system) and use the ordinary rootfs.writable.
+# Read-only-rootfs writes: the goss binary + `validate` (/usr/local/bin) and the config +
+# unit (/etc, /etc/systemd/system) all live on the root partition -- PiKVM's `rw` helper
+# remounts / (which backs /usr too), so one rootfs.writable covers them all.
 GOSS_VERSION = "0.4.10"
 GOSS_ARCH = "arm64"
 GOSS_SHA256 = "90a59612b4d67d9f1a9038634c000790136bb82526a69de1e81ac075c2f6d2c6"
@@ -785,16 +784,16 @@ GOSS_UNIT_REMOTE = "/etc/systemd/system/goss-serve.service"
 # source of the version -- a mismatch (Renovate bumps the pin) triggers a reinstall.
 goss_needs_install = GOSS_VERSION not in host.get_fact(GossVersion)
 
-# /usr writes: the binary (when out of date) and the validate client.
-usr_needs_rw = goss_needs_install or _file_out_of_sync(VALIDATE_REMOTE, VALIDATE_SRC)
-# root-partition writes: the assertion spec and the systemd unit.
-etc_needs_rw = (
-    host.get_fact(Directory, path="/etc/goss") is None
+# A single rw window covers both the /usr/local/bin binaries and the /etc config + unit.
+goss_needs_rw = (
+    goss_needs_install
+    or _file_out_of_sync(VALIDATE_REMOTE, VALIDATE_SRC)
+    or host.get_fact(Directory, path="/etc/goss") is None
     or _file_out_of_sync(GOSS_YAML_REMOTE, GOSS_YAML_SRC)
     or _file_out_of_sync(GOSS_UNIT_REMOTE, GOSS_UNIT_SRC)
 )
 
-with rootfs.writable_usr(changed_if=usr_needs_rw):
+with rootfs.writable(changed_if=goss_needs_rw):
     if goss_needs_install:
         # Download + sha256-verify + install is a bespoke one-shot (no operation
         # equivalent); documented shell. The pinned digest guards against a tampered or
@@ -817,8 +816,6 @@ with rootfs.writable_usr(changed_if=usr_needs_rw):
         dest=VALIDATE_REMOTE,
         mode="755",
     )
-
-with rootfs.writable(changed_if=etc_needs_rw):
     files.directory(
         name="goss: ensure /etc/goss",
         path="/etc/goss",
@@ -838,7 +835,7 @@ with rootfs.writable(changed_if=etc_needs_rw):
         dest=GOSS_UNIT_REMOTE,
         mode="644",
     )
-    if etc_needs_rw:
+    if goss_needs_rw:
         # Enable only (running=None); started below. daemon_reload gated on the change
         # condition so a converged box reloads nothing.
         systemd.service(
@@ -877,17 +874,17 @@ server.shell(
 # /healthz scrape and Phase D claims the agent to Netdata Cloud. See SPEC.md + tasks/plan.md.
 #
 # Read-only-rootfs discipline -- the single `rw` helper (rootfs.writable) covers the whole
-# install; NO separate writable_usr remount is needed (verified on-box):
+# install:
 #   * The static build installs under /opt/netdata (a directory on the root partition).
-#   * /usr is a read-only BIND MOUNT of the same block device as / (findmnt shows
-#     `/dev/mmcblk0p3[/usr]`), so remounting / read-write also makes /usr's paths writable.
-#     The installer's get_systemd_service_dir() then writes the base unit to
-#     /usr/lib/systemd/system/netdata.service; our drop-in in /etc/systemd/system overrides
-#     it regardless of where the base unit lives.
-# Runtime writes never touch the rootfs: [db] mode = ram keeps the TSDB in RAM and
-# [directories] point cache/lib/log at the /run/netdata tmpfs. netdata only creates its
-# leaf dirs, so the drop-in lists cache/lib/log as RuntimeDirectory to make systemd create
-# /run/netdata{,/cache,/lib,/log} each boot. Cloud identity persistence is Phase D.
+#   * /usr lives on the same root block device as / (mmcblk0p3), so remounting / read-write
+#     also makes /usr's paths writable. The installer's get_systemd_service_dir() then writes
+#     the base unit to /usr/lib/systemd/system/netdata.service; our drop-in in
+#     /etc/systemd/system overrides it regardless of where the base unit lives.
+# Runtime writes never touch the rootfs: metrics go to dbengine on a 2 GiB tmpfs RAM disk
+# (Phase E: [db] mode = dbengine + [directories] cache = /var/lib/netdatadb) and
+# log -> the /run/netdata tmpfs. netdata only creates its leaf dirs, so the drop-in lists
+# cache/lib/log as RuntimeDirectory to make systemd create /run/netdata{,/cache,/lib,/log}
+# each boot. Cloud identity persistence is Phase D; the metrics RAM disk is Phase E.
 #
 # Install flags: --dont-start-it (pyinfra owns start), --disable-telemetry (opt out of
 # anonymous stats), --stable-channel. --auto-update is deliberately NOT passed, so the
@@ -939,6 +936,91 @@ if netdata_needs_install:
                 'rm -rf "$tmp"',
             ],
         )
+
+# ── netdata dbengine RAM disk: 2 GiB tmpfs for 24h history + ML (Task 11, Phase E) ─
+# netdata's ML anomaly detection only runs on the dbengine backend, and dbengine needs a
+# writable store with enough retention to train its models. The read-only rootfs rules out
+# on-disk dbengine, so we give netdata a dedicated 2 GiB tmpfs "RAM disk" and point
+# [directories] cache at it (netdata.conf). netdata-db.service (a Before=netdata oneshot
+# mirroring netdata-overlay.service) mounts it each boot; metrics stay 100% in RAM and are
+# recreated empty on reboot (history is deliberately non-durable -- only the Cloud identity
+# persists, via the overlay). Kept on a SEPARATE tmpfs from the identity dir
+# (/var/lib/netdata) so the multi-hundred-MB metrics DB is never snapshotted to the rootfs.
+#
+# Ordered here -- BEFORE the netdata.conf block below -- so the RAM disk is already mounted
+# when a config change restarts netdata onto dbengine (cache=/var/lib/netdatadb).
+NETDATA_DB_DIR = "/var/lib/netdatadb"
+NETDATA_DB_SCRIPT_SRC = os.path.join(FILES, "setup-netdata-db.sh")
+NETDATA_DB_SCRIPT_REMOTE = "/usr/local/bin/setup-netdata-db.sh"
+NETDATA_DB_UNIT_SRC = os.path.join(FILES, "netdata-db.service")
+NETDATA_DB_UNIT_REMOTE = "/etc/systemd/system/netdata-db.service"
+NETDATA_DB_WANTS_LINK = "/etc/systemd/system/multi-user.target.wants/netdata-db.service"
+
+# One rw window covers the mount script (/usr/local/bin), the mount target, the unit, and
+# the enable-symlink -- PiKVM's `rw` remounts / (which backs /usr too).
+netdata_db_needs_rw = (
+    _file_out_of_sync(NETDATA_DB_SCRIPT_REMOTE, NETDATA_DB_SCRIPT_SRC)
+    or host.get_fact(Directory, path=NETDATA_DB_DIR) is None
+    or _file_out_of_sync(NETDATA_DB_UNIT_REMOTE, NETDATA_DB_UNIT_SRC)
+    or host.get_fact(Link, path=NETDATA_DB_WANTS_LINK) is None
+)
+
+with rootfs.writable(changed_if=netdata_db_needs_rw):
+    netdata_db_script = files.put(
+        name="netdata db: install setup-netdata-db.sh",
+        src=NETDATA_DB_SCRIPT_SRC,
+        dest=NETDATA_DB_SCRIPT_REMOTE,
+        mode="755",
+    )
+    files.directory(
+        name="netdata db: tmpfs mount target /var/lib/netdatadb",
+        path=NETDATA_DB_DIR,
+        present=True,
+    )
+    netdata_db_unit = files.put(
+        name="netdata db: install netdata-db.service",
+        src=NETDATA_DB_UNIT_SRC,
+        dest=NETDATA_DB_UNIT_REMOTE,
+        mode="644",
+    )
+    if netdata_db_needs_rw:
+        # Enable by writing the multi-user.target wants symlink DIRECTLY rather than via
+        # `systemctl enable`. Over NetBird SSH the session runs in a private mount namespace,
+        # so the rootfs.writable remount is invisible to PID1 -- `systemctl enable` asks PID1
+        # to create the symlink and hits EROFS on the still-ro rootfs. files.link writes it in
+        # this session's namespace (where / is rw); the daemon-reload below (a plain shell
+        # command, likewise session-local) makes systemd pick up the new unit.
+        files.link(
+            name="netdata db: enable via multi-user.target.wants symlink",
+            path=NETDATA_DB_WANTS_LINK,
+            target=NETDATA_DB_UNIT_REMOTE,
+            present=True,
+        )
+
+# Make systemd aware of the new/changed unit before starting it (gated on change -> a
+# converged box reloads nothing).
+server.shell(
+    name="netdata db: systemd daemon-reload after unit change",
+    commands=["systemctl daemon-reload"],
+    _if=lambda: netdata_db_unit.did_change(),
+)
+# Ensure the RAM disk is mounted now, before netdata (re)starts onto dbengine below. The
+# oneshot is RemainAfterExit -> a converged box changes nothing.
+systemd.service(
+    name="netdata db: ensure netdata-db.service is running",
+    service="netdata-db.service",
+    running=True,
+)
+# Re-mount if the script or unit changed (the mount script is idempotent: it no-ops when
+# already mounted).
+netdata_db_restart = server.shell(
+    name="netdata db: re-mount RAM disk after script/unit change",
+    commands=[
+        "systemctl daemon-reload",
+        "systemctl restart netdata-db.service",
+    ],
+    _if=lambda: netdata_db_script.did_change() or netdata_db_unit.did_change(),
+)
 
 with rootfs.writable(changed_if=netdata_config_needs_rw):
     files.directory(
@@ -1058,28 +1140,23 @@ NETDATA_OVERLAY_WANTS_LINK = (
     "/etc/systemd/system/multi-user.target.wants/netdata-overlay.service"
 )
 
-# The overlay script lives under /usr/local/bin (separate ro /usr -> writable_usr); the
-# state dir, mount target, and unit live on the root partition (rootfs.writable).
-netdata_overlay_usr_needs_rw = _file_out_of_sync(
-    NETDATA_OVERLAY_SCRIPT_REMOTE,
-    NETDATA_OVERLAY_SCRIPT_SRC,
-)
-netdata_overlay_etc_needs_rw = (
-    host.get_fact(Directory, path=NETDATA_STATE_DIR) is None
+# One rw window covers the overlay script (/usr/local/bin), the state dir, mount target,
+# and unit -- PiKVM's `rw` remounts / (which backs /usr too).
+netdata_overlay_needs_rw = (
+    _file_out_of_sync(NETDATA_OVERLAY_SCRIPT_REMOTE, NETDATA_OVERLAY_SCRIPT_SRC)
+    or host.get_fact(Directory, path=NETDATA_STATE_DIR) is None
     or host.get_fact(Directory, path=NETDATA_LIB_DIR) is None
     or _file_out_of_sync(NETDATA_OVERLAY_UNIT_REMOTE, NETDATA_OVERLAY_UNIT_SRC)
     or host.get_fact(Link, path=NETDATA_OVERLAY_WANTS_LINK) is None
 )
 
-with rootfs.writable_usr(changed_if=netdata_overlay_usr_needs_rw):
+with rootfs.writable(changed_if=netdata_overlay_needs_rw):
     netdata_overlay_script = files.put(
         name="netdata overlay: install setup-netdata-overlay.sh",
         src=NETDATA_OVERLAY_SCRIPT_SRC,
         dest=NETDATA_OVERLAY_SCRIPT_REMOTE,
         mode="755",
     )
-
-with rootfs.writable(changed_if=netdata_overlay_etc_needs_rw):
     files.directory(
         name="netdata overlay: persistent identity state dir",
         path=NETDATA_STATE_DIR,
@@ -1096,7 +1173,7 @@ with rootfs.writable(changed_if=netdata_overlay_etc_needs_rw):
         dest=NETDATA_OVERLAY_UNIT_REMOTE,
         mode="644",
     )
-    if netdata_overlay_etc_needs_rw:
+    if netdata_overlay_needs_rw:
         systemd.service(
             name="netdata overlay: enable netdata-overlay.service",
             service="netdata-overlay.service",
@@ -1125,6 +1202,8 @@ server.shell(
         netdata_overlay_script.did_change()
         or netdata_overlay_unit.did_change()
         or netdata_config_restart.did_change()
+        # A RAM-disk re-mount replaces the tmpfs under dbengine -> netdata must reopen it.
+        or netdata_db_restart.did_change()
     ),
 )
 
