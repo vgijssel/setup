@@ -98,6 +98,12 @@ echo "==> Labeling the local Fleet cluster: cluster.vgijssel.nl/name=${CLUSTER_N
 kubectl -n "${FLEET_NS}" label clusters.fleet.cattle.io local \
   cluster.vgijssel.nl/name="${CLUSTER_NAME}" --overwrite >/dev/null
 
+# Seed the OpenBao seal key from 1Password BEFORE apply, so the openbao-seal Secret
+# exists when the OpenBao StatefulSet first starts and it auto-unseals with the durable,
+# externally-managed key (never a cluster-generated one).
+echo "==> Seeding the OpenBao seal key from 1Password (scripts/put_openbao_seal_auth.sh)"
+"${SCRIPT_DIR}/put_openbao_seal_auth.sh"
+
 # End-to-end: apply every bundle. apply.sh verifies the label above, then pushes
 # bundles. OpenBao self-inits + auto-unseals and Crossplane configures it.
 echo "==> Applying Fleet bundles (scripts/apply.sh)"
