@@ -315,10 +315,11 @@ No unit-test framework applies (declarative infra). Verification is behavioral, 
 4. **Retention volume.** Hourly × 14 days = ~336 snapshots. They're tiny (data PVC is 1Gi),
    but if this is undesirable, reduce `S3_EXPIRE_DAYS` (e.g. 7). Confirmed acceptable for
    now.
-5. **Restore prerequisite.** DR requires the `openbao-seal` static key. Ensure that key is
-   itself durably recorded out-of-band (it is generate-once and `helm.sh/resource-policy:
-   keep`), otherwise snapshots are unrestorable. Consider documenting/backing up the seal
-   key separately (not in the snapshot bucket).
+5. **Restore prerequisite.** DR requires the `openbao-seal` static key. It is stored in
+   1Password (`op://enigma-prod/openbao-seal/seal-key`) and seeded into the cluster by
+   `moon run secret:put_openbao_seal_auth` (never generated on-cluster), so it is durably
+   recorded out-of-band by design. Without it, snapshots are unrestorable — and it must
+   NEVER be stored alongside the snapshots in the S3 bucket.
 
 ## Success Criteria (testable)
 
