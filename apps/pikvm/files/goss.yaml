@@ -74,7 +74,17 @@ http:
       - '"agent-claimed":true'
       - '"aclk-available":true'
 
-# 7. /etc/resolv.conf routes ALL resolution through the systemd-resolved stub (127.0.0.53).
+# 7. The PiKVM port is a trunk: untagged/native traffic is DHCP and tagged VLAN 10
+#    (Management) carries the stable static address 192.168.10.2/24 on the vlan10 netdev.
+#    That static address is the Omada static-route next-hop + NetBird site-to-VPN path, so
+#    it must be present on the tagged interface (deploy.py Task 8 owns the networkd config).
+interface:
+  vlan10:
+    exists: true
+    addrs:
+      - 192.168.10.2/24
+
+# 8. /etc/resolv.conf routes ALL resolution through the systemd-resolved stub (127.0.0.53).
 #    Regression guard: this file was the root cause of goss's Go resolver querying the LAN
 #    router (192.168.1.1) and NXDOMAINing *.svc.cluster.local. It must be a real FILE (not
 #    the old resolved "uplink" symlink) whose nameserver is the stub -- so mesh/split-DNS

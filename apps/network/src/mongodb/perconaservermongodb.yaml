@@ -69,11 +69,20 @@ spec:
     image: percona/pmm-client:3.8.1
   # Custom application user for Omada. No passwordSecretRef → the operator auto-generates
   # the password (into mongodb-custom-user-secret) and the connection strings (into
-  # mongodb-custom-user-secret-conn-str). dbOwner on the `omada` database; authenticates
-  # against admin (db: admin).
+  # mongodb-custom-user-secret-conn-str). Authenticates against admin (db: admin).
+  #
+  # Omada Controller v5+ uses TWO databases, not one: `omada` (config/inventory, the db in
+  # the connection URI) AND `omada_data` (portal/radius/statistics collections such as
+  # `authrecord`). The old groundhog2k chart connected as MongoDB root, so both databases
+  # were writable implicitly; the Percona-scoped user must be granted dbOwner on BOTH or
+  # Omada crashes with `error 13 (Unauthorized): not authorized on omada_data …` the moment
+  # it touches portal/radius data. dbOwner (readWrite + dbAdmin + userAdmin) lets Omada
+  # create the database, its collections, and their indexes on first use.
   users:
     - name: omada
       db: admin
       roles:
         - name: dbOwner
           db: omada
+        - name: dbOwner
+          db: omada_data

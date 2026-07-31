@@ -2,8 +2,5 @@
 Name={{ iface }}
 
 [Network]
-Address={{ address }}/{{ prefix }}
-Gateway={{ gateway }}
-{% for dns in dns_servers -%}
-DNS={{ dns }}
-{% endfor -%}
+DHCP=ipv4
+VLAN={{ vlan }}
