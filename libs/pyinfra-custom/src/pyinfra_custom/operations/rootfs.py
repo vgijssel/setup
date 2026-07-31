@@ -39,15 +39,22 @@ def remount(read_write: bool):
 
 @operation(is_idempotent=False)
 def remount_usr(read_write: bool):
-    """Remount the separate ``/usr`` partition read-write or read-only.
+    """Remount whatever partition backs ``/usr`` read-write or read-only.
 
-    On current PiKVM images ``/usr`` is its own partition mounted ``ro``, and the stock
-    ``rw``/``ro`` helpers only touch ``/`` and ``/boot`` -- so writing under
-    ``/usr/local`` (e.g. installing a binary to ``/usr/local/bin``) needs an explicit
-    ``/usr`` remount. Not idempotent (a bare ``mount -o remount``); prefer the
-    :func:`writable_usr` context manager, which gates the remount on real changes.
+    PiKVM image layouts differ: on some, ``/usr`` is its own partition mounted ``ro``
+    (and the stock ``rw``/``ro`` helpers only touch ``/`` and ``/boot``, so writing under
+    ``/usr/local`` needs an explicit ``/usr`` remount); on others ``/usr`` lives on the
+    root partition (no separate mount), where ``mount -o remount /usr`` fails with
+    "mount point not mounted". Detect which at run time: remount ``/usr`` when it is a
+    real mountpoint, otherwise remount ``/`` (the partition that actually backs ``/usr``).
+    Not idempotent (a bare ``mount -o remount``); prefer the :func:`writable_usr` context
+    manager, which gates the remount on real changes.
     """
-    yield f"mount -o remount,{'rw' if read_write else 'ro'} /usr"
+    mode = "rw" if read_write else "ro"
+    yield (
+        f"if mountpoint -q /usr; then mount -o remount,{mode} /usr; "
+        f"else mount -o remount,{mode} /; fi"
+    )
 
 
 @contextmanager

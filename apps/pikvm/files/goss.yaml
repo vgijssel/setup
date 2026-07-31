@@ -17,6 +17,16 @@ command:
     stdout:
       - "Management: Connected"
 
+  # 1b. The netdata dbengine RAM disk is a 2 GiB tmpfs (netdata-db.service). `findmnt -b`
+  #     prints the size in bytes; 2 GiB = 2 * 1024^3 = 2147483648. Guards the size so a
+  #     mis-mounted (default-sized or resized) tmpfs is caught, complementing the `mount`
+  #     resource below (which asserts existence + filesystem type).
+  netdata-ramdisk-2gib:
+    exec: "findmnt -nb -o SIZE /var/lib/netdatadb"
+    exit-status: 0
+    stdout:
+      - "2147483648"
+
 # 2. Omada's public hostname resolves (Cloudflare A -> pinned ClusterIP, mesh-routed).
 dns:
   omada.network.vgijssel.nl:
@@ -73,6 +83,15 @@ http:
     body:
       - '"agent-claimed":true'
       - '"aclk-available":true'
+      # The metrics DB is dbengine (not the RAM ring) -- the prerequisite for ML, and the
+      # backend that stores its tier files on the RAM disk.
+      - '"memory-mode":"dbengine"'
+      # ML anomaly detection is actually enabled (auto-resolves to off on a RAM-only db).
+      # The info payload is pretty-printed, so a single substring can't span "ml-info":{...
+      # "enabled":true, and bare "enabled":true is ambiguous (cloud-/web-/https-enabled all
+      # emit it). Assert an ML-ONLY field instead: netdata only emits the anomaly-detection
+      # tuning keys when ML is enabled, so this line's presence proves ML is on.
+      - '"anomaly-detection-grouping-method":'
 
 # 7. The PiKVM port is a trunk: untagged/native traffic is DHCP and tagged VLAN 10
 #    (Management) carries the stable static address 192.168.10.2/24 on the vlan10 netdev.
@@ -95,3 +114,12 @@ file:
     filetype: file
     contains:
       - "nameserver 127.0.0.53"
+
+# 9. netdata's dbengine metrics DB lives on a dedicated tmpfs "RAM disk"
+#    (/var/lib/netdatadb, mounted by netdata-db.service) so the read-only rootfs is never
+#    written and netdata can retain ~24h of history for ML. Assert the mount exists and is
+#    a tmpfs; the netdata-ramdisk-2gib command above guards its 2 GiB size.
+mount:
+  /var/lib/netdatadb:
+    exists: true
+    filesystem: tmpfs

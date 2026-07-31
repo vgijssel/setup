@@ -101,13 +101,17 @@ def test_writable_noop_when_unchanged(mocker):
 
 # ── rootfs.remount_usr / writable_usr (separate /usr partition) ────────────────────
 def test_remount_usr_yields_usr_mount_commands():
-    # PiKVM's `rw`/`ro` helpers only remount / and /boot; /usr is a separate partition,
-    # so it needs an explicit remount to write /usr/local/bin.
+    # PiKVM's `rw`/`ro` helpers only remount / and /boot; where /usr is a separate
+    # partition it needs an explicit remount to write /usr/local/bin, but where /usr lives
+    # on / (no separate mount) that fails -- so the command detects the layout at run time
+    # and remounts /usr when it is a mountpoint, else falls back to /.
     assert list(rootfs.remount_usr._inner(read_write=True)) == [
-        "mount -o remount,rw /usr"
+        "if mountpoint -q /usr; then mount -o remount,rw /usr; "
+        "else mount -o remount,rw /; fi"
     ]
     assert list(rootfs.remount_usr._inner(read_write=False)) == [
-        "mount -o remount,ro /usr"
+        "if mountpoint -q /usr; then mount -o remount,ro /usr; "
+        "else mount -o remount,ro /; fi"
     ]
 
 
