@@ -99,31 +99,5 @@ def test_writable_noop_when_unchanged(mocker):
     calls.assert_not_called()
 
 
-# ── rootfs.remount_usr / writable_usr (separate /usr partition) ────────────────────
-def test_remount_usr_yields_usr_mount_commands():
-    # PiKVM's `rw`/`ro` helpers only remount / and /boot; where /usr is a separate
-    # partition it needs an explicit remount to write /usr/local/bin, but where /usr lives
-    # on / (no separate mount) that fails -- so the command detects the layout at run time
-    # and remounts /usr when it is a mountpoint, else falls back to /.
-    assert list(rootfs.remount_usr._inner(read_write=True)) == [
-        "if mountpoint -q /usr; then mount -o remount,rw /usr; "
-        "else mount -o remount,rw /; fi"
-    ]
-    assert list(rootfs.remount_usr._inner(read_write=False)) == [
-        "if mountpoint -q /usr; then mount -o remount,ro /usr; "
-        "else mount -o remount,ro /; fi"
-    ]
-
-
-def test_writable_usr_remounts_when_changed(mocker):
-    calls = mocker.patch.object(rootfs, "remount_usr")
-    with rootfs.writable_usr(changed_if=True):
-        pass
-    assert [c.kwargs["read_write"] for c in calls.call_args_list] == [True, False]
-
-
-def test_writable_usr_noop_when_unchanged(mocker):
-    calls = mocker.patch.object(rootfs, "remount_usr")
-    with rootfs.writable_usr(changed_if=False):
-        pass
-    calls.assert_not_called()
+# /usr is on the root partition, so the single rootfs.writable (PiKVM `rw`/`ro`) covers
+# /usr/local/bin writes too -- there is no separate /usr remount helper to test.

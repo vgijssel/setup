@@ -1,11 +1,16 @@
 """Read-only-rootfs ``rw``/``ro`` discipline for PiKVM, as a context manager.
 
-PiKVM mounts ``/`` read-only and ships ``rw`` / ``ro`` shell helpers that remount it
-read-write / read-only. Because those helpers are opaque shell (pyinfra cannot tell
-they are no-ops), remounting unconditionally would show a change on every run and touch
-the rootfs needlessly. Instead the caller passes ``changed_if`` -- true only when some
-file in the wrapped block is actually out of sync -- and the remounts are queued only
-then. A converged box queues nothing, so ``--dry`` stays empty.
+PiKVM mounts ``/`` read-only and ships ``rw`` / ``ro`` shell helpers (``mount -o
+remount,rw /`` + ``/boot``, and the reverse) that remount it read-write / read-only.
+``/usr`` lives on that same root partition (``mmcblk0p3``), so the ``rw`` helper makes
+``/usr/local/bin`` writable too -- there is no separate ``/usr`` partition to remount, so
+a single :func:`writable` covers every rootfs write.
+
+Because those helpers are opaque shell (pyinfra cannot tell they are no-ops), remounting
+unconditionally would show a change on every run and touch the rootfs needlessly. Instead
+the caller passes ``changed_if`` -- true only when some file in the wrapped block is
+actually out of sync -- and the remounts are queued only then. A converged box queues
+nothing, so ``--dry`` stays empty.
 
 Usage::
 
@@ -37,26 +42,6 @@ def remount(read_write: bool):
     yield "rw" if read_write else "ro"
 
 
-@operation(is_idempotent=False)
-def remount_usr(read_write: bool):
-    """Remount whatever partition backs ``/usr`` read-write or read-only.
-
-    PiKVM image layouts differ: on some, ``/usr`` is its own partition mounted ``ro``
-    (and the stock ``rw``/``ro`` helpers only touch ``/`` and ``/boot``, so writing under
-    ``/usr/local`` needs an explicit ``/usr`` remount); on others ``/usr`` lives on the
-    root partition (no separate mount), where ``mount -o remount /usr`` fails with
-    "mount point not mounted". Detect which at run time: remount ``/usr`` when it is a
-    real mountpoint, otherwise remount ``/`` (the partition that actually backs ``/usr``).
-    Not idempotent (a bare ``mount -o remount``); prefer the :func:`writable_usr` context
-    manager, which gates the remount on real changes.
-    """
-    mode = "rw" if read_write else "ro"
-    yield (
-        f"if mountpoint -q /usr; then mount -o remount,{mode} /usr; "
-        f"else mount -o remount,{mode} /; fi"
-    )
-
-
 @contextmanager
 def writable(changed_if: bool) -> Iterator[None]:
     """Group rootfs writes; remount ``rw`` before and ``ro`` after **iff** ``changed_if``.
@@ -74,20 +59,3 @@ def writable(changed_if: bool) -> Iterator[None]:
     finally:
         if changed_if:
             remount(name="Remount rootfs read-only", read_write=False)
-
-
-@contextmanager
-def writable_usr(changed_if: bool) -> Iterator[None]:
-    """Group ``/usr`` writes; remount ``/usr`` ``rw`` before and ``ro`` after **iff** ``changed_if``.
-
-    The ``/usr`` companion to :func:`writable`, for the separate ``ro`` ``/usr`` partition
-    that the stock ``rw``/``ro`` helpers do not cover. Same ``changed_if`` discipline: a
-    converged box queues no remount and keeps ``--dry`` empty.
-    """
-    if changed_if:
-        remount_usr(name="Remount /usr read-write", read_write=True)
-    try:
-        yield
-    finally:
-        if changed_if:
-            remount_usr(name="Remount /usr read-only", read_write=False)
