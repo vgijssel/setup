@@ -66,7 +66,7 @@ lint:
         - libs/aws-sigv4-proxy/templates/**
         - libs/tenant/templates/**
         - apps/cluster-networking/coredns-patch/templates/**
-        # OpenBao seal Secret uses leading {{- -}} lookup/randBytes template blocks
+        # OpenBao ExternalSecret template embeds Helm-escaped ESO Go-templates
         - apps/secret/src/openbao/templates/**
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]

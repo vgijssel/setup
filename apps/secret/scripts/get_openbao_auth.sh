@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# secret:auth — mint a short-lived (1h) OpenBao ADMIN token for break-glass / human
-# admin tasks (seeding kv secrets, recovery-key rotation, policy fixes, ...).
+# secret:get_openbao_auth — mint a short-lived (1h) OpenBao ADMIN token for break-glass /
+# human admin tasks (seeding kv secrets, recovery-key rotation, policy fixes, ...).
 #
 # How it works: OpenBao self-init created an `admin` kubernetes-auth role bound to the
 # `openbao-admin` ServiceAccount (ns secret). This script mints a short-lived token for
@@ -13,8 +13,8 @@
 # TTL bounds a leaked token. There is no long-lived admin credential anywhere.
 #
 # Usage:
-#   moon run secret:auth              # prints export lines for BAO_ADDR + BAO_TOKEN
-#   eval "$(moon run --log error secret:auth)"   # load directly into the shell
+#   moon run secret:get_openbao_auth   # prints export lines for BAO_ADDR + BAO_TOKEN
+#   eval "$(moon run --log error secret:get_openbao_auth)"   # load directly into the shell
 # Then reach OpenBao from your workstation via: moon run secret:forward
 set -euo pipefail
 
@@ -32,7 +32,7 @@ require kubectl
 # Point kubectl at the '${CLUSTER_NAME}' vind cluster regardless of the ambient
 # kube-context (select the docker driver + connect; idempotent). Its output goes to
 # stderr so the `export` lines this script prints on stdout stay eval-clean
-# (`eval "$(moon run --log error secret:auth)"`).
+# (`eval "$(moon run --log error secret:get_openbao_auth)"`).
 echo "==> Connecting to the '${CLUSTER_NAME}' vind cluster (vcluster connect)" >&2
 vcluster use driver docker >/dev/null 2>&1 || true
 vcluster connect "${CLUSTER_NAME}" >&2
@@ -59,7 +59,7 @@ if [[ -z "${OB_TOKEN:-}" ]]; then
 fi
 
 # 3. Hand the token to the human. Emit shell-eval'able export lines on stdout; guidance
-#    on stderr so `eval "$(... secret:auth)"` stays clean.
+#    on stderr so `eval "$(... secret:get_openbao_auth)"` stays clean.
 echo "==> OpenBao admin token minted (TTL 1h). Reach OpenBao via: moon run secret:forward" >&2
 echo "export BAO_ADDR=http://127.0.0.1:${LOCAL_PORT}"
 echo "export BAO_TOKEN=${OB_TOKEN}"

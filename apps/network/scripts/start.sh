@@ -6,8 +6,8 @@
 # this cluster later. Mirrors apps/secret/scripts/start.sh.
 #
 # `start` now runs the full bring-up end-to-end: create the cluster, seed the
-# NetBird operator management API PAT (network:netbird_auth — breaks the operator/ESO
-# chicken-and-egg), then install Fleet + apply every bundle (network:apply).
+# NetBird operator management API PAT (network:put_netbird_operator_auth — breaks the
+# operator/ESO chicken-and-egg), then install Fleet + apply every bundle (network:apply).
 #
 # Idempotent: creates the cluster, or just reconnects if it already exists.
 set -euo pipefail
@@ -67,8 +67,8 @@ echo "==> Cluster ready; kubectl context: ${CURRENT_CONTEXT}"
 
 # Seed the NetBird operator management API PAT BEFORE apply, so the operator finds
 # netbird-mgmt-api-key on first start and can bring up the routing-peer egress ESO needs.
-echo "==> Seeding the NetBird operator management API PAT (scripts/netbird_auth.sh)"
-"${SCRIPT_DIR}/netbird_auth.sh"
+echo "==> Seeding the NetBird operator management API PAT (scripts/put_netbird_operator_auth.sh)"
+"${SCRIPT_DIR}/put_netbird_operator_auth.sh"
 
 # ── Install the Fleet controller + label THIS cluster ─────────────────────────
 # Done HERE (not in apply.sh) while the kube-context is known-good: start.sh has just

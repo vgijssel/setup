@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# secret:netbird_proxy_auth — mint the NetBird reverse-proxy PROXY TOKEN that this cluster's
+# secret:put_netbird_proxy_auth — mint the NetBird reverse-proxy PROXY TOKEN that this cluster's
 # BYOP reverse proxy (src/netbird-reverse-proxy) authenticates to NetBird Cloud with, and store
 # it in this cluster's OpenBao at kv/secret-netbird-proxy#token. ESO then surfaces it as the
 # `netbird-proxy-token` Secret (proxy.managementServer.auth.existingSecret).
@@ -13,14 +13,14 @@
 #      (NB_API_KEY, synced from kv/secret-netbird-operator by ESO).
 #   2. POST /api/reverse-proxies/proxy-tokens {name: secret.vgijssel.nl} -> one-time token value.
 #   3. Mint a short-lived OpenBao admin token via the `admin` kubernetes-auth role (exec login
-#      into openbao-0, exactly like secret:auth) and write kv/secret-netbird-proxy#token.
+#      into openbao-0, exactly like secret:get_openbao_auth) and write kv/secret-netbird-proxy#token.
 #
 # Idempotent: if kv/secret-netbird-proxy already holds a non-empty token, do nothing (a proxy
 # token's value is not re-derivable, so re-minting every run would churn the running proxy). Set
 # FORCE=1 to mint a fresh token anyway (e.g. after a rotation/compromise); the old same-named
 # token is left in NetBird — revoke it in the console if desired.
 #
-# Security model: identical to secret:auth — only a kubectl admin can mint the openbao-admin SA
+# Security model: identical to secret:get_openbao_auth — only a kubectl admin can mint the openbao-admin SA
 # token and exec the pod, and a kubectl admin already has full cluster access (Secrets, the
 # openbao-seal key, pod exec), so this grants nothing extra. The admin token's TTL is 1h and it
 # is passed to the pod exec via env (transient, in-pod); the proxy token value is piped over
@@ -61,7 +61,7 @@ if ! kubectl -n "${NS}" get serviceaccount "${SA}" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Mint a short-lived OpenBao admin token (exec login, like secret:auth).
+# Mint a short-lived OpenBao admin token (exec login, like secret:get_openbao_auth).
 mint_admin_token() {
   local sa_token
   sa_token="$(kubectl -n "${NS}" create token "${SA}" --duration=10m)"
