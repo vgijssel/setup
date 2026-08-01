@@ -59,7 +59,7 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
   - Verify: rendered SAN + KV path correct for a sample domain.
   - Files: 2.
 
-- [ ] **P1c — Watchdog CronJob + RBAC (verbatim)**
+- [x] **P1c — Watchdog CronJob + RBAC (verbatim)**
   - Acceptance: `cronjob-watchdog.yaml` + `serviceaccount-watchdog.yaml` copied, unchanged logic.
   - Verify: `helm template` renders; digest-pinned image intact.
   - Files: 2.
