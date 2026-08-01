@@ -64,7 +64,7 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
   - Verify: `helm template` renders; digest-pinned image intact.
   - Files: 2.
 
-- [ ] **P1d — Domain-link Crossplane workspace template**
+- [x] **P1d — Domain-link Crossplane workspace template**
   - Acceptance: `workspace-reverse-proxy-domain.yaml` registers
     `netbird_reverse_proxy_domain({{ .Values.domain }})` + minimal DNS (S4); stable tofu state
     suffix as a function of domain (adoption-ready for P2).

@@ -1,0 +1,121 @@
+{{- include "netbird-reverse-proxy-shared.validate" . -}}
+{{- $label := include "netbird-reverse-proxy-shared.label" . -}}
+# ReverseProxyDNS for this cluster's proxy domain. Registers {{ .Values.domain }} as a NetBird
+# custom reverse-proxy domain AND points the Cloudflare *.{{ .Values.domain }} wildcard CNAME at
+# the reverse-proxy cluster address, so every *.{{ .Values.domain }} private service resolves and
+# validates. The private routing itself is handled by NetBird's mesh DNS override for peers in
+# the service access_groups; this public DNS is the validation anchor + non-mesh fallback
+# (non-mesh clients reach the shared cluster, which has no matching service, and fail — desired
+# for a NetBird-Only service).
+#
+# A more-specific explicit record (e.g. omada.network.vgijssel.nl A -> ClusterIP via external-dns)
+# shadows this wildcard CNAME (DNS most-specific-match wins), so registering *.{{ .Values.domain }}
+# does NOT disturb existing single-name records under the same zone.
+#
+# Providers:
+#   - netbirdio/netbird: data.netbird_reverse_proxy_clusters -> the SHARED cluster address (the
+#     value NetBird documents as the CNAME target, currently eu1.netbird.services), and
+#     netbird_reverse_proxy_domain to register {{ .Values.domain }} (validated against that
+#     cluster via the wildcard CNAME below). Auth: NB_PAT env (ESO netbird-mgmt-api-token).
+#   - cloudflare/cloudflare v5: cloudflare_dns_record. Auth: CLOUDFLARE_API_TOKEN env (ESO
+#     cloudflare-credentials). proxied=false (DNS-only / grey-cloud); ttl=1 = automatic.
+#
+# The shared cluster is selected by address suffix (*.netbird.services), NOT clusters[0]: the
+# account also has private account clusters (e.g. secret.vgijssel.nl, network.vgijssel.nl) so
+# index 0 is not guaranteed to be the shared cluster. `tofu init` pulls both plugins (arm64) at
+# runtime; state is the shared kubernetes backend (ProviderConfig `default`, secret_suffix keyed
+# by this Workspace's metadata.name). Reconciles only when this cluster can reach api.netbird.io.
+#
+# metadata.name and the tofu resource addresses below are suffixed with the domain's first label
+# ({{ $label }}) so a cluster's rendered state keys are stable across the move into this chart
+# (adoption, not recreate — see tasks/plan.md Phase 2).
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: reverse-proxy-dns-{{ $label }}
+spec:
+  forProvider:
+    source: Inline
+    env:
+      - name: NB_PAT
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+      - name: CLOUDFLARE_API_TOKEN
+        secretKeyRef:
+          namespace: crossplane-system
+          name: cloudflare-credentials
+          key: token
+    vars:
+      - key: zone_id
+        value: {{ .Values.cloudflareZoneId }} # vgijssel.nl
+      - key: record_name
+        value: "*.{{ .Values.domain }}"
+      - key: proxy_domain
+        value: {{ .Values.domain }}
+    module: |
+      terraform {
+        required_providers {
+          netbird = {
+            source  = "netbirdio/netbird"
+            version = "~> 0.0.9"
+          }
+          cloudflare = {
+            source  = "cloudflare/cloudflare"
+            version = "~> 5.0"
+          }
+        }
+      }
+
+      provider "netbird" {}
+      provider "cloudflare" {}
+
+      variable "zone_id" { type = string }
+      variable "record_name" { type = string }
+      variable "proxy_domain" { type = string }
+
+      data "netbird_reverse_proxy_clusters" "all" {}
+
+      locals {
+        # The shared (public) reverse-proxy cluster address NetBird documents as the CNAME
+        # target — picked by suffix, robust to additional private account clusters.
+        shared_cluster_address = one([
+          for c in data.netbird_reverse_proxy_clusters.all.clusters :
+          c.address if endswith(c.address, ".netbird.services")
+        ])
+      }
+
+      resource "cloudflare_dns_record" "reverse_proxy_{{ $label }}" {
+        zone_id = var.zone_id
+        name    = var.record_name
+        type    = "CNAME"
+        content = local.shared_cluster_address
+        ttl     = 1
+        proxied = false
+      }
+
+      # Register {{ .Values.domain }} as a NetBird custom reverse-proxy domain, validated against
+      # the cluster via the wildcard CNAME above — hence depends_on, so the DNS record exists
+      # before NetBird attempts validation. `validated` flips true async once NetBird checks.
+      resource "netbird_reverse_proxy_domain" "{{ $label }}" {
+        domain         = var.proxy_domain
+        target_cluster = local.shared_cluster_address
+
+        depends_on = [cloudflare_dns_record.reverse_proxy_{{ $label }}]
+      }
+
+      output "cluster_address" {
+        value = local.shared_cluster_address
+      }
+      output "record_id" {
+        value = cloudflare_dns_record.reverse_proxy_{{ $label }}.id
+      }
+      output "domain_id" {
+        value = netbird_reverse_proxy_domain.{{ $label }}.id
+      }
+      output "domain_validated" {
+        value = netbird_reverse_proxy_domain.{{ $label }}.validated
+      }
+  providerConfigRef:
+    name: default
