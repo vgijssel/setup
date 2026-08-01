@@ -53,7 +53,7 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
   - Verify: `helm template --set domain=example.vgijssel.nl` renders; `trunk check` clean.
   - Files: 2.
 
-- [ ] **P1b — Cert + ESO-token templates (parameterized)**
+- [x] **P1b — Cert + ESO-token templates (parameterized)**
   - Acceptance: `certificate-*.yaml` (`*.{{ .Values.domain }}`), `externalsecret-*.yaml`
     (`remoteRef.key: {{ .Values.tokenKvPath }}`).
   - Verify: rendered SAN + KV path correct for a sample domain.

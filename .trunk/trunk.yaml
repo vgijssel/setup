@@ -68,6 +68,7 @@ lint:
         - apps/cluster-networking/coredns-patch/templates/**
         # OpenBao ExternalSecret template embeds Helm-escaped ESO Go-templates
         - apps/secret/src/openbao/templates/**
+        - apps/platform/src/netbird-reverse-proxy-shared/templates/**
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]
       paths:
@@ -82,6 +83,7 @@ lint:
         - libs/aws-sigv4-proxy/templates/**
         - libs/tenant/templates/**
         - apps/argocd-apps/manifests/**
+        - apps/platform/src/netbird-reverse-proxy-shared/templates/**
   enabled:
     - actionlint@1.7.10
     - black@26.1.0
