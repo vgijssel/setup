@@ -1,0 +1,34 @@
+# Shared, first-party Helm chart for the reusable parts of a NetBird BYOP reverse proxy.
+#
+# WHAT IT SHIPS (all parameterized by `domain` + `tokenKvPath`, nothing cluster-specific):
+#   - certificate-netbird-reverse-proxy.yaml   cert-manager Certificate (*.{{domain}})
+#   - externalsecret-netbird-proxy-token.yaml  ESO proxy-token from OpenBao (tokenKvPath)
+#   - cronjob-watchdog.yaml + serviceaccount-watchdog.yaml  self-heal watchdog + RBAC
+#   - workspace-reverse-proxy-domain.yaml      Crossplane opentofu: register the NetBird
+#                                              reverse-proxy domain + its *.{{domain}} CNAME
+#
+# WHAT IT DELIBERATELY DOES NOT SHIP: the proxy Deployment/Service. That is the vendored
+# `netbird-reverse-proxy` chart (third_party/vendir/charts/netbird-reverse-proxy), which each
+# per-cluster bundle depends on DIRECTLY, alongside this chart.
+#
+# ── S1 composition decision (2026-08-01) ─────────────────────────────────────────────────
+# This chart is a SEPARATE dependency, not an umbrella that wraps the vendored proxy chart,
+# because a nested umbrella is undeployable under Fleet:
+#   * `.gitignore` ignores `apps/**/charts/`, so a subchart cannot be committed under this
+#     dir, and
+#   * `bin/fleet-apply` builds ONLY the top-level bundle chart (helm does not recurse into a
+#     subchart's own `file://` deps), so a wrapped vendored subchart is absent from the built
+#     package and its Deployment silently vanishes.
+# Committing the subchart as a real dir hits the same gitignore; inlining/forking the vendored
+# chart would diverge the copy shared with apps/enigma-cluster. So instead each per-cluster
+# bundle declares TWO single-`file://`-level dependencies — the vendored proxy chart (proxy
+# workload, values as before) + THIS chart (domain/tokenKvPath via fleet.yaml helm.values).
+# Both build in one Fleet pass (verified with `helm dependency build` + `helm template`).
+#
+# No `fleet.yaml` lives here → this chart is never deployed standalone; it is pulled in only as
+# a `file://` dependency of apps/{secret,network}/src/netbird-reverse-proxy.
+apiVersion: v2
+name: netbird-reverse-proxy-shared
+description: Shared first-party manifests for a NetBird BYOP reverse proxy (cert, ESO token, self-heal watchdog, Cloudflare/domain linking)
+type: application
+version: 1.0.0

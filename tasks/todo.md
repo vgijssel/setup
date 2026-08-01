@@ -47,7 +47,7 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
 
 ## Phase 1 — Shared platform chart
 
-- [ ] **P1a — Create chart scaffold + values contract**
+- [x] **P1a — Create chart scaffold + values contract**
   - Acceptance: `apps/platform/netbird-reverse-proxy/{Chart.yaml,values.yaml}` per S1; params
     `domain`, `tokenKvPath`; subchart defaults (private, NET_BIND_SERVICE, ClusterIP, tls.source=secret).
   - Verify: `helm template --set domain=example.vgijssel.nl` renders; `trunk check` clean.
