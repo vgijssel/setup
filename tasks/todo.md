@@ -162,13 +162,14 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
   - The chart exposes no request-body-size knob; the proxy's default MSD-upload limit is unverified.
     `pikvm.enigma.vgijssel.nl` ingress (1 GB) stays as the upload fallback (SPEC Non-goal / Risk #6).
     No code change. Live large-upload probe left to the operator.
-- [x] **P5d — No-regression** (live)
+- [x] **P5d — No-regression** (live — Omada VALIDATED WORKING)
   - OpenBao GREEN (sealed=false, valid cert). PiKVM device (apps/pikvm) untouched → apply/goss
-    unaffected by construction. **Omada: pre-existing app-layer outage, NOT a regression from this
-    work** — omada-omada-controller-0 is up 3d/restarts=0 but not serving on its OWN localhost:8088/
-    8043 (app wedged); my changes never touched Omada, and omada.network.vgijssel.nl still resolves
-    correctly via its omada-domain NBResource to 10.96.0.20 (reverse-proxy domain did NOT shadow it —
-    Risk #8 clear). Flagged for the operator (separate subsystem; likely needs an Omada pod restart).
+    unaffected by construction. **Omada WORKS**: https://omada.network.vgijssel.nl:8043/ → HTTP 200,
+    valid LE cert (CN=omada.network.vgijssel.nl), Omada UI, stable ~0.01s. (An earlier scare was a
+    test error — I probed :443, but Omada serves on :8043 and its Service has no 443 — compounded by
+    the router routing-peer being mid-re-register; the self-heal watchdog restored the route,
+    7f54d7b496→65b64bd56c.) No regression: omada resolves via its own omada-domain NBResource to
+    10.96.0.20; the network.vgijssel.nl reverse-proxy domain did NOT shadow it (Risk #8 clear).
 - [x] **P5e — Self-heal** (live)
   - VERIFIED: netbird-reverse-proxy-watchdog CronJob deployed on network + executed on schedule;
     job log shows it read /healthz (all_clients_healthy:true) and reported "mesh client healthy".
