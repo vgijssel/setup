@@ -1,0 +1,50 @@
+# Fleet bundle for the NetBird BYOP reverse proxy (network cluster only). Mirrors the secret
+# cluster's thin bundle: the umbrella Chart.yaml deps the vendored proxy workload + the first-party
+# netbird-reverse-proxy-shared chart (cert, ESO proxy-token, self-heal watchdog, and the
+# reverse-proxy-dns-network domain Workspace). The proxy's own values live in values.yaml under
+# `netbird-reverse-proxy:`; the shared chart's two params are set here.
+#
+# Once this proxy connects to NetBird Cloud it registers as a Private-capable proxy cluster
+# (network.vgijssel.nl), which unlocks the NetBird-Only service exposing the PiKVM UI at
+# pikvm.network.vgijssel.nl (defined in the cloudflare-config reverse-proxy-services workspace).
+#
+# dependsOn (same trio as secret):
+#   - netbird-operator     : owns the `netbird` namespace + overlay control plane.
+#   - crossplane-provider  : installs the opentofu.upbound.io CRDs the domain Workspace needs.
+#   - cloudflare-config    : provides ProviderConfig `default` + the crossplane-system secrets
+#                            (netbird-mgmt-api-token, cloudflare-credentials) the domain Workspace
+#                            reads.
+#
+# The ExternalSecret reads the network cluster's LOCAL `openbao` ClusterSecretStore, which resolves
+# to the secret cluster's OpenBao over the mesh (jwt-network auth); the token lives at
+# kv/network-netbird-pikvm-proxy (network-read policy covers kv/data/*).
+#
+# Chart.lock + charts/*.tgz are gitignored under apps/network/src (built at apply time).
+labels:
+  fleet.vgijssel.nl/bundle: netbird-reverse-proxy
+defaultNamespace: netbird
+helm:
+  releaseName: netbird-reverse-proxy
+  values:
+    # Params for the shared chart (keyed under its subchart name). The proxy workload's values
+    # stay in values.yaml under `netbird-reverse-proxy:`.
+    netbird-reverse-proxy-shared:
+      domain: network.vgijssel.nl
+      tokenKvPath: network-netbird-pikvm-proxy
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane-provider
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: cloudflare-config
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly to keep the BYOP proxy off the secret cluster.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network

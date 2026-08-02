@@ -1,0 +1,73 @@
+# NetBird BYOP reverse proxy for the network cluster. Runs the `netbirdio/reverse-proxy` image as
+# an embedded `netbird proxy` peer inside a WireGuard tunnel, which makes the proxy cluster
+# advertise the `Private` capability — the shared NetBird Cloud cluster (eu1.netbird.services)
+# reports supports_private:false, so this is the ONLY way to get NetBird-Only (private, mesh-only,
+# no interstitial) reverse-proxy services on Cloud. See
+# https://netbird.io/knowledge-hub/netbird-only-private-services
+#
+# It fronts the PiKVM device: a NetBird-Only service `pikvm.network.vgijssel.nl` (created by the
+# cloudflare-config reverse-proxy-services workspace, POST /api/reverse-proxies/services) targets
+# the PiKVM NetBird PEER at :443 (protocol https, skip_tls_verify — the box serves a self-signed
+# cert), so mesh peers in the `homelab` group reach the PiKVM UI at that hostname with a trusted
+# cert and no self-signed warning.
+#
+# Values are keyed under the subchart name (`netbird-reverse-proxy`), mirroring the
+# netbird-operator umbrella bundle and the secret cluster's proxy.
+netbird-reverse-proxy:
+  proxy:
+    # Advertise Private (NetBird-Only) support. Binds an extra :80/:443 listener pair
+    # regardless of proxy.address, so the container needs NET_BIND_SERVICE (added below).
+    private: true
+
+    # Base domain for the proxy == the registered private account-cluster address. Set to
+    # `network.vgijssel.nl` (NOT the apex `vgijssel.nl`) so this proxy registers its OWN account
+    # cluster and becomes the MOST-SPECIFIC parent of pikvm.network.vgijssel.nl. NetBird routes a
+    # private service through the cluster whose address is the most-specific parent of the service
+    # domain, so this guarantees pikvm.network.vgijssel.nl routes through THIS proxy (which, as a
+    # mesh peer itself, can reach the PiKVM peer over the tunnel) rather than the shared eu1
+    # cluster or the apex `vgijssel.nl` proxy. The reverse-proxy DOMAIN network.vgijssel.nl +
+    # wildcard CNAME are registered by the shared chart's reverse-proxy-dns-network Workspace.
+    domain: network.vgijssel.nl
+
+    managementServer:
+      # Empty => NetBird Cloud default (https://api.netbird.io:443). Kept implicit so a
+      # future self-hosted management cutover only edits this one value.
+      address: ""
+      # NetBird Cloud management gRPC is TLS — do NOT allow an insecure (plaintext)
+      # connection (chart default is true, which is only appropriate for a local
+      # self-hosted management server).
+      allowInsecure: false
+      auth:
+        # Proxy token minted via POST /api/reverse-proxies/proxy-tokens, stored in the secret
+        # cluster's OpenBao (kv/network-netbird-pikvm-proxy#token) and surfaced by the shared
+        # chart's ExternalSecret in this bundle as a Secret with a `token` key.
+        existingSecret: netbird-proxy-token
+
+    tls:
+      # Serve the publicly-trusted wildcard cert (*.network.vgijssel.nl) that cert-manager issues
+      # into the netbird-reverse-proxy-cert Secret (shared chart's
+      # certificate-netbird-reverse-proxy.yaml). The proxy mounts it at /certs and hot-reloads on
+      # renewal, so clients (the PiKVM UI at pikvm.network.vgijssel.nl over the mesh) get a
+      # trusted cert with no name-mismatch warning. cert-manager can't issue until the
+      # cloudflare-api-token Secret is synced, so on a cold start the proxy stays not-Ready until
+      # the cert exists (expected).
+      source: secret
+      existingSecret: netbird-reverse-proxy-cert
+
+  # private=true binds privileged :80/:443 inside the container; the image's default drops
+  # ALL capabilities, so add back only NET_BIND_SERVICE.
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+      add:
+        - NET_BIND_SERVICE
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+
+  # Inbound private traffic arrives over the WireGuard tunnel (the embedded netbird peer),
+  # NOT via a Kubernetes Service, so no LoadBalancer/VIP is needed — keep it ClusterIP.
+  service:
+    type: ClusterIP

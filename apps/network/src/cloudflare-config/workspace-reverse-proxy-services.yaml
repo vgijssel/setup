@@ -1,0 +1,158 @@
+# Manages the NetBird reverse-proxy SERVICES for the network cluster (as opposed to the
+# DNS/domain, which the shared chart's reverse-proxy-dns-network Workspace owns). This is a
+# NetBird-Only *private* service served by the network cluster's BYOP proxy
+# (src/netbird-reverse-proxy) — mesh-only, no interstitial, straight through to the PiKVM device.
+# Today: PiKVM. Sibling of the secret cluster's reverse-proxy-services (OpenBao).
+#
+# WHY the restapi provider (not netbirdio/netbird): the netbird TF provider v0.0.9 has NO
+# `private` / `access_groups` fields and no target `options` (skip_tls_verify), so it cannot
+# express a private service. We manage it directly against the NetBird management API via
+# Mastercard/restapi, pinned 3.0.0. (When the netbird provider / k8s operator gains native
+# support, migrate and drop restapi.)
+#
+# The netbird provider is still used as a data source to resolve the `homelab` access-group id by
+# name (only peers in that group may reach PiKVM over the tunnel — SPEC Decision #7: homelab only).
+# The restapi provider ALSO resolves the PiKVM peer id by name (netbird v0.0.9 has no
+# netbird_peer data source — S3 decision): GET /api/peers, filtered name=="pikvm".
+#
+# TARGET SHAPE (S2 decision): target_type="peer" (the PiKVM box runs its own NetBird agent), so
+# the proxy — itself a mesh peer — dials the PiKVM peer directly over WireGuard. port=443,
+# protocol=https, options.skip_tls_verify=true because the box serves a self-signed cert for its
+# LAN IP, not its mesh IP (verifying it over the already-encrypted tunnel adds friction, no
+# security — see netbird PR #5501 / issue #5347). NOT direct_upstream (that's for an in-cluster
+# ClusterIP, like the secret cluster's OpenBao target). ignore_server_additions so NetBird's
+# server-set fields (meta, proxy_cluster, port_auto_assigned, ...) don't churn the plan;
+# force_new on domain (a domain change is a replace).
+#
+# Auth: NB_PAT (netbird data source) + TF_VAR_nb_pat (restapi Authorization header) are this
+# cluster's admin PAT from OpenBao (ESO netbird-mgmt-api-token), management_url
+# https://api.netbird.io. State: shared kubernetes backend (ProviderConfig `default`,
+# network-opentofu suffix), keyed per-workspace.
+#
+# Reconciles only once the network BYOP proxy is online (network.vgijssel.nl account cluster
+# registered) — the precondition below gates creation so NetBird binds the service's proxy_cluster
+# to network.vgijssel.nl (co-located routing to the PiKVM peer), not the shared eu1 cluster
+# (NetBird assigns proxy_cluster ONCE at create and never rebinds).
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: reverse-proxy-services
+spec:
+  # Orphan: deleting this CR must not tofu-destroy the live NetBird service (matches the repo's
+  # Crossplane MR convention + the domain workspace).
+  deletionPolicy: Orphan
+  forProvider:
+    source: Inline
+    env:
+      # netbirdio/netbird provider reads NB_PAT from the environment automatically.
+      - name: NB_PAT
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+      # restapi provider has no env auth; surface the same PAT as a TF variable
+      # (TF_VAR_nb_pat -> var.nb_pat) for the Authorization header.
+      - name: TF_VAR_nb_pat
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+    module: |
+      terraform {
+        required_providers {
+          netbird = {
+            source  = "netbirdio/netbird"
+            version = "0.0.9"
+          }
+          restapi = {
+            source  = "Mastercard/restapi"
+            version = "3.0.0"
+          }
+        }
+      }
+
+      variable "nb_pat" {
+        type      = string
+        sensitive = true
+      }
+
+      provider "netbird" {}
+
+      provider "restapi" {
+        uri                  = "https://api.netbird.io"
+        write_returns_object = true
+        id_attribute         = "id"
+        create_method        = "POST"
+        update_method        = "PUT"
+        destroy_method       = "DELETE"
+        headers = {
+          Authorization = "Token ${var.nb_pat}"
+          Content-Type  = "application/json"
+        }
+      }
+
+      # Resolve the homelab access-group id by name (stable across service edits / a fresh
+      # account). Only peers in this group may reach PiKVM over the tunnel.
+      data "netbird_group" "homelab" {
+        name = "homelab"
+      }
+
+      # Resolve the PiKVM peer id by name (netbird provider v0.0.9 has no netbird_peer data
+      # source). GET /api/peers returns a top-level array; search for the one named "pikvm".
+      # If the PiKVM peer is ever deleted + re-enrolled its id changes and this re-resolves it.
+      data "restapi_object" "pikvm_peer" {
+        path         = "/api/peers"
+        search_key   = "name"
+        search_value = "pikvm"
+      }
+
+      # The BYOP proxy account clusters — used to gate service creation on the network proxy being
+      # online (NetBird assigns proxy_cluster ONCE at create from the domain->cluster match and
+      # never rebinds; creating before network.vgijssel.nl exists would permanently bind it to
+      # eu1, which can't reach the PiKVM peer). The precondition makes tofu retry until the proxy
+      # has connected.
+      data "netbird_reverse_proxy_clusters" "all" {}
+
+      # NetBird-Only private service for the PiKVM UI. proxy_cluster is derived by NetBird from the
+      # domain -> the network cluster's BYOP private cluster (network.vgijssel.nl).
+      resource "restapi_object" "pikvm" {
+        path                    = "/api/reverse-proxies/services"
+        id_attribute            = "id"
+        ignore_server_additions = true
+        force_new               = ["domain"]
+
+        lifecycle {
+          precondition {
+            condition     = contains([for c in data.netbird_reverse_proxy_clusters.all.clusters : c.address], "network.vgijssel.nl")
+            error_message = "The network.vgijssel.nl BYOP proxy cluster is not online yet; run secret:put_netbird_pikvm_proxy_auth + bring up the network netbird-reverse-proxy pod first."
+          }
+        }
+
+        data = jsonencode({
+          name          = "pikvm-network"
+          domain        = "pikvm.network.vgijssel.nl"
+          enabled       = true
+          private       = true
+          mode          = "http"
+          access_groups = [data.netbird_group.homelab.id]
+          targets = [{
+            enabled     = true
+            target_type = "peer"
+            target_id   = data.restapi_object.pikvm_peer.id
+            port        = 443
+            protocol    = "https"
+            options = {
+              skip_tls_verify = true
+            }
+          }]
+        })
+      }
+
+      output "service_id" {
+        value = restapi_object.pikvm.id
+      }
+      output "pikvm_peer_id" {
+        value = data.restapi_object.pikvm_peer.id
+      }
+  providerConfigRef:
+    name: default

@@ -1,0 +1,29 @@
+# Thin per-cluster bundle for the network cluster's NetBird BYOP reverse proxy (fronts PiKVM).
+#
+# Two single-`file://`-level dependencies (S1 decision, tasks/plan.md Phase 0), identical to the
+# secret bundle:
+#   - netbird-reverse-proxy (vendored, third_party): the proxy Deployment/Service workload.
+#     Values under key `netbird-reverse-proxy:` in values.yaml (proxy.domain=network.vgijssel.nl).
+#   - netbird-reverse-proxy-shared (first-party, apps/platform): the reusable cert + ESO proxy
+#     token + self-heal watchdog + Cloudflare/domain-link Workspace. Parameterized via
+#     `netbird-reverse-proxy-shared.{domain,tokenKvPath}` set in fleet.yaml helm.values.
+#
+# This proves the SPEC's "one shared chart consumed by both clusters" goal — the ONLY differences
+# vs the secret bundle are the two shared-chart params (fleet.yaml) and proxy.domain (values.yaml).
+# The PiKVM service itself is NOT here; it lives in the per-cluster cloudflare-config services
+# workspace (SPEC Decision #2).
+#
+# Fleet builds both file:// deps at apply time; Chart.lock + charts/*.tgz are gitignored under
+# apps/network/src (never committed).
+apiVersion: v2
+name: netbird-reverse-proxy
+description: NetBird BYOP reverse proxy (network cluster) — vendored proxy workload + shared cert/ESO/watchdog/domain
+version: 1.0.0
+appVersion: 0.72.4
+dependencies:
+  - name: netbird-reverse-proxy
+    version: 0.1.0
+    repository: file://../../../../third_party/vendir/charts/netbird-reverse-proxy
+  - name: netbird-reverse-proxy-shared
+    version: 1.0.0
+    repository: file://../../../platform/src/netbird-reverse-proxy-shared
