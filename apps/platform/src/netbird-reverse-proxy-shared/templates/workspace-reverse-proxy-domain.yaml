@@ -34,6 +34,15 @@ kind: Workspace
 metadata:
   name: reverse-proxy-dns-{{ $label }}
 spec:
+  # Orphan (not the Crossplane default Delete) so deleting this Workspace CR NEVER runs
+  # `tofu destroy` on the live netbird_reverse_proxy_domain + *.{{ .Values.domain }} CNAME. Two
+  # reasons: (1) the secret migration moves this workspace from the cloudflare-config bundle into
+  # this chart (tasks/plan.md Phase 2 / Risk #1) — Fleet prunes the old copy, and Orphan makes
+  # that prune a no-op against the live domain so OpenBao never loses mesh reachability; the
+  # recreated CR (same metadata.name -> same tfstate-reverse-proxy-dns-{{ $label }}-* state
+  # secret) re-adopts and plans a no-op. (2) accidental bundle deletion can't drop a proxy
+  # domain. Matches the openbao-config MR convention (all Orphan).
+  deletionPolicy: Orphan
   forProvider:
     source: Inline
     env:
