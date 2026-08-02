@@ -29,20 +29,41 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
     services stay in workspaces) without forking. Downstream file:// depth: bundle→shared is
     `file://../../../platform/src/netbird-reverse-proxy-shared`; bundle→vendored unchanged.
 
-- [ ] **S2 — Decide PiKVM service target block**
-  - Acceptance: exact `targets[]` JSON for the PiKVM service (peer vs direct_upstream-to-mesh-IP).
-  - Verify: `GET /api/reverse-proxies/services` schema + existing OpenBao service inspected with
-    the network admin PAT; chosen shape accepted (dry).
-  - Files: none.
+- [x] **S2 — Decide PiKVM service target block**
+  - **DECISION (2026-08-02):** `target_type: "peer"` confirmed valid by NetBird docs (a target
+    is a machine running the NetBird agent; PiKVM runs one). Live `GET /api/reverse-proxies/services`
+    shows the OpenBao target schema (`target_id/target_type/host/port/protocol/options`). Required
+    target fields = `target_id, target_type, protocol, port, enabled`; `host`/`path`/`options`
+    optional. PiKVM block:
+    ```hcl
+    targets = [{ enabled = true, target_type = "peer",
+      target_id = <pikvm peer id>, port = 443, protocol = "https",
+      options = { skip_tls_verify = true } }]
+    ```
+    NOT direct_upstream (that's for in-cluster ClusterIP; peer type routes to the PiKVM peer
+    directly over mesh — the network proxy pod is itself a peer). The docs 502-self-target caveat
+    does NOT apply (target is a *different* peer than the routing/proxy peer).
 
-- [ ] **S3 — Resolve peer-id lookup + `skip_tls_verify` key**
-  - Acceptance: peer-id HCL (or decision to use mesh-IP direct_upstream) + confirmed option key.
-  - Verify: `GET /api/peers` by name/IP works, or fallback chosen; key spelling from live schema.
-  - Files: none.
+- [x] **S3 — Resolve peer-id lookup + `skip_tls_verify` key**
+  - **DECISION (2026-08-02):** `options.skip_tls_verify` (boolean) is the exact key (NetBird docs
+    Services API + PR #5501). netbird provider v0.0.9 has NO `netbird_peer` data source, so resolve
+    the peer id via the Mastercard/restapi provider already in the services workspace:
+    `data "restapi_object" "pikvm_peer" { path = "/api/peers"; search_key = "name"; search_value = "pikvm" }`
+    → `target_id = data.restapi_object.pikvm_peer.id`. Fallback (if the data-source search is
+    fragile): hardcode the stable peer id `d9hitorl0ubs73c5d2cg` as a Workspace var. Live POST in
+    P4c is the final confirmation (restapi_object either creates or errors loudly — no partial state).
+    Reference ids: PiKVM peer `d9hitorl0ubs73c5d2cg` (ip 100.65.192.152), homelab group
+    `d9hkg6bl0ubs73d8vrig`.
 
-- [ ] **S4 — Confirm `network.vgijssel.nl` domain won't disturb Omada (read-only)**
-  - Acceptance: go/no-go + minimal DNS the domain workspace should create (CNAME needed or not).
-  - Verify: Omada A record shadows the wildcard; reverse-proxy-domain ≠ NBResource subsystem.
+- [x] **S4 — Confirm `network.vgijssel.nl` domain won't disturb Omada (read-only)**
+  - **DECISION (2026-08-02): GO.** Live DNS: `omada.network.vgijssel.nl` has a *specific* A record
+    (`10.96.0.20`, external-dns owner=network-cluster) which shadows any wildcard by most-specific
+    match. No `*.network.vgijssel.nl` record exists yet; only `*.secret.vgijssel.nl` (secret
+    workspace) and apex `*.vgijssel.nl` (both → eu1.netbird.services). The apex wildcard already
+    resolves `pikvm.network.vgijssel.nl` → eu1 at arbitrary depth, so the chart's
+    `*.network.vgijssel.nl` CNAME → eu1.netbird.services is same-target/harmless and mirrors the
+    secret pattern. reverse-proxy-domain (validation anchor) is a separate subsystem from NBResource
+    routing. Minimal DNS = the one `*.network.vgijssel.nl` CNAME the chart workspace already emits.
   - Files: none.
 
 ## Phase 1 — Shared platform chart
