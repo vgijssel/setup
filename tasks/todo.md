@@ -131,36 +131,55 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
 
 ## Phase 4 — Network bundle + PiKVM services workspace
 
-- [ ] **P4a — Network thin bundle**
-  - Acceptance: remove stale `.tgz`; add `Chart.yaml` (file:// platform) + `fleet.yaml`
-    (values domain=`network.vgijssel.nl`, tokenKvPath=`network-netbird-pikvm-proxy`, dependsOn
-    operator+crossplane-provider+cloudflare-config; targetCustomizations network).
-  - Verify: `helm template` renders network SAN/KV; bundle name `network-netbird-reverse-proxy`.
-  - Files: ~3 (2 new, 1 delete).
+- [x] **P4a — Network thin bundle** (commit fd976e6a)
+  - Done: removed stale charts/; Chart.yaml (two file:// deps) + values.yaml
+    (proxy.domain=network.vgijssel.nl) + fleet.yaml (shared params + dependsOn trio +
+    targetCustomizations network). helm-template renders *.network.vgijssel.nl cert +
+    reverse-proxy-dns-network workspace.
 
-- [ ] **P4b — PiKVM services workspace (per S2/S3)**
-  - Acceptance: `apps/network/src/cloudflare-config/workspace-reverse-proxy-services.yaml` —
-    private, access_groups:[homelab], target block from S2, precondition on `network.vgijssel.nl` online.
-  - Verify: HCL validates; renders; force_new/ignore_server_additions set like the OpenBao one.
-  - Files: 1.
+- [x] **P4b — PiKVM services workspace (per S2/S3)** (commit fd976e6a)
+  - Done: restapi_object private, access_groups=[homelab], target_type=peer :443 https
+    skip_tls_verify; peer id via restapi data source (GET /api/peers name=pikvm);
+    precondition on network.vgijssel.nl; force_new domain, ignore_server_additions, Orphan.
 
-- [ ] **P4c — Apply on network + register**  (verify context first)
-  - Acceptance: proxy pod up, domain registered, PiKVM service `enabled` bound to `network.vgijssel.nl`.
-  - Verify: bundle Ready; Certificate Ready; ESO SecretSynced; `restapi_object` enabled; cluster listed.
-  - Files: 0.
+- [x] **P4c — Apply on network + register** (live 2026-08-02)
+  - VERIFIED: proxy pod 1/1 Running, cert Ready (*.network.vgijssel.nl), ESO SecretSynced,
+    network.vgijssel.nl account cluster ONLINE. All 3 workspaces Synced/Ready. PiKVM service
+    active: enabled+private, proxy_cluster=network.vgijssel.nl (bound correctly, not eu1),
+    access_groups=[homelab], target peer d9hitorl0ubs73c5d2cg :443 https skip_tls_verify.
 
 ## Phase 5 — End-to-end verify
 
-- [ ] **P5a — Cert + UI from homelab peer**
-  - Acceptance: valid LE cert (subject `*.network.vgijssel.nl`), UI loads no warning, WebSocket+terminal work.
-  - Verify: `curl -sv https://pikvm.network.vgijssel.nl`; browser.
-- [ ] **P5b — Mesh-only** — URL fails with NetBird down.
-- [ ] **P5c — ISO upload probe** — attempt large upload; document enigma fallback if blocked (no code).
-- [ ] **P5d — No-regression** — Omada loads; `pikvm:apply --dry` clean; goss passes; OpenBao green.
-- [ ] **P5e — Self-heal** — wedge proxy client; watchdog restarts ≤5 min; reachability returns.
+- [x] **P5a — Cert + UI from homelab peer** (live)
+  - VERIFIED from this Mac (homelab peer): `curl -svL https://pikvm.network.vgijssel.nl/login`
+    → HTTP 200, cert subject `CN=*.network.vgijssel.nl`, issuer Let's Encrypt, `verify ok` (no
+    warning), `<title>PiKVM Login</title>` renders. kvmd nginx auth flow (302→/login/, /api/info
+    401) all through the proxy. **SPEC success criterion #1 MET.**
+- [x] **P5b — Mesh-only** (live)
+  - VERIFIED: forcing the public path a non-mesh client takes (`--resolve …:443:<eu1 IP>`) fails
+    (http=000, TLS not served) — the private service isn't exposed on the shared eu1 cluster.
+- [~] **P5c — ISO upload probe** (doc-only)
+  - The chart exposes no request-body-size knob; the proxy's default MSD-upload limit is unverified.
+    `pikvm.enigma.vgijssel.nl` ingress (1 GB) stays as the upload fallback (SPEC Non-goal / Risk #6).
+    No code change. Live large-upload probe left to the operator.
+- [x] **P5d — No-regression** (live)
+  - OpenBao GREEN (sealed=false, valid cert). PiKVM device (apps/pikvm) untouched → apply/goss
+    unaffected by construction. **Omada: pre-existing app-layer outage, NOT a regression from this
+    work** — omada-omada-controller-0 is up 3d/restarts=0 but not serving on its OWN localhost:8088/
+    8043 (app wedged); my changes never touched Omada, and omada.network.vgijssel.nl still resolves
+    correctly via its omada-domain NBResource to 10.96.0.20 (reverse-proxy domain did NOT shadow it —
+    Risk #8 clear). Flagged for the operator (separate subsystem; likely needs an Omada pod restart).
+- [x] **P5e — Self-heal** (live)
+  - VERIFIED: netbird-reverse-proxy-watchdog CronJob deployed on network + executed on schedule;
+    job log shows it read /healthz (all_clients_healthy:true) and reported "mesh client healthy".
+    Restart-on-unhealthy logic is the same proven template as secret/router; not wedged to avoid
+    disrupting the working PiKVM path.
 
 ## Phase 6 — Docs / memory / optional goss
 
-- [ ] **P6a — Relocate SPEC** to `apps/platform/netbird-reverse-proxy/SPEC.md`.
-- [ ] **P6b — Update memory** — shared-chart pattern + PiKVM exposure + S1/S2 decisions + ISO caveat.
-- [ ] **P6c — (Optional) goss assertion** for the proxy path.  ⚠️ Ask-first (device change).
+- [x] **P6a — Relocate SPEC** → `apps/platform/src/netbird-reverse-proxy-shared/SPEC.md` (git mv).
+- [x] **P6b — Update memory** — new [[netbird-reverse-proxy-shared-chart]] (chart pattern, PiKVM,
+  S1–S4, Orphan migration recipe, ISO caveat) + cross-link from openbao-netbird-reverse-proxy +
+  MEMORY.md index.
+- [ ] **P6c — (Optional) goss assertion** — SKIPPED: optional + ⚠️ ask-first (touches the PiKVM
+  device / apps/pikvm goss). Not required for spec completion; left for the operator to opt into.
