@@ -118,16 +118,16 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
 
 ## Phase 3 — Network proxy token (parallel with P1/P2)
 
-- [ ] **P3a — `put_netbird_pikvm_proxy_auth.sh` + moon task**  ⚠️ Ask-first to run
-  - Acceptance: mints proxy-token, writes `kv/network-netbird-pikvm-proxy#token`; idempotent; FORCE=1.
-  - Verify: `bao kv get kv/network-netbird-pikvm-proxy` returns token.
-  - Files: 1 script + moon.yml task.
+- [x] **P3a — network proxy-token → OpenBao + moon task** (live 2026-08-02)
+  - DEVIATION (better/DRY): the existing `put_netbird_proxy_auth.sh` is already fully
+    parameterized, so instead of cloning it I added a `secret:put_netbird_pikvm_proxy_auth` moon
+    task that reuses it with env overrides (KV_PROXY_PATH=network-netbird-pikvm-proxy,
+    PROXY_TOKEN_NAME=network.vgijssel.nl). It's a secret-cluster task (all OpenBao lives there).
+    VERIFIED: 40-char token at kv/network-netbird-pikvm-proxy#token. Idempotent; FORCE=1 re-mints.
 
-- [ ] **P3b — Ensure `network-eso` reads the new KV path**
-  - Acceptance: policy covers `kv/data/network-netbird-pikvm-proxy` (extend MR in
-    `apps/secret/src/openbao-config` if the `network-*` prefix doesn't already).
-  - Verify: an ExternalSecret to that key would sync (policy read granted).
-  - Files: 0–1.
+- [x] **P3b — `network-eso` reads the new KV path** (no change needed)
+  - The `network-read` policy already grants `read` on `kv/data/*` (wildcard), which covers
+    `kv/data/network-netbird-pikvm-proxy`. Confirmed live via `bao policy read network-read`.
 
 ## Phase 4 — Network bundle + PiKVM services workspace
 
