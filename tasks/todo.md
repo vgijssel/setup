@@ -94,7 +94,9 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
 
 ## Phase 2 — Secret in-place migration  ⚠️ Ask-first before apply
 
-- [ ] **P2a — Convert secret bundle to thin consumer**
+- [x] **P2a — Convert secret bundle to thin consumer** (commit 4d35f46f)
+  - Done: two-dep umbrella (vendored proxy + shared chart); templates deleted; helm-template
+    adoption gate = 9 proxy/cert/ESO/watchdog objects byte-identical to pre-refactor.
   - Acceptance: `apps/secret/src/netbird-reverse-proxy/` = `Chart.yaml` (file:// platform) +
     `fleet.yaml` (releaseName unchanged, values domain=`secret.vgijssel.nl`,
     tokenKvPath=`secret-netbird-proxy`, dependsOn operator+crossplane-provider+cloudflare-config);
@@ -102,17 +104,17 @@ Ordered by dependency. Each task ≤ ~5 files. `[ ]` todo · `[~]` in progress �
   - Verify: `helm template` == pre-refactor objects (Deployment/Cert/ExternalSecret) modulo Fleet labels.
   - Files: ~4.
 
-- [ ] **P2b — Migrate secret domain workspace into the chart (adopt state)**
-  - Acceptance: delete `cloudflare-config/workspace-reverse-proxy-dns-secret.yaml`; chart workspace
-    owns it with identical `metadata.name` + tofu state suffix.
-  - Verify: Workspace tofu plan shows **adopt/no-op** (no `netbird_reverse_proxy_domain` replace).
-  - Files: ~2.
+- [x] **P2b — Migrate secret domain workspace into the chart (adopt state)** (commit 4d35f46f)
+  - Done: deleted cloudflare-config copy; chart renders identical `reverse-proxy-dns-secret`
+    (same tfstate secret) + byte-identical module HCL; added `deletionPolicy: Orphan` so the
+    cross-bundle Fleet prune can't `tofu destroy` the live domain.
 
-- [ ] **P2c — Apply on secret + adoption gate**
-  - Acceptance: OpenBao unchanged; Helm release upgraded not replaced; cert not re-issued.
-  - Verify: `curl https://openbao.secret.vgijssel.nl` valid cert + reachable; network ESO SecretSynced;
-    Workspace Ready no-diff.
-  - Files: 0 (apply/observe).
+- [x] **P2c — Apply on secret + adoption gate** (live 2026-08-02)
+  - Done: patched live workspace to Orphan pre-apply; `fleet apply` cloudflare-config then
+    netbird-reverse-proxy. VERIFIED: domain_id unchanged (d9jlahjl0ubs73bfm1h0, adopted not
+    recreated), domain still validated, cert serial unchanged (050C75A9…, no re-issue), proxy
+    pod not recreated (22m), Helm upgraded v2→v3, both bundles Ready. OpenBao mesh-reachable —
+    valid LE cert CN=*.secret.vgijssel.nl, sealed=false. Zero regression.
 
 ## Phase 3 — Network proxy token (parallel with P1/P2)
 
