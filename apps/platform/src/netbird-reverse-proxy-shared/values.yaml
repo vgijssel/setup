@@ -1,0 +1,24 @@
+# Parameter contract for the shared NetBird reverse-proxy chart. Each per-cluster bundle sets
+# these two values via its fleet.yaml `helm.values.netbird-reverse-proxy-shared` block; there
+# are no other knobs (the proxy workload's knobs live under the sibling vendored chart's own
+# values key, `netbird-reverse-proxy`, in each bundle's values.yaml).
+#
+# Both are REQUIRED — templates fail-fast if left empty so a misconfigured bundle never renders
+# a cert for `*.` or an ExternalSecret reading an empty KV path.
+
+# Base domain this proxy owns. Drives the wildcard cert SAN (`*.<domain>`), the registered
+# NetBird reverse-proxy domain, and the Cloudflare `*.<domain>` CNAME.
+#   secret cluster  -> secret.vgijssel.nl
+#   network cluster -> network.vgijssel.nl
+domain: ""
+
+# OpenBao KV v2 path (relative to the `openbao` ClusterSecretStore's kv mount) holding the BYOP
+# proxy's management token under property `token`. Surfaced into the `netbird` namespace as the
+# `netbird-proxy-token` Secret consumed by the proxy's managementServer.auth.existingSecret.
+#   secret cluster  -> secret-netbird-proxy
+#   network cluster -> network-netbird-pikvm-proxy
+tokenKvPath: ""
+
+# Cloudflare zone id for vgijssel.nl (public constant; not a secret). Used by the domain
+# workspace to create the `*.<domain>` CNAME. Same value for every cluster.
+cloudflareZoneId: 8e5a9db0a62108e5fff87072dbb939d0
