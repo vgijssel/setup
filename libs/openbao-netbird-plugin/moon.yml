@@ -1,0 +1,23 @@
+language: go
+layer: library
+stack: backend
+tags:
+  - go
+tasks:
+  build:
+    command: go build -o openbao-plugin-secrets-netbird .
+    options:
+      runFromWorkspaceRoot: false
+      workingDir: src
+
+  test:
+    command: go test -v -count=1 ./...
+    options:
+      runFromWorkspaceRoot: false
+      workingDir: src
+
+  docker:
+    command: docker build -t openbao-plugin-secrets-netbird .
+    options:
+      runFromWorkspaceRoot: false
+      runInCI: false
