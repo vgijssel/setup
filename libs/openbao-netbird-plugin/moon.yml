@@ -21,3 +21,9 @@ tasks:
     options:
       runFromWorkspaceRoot: false
       runInCI: false
+
+  release:
+    command: ./release.sh
+    options:
+      runFromWorkspaceRoot: false
+      runInCI: false
