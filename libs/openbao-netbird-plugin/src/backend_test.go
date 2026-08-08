@@ -521,3 +521,171 @@ func TestProxyTokenRevocation(t *testing.T) {
 		t.Fatalf("revoke error: %s", resp.Error().Error())
 	}
 }
+
+func TestConfigSetupKeyCRUD(t *testing.T) {
+	b, storage := getTestBackend(t)
+	ctx := context.Background()
+
+	// Create
+	req := &logical.Request{
+		Operation: logical.CreateOperation,
+		Path:      "config/setup-key/pikvm",
+		Storage:   storage,
+		Data: map[string]interface{}{
+			"name_prefix": "openbao-pikvm",
+			"type":        "reusable",
+			"ephemeral":   false,
+			"auto_groups": "homelab,pikvm",
+			"usage_limit": 0,
+			"ttl":         604800,
+			"max_ttl":     2592000,
+		},
+	}
+	resp, err := b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("create setup key config: %v", err)
+	}
+	if resp != nil && resp.IsError() {
+		t.Fatalf("create error: %s", resp.Error().Error())
+	}
+
+	// Read
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "config/setup-key/pikvm",
+		Storage:   storage,
+	}
+	resp, err = b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("read setup key config: %v", err)
+	}
+	if resp.Data["name_prefix"] != "openbao-pikvm" {
+		t.Errorf("unexpected name_prefix: %v", resp.Data["name_prefix"])
+	}
+	if resp.Data["type"] != "reusable" {
+		t.Errorf("unexpected type: %v", resp.Data["type"])
+	}
+	groups := resp.Data["auto_groups"].([]string)
+	if len(groups) != 2 || groups[0] != "homelab" || groups[1] != "pikvm" {
+		t.Errorf("unexpected auto_groups: %v", groups)
+	}
+
+	// Delete
+	req = &logical.Request{
+		Operation: logical.DeleteOperation,
+		Path:      "config/setup-key/pikvm",
+		Storage:   storage,
+	}
+	_, err = b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+
+	// Verify deleted
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "config/setup-key/pikvm",
+		Storage:   storage,
+	}
+	resp, _ = b.HandleRequest(ctx, req)
+	if resp != nil {
+		t.Error("expected nil after delete")
+	}
+}
+
+func TestSetupKeyGeneration(t *testing.T) {
+	b, storage := getTestBackend(t)
+	ctx := context.Background()
+	server := setupMockNetBird(t)
+	defer server.Close()
+
+	writeRootConfig(t, b, storage, server.URL)
+
+	req := &logical.Request{
+		Operation: logical.CreateOperation,
+		Path:      "config/setup-key/pikvm",
+		Storage:   storage,
+		Data: map[string]interface{}{
+			"name_prefix": "openbao-pikvm",
+			"type":        "reusable",
+			"ephemeral":   false,
+			"auto_groups": "homelab,pikvm",
+			"usage_limit": 0,
+			"ttl":         604800,
+			"max_ttl":     2592000,
+		},
+	}
+	b.HandleRequest(ctx, req)
+
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "setup-key/pikvm",
+		Storage:   storage,
+	}
+	resp, err := b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("generate setup key: %v", err)
+	}
+	if resp == nil || resp.IsError() {
+		t.Fatalf("expected valid response, got: %v", resp)
+	}
+	if resp.Data["key_id"] != "sk-id-001" {
+		t.Errorf("unexpected key_id: %v", resp.Data["key_id"])
+	}
+	if resp.Data["setup_key"] != "generated-setup-key" {
+		t.Errorf("unexpected setup_key: %v", resp.Data["setup_key"])
+	}
+	if resp.Data["expires_at"] != "2026-12-31T23:59:59Z" {
+		t.Errorf("unexpected expires_at: %v", resp.Data["expires_at"])
+	}
+	if resp.Secret == nil {
+		t.Fatal("expected secret with lease")
+	}
+	if resp.Secret.TTL.Seconds() != 604800 {
+		t.Errorf("unexpected TTL: %v", resp.Secret.TTL)
+	}
+}
+
+func TestSetupKeyRevocation(t *testing.T) {
+	b, storage := getTestBackend(t)
+	ctx := context.Background()
+	server := setupMockNetBird(t)
+	defer server.Close()
+
+	writeRootConfig(t, b, storage, server.URL)
+
+	req := &logical.Request{
+		Operation: logical.CreateOperation,
+		Path:      "config/setup-key/pikvm",
+		Storage:   storage,
+		Data: map[string]interface{}{
+			"name_prefix": "openbao-pikvm",
+			"type":        "reusable",
+			"auto_groups": "homelab,pikvm",
+			"ttl":         604800,
+			"max_ttl":     2592000,
+		},
+	}
+	b.HandleRequest(ctx, req)
+
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "setup-key/pikvm",
+		Storage:   storage,
+	}
+	resp, _ := b.HandleRequest(ctx, req)
+
+	req = &logical.Request{
+		Operation: logical.RevokeOperation,
+		Path:      "setup-key/pikvm",
+		Storage:   storage,
+		Secret:    resp.Secret,
+	}
+	resp, err := b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("revoke setup key: %v", err)
+	}
+	if resp != nil && resp.IsError() {
+		t.Fatalf("revoke error: %s", resp.Error().Error())
+	}
+}
