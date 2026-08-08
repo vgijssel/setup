@@ -1,0 +1,42 @@
+name: Release openbao-netbird-plugin
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - libs/openbao-netbird-plugin/**
+  # Temporary: also run on PRs to validate the image builds and pushes correctly.
+  # Remove this trigger once the first successful release is confirmed.
+  pull_request:
+    paths:
+      - libs/openbao-netbird-plugin/**
+
+jobs:
+  release:
+    name: Build and push plugin image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU for multi-platform builds
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        run: ./libs/openbao-netbird-plugin/release.sh
+        env:
+          VERSION: 0.1.0
