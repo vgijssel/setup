@@ -17,7 +17,7 @@ tasks:
       workingDir: src
 
   docker:
-    command: docker build -t openbao-plugin-secrets-netbird .
+    command: docker buildx build --platform linux/amd64,linux/arm64 -t openbao-plugin-secrets-netbird .
     options:
       runFromWorkspaceRoot: false
       runInCI: false

@@ -1,4 +1,6 @@
-FROM golang:1.23-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS builder
+
+ARG TARGETARCH
 
 WORKDIR /build
 
@@ -6,7 +8,7 @@ COPY src/go.mod src/go.sum ./
 RUN go mod download
 
 COPY src/ ./
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /openbao-plugin-secrets-netbird .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /openbao-plugin-secrets-netbird .
 
 FROM scratch
 COPY --from=builder /openbao-plugin-secrets-netbird /openbao-plugin-secrets-netbird
