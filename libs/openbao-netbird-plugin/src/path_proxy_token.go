@@ -56,12 +56,14 @@ func (b *netbirdBackend) pathProxyTokenRead(ctx context.Context, req *logical.Re
 		return nil, fmt.Errorf("creating proxy token in NetBird: %w", err)
 	}
 
-	resp := &logical.Response{
-		Data: map[string]interface{}{
-			"token_id": proxyResp.ID,
-			"token":    proxyResp.Token,
-		},
-	}
+	resp := b.Secret(secretTypeProxyToken).Response(map[string]interface{}{
+		"token_id": proxyResp.ID,
+		"token":    proxyResp.Token,
+	}, map[string]interface{}{
+		"token_id": proxyResp.ID,
+	})
+	resp.Secret.TTL = config.TTL
+	resp.Secret.MaxTTL = config.MaxTTL
 
 	return resp, nil
 }

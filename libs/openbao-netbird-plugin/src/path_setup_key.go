@@ -50,9 +50,9 @@ func (b *netbirdBackend) pathSetupKeyRead(ctx context.Context, req *logical.Requ
 	}
 
 	keyName := fmt.Sprintf("%s-%s", config.NamePrefix, name)
-	expiresInDays := int(config.TTL.Hours() / 24)
-	if expiresInDays < 1 {
-		expiresInDays = 1
+	expiresInSeconds := int(config.TTL.Seconds())
+	if expiresInSeconds < 1 {
+		expiresInSeconds = 604800
 	}
 
 	skResp, err := client.CreateSetupKey(&CreateSetupKeyRequest{
@@ -61,19 +61,21 @@ func (b *netbirdBackend) pathSetupKeyRead(ctx context.Context, req *logical.Requ
 		Ephemeral:  config.Ephemeral,
 		AutoGroups: config.AutoGroups,
 		UsageLimit: config.UsageLimit,
-		ExpiresIn:  expiresInDays,
+		ExpiresIn:  expiresInSeconds,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating setup key in NetBird: %w", err)
 	}
 
-	resp := &logical.Response{
-		Data: map[string]interface{}{
-			"key_id":     skResp.ID,
-			"setup_key":  skResp.Key,
-			"expires_at": skResp.ExpiresAt,
-		},
-	}
+	resp := b.Secret(secretTypeSetupKey).Response(map[string]interface{}{
+		"key_id":     skResp.ID,
+		"setup_key":  skResp.Key,
+		"expires_at": skResp.ExpiresAt,
+	}, map[string]interface{}{
+		"key_id": skResp.ID,
+	})
+	resp.Secret.TTL = config.TTL
+	resp.Secret.MaxTTL = config.MaxTTL
 
 	return resp, nil
 }

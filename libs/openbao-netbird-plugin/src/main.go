@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"log"
 
 	"github.com/openbao/openbao/sdk/v2/plugin"
 )
@@ -12,6 +12,6 @@ func main() {
 	}
 
 	if err := plugin.ServeMultiplex(meta); err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }

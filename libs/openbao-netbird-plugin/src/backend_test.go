@@ -323,43 +323,14 @@ func TestPATGeneration(t *testing.T) {
 	if resp.Data["access_token"] != "generated-pat-token" {
 		t.Errorf("unexpected access_token: %v", resp.Data["access_token"])
 	}
-	if resp.Secret != nil {
-		t.Fatal("expected non-leased response (no Secret)")
+	if resp.Secret == nil {
+		t.Fatal("expected leased response with Secret")
 	}
-}
-
-func TestPATNoLease(t *testing.T) {
-	b, storage := getTestBackend(t)
-	ctx := context.Background()
-	server := setupMockNetBird(t)
-	defer server.Close()
-
-	writeRootConfig(t, b, storage, server.URL)
-
-	req := &logical.Request{
-		Operation: logical.CreateOperation,
-		Path:      "config/pat/operator",
-		Storage:   storage,
-		Data: map[string]interface{}{
-			"user_id":           "user-abc",
-			"token_name_prefix": "openbao",
-			"ttl":               3600,
-			"max_ttl":           86400,
-		},
+	if resp.Secret.InternalData["user_id"] != "user-abc" {
+		t.Errorf("unexpected internal user_id: %v", resp.Secret.InternalData["user_id"])
 	}
-	b.HandleRequest(ctx, req)
-
-	req = &logical.Request{
-		Operation: logical.ReadOperation,
-		Path:      "pat/operator",
-		Storage:   storage,
-	}
-	resp, err := b.HandleRequest(ctx, req)
-	if err != nil {
-		t.Fatalf("generate PAT: %v", err)
-	}
-	if resp.Secret != nil {
-		t.Fatal("expected non-leased response")
+	if resp.Secret.InternalData["token_id"] != "pat-id-001" {
+		t.Errorf("unexpected internal token_id: %v", resp.Secret.InternalData["token_id"])
 	}
 }
 
@@ -461,42 +432,11 @@ func TestProxyTokenGeneration(t *testing.T) {
 	if resp.Data["token"] != "generated-proxy-token" {
 		t.Errorf("unexpected token: %v", resp.Data["token"])
 	}
-	if resp.Secret != nil {
-		t.Fatal("expected non-leased response (no Secret)")
+	if resp.Secret == nil {
+		t.Fatal("expected leased response with Secret")
 	}
-}
-
-func TestProxyTokenNoLease(t *testing.T) {
-	b, storage := getTestBackend(t)
-	ctx := context.Background()
-	server := setupMockNetBird(t)
-	defer server.Close()
-
-	writeRootConfig(t, b, storage, server.URL)
-
-	req := &logical.Request{
-		Operation: logical.CreateOperation,
-		Path:      "config/proxy-token/secret",
-		Storage:   storage,
-		Data: map[string]interface{}{
-			"proxy_name": "secret.vgijssel.nl",
-			"ttl":        31536000,
-			"max_ttl":    157680000,
-		},
-	}
-	b.HandleRequest(ctx, req)
-
-	req = &logical.Request{
-		Operation: logical.ReadOperation,
-		Path:      "proxy-token/secret",
-		Storage:   storage,
-	}
-	resp, err := b.HandleRequest(ctx, req)
-	if err != nil {
-		t.Fatalf("generate proxy token: %v", err)
-	}
-	if resp.Secret != nil {
-		t.Fatal("expected non-leased response")
+	if resp.Secret.InternalData["token_id"] != "proxy-id-001" {
+		t.Errorf("unexpected internal token_id: %v", resp.Secret.InternalData["token_id"])
 	}
 }
 
@@ -616,43 +556,10 @@ func TestSetupKeyGeneration(t *testing.T) {
 	if resp.Data["expires_at"] != "2026-12-31T23:59:59Z" {
 		t.Errorf("unexpected expires_at: %v", resp.Data["expires_at"])
 	}
-	if resp.Secret != nil {
-		t.Fatal("expected non-leased response (no Secret)")
+	if resp.Secret == nil {
+		t.Fatal("expected leased response with Secret")
 	}
-}
-
-func TestSetupKeyNoLease(t *testing.T) {
-	b, storage := getTestBackend(t)
-	ctx := context.Background()
-	server := setupMockNetBird(t)
-	defer server.Close()
-
-	writeRootConfig(t, b, storage, server.URL)
-
-	req := &logical.Request{
-		Operation: logical.CreateOperation,
-		Path:      "config/setup-key/pikvm",
-		Storage:   storage,
-		Data: map[string]interface{}{
-			"name_prefix": "openbao-pikvm",
-			"type":        "reusable",
-			"auto_groups": "homelab,pikvm",
-			"ttl":         604800,
-			"max_ttl":     2592000,
-		},
-	}
-	b.HandleRequest(ctx, req)
-
-	req = &logical.Request{
-		Operation: logical.ReadOperation,
-		Path:      "setup-key/pikvm",
-		Storage:   storage,
-	}
-	resp, err := b.HandleRequest(ctx, req)
-	if err != nil {
-		t.Fatalf("generate setup key: %v", err)
-	}
-	if resp.Secret != nil {
-		t.Fatal("expected non-leased response")
+	if resp.Secret.InternalData["key_id"] != "sk-id-001" {
+		t.Errorf("unexpected internal key_id: %v", resp.Secret.InternalData["key_id"])
 	}
 }

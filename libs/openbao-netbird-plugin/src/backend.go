@@ -9,6 +9,12 @@ import (
 	"github.com/openbao/openbao/sdk/v2/logical"
 )
 
+const (
+	secretTypePAT        = "netbird_pat"
+	secretTypeProxyToken = "netbird_proxy_token"
+	secretTypeSetupKey   = "netbird_setup_key"
+)
+
 type netbirdBackend struct {
 	*framework.Backend
 	lock   sync.RWMutex
@@ -31,7 +37,20 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 			pathProxyToken(b),
 			pathSetupKey(b),
 		),
-		Secrets: []*framework.Secret{},
+		Secrets: []*framework.Secret{
+			{
+				Type: secretTypePAT,
+				Revoke: b.revokePAT,
+			},
+			{
+				Type: secretTypeProxyToken,
+				Revoke: b.revokeProxyToken,
+			},
+			{
+				Type: secretTypeSetupKey,
+				Revoke: b.revokeSetupKey,
+			},
+		},
 		Invalidate: b.invalidate,
 	}
 
@@ -40,6 +59,58 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 	}
 
 	return b, nil
+}
+
+func (b *netbirdBackend) revokePAT(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	userID, _ := req.Secret.InternalData["user_id"].(string)
+	tokenID, _ := req.Secret.InternalData["token_id"].(string)
+	if userID == "" || tokenID == "" {
+		return nil, fmt.Errorf("missing internal data for PAT revocation")
+	}
+
+	client, err := b.getClient(ctx, req.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.DeletePAT(userID, tokenID); err != nil {
+		return nil, fmt.Errorf("revoking PAT in NetBird: %w", err)
+	}
+	return nil, nil
+}
+
+func (b *netbirdBackend) revokeProxyToken(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	tokenID, _ := req.Secret.InternalData["token_id"].(string)
+	if tokenID == "" {
+		return nil, fmt.Errorf("missing internal data for proxy token revocation")
+	}
+
+	client, err := b.getClient(ctx, req.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.DeleteProxyToken(tokenID); err != nil {
+		return nil, fmt.Errorf("revoking proxy token in NetBird: %w", err)
+	}
+	return nil, nil
+}
+
+func (b *netbirdBackend) revokeSetupKey(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	keyID, _ := req.Secret.InternalData["key_id"].(string)
+	if keyID == "" {
+		return nil, fmt.Errorf("missing internal data for setup key revocation")
+	}
+
+	client, err := b.getClient(ctx, req.Storage)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.DeleteSetupKey(keyID); err != nil {
+		return nil, fmt.Errorf("revoking setup key in NetBird: %w", err)
+	}
+	return nil, nil
 }
 
 func (b *netbirdBackend) invalidate(ctx context.Context, key string) {
