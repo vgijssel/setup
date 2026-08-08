@@ -79,6 +79,19 @@ directories:
           version: 0.1.0
           repository:
             url: https://charts.christianhuth.de
+  # Stakater Reloader — lightweight controller that watches Secrets/ConfigMaps and
+  # triggers rolling restarts on Deployments/StatefulSets annotated with
+  # reloader.stakater.com/auto: "true". Used for zero-downtime secret rotation: when
+  # ESO refreshes a dynamic credential from the netbird secrets engine, Reloader
+  # detects the Secret change and rolls the consuming workload.
+  - path: charts/reloader
+    contents:
+      - path: .
+        helmChart:
+          name: reloader
+          version: 2.2.15
+          repository:
+            url: https://stakater.github.io/stakater-charts
   - path: charts/external-dns
     contents:
       - path: .

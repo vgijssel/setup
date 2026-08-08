@@ -14,6 +14,8 @@
 # Values are keyed under the subchart name (`netbird-reverse-proxy`), mirroring the
 # netbird-operator umbrella bundle and the secret cluster's proxy.
 netbird-reverse-proxy:
+  podAnnotations:
+    reloader.stakater.com/auto: "true"
   proxy:
     # Advertise Private (NetBird-Only) support. Binds an extra :80/:443 listener pair
     # regardless of proxy.address, so the container needs NET_BIND_SERVICE (added below).

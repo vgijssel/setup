@@ -30,7 +30,7 @@ helm:
     # stay in values.yaml under `netbird-reverse-proxy:`.
     netbird-reverse-proxy-shared:
       domain: network.vgijssel.nl
-      tokenKvPath: network-netbird-pikvm-proxy
+      tokenKvPath: network-pikvm-proxy
 dependsOn:
   - selector:
       matchLabels:

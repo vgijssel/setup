@@ -23,3 +23,6 @@ netbird-operator:
   # bounded to those.
   ingress:
     allowAutomaticPolicyCreation: true
+  operator:
+    podAnnotations:
+      reloader.stakater.com/auto: "true"
