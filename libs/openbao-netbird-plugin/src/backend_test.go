@@ -376,3 +376,148 @@ func TestPATRevocation(t *testing.T) {
 		t.Fatalf("revoke error: %s", resp.Error().Error())
 	}
 }
+
+func TestConfigProxyTokenCRUD(t *testing.T) {
+	b, storage := getTestBackend(t)
+	ctx := context.Background()
+
+	// Create
+	req := &logical.Request{
+		Operation: logical.CreateOperation,
+		Path:      "config/proxy-token/secret",
+		Storage:   storage,
+		Data: map[string]interface{}{
+			"proxy_name": "secret.vgijssel.nl",
+			"ttl":        31536000,
+			"max_ttl":    157680000,
+		},
+	}
+	resp, err := b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("create proxy token config: %v", err)
+	}
+	if resp != nil && resp.IsError() {
+		t.Fatalf("create error: %s", resp.Error().Error())
+	}
+
+	// Read
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "config/proxy-token/secret",
+		Storage:   storage,
+	}
+	resp, err = b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("read proxy token config: %v", err)
+	}
+	if resp.Data["proxy_name"] != "secret.vgijssel.nl" {
+		t.Errorf("unexpected proxy_name: %v", resp.Data["proxy_name"])
+	}
+
+	// Delete
+	req = &logical.Request{
+		Operation: logical.DeleteOperation,
+		Path:      "config/proxy-token/secret",
+		Storage:   storage,
+	}
+	_, err = b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+
+	// Verify deleted
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "config/proxy-token/secret",
+		Storage:   storage,
+	}
+	resp, _ = b.HandleRequest(ctx, req)
+	if resp != nil {
+		t.Error("expected nil after delete")
+	}
+}
+
+func TestProxyTokenGeneration(t *testing.T) {
+	b, storage := getTestBackend(t)
+	ctx := context.Background()
+	server := setupMockNetBird(t)
+	defer server.Close()
+
+	writeRootConfig(t, b, storage, server.URL)
+
+	req := &logical.Request{
+		Operation: logical.CreateOperation,
+		Path:      "config/proxy-token/secret",
+		Storage:   storage,
+		Data: map[string]interface{}{
+			"proxy_name": "secret.vgijssel.nl",
+			"ttl":        31536000,
+			"max_ttl":    157680000,
+		},
+	}
+	b.HandleRequest(ctx, req)
+
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "proxy-token/secret",
+		Storage:   storage,
+	}
+	resp, err := b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("generate proxy token: %v", err)
+	}
+	if resp == nil || resp.IsError() {
+		t.Fatalf("expected valid response, got: %v", resp)
+	}
+	if resp.Data["token_id"] != "proxy-id-001" {
+		t.Errorf("unexpected token_id: %v", resp.Data["token_id"])
+	}
+	if resp.Data["token"] != "generated-proxy-token" {
+		t.Errorf("unexpected token: %v", resp.Data["token"])
+	}
+	if resp.Secret == nil {
+		t.Fatal("expected secret with lease")
+	}
+}
+
+func TestProxyTokenRevocation(t *testing.T) {
+	b, storage := getTestBackend(t)
+	ctx := context.Background()
+	server := setupMockNetBird(t)
+	defer server.Close()
+
+	writeRootConfig(t, b, storage, server.URL)
+
+	req := &logical.Request{
+		Operation: logical.CreateOperation,
+		Path:      "config/proxy-token/secret",
+		Storage:   storage,
+		Data: map[string]interface{}{
+			"proxy_name": "secret.vgijssel.nl",
+			"ttl":        31536000,
+			"max_ttl":    157680000,
+		},
+	}
+	b.HandleRequest(ctx, req)
+
+	req = &logical.Request{
+		Operation: logical.ReadOperation,
+		Path:      "proxy-token/secret",
+		Storage:   storage,
+	}
+	resp, _ := b.HandleRequest(ctx, req)
+
+	req = &logical.Request{
+		Operation: logical.RevokeOperation,
+		Path:      "proxy-token/secret",
+		Storage:   storage,
+		Secret:    resp.Secret,
+	}
+	resp, err := b.HandleRequest(ctx, req)
+	if err != nil {
+		t.Fatalf("revoke proxy token: %v", err)
+	}
+	if resp != nil && resp.IsError() {
+		t.Fatalf("revoke error: %s", resp.Error().Error())
+	}
+}
