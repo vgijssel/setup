@@ -39,4 +39,4 @@ jobs:
       - name: Build and push
         run: ./libs/openbao-netbird-plugin/release.sh
         env:
-          VERSION: 0.1.2
+          VERSION: 0.1.3
