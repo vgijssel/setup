@@ -6,11 +6,6 @@ on:
       - main
     paths:
       - libs/openbao-netbird-plugin/**
-  # Temporary: also run on PRs to validate the image builds and pushes correctly.
-  # Remove this trigger once the first successful release is confirmed.
-  pull_request:
-    paths:
-      - libs/openbao-netbird-plugin/**
 
 jobs:
   release:
