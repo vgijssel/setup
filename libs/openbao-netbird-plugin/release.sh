@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REGISTRY="${REGISTRY:-ghcr.io/vgijssel/setup}"
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-0.1.1}"
 IMAGE_REF="${REGISTRY}/openbao-plugin-secrets-netbird:${VERSION}"
 SOURCE_REPO="https://github.com/vgijssel/setup"
 

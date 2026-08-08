@@ -5,16 +5,14 @@ tags:
   - go
 tasks:
   build:
-    command: go build -o openbao-plugin-secrets-netbird .
+    command: bash -c "cd src && go build -o openbao-plugin-secrets-netbird ."
     options:
       runFromWorkspaceRoot: false
-      workingDir: src
 
   test:
-    command: go test -v -count=1 ./...
+    command: bash -c "cd src && go test -v -count=1 ./..."
     options:
       runFromWorkspaceRoot: false
-      workingDir: src
 
   docker:
     command: docker buildx build --platform linux/amd64,linux/arm64 -t openbao-plugin-secrets-netbird .
