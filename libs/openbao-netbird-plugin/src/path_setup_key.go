@@ -50,7 +50,10 @@ func (b *netbirdBackend) pathSetupKeyRead(ctx context.Context, req *logical.Requ
 	}
 
 	keyName := fmt.Sprintf("%s-%s", config.NamePrefix, name)
-	expiresIn := int(config.TTL.Seconds())
+	expiresInDays := int(config.TTL.Hours() / 24)
+	if expiresInDays < 1 {
+		expiresInDays = 1
+	}
 
 	skResp, err := client.CreateSetupKey(&CreateSetupKeyRequest{
 		Name:       keyName,
@@ -58,7 +61,7 @@ func (b *netbirdBackend) pathSetupKeyRead(ctx context.Context, req *logical.Requ
 		Ephemeral:  config.Ephemeral,
 		AutoGroups: config.AutoGroups,
 		UsageLimit: config.UsageLimit,
-		ExpiresIn:  expiresIn,
+		ExpiresIn:  expiresInDays,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating setup key in NetBird: %w", err)

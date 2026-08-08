@@ -50,11 +50,14 @@ func (b *netbirdBackend) pathPATRead(ctx context.Context, req *logical.Request, 
 	}
 
 	tokenName := fmt.Sprintf("%s-%s", config.TokenNamePrefix, name)
-	expiresIn := int(config.TTL.Seconds())
+	expiresInDays := int(config.TTL.Hours() / 24)
+	if expiresInDays < 1 {
+		expiresInDays = 1
+	}
 
 	patResp, err := client.CreatePAT(config.UserID, &CreatePATRequest{
 		Name:      tokenName,
-		ExpiresIn: expiresIn,
+		ExpiresIn: expiresInDays,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating PAT in NetBird: %w", err)
