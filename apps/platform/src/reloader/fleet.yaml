@@ -1,0 +1,16 @@
+# Stakater Reloader — watches Secrets/ConfigMaps and triggers rolling restarts on
+# Deployments/StatefulSets annotated with reloader.stakater.com/auto: "true". Enables
+# zero-downtime secret rotation: when ESO refreshes a dynamic credential from the
+# netbird secrets engine, Reloader detects the Secret change and rolls the consumer.
+defaultNamespace: reloader
+helm:
+  releaseName: reloader
+targetCustomizations:
+  - name: secret
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: secret
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
