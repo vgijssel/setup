@@ -323,15 +323,12 @@ func TestPATGeneration(t *testing.T) {
 	if resp.Data["access_token"] != "generated-pat-token" {
 		t.Errorf("unexpected access_token: %v", resp.Data["access_token"])
 	}
-	if resp.Secret == nil {
-		t.Fatal("expected secret with lease")
-	}
-	if resp.Secret.TTL.Seconds() != 3600 {
-		t.Errorf("unexpected TTL: %v", resp.Secret.TTL)
+	if resp.Secret != nil {
+		t.Fatal("expected non-leased response (no Secret)")
 	}
 }
 
-func TestPATRevocation(t *testing.T) {
+func TestPATNoLease(t *testing.T) {
 	b, storage := getTestBackend(t)
 	ctx := context.Background()
 	server := setupMockNetBird(t)
@@ -339,7 +336,6 @@ func TestPATRevocation(t *testing.T) {
 
 	writeRootConfig(t, b, storage, server.URL)
 
-	// Write PAT role config
 	req := &logical.Request{
 		Operation: logical.CreateOperation,
 		Path:      "config/pat/operator",
@@ -353,27 +349,17 @@ func TestPATRevocation(t *testing.T) {
 	}
 	b.HandleRequest(ctx, req)
 
-	// Generate credential
 	req = &logical.Request{
 		Operation: logical.ReadOperation,
 		Path:      "pat/operator",
 		Storage:   storage,
 	}
-	resp, _ := b.HandleRequest(ctx, req)
-
-	// Revoke
-	req = &logical.Request{
-		Operation: logical.RevokeOperation,
-		Path:      "pat/operator",
-		Storage:   storage,
-		Secret:    resp.Secret,
-	}
 	resp, err := b.HandleRequest(ctx, req)
 	if err != nil {
-		t.Fatalf("revoke PAT: %v", err)
+		t.Fatalf("generate PAT: %v", err)
 	}
-	if resp != nil && resp.IsError() {
-		t.Fatalf("revoke error: %s", resp.Error().Error())
+	if resp.Secret != nil {
+		t.Fatal("expected non-leased response")
 	}
 }
 
@@ -475,12 +461,12 @@ func TestProxyTokenGeneration(t *testing.T) {
 	if resp.Data["token"] != "generated-proxy-token" {
 		t.Errorf("unexpected token: %v", resp.Data["token"])
 	}
-	if resp.Secret == nil {
-		t.Fatal("expected secret with lease")
+	if resp.Secret != nil {
+		t.Fatal("expected non-leased response (no Secret)")
 	}
 }
 
-func TestProxyTokenRevocation(t *testing.T) {
+func TestProxyTokenNoLease(t *testing.T) {
 	b, storage := getTestBackend(t)
 	ctx := context.Background()
 	server := setupMockNetBird(t)
@@ -505,20 +491,12 @@ func TestProxyTokenRevocation(t *testing.T) {
 		Path:      "proxy-token/secret",
 		Storage:   storage,
 	}
-	resp, _ := b.HandleRequest(ctx, req)
-
-	req = &logical.Request{
-		Operation: logical.RevokeOperation,
-		Path:      "proxy-token/secret",
-		Storage:   storage,
-		Secret:    resp.Secret,
-	}
 	resp, err := b.HandleRequest(ctx, req)
 	if err != nil {
-		t.Fatalf("revoke proxy token: %v", err)
+		t.Fatalf("generate proxy token: %v", err)
 	}
-	if resp != nil && resp.IsError() {
-		t.Fatalf("revoke error: %s", resp.Error().Error())
+	if resp.Secret != nil {
+		t.Fatal("expected non-leased response")
 	}
 }
 
@@ -638,15 +616,12 @@ func TestSetupKeyGeneration(t *testing.T) {
 	if resp.Data["expires_at"] != "2026-12-31T23:59:59Z" {
 		t.Errorf("unexpected expires_at: %v", resp.Data["expires_at"])
 	}
-	if resp.Secret == nil {
-		t.Fatal("expected secret with lease")
-	}
-	if resp.Secret.TTL.Seconds() != 604800 {
-		t.Errorf("unexpected TTL: %v", resp.Secret.TTL)
+	if resp.Secret != nil {
+		t.Fatal("expected non-leased response (no Secret)")
 	}
 }
 
-func TestSetupKeyRevocation(t *testing.T) {
+func TestSetupKeyNoLease(t *testing.T) {
 	b, storage := getTestBackend(t)
 	ctx := context.Background()
 	server := setupMockNetBird(t)
@@ -673,19 +648,11 @@ func TestSetupKeyRevocation(t *testing.T) {
 		Path:      "setup-key/pikvm",
 		Storage:   storage,
 	}
-	resp, _ := b.HandleRequest(ctx, req)
-
-	req = &logical.Request{
-		Operation: logical.RevokeOperation,
-		Path:      "setup-key/pikvm",
-		Storage:   storage,
-		Secret:    resp.Secret,
-	}
 	resp, err := b.HandleRequest(ctx, req)
 	if err != nil {
-		t.Fatalf("revoke setup key: %v", err)
+		t.Fatalf("generate setup key: %v", err)
 	}
-	if resp != nil && resp.IsError() {
-		t.Fatalf("revoke error: %s", resp.Error().Error())
+	if resp.Secret != nil {
+		t.Fatal("expected non-leased response")
 	}
 }

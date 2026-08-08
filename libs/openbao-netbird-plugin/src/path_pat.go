@@ -63,16 +63,12 @@ func (b *netbirdBackend) pathPATRead(ctx context.Context, req *logical.Request, 
 		return nil, fmt.Errorf("creating PAT in NetBird: %w", err)
 	}
 
-	resp := b.Secret(secretTypePAT).Response(map[string]interface{}{
-		"token_id":     patResp.PersonalAccessToken.ID,
-		"access_token": patResp.PlainToken,
-	}, map[string]interface{}{
-		"token_id": patResp.PersonalAccessToken.ID,
-		"user_id":  config.UserID,
-	})
-
-	resp.Secret.TTL = config.TTL
-	resp.Secret.MaxTTL = config.MaxTTL
+	resp := &logical.Response{
+		Data: map[string]interface{}{
+			"token_id":     patResp.PersonalAccessToken.ID,
+			"access_token": patResp.PlainToken,
+		},
+	}
 
 	return resp, nil
 }

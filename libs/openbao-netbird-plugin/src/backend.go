@@ -31,11 +31,7 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 			pathProxyToken(b),
 			pathSetupKey(b),
 		),
-		Secrets: []*framework.Secret{
-			secretPAT(b),
-			secretProxyToken(b),
-			secretSetupKey(b),
-		},
+		Secrets: []*framework.Secret{},
 		Invalidate: b.invalidate,
 	}
 

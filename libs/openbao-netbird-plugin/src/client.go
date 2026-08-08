@@ -46,7 +46,7 @@ type CreateProxyTokenRequest struct {
 
 type CreateProxyTokenResponse struct {
 	ID    string `json:"id"`
-	Token string `json:"token"`
+	Token string `json:"plain_token"`
 }
 
 type CreateSetupKeyRequest struct {

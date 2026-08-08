@@ -31,4 +31,4 @@ apiVersion: v2
 name: netbird-reverse-proxy-shared
 description: Shared first-party manifests for a NetBird BYOP reverse proxy (cert, ESO token, self-heal watchdog, Cloudflare/domain linking)
 type: application
-version: 1.0.0
+version: 1.1.0

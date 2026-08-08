@@ -67,16 +67,13 @@ func (b *netbirdBackend) pathSetupKeyRead(ctx context.Context, req *logical.Requ
 		return nil, fmt.Errorf("creating setup key in NetBird: %w", err)
 	}
 
-	resp := b.Secret(secretTypeSetupKey).Response(map[string]interface{}{
-		"key_id":     skResp.ID,
-		"setup_key":  skResp.Key,
-		"expires_at": skResp.ExpiresAt,
-	}, map[string]interface{}{
-		"key_id": skResp.ID,
-	})
-
-	resp.Secret.TTL = config.TTL
-	resp.Secret.MaxTTL = config.MaxTTL
+	resp := &logical.Response{
+		Data: map[string]interface{}{
+			"key_id":     skResp.ID,
+			"setup_key":  skResp.Key,
+			"expires_at": skResp.ExpiresAt,
+		},
+	}
 
 	return resp, nil
 }
