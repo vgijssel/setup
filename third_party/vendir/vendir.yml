@@ -89,7 +89,7 @@ directories:
       - path: .
         helmChart:
           name: reloader
-          version: 2.2.15
+          version: 2.2.16
           repository:
             url: https://stakater.github.io/stakater-charts
   - path: charts/external-dns
