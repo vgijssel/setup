@@ -93,7 +93,7 @@ directories:
 - contents:
   - helmChart:
       appVersion: 1.8.0
-      version: 3.7.1
+      version: 3.7.2
     path: .
   path: charts/k8s-gateway
 - contents:
