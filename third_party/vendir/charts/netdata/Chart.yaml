@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: v2.10.3
+appVersion: v2.11.0
 dependencies:
 - alias: otel-collector
   condition: otel-collector.enabled
@@ -21,4 +21,4 @@ sources:
 - https://github.com/netdata/helmchart
 - https://github.com/netdata/netdata
 type: application
-version: 3.7.168
+version: 3.7.173

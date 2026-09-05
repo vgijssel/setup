@@ -169,7 +169,7 @@ directories:
       - path: .
         helmChart:
           name: netdata
-          version: 3.7.168
+          version: 3.7.173
           repository:
             url: https://netdata.github.io/helmchart
   - path: charts/openbao
