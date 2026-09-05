@@ -104,8 +104,8 @@ directories:
   path: charts/cert-manager
 - contents:
   - helmChart:
-      appVersion: v2.10.3
-      version: 3.7.168
+      appVersion: v2.11.0
+      version: 3.7.173
     path: .
   path: charts/netdata
 - contents:
