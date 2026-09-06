@@ -17,7 +17,7 @@
     "@dnd-kit/sortable": "9.0.0",
     "@dnd-kit/utilities": "3.2.2",
     "@emotion/react": "11.14.0",
-    "@emotion/styled": "11.14.0",
+    "@emotion/styled": "11.14.1",
     "@hakit/components": "3.2.0",
     "@hakit/core": "3.2.0",
     "@iconify/react": "4.1.1",
