@@ -29,7 +29,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-gauge-component": "2.0.29",
-    "react-player": "2.16.0",
+    "react-player": "2.16.1",
     "use-debounce": "9.0.4",
     "zustand": "4.5.5"
   },
