@@ -510,7 +510,7 @@ test:
     repository: curl
     # -- Image tag
     # Defaults to `latest` if omitted
-    tag: '8.10.1'
+    tag: '8.22.0'
     # -- (string) Image pull policy
     # Defaults to image.pullPolicy if omitted
     pullPolicy: ~
