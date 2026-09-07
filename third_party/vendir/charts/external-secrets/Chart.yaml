@@ -4,7 +4,7 @@ dependencies:
 - condition: bitwarden-sdk-server.enabled
   name: bitwarden-sdk-server
   repository: oci://ghcr.io/external-secrets/charts
-  version: v0.5.2
+  version: v0.7.0
 description: External secrets management for Kubernetes
 home: https://github.com/external-secrets/external-secrets
 icon: https://raw.githubusercontent.com/external-secrets/external-secrets/main/assets/eso-logo-large.png
