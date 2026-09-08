@@ -57,7 +57,7 @@ use_repo(non_module_dependencies, "examples_workspace")
 # ------------------------------------ rules_js ------------------------------------ #
 bazel_dep(
     name = "aspect_rules_js",
-    version = "1.34.1",
+    version = "1.42.3",
 )
 
 ####### Node.js version #########
