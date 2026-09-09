@@ -35,9 +35,9 @@ def rules_release_bazel_dependencies():
     """Load Bazel-level dependencies for rules_release."""
     http_archive(
         name = "bazel_features",
-        sha256 = "62c26e427e5cbc751024446927622e398a9dcdf32c64325238815709d11c11a8",
-        strip_prefix = "bazel_features-1.1.1",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.1.1/bazel_features-v1.1.1.tar.gz",
+        sha256 = "5450bfb2c8b4bc961c75368838f86156f563cc9adef1be7d504fc5619d54daab",
+        strip_prefix = "bazel_features-1.51.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.51.0/bazel_features-v1.51.0.tar.gz",
     )
 
     http_archive(
