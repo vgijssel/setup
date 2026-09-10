@@ -44,8 +44,8 @@ directories:
   path: charts/netbird-reverse-proxy
 - contents:
   - helmChart:
-      appVersion: v1.4.21
-      version: 2.2.16
+      appVersion: v1.4.22
+      version: 2.2.17
     path: .
   path: charts/reloader
 - contents:
