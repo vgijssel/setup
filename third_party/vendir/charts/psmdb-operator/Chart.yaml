@@ -14,4 +14,4 @@ maintainers:
 - email: dhruthi.komarlu@percona.com
   name: DhruthiKV
 name: psmdb-operator
-version: 1.23.0
+version: 1.23.1

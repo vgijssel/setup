@@ -10,6 +10,6 @@ RUN go mod download
 COPY src/ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /openbao-plugin-secrets-netbird .
 
-FROM alpine:3.21.3
+FROM alpine:3.24.1
 COPY --from=builder /openbao-plugin-secrets-netbird /openbao-plugin-secrets-netbird
 ENTRYPOINT ["/openbao-plugin-secrets-netbird"]

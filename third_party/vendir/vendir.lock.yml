@@ -44,8 +44,8 @@ directories:
   path: charts/netbird-reverse-proxy
 - contents:
   - helmChart:
-      appVersion: v1.4.20
-      version: 2.2.15
+      appVersion: v1.4.22
+      version: 2.2.17
     path: .
   path: charts/reloader
 - contents:
@@ -93,7 +93,7 @@ directories:
 - contents:
   - helmChart:
       appVersion: 1.8.0
-      version: 3.7.1
+      version: 3.7.2
     path: .
   path: charts/k8s-gateway
 - contents:
@@ -104,8 +104,8 @@ directories:
   path: charts/cert-manager
 - contents:
   - helmChart:
-      appVersion: v2.10.3
-      version: 3.7.168
+      appVersion: v2.11.0
+      version: 3.7.173
     path: .
   path: charts/netdata
 - contents:
@@ -123,7 +123,7 @@ directories:
 - contents:
   - helmChart:
       appVersion: 1.23.0
-      version: 1.23.0
+      version: 1.23.1
     path: .
   path: charts/psmdb-operator
 - contents:

@@ -35,9 +35,9 @@ def rules_release_bazel_dependencies():
     """Load Bazel-level dependencies for rules_release."""
     http_archive(
         name = "bazel_features",
-        sha256 = "62c26e427e5cbc751024446927622e398a9dcdf32c64325238815709d11c11a8",
-        strip_prefix = "bazel_features-1.1.1",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.1.1/bazel_features-v1.1.1.tar.gz",
+        sha256 = "5450bfb2c8b4bc961c75368838f86156f563cc9adef1be7d504fc5619d54daab",
+        strip_prefix = "bazel_features-1.51.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.51.0/bazel_features-v1.51.0.tar.gz",
     )
 
     http_archive(
@@ -51,16 +51,16 @@ def rules_release_bazel_dependencies():
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "4b32cf6feab38b887941db022020eea5a49b848e11e3d6d4d18433594951717a",
-        strip_prefix = "bazel-lib-2.0.1",
-        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.0.1/bazel-lib-v2.0.1.tar.gz",
+        sha256 = "94e192033ca8027f26de71c9000a67ef9c73695c2b88e2c559045170917ead0c",
+        strip_prefix = "bazel-lib-2.22.5",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.22.5/bazel-lib-v2.22.5.tar.gz",
     )
 
     http_archive(
         name = "aspect_rules_js",
-        sha256 = "76a04ef2120ee00231d85d1ff012ede23963733339ad8db81f590791a031f643",
-        strip_prefix = "rules_js-1.34.1",
-        url = "https://github.com/aspect-build/rules_js/releases/download/v1.34.1/rules_js-v1.34.1.tar.gz",
+        sha256 = "2cfb3875e1231cefd3fada6774f2c0c5a99db0070e0e48ea398acbff7c6c765b",
+        strip_prefix = "rules_js-1.42.3",
+        url = "https://github.com/aspect-build/rules_js/releases/download/v1.42.3/rules_js-v1.42.3.tar.gz",
     )
 
     http_archive(
