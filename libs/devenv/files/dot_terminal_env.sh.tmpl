@@ -13,3 +13,31 @@ export PATH="$HOME/.local/setup/bin:$PATH"
 
 # Local user binaries
 export PATH="$HOME/.local/bin:$PATH"
+
+{{ if eq (env "IS_MACOS") "true" -}}
+# Launch herdr with the ai-workplace environment stripped out.
+#
+# herdr's server is persistent and every pane it spawns inherits the server's
+# environment verbatim — there is no allowlist in config.toml. Start the server
+# from a mise-activated repo and that repo's [env] leaks into every pane in
+# every workspace, whatever the pane's own directory: ai-workplace exports
+# CLAUDE_CODE_USE_BEDROCK plus four API tokens, so a pane in an unrelated repo
+# ends up talking to Bedrock and holding credentials it has no use for.
+#
+# Dropping the __MISE_* bookkeeping matters as much as the values: inherited, it
+# makes each pane's own `mise activate` believe it has already applied
+# ai-workplace's diff, so the stale PATH entries survive the cd too.
+#
+# The list is ai-workplace's `mise env` minus PATH and SANDBOX0_BASE_URL. It
+# drifts when that repo adds a variable; `ps eww -p $(pgrep -f 'herdr server')`
+# shows what actually reached the server.
+herdr() {
+  env -u __MISE_DIFF -u __MISE_SESSION -u __MISE_ORIG_PATH -u MISE_SHELL \
+    -u CLAUDE_CODE_USE_BEDROCK -u AWS_BEARER_TOKEN_BEDROCK -u AWS_CONFIG_FILE \
+    -u DD_ACCESS_TOKEN -u GITLAB_TOKEN -u GITLAB_USERNAME \
+    -u GITHUB_CLOUD_TOKEN -u GITHUB_CLOUD_USERNAME \
+    -u GITHUB_EMU_TOKEN -u GITHUB_EMU_USERNAME \
+    -u KUBECONFIG -u MISE_AQUA_REGISTRY_URL \
+    herdr "$@"
+}
+{{- end }}
