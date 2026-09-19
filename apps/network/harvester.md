@@ -2,6 +2,10 @@
 
 3-node Harvester HCI cluster deployed on VLAN 20 (Servers, `192.168.20.0/24`).
 
+Two physical fabrics: management and VM networks run over the Omada LAG on VLAN
+20, while Longhorn replication and live migration run over a switchless Mellanox
+25G mesh — see "Storage & Live Migration Fabric" below.
+
 ## Network Placement
 
 | Parameter | Value | Rationale |
@@ -114,6 +118,180 @@ Notes:
   the same LAG rather than adding separate access ports. Each becomes a Harvester
   ClusterNetwork/VLAN that guests attach to, while VLAN 20 stays untagged for
   node management.
+
+## Storage & Live Migration Fabric — Mellanox 25G Mesh
+
+Each node has a dual-port 25 GbE Mellanox card. The six ports are cabled **node
+to node in a full mesh** — no switch is involved, so every pair of nodes has
+exactly one dedicated cable:
+
+| Cable | Between |
+|-------|---------|
+| 1 | `illusion` ↔ `the-dome` |
+| 2 | `the-dome` ↔ `the-toy-factory` |
+| 3 | `illusion` ↔ `the-toy-factory` |
+
+This fabric carries **east-west traffic only**. It has no gateway, no DHCP and no
+path off the three nodes, which is why only Longhorn replication and live
+migration live here — see "What does not belong on the mesh" below.
+
+### Harvester objects
+
+| Object | Value |
+|--------|-------|
+| ClusterNetwork | `storage` |
+| VlanConfig uplink NICs | both Mellanox ports on each node |
+| Bond mode | **`broadcast`** (see below) |
+| MTU | 9000 (jumbo) — must be identical across every VlanConfig of this cluster network |
+| Host interfaces created | bridge `storage-br`, bond `storage-bo` |
+
+Notes:
+- Harvester models an uplink as *one NIC or one bond*, and the VlanConfigs of a
+  cluster network must together cover **every** node — the storage-network webhook
+  refuses to apply otherwise. A single cluster-wide VlanConfig named `storage`
+  suffices here because the two Mellanox ports enumerate identically on all three
+  nodes; if that ever stops being true, split it into one VlanConfig per node.
+- The NAD Harvester generates for these settings has **no `mtu` key**, so the pod
+  side inherits the bridge MTU. The VlanConfig declaring 9000 is therefore not
+  proof of jumbo frames end to end — check the hosts (`ip link show storage-br`)
+  and a `ping -M do -s 8972` between two pods on the network.
+
+### Bond mode must be `broadcast`
+
+A bond normally assumes all its member ports reach the same L2 domain. Here the
+two ports reach *different peers*, so every other mode is broken:
+
+| Mode | Why it fails on a switchless mesh |
+|------|-----------------------------------|
+| `active-backup` | only the active port carries traffic → one peer unreachable |
+| `802.3ad` (LACP) | cannot negotiate a single LAG with two different partners |
+| `balance-xor` / `balance-rr` / `balance-tlb` / `balance-alb` | hashes or round-robins frames onto whichever cable, so a share of them arrive at the wrong node and are dropped |
+| `broadcast` | ✅ sends every frame out **both** ports; the peer it wasn't addressed to discards it |
+
+`broadcast` is loop-free without STP because a bond does not forward between its
+own members, and a Linux bridge never sends a frame back out its ingress port.
+Costs: per-node egress caps at ~25 Gb/s because every frame is duplicated, and
+each node also receives every frame meant for the third node and discards it — so
+mesh-NIC rx counters read higher than the traffic actually addressed to that node,
+and drop counters may tick. Expected, not a fault.
+
+This is deliberately the opposite of the management NICs, which are `802.3ad` into
+an Omada LAG (previous section). Two fabrics, two bond modes, for different
+reasons.
+
+### Networks on the fabric
+
+Both settings reuse the **same** cluster network with different VLAN IDs and
+non-overlapping CIDRs. Harvester's webhook only rejects overlapping IP *ranges*,
+so sharing `storage` is supported; separate VLANs keep the broadcast domains and
+per-traffic-type `tcpdump`/counter output readable.
+
+| Setting | VLAN | Range | Carries | Pod interface |
+|---------|-----:|-------|---------|---------------|
+| `storage-network` | 100 | `172.16.99.0/24` | Longhorn engine ↔ replica replication | `lhnet1` on `instance-manager` pods |
+| `vm-migration-network` | 101 | `172.16.101.0/24` | KubeVirt live-migration memory pages | `migration0` on `virt-handler` pods |
+
+```yaml
+apiVersion: harvesterhci.io/v1beta1
+kind: Setting
+metadata:
+  name: storage-network
+value: '{"vlan":100,"clusterNetwork":"storage","range":"172.16.99.0/24"}'
+---
+apiVersion: harvesterhci.io/v1beta1
+kind: Setting
+metadata:
+  name: vm-migration-network
+value: '{"vlan":101,"clusterNetwork":"storage","range":"172.16.101.0/24"}'
+```
+
+The storage range's third octet (`99`) does not match its VLAN ID (`100`). That
+inconsistency stays: changing a configured storage range means stopping every VM
+in the cluster, which is not a price worth paying for cosmetics. Any *new* network
+on this fabric follows `172.16.<vlan>.0/24`.
+
+VLANs 100/101 exist **only inside the `storage` cluster network**, on the direct
+cables. They must never be configured on the Omada switch, and therefore cannot
+collide with the home VLAN scheme (10–90) in network.md.
+
+#### Addressing rules
+
+- `172.16.0.0/12`, not `192.168.x`: the PiKVM advertises `192.168.0.0/16` into the
+  NetBird mesh (network.md), so a `192.168.x` storage subnet would be shadowed by
+  that route for every mesh client.
+- Must not overlap Harvester's own CIDRs: `10.42.0.0/16`, `10.43.0.0/16`,
+  `10.52.0.0/16`, `10.53.0.0/16`.
+- Prefix must be `/16` or longer. Both use a `/24` so adding nodes or disks never
+  runs into the sizing floor below.
+
+#### Range sizing (webhook-enforced minimums)
+
+| Setting | Minimum usable IPs |
+|---------|--------------------|
+| `storage-network` | per node `2 + (disks × 2)`, plus concurrent image uploads/downloads |
+| `storage-network` when `rwx-network` shares it | add `1 per node + 32` |
+| `vm-migration-network` | `1 per non-witness node` |
+
+Undersizing surfaces later rather than at apply time: `instance-manager` /
+`virt-handler` pods fail to start on a *newly added* node or disk once the range is
+exhausted.
+
+### Applying and changing
+
+| Setting | Prerequisite | Impact |
+|---------|-------------|--------|
+| `storage-network` | **every VM stopped**, no attached Longhorn volume, no in-flight image upload/download | restarts Longhorn pods plus Prometheus/Grafana/Alertmanager and the VM-import controller; workloads stay down until VMs are started by hand |
+| `vm-migration-network` | no migration in progress — VMs may keep running | KubeVirt restarts all `virt-handler` pods; running VMs unaffected |
+
+Configure both from **Advanced → Settings** in the UI where possible; it fills in
+the JSON and runs the same webhook. Revert by clearing `value`.
+
+### Verification
+
+```bash
+# both settings report configured=True
+kubectl get settings.harvesterhci.io storage-network vm-migration-network -o yaml
+
+# every node's VlanStatus is Ready, and the uplink is the broadcast bond
+kubectl get vlanstatus
+kubectl get vlanconfig -o custom-columns='NAME:.metadata.name,CN:.spec.clusterNetwork,NICS:.spec.uplink.nics,BOND:.spec.uplink.bondOptions.mode,MTU:.spec.uplink.linkAttributes.mtu'
+
+# replication really uses 172.16.99.x — this map is where each engine dials replicas
+kubectl -n longhorn-system get engines.longhorn.io -o json \
+| jq -r '.items[] | "\(.metadata.name) node=\(.spec.nodeID)\n  \(.status.currentReplicaAddressMap)"'
+
+# migration pods hold a 172.16.101.x address
+kubectl -n harvester-system get pods -l kubevirt.io=virt-handler -o json \
+| jq -r '.items[] | "\(.spec.nodeName) \(.metadata.annotations["k8s.v1.cni.cncf.io/network-status"] | fromjson | map(select(.interface=="migration0")) | .[0].ips[0] // "NO-IP")"'
+```
+
+Because each node pair is its own cable, **validate all three pairs** after any
+cabling or bond change — a dead link stays invisible until those two specific
+nodes must talk. Attach a pod to the storage NAD on each node and run
+`iperf3 -P 8` across every pair; expect 22–24 Gb/s at MTU 9000. A successful live
+migration proves only the one pair it ran on.
+
+### What does not belong on the mesh
+
+| Traffic | Where it stays | Why |
+|---------|---------------|-----|
+| VM guest networks | Omada LAG, VLANs 30/70/80 | guests need the gateway; the mesh is a dead end |
+| Node management, etcd, RKE2, API VIP | VLAN 20 untagged on the LAG | fixed at install and needs the gateway |
+| Backup target (S3) | VLAN 20 | internet-bound; no Harvester setting moves it |
+| Longhorn control plane, CSI | pod network | not movable, negligible volume |
+| RWX volume traffic | not configured | no RWX volumes today; if added, share the storage network and re-check sizing |
+
+### Failure modes
+
+- **One dead cable isolates one node *pair*.** Nothing forwards through the third
+  node, so replicas on that pair go degraded and migrations between them time out
+  (the source VM keeps running). The other two pairs are unaffected.
+- **No QoS between storage and migration.** They share one ~25 Gb/s egress budget
+  per node and Harvester does no shaping, so a large migration can slow a
+  concurrent Longhorn rebuild. Acceptable at 25 GbE; it would not be at 1 GbE.
+- **A fourth node needs a third port per node.** A full mesh of _n_ nodes needs
+  _n-1_ ports each, so 3 nodes is the ceiling for a dual-port card. Growing past
+  that means a 25G switch — and then the bond mode changes to `802.3ad`.
 
 ## Firewall Considerations
 
