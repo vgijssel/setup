@@ -16,6 +16,7 @@ packages:
       - google-chrome
       - orbstack
       - iterm2
+      - ghostty
       - visual-studio-code
       - font-fira-code-nerd-font
       - alfred
