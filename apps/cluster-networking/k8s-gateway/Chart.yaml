@@ -5,5 +5,5 @@ type: application
 version: 1.0.0
 dependencies:
   - name: k8s-gateway
-    version: 3.7.1
+    version: 3.7.2
     repository: file://../../../third_party/vendir/charts/k8s-gateway

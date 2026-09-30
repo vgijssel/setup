@@ -6,6 +6,7 @@ tags:
   - app
   - kubernetes
   - helm
+  - fleet
   - network
 # Entry points. Each manages external cluster / Docker / NetBird / remote-OpenBao
 # state (not file outputs), so none are cached. `start` runs the full bring-up

@@ -1,6 +1,6 @@
 dependencies:
 - name: netdata
   repository: file://../../../../third_party/vendir/charts/netdata
-  version: 3.7.168
-digest: sha256:a3c8c46d9b6f4519460f26b60ba374aac5367abab3205f5375c9a141c0cb52cf
-generated: "2026-07-18T23:04:47.77155+02:00"
+  version: 3.7.173
+digest: sha256:9e02f4bf00731ee31eb02d0e5a8d69a4a63759c0f31e173460ee2d2bf3aad3de
+generated: "2026-09-30T10:40:58.981079+02:00"

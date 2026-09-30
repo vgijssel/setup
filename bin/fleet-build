@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# fleet-build — build EVERY Fleet bundle under a directory, offline. No cluster needed.
+#
+# Regression test for the "Failed to process bundle" class of breakage. Rancher reads this
+# repo as a Fleet GitRepo and builds one Bundle per `fleet.yaml`; bundle-build is where an
+# umbrella chart's `file://` dependencies get resolved against third_party/vendir/charts
+# (the helm-dependency-update equivalent). When renovate bumps a vendored chart in
+# third_party/vendir/vendir.yml but the umbrella Chart.yaml still pins the old version,
+# reading that bundle fails with
+#   can't get a valid version for 1 subchart(s): "psmdb-operator" ... version "1.23.0"
+# and Fleet rejects the WHOLE GitRepo. Nothing else in the repo resolves those dependencies
+# (apps/**/charts/ is gitignored), so the drift stayed invisible until deploy time.
+#
+# `fleet apply -o -` is the same bundle-reader code path minus the cluster: it renders the
+# Bundle resource to stdout instead of applying it. Bundle names mirror bin/fleet-apply so
+# a failure here reads exactly like the one in a cluster.
+#
+# Usage: bin/fleet-build [dir]   (dir is repo-root-relative; defaults to apps)
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+TARGET_DIR="${1:-apps}"
+
+require() { command -v "$1" >/dev/null 2>&1 || {
+  echo "ERROR: '$1' is required but not found" >&2
+  exit 1
+}; }
+require fleet
+require find
+require git
+
+# Resolve file:// chart deps relative to the repo root, like Fleet does in its workspace.
+cd "${REPO_ROOT}"
+
+if [[ ! -d "${TARGET_DIR}" ]]; then
+  echo "ERROR: not a directory: ${TARGET_DIR}" >&2
+  exit 1
+fi
+
+# `fleet apply` builds a kube client even when output goes to stdout, so it needs a
+# resolvable kubeconfig — and would otherwise pick up whatever ~/.kube/config points at.
+# Hand it a synthetic one aimed at a dead port: the check stays offline (CI has no
+# kubeconfig at all) and any accidental API call fails loudly instead of reaching a real
+# cluster.
+WORK_DIR="$(mktemp -d)"
+trap 'rm -rf "${WORK_DIR}"' EXIT
+KUBECONFIG="${WORK_DIR}/offline.kubeconfig"
+export KUBECONFIG
+cat >"${KUBECONFIG}" <<'EOF'
+apiVersion: v1
+kind: Config
+current-context: offline
+clusters:
+  - name: offline
+    cluster:
+      server: https://127.0.0.1:1
+contexts:
+  - name: offline
+    context:
+      cluster: offline
+      user: offline
+users:
+  - name: offline
+    user:
+      token: offline
+EOF
+
+bundles="$(find "${TARGET_DIR}" -type f -name fleet.yaml 2>/dev/null | sort)"
+
+if [[ -z "${bundles}" ]]; then
+  echo "WARN: no fleet.yaml found under ${TARGET_DIR}" >&2
+  exit 0
+fi
+
+echo "==> Building Fleet bundles (fleet.yaml) under ${TARGET_DIR}"
+
+count=0
+failed_count=0
+failed_dirs=""
+while IFS= read -r manifest; do
+  [[ -z "${manifest}" ]] && continue
+  dir="$(dirname "${manifest}")"
+  # apps/<group>/src/<component> -> <group>-<component> (leftover slashes -> '-').
+  name="$(printf '%s' "${dir}" | sed -E 's#^apps/##; s#/src/#-#; s#/#-#g')"
+  count=$((count + 1))
+
+  # Drop previously built dependencies first. Fleet reads a fresh clone, where charts/ is
+  # absent (it is gitignored), and helm skips resolution entirely when charts/ already
+  # holds a tgz matching the pin — a stale tgz from an earlier build would hide exactly
+  # the drift this check exists to catch.
+  if [[ -d "${dir}/charts" ]]; then
+    if git check-ignore -q "${dir}/charts"; then
+      rm -rf "${dir}/charts"
+    else
+      echo "    WARN ${dir}/charts is tracked, not rebuilding dependencies from scratch" >&2
+    fi
+  fi
+
+  # Building an umbrella bundle then resolves its dependencies in place, exactly like
+  # `helm dependency update`: charts/*.tgz is rebuilt and Chart.lock is rewritten with a
+  # fresh `generated:` timestamp. Chart.lock IS committed, so snapshot it and put it back
+  # afterwards: this check must leave the working tree untouched (and must not invalidate
+  # its own moon cache entry).
+  lock="${dir}/Chart.lock"
+  lock_backup=""
+  if [[ -f "${lock}" ]]; then
+    lock_backup="${WORK_DIR}/locks/${count}.lock"
+    mkdir -p "$(dirname "${lock_backup}")"
+    cp "${lock}" "${lock_backup}"
+  fi
+
+  # Discard the rendered Bundle; only the exit status and any error matter here.
+  error="$(fleet apply -o - "${name}" "${dir}" 2>&1 >/dev/null)" && status=0 || status=$?
+
+  if [[ -n "${lock_backup}" ]]; then
+    cp "${lock_backup}" "${lock}"
+  else
+    rm -f "${lock}"
+  fi
+
+  if [[ "${status}" -eq 0 ]]; then
+    echo "    ok   ${dir} (${name})"
+  else
+    echo "    FAIL ${dir} (${name})"
+    if [[ -n "${error}" ]]; then
+      printf '%s\n' "${error}" | sed 's/^/         /'
+    fi
+    failed_count=$((failed_count + 1))
+    failed_dirs="${failed_dirs}      ${dir}"$'\n'
+  fi
+done <<<"${bundles}"
+
+# Summary on stdout so it stays ordered with the per-bundle lines above; the exit status
+# is the signal.
+if [[ "${failed_count}" -gt 0 ]]; then
+  echo "==> ${failed_count}/${count} bundle(s) failed to build:"
+  printf '%s' "${failed_dirs}"
+  exit 1
+fi
+
+echo "==> ${count} bundle(s) built successfully."

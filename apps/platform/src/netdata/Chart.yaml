@@ -2,8 +2,8 @@ apiVersion: v2
 name: netdata
 description: Netdata monitoring (claimed into Netdata Cloud)
 version: 1.0.0
-appVersion: v2.10.3
+appVersion: v2.11.0
 dependencies:
   - name: netdata
-    version: 3.7.168
+    version: 3.7.173
     repository: file://../../../../third_party/vendir/charts/netdata

@@ -7,7 +7,9 @@
 # dir (Helm crds/ is install-only and un-annotated); the psmdb-operator-crds subchart ships
 # the same CRDs as templates (with resource-policy: keep). takeOwnership lets the template
 # apply ADOPT the crds/-preinstalled CRDs rather than fail the release on the ownership
-# check. Both are pinned 1.23.0, so adoption is a content no-op.
+# check. The two charts are pinned independently (operator 1.23.1, CRDs 1.23.0 — see
+# third_party/vendir/vendir.yml), but operator 1.23.1 shipped no crds/ changes, so adoption
+# is still a content no-op.
 labels:
   fleet.vgijssel.nl/bundle: mongodb-operator
 defaultNamespace: mongodb
