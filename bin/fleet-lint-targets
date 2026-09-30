@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# fleet-lint-targets — assert every fleet.yaml ends its targetCustomizations with a
+# terminal doNotDeploy catch-all. No cluster needed.
+#
+# Why this check exists. A fleet.yaml clusterSelector looks like it restricts which clusters
+# a bundle deploys to. It does not — not under a Rancher GitRepo. Fleet renders
+# targetCustomizations into Bundle.spec.targets, and leaves Bundle.spec.targetRestrictions
+# (the field the CRD documents as "an allow list, which controls if a bundledeployment is
+# created for a target") EMPTY. A GitRepo then APPENDS its own target:
+#
+#   targets:
+#     - name: secret                    # from fleet.yaml
+#       clusterSelector: {matchLabels: {cluster.vgijssel.nl/name: secret}}
+#     - name: <gitrepo target>          # appended by the GitRepo
+#       clusterName: c-m-xxxxxxxx
+#
+# Targets are first-match-wins, so a cluster that matches none of the fleet.yaml entries
+# falls through to the GitRepo's target and deploys with DEFAULT values. That is how all 27
+# bundles ended up installing on a single cluster in Rancher, despite every fleet.yaml
+# naming exactly one. Verified live: a bundle selecting only `secret`, applied with a
+# simulated GitRepo target against a cluster labelled `network`, produced desiredReady=1
+# and created its resources. The same bundle plus the catch-all below produced none.
+#
+# bin/fleet-apply appends no target, so the selectors alone were sufficient there and this
+# was invisible locally — same blind spot as the oversized catch-all bundle in bin/fleet-build.
+#
+# The fix each bundle must carry, as its LAST targetCustomizations entry:
+#
+#   - name: none
+#     doNotDeploy: true
+#     clusterSelector: {}     # empty selector matches every cluster
+#
+# Usage: bin/fleet-lint-targets [dir]   (dir is repo-root-relative; defaults to apps)
+set -euo pipefail
+
+# `pwd -P`, not `pwd`: ~/.local/setup/bin is a symlink to this repo's bin/ and is on PATH,
+# so logical pwd would resolve REPO_ROOT to ~/.local/setup, which has no apps/.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
+TARGET_DIR="${1:-apps}"
+
+require() { command -v "$1" >/dev/null 2>&1 || {
+  echo "ERROR: '$1' is required but not found" >&2
+  exit 1
+}; }
+require python3
+require find
+
+cd "${REPO_ROOT}"
+
+if [[ ! -d "${TARGET_DIR}" ]]; then
+  echo "ERROR: not a directory: ${TARGET_DIR}" >&2
+  exit 1
+fi
+
+echo "==> Checking fleet.yaml target restrictions under ${TARGET_DIR}"
+
+manifests="$(find "${TARGET_DIR}" -type f -name fleet.yaml | sort)"
+
+if [[ -z "${manifests}" ]]; then
+  echo "WARN: no fleet.yaml found under ${TARGET_DIR}" >&2
+  exit 0
+fi
+
+# python3 rather than yq: yq is not in the fleet_bin hermit group, and the rules below are
+# about list ORDER and selector emptiness, which is clearer in code than in a jq expression.
+printf '%s\n' "${manifests}" | python3 -c '
+import sys, yaml
+
+# A target matches every cluster when it constrains nothing: an absent or empty
+# clusterSelector and no clusterName / clusterGroup / clusterGroupSelector.
+SELECTORS = ("clusterSelector", "clusterName", "clusterGroup", "clusterGroupSelector")
+
+def matches_everything(t):
+    return all(not t.get(k) for k in SELECTORS)
+
+ok = failed = 0
+for path in (l.strip() for l in sys.stdin if l.strip()):
+    doc = yaml.safe_load(open(path)) or {}
+    tcs = doc.get("targetCustomizations")
+    problems = []
+
+    if not tcs:
+        problems.append(
+            "no targetCustomizations: a GitRepo will deploy this bundle to every cluster it targets"
+        )
+    else:
+        last = tcs[-1]
+        if not last.get("doNotDeploy"):
+            problems.append(
+                "last targetCustomizations entry (%r) is not a doNotDeploy catch-all, so a "
+                "non-matching cluster falls through to the GitRepo target and deploys"
+                % last.get("name", "<unnamed>")
+            )
+        elif not matches_everything(last):
+            problems.append(
+                "terminal doNotDeploy entry (%r) is constrained by %s, so it does not catch "
+                "every other cluster" % (
+                    last.get("name", "<unnamed>"),
+                    ", ".join(k for k in SELECTORS if last.get(k)),
+                )
+            )
+        # Anything before the terminal entry must actually select something, or it shadows
+        # the catch-all and re-opens deploy-everywhere.
+        for t in tcs[:-1]:
+            if t.get("doNotDeploy"):
+                problems.append(
+                    "non-terminal entry %r sets doNotDeploy; only the last entry may"
+                    % t.get("name", "<unnamed>")
+                )
+            elif matches_everything(t):
+                problems.append(
+                    "entry %r selects every cluster and precedes the catch-all, which it shadows"
+                    % t.get("name", "<unnamed>")
+                )
+
+    if problems:
+        failed += 1
+        print("    FAIL %s" % path)
+        for p in problems:
+            print("         %s" % p)
+    else:
+        ok += 1
+        names = ", ".join(t.get("name", "<unnamed>") for t in tcs[:-1]) or "<none>"
+        print("    ok   %s (targets: %s + doNotDeploy catch-all)" % (path, names))
+
+total = ok + failed
+if failed:
+    print("==> %d/%d fleet.yaml file(s) do not restrict their targets." % (failed, total))
+    print("    Add this as the LAST targetCustomizations entry:")
+    print("      - name: none")
+    print("        doNotDeploy: true")
+    print("        clusterSelector: {}")
+    sys.exit(1)
+
+print("==> %d fleet.yaml file(s) restrict their targets correctly." % total)
+'

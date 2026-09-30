@@ -11,11 +11,17 @@ labels:
 defaultNamespace: crossplane-system
 helm:
   releaseName: crossplane
-# network-ONLY. Declaring targetCustomizations replaces Fleet's implicit
-# deploy-everywhere, so bin/fleet-apply creating this Bundle in another cluster's Fleet
-# yields no BundleDeployment unless it is labelled `network`.
+# network-ONLY. Under bin/fleet-apply the selector alone is enough, but a Rancher GitRepo
+# appends its own catch-all target — so the terminal doNotDeploy entry below is what yields
+# no BundleDeployment on a cluster that is not labelled `network`.
 targetCustomizations:
   - name: network
     clusterSelector:
       matchLabels:
         cluster.vgijssel.nl/name: network
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
