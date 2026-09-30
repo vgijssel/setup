@@ -10,6 +10,11 @@ fileGroups:
     - /bin/.vendir-*
     - /bin/hermit
 
+  fleet_bin:
+    - /bin/fleet
+    - /bin/.fleet-*
+    - /bin/hermit
+
   regctl_bin:
     - /bin/regctl
     - /bin/.regctl-*

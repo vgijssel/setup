@@ -11,5 +11,5 @@ dependencies:
     version: 1.23.0
     repository: file://../../../../third_party/vendir/charts/psmdb-operator-crds
   - name: psmdb-operator
-    version: 1.23.0
+    version: 1.23.1
     repository: file://../../../../third_party/vendir/charts/psmdb-operator

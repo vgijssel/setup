@@ -1,0 +1,37 @@
+$schema: ../cache/schemas/tasks.json
+
+# Inherited by every project tagged `fleet`, i.e. every app that ships Fleet bundles
+# (apps/<app>/src/<component>/fleet.yaml). Tag a new app with `fleet` and it gets the
+# bundle-build check for free.
+tasks:
+  # Build every Fleet bundle in this app exactly as Rancher's GitRepo does, offline.
+  # Catches umbrella `file://` chart pins that have drifted away from the version
+  # vendored in third_party/vendir/charts — that drift fails the whole GitRepo at deploy
+  # time and is invisible everywhere else (apps/**/charts/ is gitignored). See
+  # bin/fleet-build.
+  fleet_build:
+    command: fleet-build $projectSource
+    # `vendir sync` wipes and re-creates third_party/vendir/charts/*, which the umbrella
+    # bundles resolve their file:// deps against. Without this dep moon happily schedules
+    # both at once and the bundle read fails on half-synced chart dirs
+    # ("directory third_party/vendir/charts/<chart> not found").
+    deps:
+      - vendir:build
+    inputs:
+      - "**/*"
+      - "**/.*"
+      # charts/ holds the dependencies helm builds while a bundle is read (gitignored, and
+      # rebuilt on every run) — it is output, never input.
+      - "!**/charts/**/*"
+      - /bin/fleet-build
+      - /.moon/tasks/tag-fleet.yml
+      # Umbrella bundles resolve their file:// deps against the vendored charts, so a
+      # vendir bump has to invalidate this cache entry.
+      - /third_party/vendir/charts/**/*
+      - /third_party/vendir/charts/**/.*
+      - "@group(fleet_bin)"
+    options:
+      cache: true
+      # Bundle paths (and so Fleet's error messages) are repo-root-relative, matching
+      # what the GitRepo reports.
+      runFromWorkspaceRoot: true

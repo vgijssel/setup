@@ -4,6 +4,6 @@ dependencies:
   version: 1.23.0
 - name: psmdb-operator
   repository: file://../../../../third_party/vendir/charts/psmdb-operator
-  version: 1.23.0
-digest: sha256:4b198a0e9f75c3fd6e6cc20336e8ff5c3ef74f01ff8218ae5991479eccb59105
-generated: "2026-07-24T11:45:08.727159+02:00"
+  version: 1.23.1
+digest: sha256:666dbb704bce8861fa2112aa9c66bf3d48ae9a33fd0003ad6928b7b51156a896
+generated: "2026-09-30T10:40:57.811894+02:00"

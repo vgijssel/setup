@@ -6,6 +6,7 @@ tags:
   - app
   - kubernetes
   - helm
+  - fleet
   - platform
 # Linting is intentionally omitted here — reproducible Kubernetes/Helm linting
 # lands in a follow-up PR. The Fleet bundles are the deployable units.

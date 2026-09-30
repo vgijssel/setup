@@ -2,8 +2,8 @@ apiVersion: v2
 name: reloader
 description: Stakater Reloader for automatic pod restarts on Secret/ConfigMap changes
 version: 1.0.0
-appVersion: v1.4.20
+appVersion: v1.4.22
 dependencies:
   - name: reloader
-    version: 2.2.15
+    version: 2.2.17
     repository: file://../../../../third_party/vendir/charts/reloader
