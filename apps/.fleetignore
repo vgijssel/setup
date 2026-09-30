@@ -1,0 +1,19 @@
+# apps/ itself ships nothing. Only its src/<component>/fleet.yaml directories are
+# deployable bundles — that is the contract bin/fleet-apply implements, and Rancher's
+# GitRepo (paths: [apps]) must agree.
+#
+# Without this file Rancher builds an extra CATCH-ALL bundle for the `apps` path itself,
+# holding every file under apps/ that no nested fleet.yaml already claims: PNG/JPEG
+# assets (apps/blueorange/src/assets, apps/docs/images), lockfiles, Astro/React sources,
+# pyinfra code — 10.4 MiB across 642 files, none of it Kubernetes. The Bundle then
+# exceeds the kube-apiserver's 3 MiB max request body and the GitRepo fails with
+#   Request entity too large: limit is 3145728
+# Nothing catches this locally, because bin/fleet-apply only ever applies the nested
+# fleet.yaml directories and never builds the catch-all. See bin/fleet-build.
+#
+# Ignoring everything leaves the catch-all with no resources, so Fleet skips creating it
+# and only the 27 real component bundles remain. Nested fleet.yaml bundles read their own
+# directory and are unaffected, as are the `file://` chart dependencies umbrella bundles
+# resolve against apps/platform/src/netbird-reverse-proxy-shared (that resolution reads
+# the filesystem, not the bundle).
+*
