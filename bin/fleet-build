@@ -15,12 +15,41 @@
 # Bundle resource to stdout instead of applying it. Bundle names mirror bin/fleet-apply so
 # a failure here reads exactly like the one in a cluster.
 #
-# Usage: bin/fleet-build [dir]   (dir is repo-root-relative; defaults to apps)
+# It also builds TARGET_DIR itself, the way Rancher's GitRepo does (`paths: [apps]`), and
+# enforces the kube-apiserver's 3 MiB max request body on every rendered Bundle. Fleet
+# builds one bundle per nested fleet.yaml PLUS a catch-all for the path itself, holding
+# every file nothing else claimed. bin/fleet-apply never builds that catch-all, so an
+# oversized one is invisible locally and fails only in Rancher, with
+#   Request entity too large: limit is 3145728
+# apps/.fleetignore is what keeps it empty; this check is what keeps it that way.
+#
+# Usage: bin/fleet-build [--gitrepo-only] [dir]
+#   dir              repo-root-relative; defaults to apps
+#   --gitrepo-only   skip the per-fleet.yaml loop and only run the GitRepo-path build +
+#                    size limit. The per-project `fleet_build` tasks already cover their
+#                    own bundles one at a time; the catch-all spans ALL of apps/, so it is
+#                    checked once repo-wide instead of redundantly per project.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-TARGET_DIR="${1:-apps}"
+GITREPO_ONLY=false
+args=()
+for arg in "$@"; do
+  case "${arg}" in
+    --gitrepo-only) GITREPO_ONLY=true ;;
+    -*)
+      echo "ERROR: unknown flag: ${arg}" >&2
+      exit 1
+      ;;
+    *) args+=("${arg}") ;;
+  esac
+done
+
+# `pwd -P`, not `pwd`: ~/.local/setup/bin is a symlink to this repo's bin/ and is on PATH,
+# so the script is often invoked through it. Logical `pwd` would then resolve REPO_ROOT to
+# ~/.local/setup — which has no apps/ — and every bundle path below would miss.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
+TARGET_DIR="${args[0]:-apps}"
 
 require() { command -v "$1" >/dev/null 2>&1 || {
   echo "ERROR: '$1' is required but not found" >&2
@@ -73,11 +102,17 @@ if [[ -z "${bundles}" ]]; then
   exit 0
 fi
 
-echo "==> Building Fleet bundles (fleet.yaml) under ${TARGET_DIR}"
-
 count=0
 failed_count=0
 failed_dirs=""
+
+if [[ "${GITREPO_ONLY}" == true ]]; then
+  echo "==> Skipping per-bundle builds under ${TARGET_DIR} (--gitrepo-only)"
+  bundles=""
+else
+  echo "==> Building Fleet bundles (fleet.yaml) under ${TARGET_DIR}"
+fi
+
 while IFS= read -r manifest; do
   [[ -z "${manifest}" ]] && continue
   dir="$(dirname "${manifest}")"
@@ -139,4 +174,80 @@ if [[ "${failed_count}" -gt 0 ]]; then
   exit 1
 fi
 
-echo "==> ${count} bundle(s) built successfully."
+# Everything above builds the nested fleet.yaml directories one at a time, which is what
+# bin/fleet-apply does. Rancher does MORE: it points a GitRepo at TARGET_DIR, so Fleet also
+# renders a catch-all bundle for the path itself holding every file no nested fleet.yaml
+# claimed. Build TARGET_DIR the same way and hold every resulting Bundle to the
+# kube-apiserver's max request body — the only place that catch-all's size is ever checked.
+MAX_BYTES=3145728 # kube-apiserver maxRequestBodyBytes
+
+echo "==> Building ${TARGET_DIR} as a GitRepo path would (catch-all bundle + size limit)"
+
+# Bundle names are cosmetic here; mirror Rancher's <gitrepo>-<path> shape.
+root_name="$(printf '%s' "${TARGET_DIR}" | sed -E 's#/#-#g')"
+rendered="${WORK_DIR}/root-bundles.yaml"
+
+# This build resolves dependencies for every nested bundle in one pass, rewriting each
+# Chart.lock's `generated:` timestamp. Chart.lock IS committed, so snapshot them all and put
+# them back — like the per-bundle loop above, this check must leave the working tree clean.
+# charts/ is NOT wiped first: pin drift is the per-bundle loop's job, and this check only
+# cares about the rendered sizes, so reusing whatever is already built keeps it cheap.
+lock_snapshot="${WORK_DIR}/root-locks"
+root_locks="$(find "${TARGET_DIR}" -type f -name Chart.lock | sort)"
+while IFS= read -r lock_path; do
+  [[ -z "${lock_path}" ]] && continue
+  mkdir -p "${lock_snapshot}/$(dirname "${lock_path}")"
+  cp "${lock_path}" "${lock_snapshot}/${lock_path}"
+done <<<"${root_locks}"
+
+fleet apply -o - "${root_name}" "${TARGET_DIR}" >"${rendered}" 2>"${WORK_DIR}/root.err" && status=0 || status=$?
+
+while IFS= read -r lock_path; do
+  [[ -z "${lock_path}" ]] && continue
+  cp "${lock_snapshot}/${lock_path}" "${lock_path}"
+done <<<"${root_locks}"
+
+if [[ "${status}" -ne 0 ]]; then
+  echo "    FAIL ${TARGET_DIR} (${root_name})"
+  sed 's/^/         /' "${WORK_DIR}/root.err"
+  exit 1
+fi
+
+# Fleet writes the Bundles back-to-back with no `---` separator, so split on the apiVersion
+# line and sum each chunk. Helm chatters on stdout while resolving dependencies; those lines
+# precede the first Bundle and are skipped by the `started` guard. LC_ALL=C so length() counts
+# bytes, which is what the apiserver limits (content is base64, so ASCII either way).
+sizes="$(LC_ALL=C awk '
+  /^apiVersion: fleet\.cattle\.io\// {
+    if (started) print size, name
+    started = 1; size = 0; name = "<unnamed>"
+  }
+  started && /^  name: / && name == "<unnamed>" { name = $2 }
+  started { size += length($0) + 1 }
+  END { if (started) print size, name }
+' "${rendered}" | sort -rn)"
+
+oversized="$(printf '%s\n' "${sizes}" | awk -v limit="${MAX_BYTES}" '$1 > limit')"
+
+if [[ -n "${oversized}" ]]; then
+  echo "==> Bundle(s) over the kube-apiserver ${MAX_BYTES}-byte request limit:"
+  printf '%s\n' "${oversized}" |
+    awk '{ printf "      %-60s %10d bytes (%.2f MiB)\n", $2, $1, $1 / 1048576 }'
+  echo "    Rancher's GitRepo will reject these with:"
+  echo "      Request entity too large: limit is ${MAX_BYTES}"
+  echo "    A catch-all bundle for the path itself (named for the path, not a component) is"
+  echo "    almost always a missing or too-narrow .fleetignore — see ${TARGET_DIR}/.fleetignore."
+  exit 1
+fi
+
+rendered_count="$(printf '%s\n' "${sizes}" | grep -c . || true)"
+# sizes is already sorted descending, so the first line is the biggest bundle.
+largest="$(printf '%s\n' "${sizes}" | head -1)"
+largest_label="$(printf '%s\n' "${largest}" | awk '{ printf "%s at %.2f MiB", $2, $1 / 1048576 }')"
+echo "    ok   ${TARGET_DIR} (${rendered_count} bundle(s), largest ${largest_label})"
+
+if [[ "${GITREPO_ONLY}" == true ]]; then
+  echo "==> GitRepo path ${TARGET_DIR} is within the ${MAX_BYTES}-byte Bundle limit."
+else
+  echo "==> ${count} bundle(s) built successfully."
+fi

@@ -23,8 +23,12 @@
 # Usage: bin/fleet-apply [namespace]   (namespace defaults to fleet-local)
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# `pwd -P`, not `pwd`: ~/.local/setup/bin is a symlink to this repo's bin/ and is on PATH,
+# so this script is often invoked through it. Logical `pwd` would then resolve REPO_ROOT to
+# ~/.local/setup, where `find apps` finds nothing and the run dies on a bare exit 1 without
+# applying a single bundle.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
 FLEET_NS="${1:-${FLEET_NAMESPACE:-fleet-local}}"
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: '$1' is required but not found" >&2; exit 1; }; }

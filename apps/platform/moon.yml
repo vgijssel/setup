@@ -10,4 +10,40 @@ tags:
   - platform
 # Linting is intentionally omitted here — reproducible Kubernetes/Helm linting
 # lands in a follow-up PR. The Fleet bundles are the deployable units.
-tasks: {}
+tasks:
+  # Build the whole `apps` tree the way Rancher's GitRepo (paths: [apps]) does and hold
+  # every rendered Bundle to the kube-apiserver's 3 MiB request limit.
+  #
+  # The inherited `fleet_build` (tag-fleet.yml) builds one bundle per fleet.yaml, which is
+  # what bin/fleet-apply deploys. A GitRepo additionally renders a CATCH-ALL bundle for the
+  # path itself, holding every file under apps/ that no nested fleet.yaml claimed — images
+  # in apps/docs/images, apps/blueorange/src/assets, lockfiles, app sources. Left unchecked
+  # that bundle reached 10.4 MiB and Rancher rejected it (and so the whole GitRepo) with
+  # "Request entity too large: limit is 3145728". apps/.fleetignore empties it; this task
+  # is what keeps it empty.
+  #
+  # It lives on `platform` rather than in tag-fleet.yml because the catch-all spans ALL of
+  # apps/, not one app: as an inherited task it would run identically three times.
+  fleet_build_gitrepo:
+    command: fleet-build --gitrepo-only apps
+    deps:
+      # Same reason as fleet_build: the umbrella bundles resolve their file:// deps against
+      # third_party/vendir/charts, which `vendir sync` wipes and re-creates.
+      - vendir:build
+    inputs:
+      # Repo-wide on purpose. ANY file added under apps/ outside a fleet.yaml directory
+      # lands in the catch-all, so anything under apps/ has to invalidate this check.
+      - /apps/**/*
+      - /apps/**/.*
+      # charts/ is helm's build output, rebuilt on every run — never an input.
+      - "!/apps/**/charts/**/*"
+      - /bin/fleet-build
+      - /apps/platform/moon.yml
+      - /third_party/vendir/charts/**/*
+      - /third_party/vendir/charts/**/.*
+      - "@group(fleet_bin)"
+    options:
+      cache: true
+      # Bundle paths (and so Fleet's error messages) are repo-root-relative, matching what
+      # the GitRepo reports.
+      runFromWorkspaceRoot: true
