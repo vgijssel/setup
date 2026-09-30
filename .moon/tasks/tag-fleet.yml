@@ -16,6 +16,7 @@ tasks:
       - src/*/fleet.yaml
       - /bin/fleet-lint-targets
       - /.moon/tasks/tag-fleet.yml
+      - "@group(yq_bin)"
     options:
       cache: true
       # fleet.yaml paths (and so the error messages) stay repo-root-relative, matching what

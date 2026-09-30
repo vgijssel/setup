@@ -43,6 +43,10 @@ require() { command -v "$1" >/dev/null 2>&1 || {
   echo "ERROR: '$1' is required but not found" >&2
   exit 1
 }; }
+# yq parses the YAML and python3 applies the rules using only the stdlib `json` module.
+# PyYAML is deliberately NOT used: it is present in the local hermit python but absent on
+# the CI runners, where it failed with "ModuleNotFoundError: No module named 'yaml'".
+require yq
 require python3
 require find
 
@@ -62,10 +66,21 @@ if [[ -z "${manifests}" ]]; then
   exit 0
 fi
 
-# python3 rather than yq: yq is not in the fleet_bin hermit group, and the rules below are
-# about list ORDER and selector emptiness, which is clearer in code than in a jq expression.
-printf '%s\n' "${manifests}" | python3 -c '
-import sys, yaml
+# One "<path><TAB><json>" line per bundle, so the checker below is a single pass over
+# stdin. -I=0 keeps each document on one line; `// []` turns a missing key into an empty
+# list, which the checker reports as unrestricted rather than crashing on null.
+probe="$(
+  while IFS= read -r manifest; do
+    [[ -z "${manifest}" ]] && continue
+    # Assign before printf so a yq failure (malformed YAML) aborts under set -e instead of
+    # being masked inside printf's argument list and silently read as an empty target list.
+    json="$(yq -o=json -I=0 '.targetCustomizations // []' "${manifest}")"
+    printf '%s\t%s\n' "${manifest}" "${json}"
+  done <<<"${manifests}"
+)"
+
+printf '%s\n' "${probe}" | python3 -c '
+import json, sys
 
 # A target matches every cluster when it constrains nothing: an absent or empty
 # clusterSelector and no clusterName / clusterGroup / clusterGroupSelector.
@@ -75,9 +90,9 @@ def matches_everything(t):
     return all(not t.get(k) for k in SELECTORS)
 
 ok = failed = 0
-for path in (l.strip() for l in sys.stdin if l.strip()):
-    doc = yaml.safe_load(open(path)) or {}
-    tcs = doc.get("targetCustomizations")
+for line in (l.rstrip("\n") for l in sys.stdin if l.strip()):
+    path, _, raw = line.partition("\t")
+    tcs = json.loads(raw)
     problems = []
 
     if not tcs:
