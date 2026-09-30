@@ -4,6 +4,25 @@ $schema: ../cache/schemas/tasks.json
 # (apps/<app>/src/<component>/fleet.yaml). Tag a new app with `fleet` and it gets the
 # bundle-build check for free.
 tasks:
+  # Assert every fleet.yaml in this app ends its targetCustomizations with a terminal
+  # doNotDeploy catch-all. A clusterSelector alone restricts nothing under a Rancher
+  # GitRepo — the GitRepo appends its own catch-all target, so a cluster matching none of
+  # the fleet.yaml entries falls through to it and deploys with default values. That put
+  # all 27 bundles on one cluster. bin/fleet-apply appends no target, so the selectors were
+  # sufficient there and the gap was invisible locally. See bin/fleet-lint-targets.
+  fleet_lint_targets:
+    command: fleet-lint-targets $projectSource
+    inputs:
+      - src/*/fleet.yaml
+      - /bin/fleet-lint-targets
+      - /.moon/tasks/tag-fleet.yml
+      - "@group(yq_bin)"
+    options:
+      cache: true
+      # fleet.yaml paths (and so the error messages) stay repo-root-relative, matching what
+      # the GitRepo reports.
+      runFromWorkspaceRoot: true
+
   # Build every Fleet bundle in this app exactly as Rancher's GitRepo does, offline.
   # Catches umbrella `file://` chart pins that have drifted away from the version
   # vendored in third_party/vendir/charts — that drift fails the whole GitRepo at deploy

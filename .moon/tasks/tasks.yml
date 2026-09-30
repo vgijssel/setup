@@ -15,6 +15,11 @@ fileGroups:
     - /bin/.fleet-*
     - /bin/hermit
 
+  yq_bin:
+    - /bin/yq
+    - /bin/.yq@*
+    - /bin/hermit
+
   regctl_bin:
     - /bin/regctl
     - /bin/.regctl-*

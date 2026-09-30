@@ -14,3 +14,9 @@ targetCustomizations:
     clusterSelector:
       matchLabels:
         cluster.vgijssel.nl/name: network
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
