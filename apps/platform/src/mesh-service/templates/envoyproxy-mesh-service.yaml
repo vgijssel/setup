@@ -1,0 +1,74 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+Per-service Envoy data-plane settings, attached to THIS service's Gateway via
+Gateway.spec.infrastructure.parametersRef. Deliberately not attached to the GatewayClass: a
+class-level EnvoyProxy would apply one spec to every Gateway in the cluster, and each of these
+settings has to differ per service (the pod label especially).
+
+╔═══════════════════════════════════════════════════════════════════════════════════════════╗
+║ useListenerPortAsContainerPort: true IS LOAD-BEARING. DO NOT REMOVE IT.                   ║
+║                                                                                           ║
+║ Envoy Gateway defaults this to FALSE, which shifts privileged listener ports by +10000     ║
+║ (:80 -> :10080, :443 -> :10443) so the container needs no capability, and relies on a      ║
+║ Service `targetPort` to map the real port back onto the shifted one.                      ║
+║                                                                                           ║
+║ THERE IS NO SERVICE IN THIS PATH. Traffic arrives on the NetBird client's WireGuard        ║
+║ interface INSIDE THIS POD'S OWN NETWORK NAMESPACE and hits a local socket directly —       ║
+║ nothing in between to undo the shift. With the default, `<name>.<domain>:443` would be     ║
+║ CLOSED and the service would answer only on :10443: a port we cannot put this              ║
+║ certificate's name on and cannot ask a browser to use.                                    ║
+║                                                                                           ║
+║ Deleting this flag breaks EVERY service rendered by this chart, and breaks them silently:  ║
+║ the pod stays Running and the Gateway still reports Programmed. Hence NET_BIND_SERVICE     ║
+║ below, which is the capability the default exists to avoid needing.                        ║
+╚═══════════════════════════════════════════════════════════════════════════════════════════╝
+*/}}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: {{ .Values.name }}-mesh
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      # See the block comment above. This is the whole reason a service owns its real ports.
+      useListenerPortAsContainerPort: true
+      envoyDeployment:
+        # ── Exactly 1 replica, and Recreate, both for the same reason ──────────────────────
+        # This service's stable hostname is a NetBird *extra DNS label* pinned onto its peer,
+        # because a peer's default name derives from its (generated) pod name. Two peers
+        # carrying the same extra DNS label do not conflict — they ROUND-ROBIN. Verified live:
+        # three clusterproxy replicas sharing one label resolve to all three addresses.
+        #
+        # So a second replica, or a RollingUpdate that briefly runs old and new together, would
+        # load-balance consumers onto a pod that is terminating or not yet enrolled. Recreate
+        # trades that for a short, honest outage on every rollout. HA is an explicit non-goal;
+        # buying it needs a different identity mechanism, not another replica.
+        replicas: 1
+        strategy:
+          type: Recreate
+        pod:
+          labels:
+            # Selected by sidecarprofile-mesh-service.yaml to inject the NetBird client into
+            # this pod. If the two ever disagree the pod comes up healthy with NO mesh client:
+            # the service is unreachable and nothing reports an error. Both sides read the key
+            # from the same helper for that reason.
+            {{ include "mesh-service.podLabelKey" . }}: {{ .Values.name }}
+        container:
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              # Required BECAUSE the port shift is disabled — Envoy binds the real privileged
+              # ports itself. Nothing else is granted.
+              add:
+                - NET_BIND_SERVICE
+              drop:
+                - ALL
+      # Vestigial for inbound traffic and kept ClusterIP on purpose. Nothing reaches this
+      # service through a Service: mesh clients connect to the overlay address, which lands
+      # inside the pod. Envoy Gateway always creates one, so this pins it to the narrowest
+      # type rather than letting a LoadBalancer get provisioned for a path nobody uses.
+      envoyService:
+        type: ClusterIP

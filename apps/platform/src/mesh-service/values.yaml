@@ -1,0 +1,107 @@
+# Parameter contract for the shared mesh-service chart. Each per-service bundle sets these via
+# its fleet.yaml `helm.values.mesh-service` block (or its own values.yaml); there are no other
+# knobs. Exposing a new service means writing THIS much and nothing else.
+#
+# `name` and `domain` are REQUIRED and validated in templates/_helpers.tpl — rendering fails
+# loudly if either is empty, so a misconfigured bundle can never emit a certificate for a bare
+# `.<domain>` or a NetBird DNS label built from an empty value.
+
+# ── Identity ───────────────────────────────────────────────────────────────────────────────
+# The service's mesh name. Becomes ALL of: the hostname's first label, the NetBird extra DNS
+# label pinned onto this service's peer, the `svc-<name>` NetBird group, the Gateway name, and
+# the Envoy pod label the sidecar profile selects.
+#
+# MUST be globally unique across every cluster in the NetBird account. The namespace is flat on
+# purpose — the name must not encode which cluster runs the service, so a service can move
+# clusters without any consumer changing. A collision does not fail loudly: two peers sharing
+# one extra DNS label ROUND-ROBIN, so consumers would silently land on the wrong service half
+# the time (observed live against the three clusterproxy replicas sharing one label).
+name: ""
+
+# The NetBird account's peer DNS domain. Every exposed service resolves at `<name>.<domain>`
+# from inside the mesh and NOWHERE else. Set account-wide in NetBird (Settings > Networks >
+# DNS Domain) and repeated here because the certificate SAN must match it exactly.
+#
+# The public zone behind this domain MUST NOT contain a wildcard record. Cloudflare wildcards
+# answer at ARBITRARY label depth, so a single `*` would make every mesh hostname publicly
+# resolvable and let public DNS override NetBird's own resolver for those names. Certificates
+# are issued over DNS-01, which needs only a temporary TXT record — no address record for a
+# mesh hostname is ever published.
+domain: ""
+
+# ── Access ─────────────────────────────────────────────────────────────────────────────────
+# NetBird groups whose peers may reach this service. Nothing else can: being enrolled in the
+# account grants no access by itself. Rendered into one NBPolicy per protocol, restricted to
+# the ports in `listeners` below, so a port this service did not declare is not reachable even
+# from an allowed group.
+#
+# Groups are referenced by NAME and must already exist in the account (the per-cluster
+# netbird-config bundles create the long-lived ones: homelab, roaming, secret-k8s, network-k8s).
+# This chart creates only its own `svc-<name>` destination group.
+sourceGroups: []
+
+# ── Listeners ──────────────────────────────────────────────────────────────────────────────
+# What this service answers on. Each entry becomes one Gateway listener per port plus a route of
+# the matching kind, and contributes its ports to the access policy.
+#
+# Because every service is its own peer with its own overlay address, ports need no arbitration
+# with any other service: two services can both own 443. Declared ports are the OBSERVED ports —
+# there is no translation (see the port-shift note in envoyproxy-mesh-service.yaml).
+#
+# Fields:
+#   name       short, unique within this service; becomes the Gateway listener sectionName.
+#   protocol   HTTPS | TLS | TCP | UDP
+#                HTTPS  terminate TLS with this service's certificate, then HTTP to the backend
+#                TLS    pass TLS through untouched (backend terminates, e.g. a device path)
+#                TCP    raw TCP
+#                UDP    raw UDP
+#   port       single port, OR
+#   ports      list of ports sharing one protocol + backend (for contiguous device port ranges;
+#              Gateway API has no port-range concept, so each port is its own listener)
+#   backend.name  in-cluster Service to forward to; must be in this release's namespace
+#   backend.port  backend port. OMIT to reuse the listener port — the common case for raw
+#                 TCP/UDP, where the mesh port and the Service port are the same number.
+#
+# Example — HTTPS only (the OpenBao shape):
+#   listeners:
+#     - name: https
+#       protocol: HTTPS
+#       port: 443
+#       backend: {name: openbao, port: 8200}
+#
+# Example — HTTPS plus raw TCP and UDP (the Omada shape):
+#   listeners:
+#     - name: https
+#       protocol: HTTPS
+#       port: 443
+#       backend: {name: omada, port: 8088}
+#     - name: device-tcp
+#       protocol: TCP
+#       ports: [29811, 29812, 29813, 29814, 29815, 29816, 29817]
+#       backend: {name: omada}
+#     - name: device-udp
+#       protocol: UDP
+#       ports: [19810, 27001, 29810]
+#       backend: {name: omada}
+listeners: []
+
+# ── Certificate ────────────────────────────────────────────────────────────────────────────
+# cert-manager ClusterIssuer that signs `<name>.<domain>`. The default solves DNS-01 over
+# Cloudflare and is scoped to no particular zone, so one issuer covers every zone its API token
+# can edit — which is why adding a second peer DNS domain is a token re-scope rather than a
+# second issuer here. Parameterised anyway so a service on a zone that needs different
+# credentials is a values change, not a template change.
+certIssuer: letsencrypt-prod
+
+# ── Recovery ───────────────────────────────────────────────────────────────────────────────
+# Self-heal watchdog for a wedged mesh client. The injected client authenticates once at pod
+# start; if management later forces a re-auth (host suspend/resume, login expiry) it drops to a
+# terminal state and never recovers on its own, taking the service offline silently. Disabling
+# account-wide peer login expiration removes the dominant cause; this stays as defence in depth
+# because suspend/resume still triggers it.
+watchdog:
+  enabled: true
+  schedule: "*/5 * * * *"
+  # alpine/kubectl, NOT registry.k8s.io/kubectl or rancher/kubectl — those are distroless with no
+  # shell, and the detection logic runs in /bin/sh. Pinned to the multi-arch index digest.
+  image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883

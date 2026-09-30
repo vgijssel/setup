@@ -151,6 +151,12 @@ directories:
     path: .
   path: charts/fleet
 - contents:
+  - helmChart:
+      appVersion: v1.9.2
+      version: 1.9.2
+    path: .
+  path: charts/envoy-gateway
+- contents:
   - githubRelease:
       tag: v1.18.0
       url: https://api.github.com/repos/zimfw/zimfw/releases/207284508

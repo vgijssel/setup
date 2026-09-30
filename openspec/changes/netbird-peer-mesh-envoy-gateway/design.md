@@ -117,7 +117,26 @@ Steps 1–8 are **additive**. Nothing is deleted until step 9, after every new p
 
 **Rollback**: before step 9, rollback is reverting the consumer hostnames — the old reverse-proxy path is still deployed and functional throughout steps 1–8. After step 9, rollback means re-applying the deleted bundles from git and re-minting proxy tokens, which is why step 9 is gated on every verification in 6–8 passing.
 
+## Implementation blockers found live (2026-09-30)
+
+Neither invalidates the design; both are inputs it assumed were already in place.
+
+- **`blueora.ng` is not registered.** The `.ng` registry has no record of it (authoritative
+  `ns4.nic.net.ng` answers with the `ng.` SOA; `rdap.nic.net.ng` returns 404), and it is not a
+  zone in the Cloudflare account holding `vgijssel.nl`. Registration + delegation is a registrar
+  action, so tasks 2.1–2.8 and every certificate-dependent task in groups 5–11 are blocked on it.
+  Reusing `vgijssel.nl` is not a drop-in substitute: its wildcard answers at arbitrary label depth
+  (verified — `probe.vpn.vgijssel.nl` resolves publicly today), which the capability explicitly
+  forbids.
+- **The Mac was not a mesh peer during the spikes** (`netbird status` → `NeedsLogin`; re-login is
+  interactive SSO), so task 1.1 verified from an in-cluster peer pod instead — and was stronger for
+  it: resolving the label from the *network* cluster's peer proves cross-cluster mesh resolution,
+  which a same-host query does not. **Since resolved** — the Mac is now `Management: Connected` at
+  `100.65.74.176` / `macbook-pro-van-maarten.netbird.cloud`, so the remaining "verify from the Mac"
+  steps (5.4, 5.5, 7.9, 7.10, 11.4) can run as written. Worth re-checking at resume: a peer session
+  dies after a 24 h login expiry or a host suspend/resume, which is what task 2.6 exists to stop.
+
 ## Open Questions
 
-- Can one Cloudflare API token be scoped to edit DNS in both `vgijssel.nl` and `blueora.ng`, or is a sibling issuer needed? Decided from the token's actual scope during implementation; the chart parameterises the issuer either way, so this changes values, not structure.
+- ~~Can one Cloudflare API token be scoped to edit DNS in both `vgijssel.nl` and `blueora.ng`, or is a sibling issuer needed?~~ **Resolved (task 1.4): one token, no sibling issuer** — conditional on `blueora.ng` joining the same Cloudflare account as `vgijssel.nl`. A Cloudflare `Zone:DNS:Edit` token takes several zones in one account, and the existing `letsencrypt-prod` solver pins no `dnsZones`, so it already solves for whatever its token can edit. Task 2.2 is therefore a re-scope of the existing token rather than a second issuer. The zone does not exist in the account yet (see the blocker below).
 - Does the Omada device exception still require the operator's automatic-policy-creation flag, or can it be turned off entirely? Answered once the device-path resource is made explicit.

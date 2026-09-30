@@ -1,0 +1,30 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+UDPRoute per raw UDP listener — one per port.
+
+UDP is the protocol neither replaced stack could express: the reverse proxy has no UDP service
+type, and `ingress-nginx` (already vendored, and the obvious alternative) has no first-class UDP
+either — it needs a ConfigMap side-channel rather than a route object. Carrying device discovery
+and management protocols over the same mechanism as HTTPS is the reason Envoy Gateway won the
+data-plane decision.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+{{- range $l := $listeners }}
+{{- if eq $l.protocol "UDP" }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: UDPRoute
+metadata:
+  name: {{ printf "%s-%s" $.Values.name $l.name }}
+  labels:
+    {{- include "mesh-service.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ $.Values.name }}
+      sectionName: {{ $l.name }}
+  rules:
+    - backendRefs:
+        - name: {{ $l.backend.name }}
+          port: {{ $l.backend.port }}
+{{- end }}
+{{- end }}

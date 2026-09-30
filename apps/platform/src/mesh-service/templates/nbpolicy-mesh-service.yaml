@@ -1,0 +1,53 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+Access policy: only peers in the named source groups reach this service, and only on the ports
+it declared. Enrolment in the account grants nothing by itself.
+
+The ports are DERIVED from `listeners`, never restated. That is what makes the spec's
+"undeclared port is not reachable" true by construction instead of true as long as someone
+remembers to keep two lists in sync when they add a listener.
+
+ONE POLICY PER PROTOCOL, because NBPolicy carries a single `protocols[]` alongside a single
+`ports[]` — they are not paired. A service with HTTPS on 443 plus UDP on 29810 expressed as one
+policy with protocols [tcp, udp] and ports [443, 29810] would open the CROSS PRODUCT: UDP/443 and
+TCP/29810, neither of which was declared. Splitting keeps each port bound to the protocol it was
+declared under. An HTTPS-only service therefore renders exactly one policy: tcp/443.
+
+bidirectional: false — this authorises sources to reach the service, not the service to reach
+back into them. The Envoy pod originates nothing on the overlay; it only answers.
+
+Declarative policy rather than annotation inference: the operator can also derive policies from
+Service annotations (`netbird.io/policy*`), which is what the NBResource path used. Stating them
+as resources removes the dependency on the operator's automatic-policy-creation flag, which is
+what lets that flag be turned off once the last annotation is gone.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+{{- range $proto := list "tcp" "udp" }}
+{{- $ports := include "mesh-service.portsFor" (dict "proto" $proto "listeners" $listeners) | fromJsonArray }}
+{{- if $ports }}
+---
+apiVersion: netbird.io/v1
+kind: NBPolicy
+metadata:
+  name: {{ printf "%s-%s" $.Values.name $proto }}
+  labels:
+    {{- include "mesh-service.labels" $ | nindent 4 }}
+spec:
+  name: {{ printf "svc-%s-%s" $.Values.name $proto }}
+  description: >-
+    {{ printf "%s access to %s over %s (managed by the mesh-service chart; do not edit in the dashboard)" (join ", " $.Values.sourceGroups) (include "mesh-service.fqdn" $) (upper $proto) }}
+  bidirectional: false
+  sourceGroups:
+    {{- range $g := $.Values.sourceGroups }}
+    - {{ $g | quote }}
+    {{- end }}
+  destinationGroups:
+    - {{ include "mesh-service.group" $ | quote }}
+  protocols:
+    - {{ $proto }}
+  ports:
+    {{- range $p := $ports }}
+    - {{ $p }}
+    {{- end }}
+{{- end }}
+{{- end }}

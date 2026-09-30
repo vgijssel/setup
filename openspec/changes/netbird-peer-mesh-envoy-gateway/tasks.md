@@ -4,13 +4,82 @@
 
 These can invalidate the design, so they run before any other work.
 
-- [ ] 1.1 Prove extra DNS labels work on the pinned operator `v0.7.0`: apply a throwaway enrolment key (extra-DNS-labels allowed, ephemeral) plus a sidecar profile carrying label `spike` against a trivial pod on the secret cluster; verify by resolving `spike.<current-peer-domain>` from the Mac and seeing it return that pod's overlay address. **BLOCKING** — if the field is accepted but never reaches the client, retry via the sidecar's container env override and re-verify; only if both fail, stop and re-open the operator version decision
-- [ ] 1.2 Verify arm64 support: `docker buildx imagetools inspect docker.io/envoyproxy/gateway:v1.9.2` and the data-plane Envoy image both list `linux/arm64` in their manifest lists
-- [ ] 1.3 Verify peer headroom: record the current peer count against the account plan limit and confirm room for one peer per service plus rollout churn
-- [ ] 1.4 Determine Cloudflare token scope (resolves a design Open Question): check whether one token can edit DNS in both `vgijssel.nl` and `blueora.ng`; record the answer, since a "no" means a sibling `ClusterIssuer` in task 4.3
-- [ ] 1.5 Verify nothing depends on the current peer DNS domain: `grep -rn "netbird.cloud" .` returns no functional references
+**Results (verified live 2026-09-30, both vind clusters running):**
+
+- **1.1 PASS, no fallback needed.** A `SetupKey` with `allowExtraDnsLabels: true` + `ephemeral: true`
+  and a `SidecarProfile` with `extraDNSLabels: [spike]` against a busybox pod on the secret cluster
+  produced peer `100.65.51.127` with `extra_dns_labels: ["spike.netbird.cloud"]` in the management
+  API, and `spike.netbird.cloud` resolved to that address both from the pod itself and — the real
+  test — from the *network* cluster's router peer. Operator `v0.7.0` wires the field through to the
+  client. Verified from a mesh peer pod, not the Mac: the Mac's daemon is `NeedsLogin` and re-login
+  is interactive SSO. A peer pod satisfies the spec's "a peer enrolled in the account queries" just
+  as well, and the cross-cluster hop makes it a stronger check than a same-host one.
+- **1.1 bonus — the split-resolution risk is real, not theoretical.** The existing
+  `secret.netbird-kubeapi-proxy.netbird.cloud` label is carried by three `clusterproxy` replicas and
+  resolves to all three addresses round-robin. That is exactly the failure the design's 1-replica +
+  `Recreate` decision exists to prevent, now observed rather than predicted.
+- **1.1 caveat — ephemeral reaping works, but is not immediate.** Deleting the namespace left the
+  `spike` peer registered (disconnected) for at least 20 s; it was gone on a later check, and the
+  account is back to its 19-peer baseline with no `svc-` residue. So the spec's "retired peers do
+  not linger" scenario holds as *eventually reaped*, not *gone at pod teardown*. A rollout
+  therefore briefly has two peers holding one label — a second, measured reason `Recreate` (not
+  `RollingUpdate`) is load-bearing.
+- **1.2 PASS.** `docker.io/envoyproxy/gateway:v1.9.2` lists `linux/amd64` + `linux/arm64`. The chart
+  leaves the data-plane image empty (baked into the control-plane binary); `_helpers.tpl` resolves it
+  to `docker.io/envoyproxy/envoy:distroless-v1.39.1`, which also lists both platforms.
+- **1.3 Peer count is 20 (11 connected, 9 stale), against a NetBird Cloud plan limit the management
+  API does not expose** (`/api/accounts/<id>`, `/usage` and `/billing/subscription` all 404; only the
+  account-settings list endpoint is readable). This change adds 3 service peers plus rollout churn, so
+  headroom is a non-issue at any plan tier — but the limit itself is dashboard-only and unverified here.
+  Separately: 5 of the 9 stale peers are `jwks-gateway` registrations dating back to August, i.e. that
+  bare Pod's setup key is *not* ephemeral and has been accumulating peers. Worth cleaning up, out of scope.
+- **1.4 One token suffices — no sibling `ClusterIssuer`** (resolves design Open Question 1), *provided*
+  `blueora.ng` is added to the same Cloudflare account as `vgijssel.nl`. Cloudflare scopes one
+  `Zone:DNS:Edit` token to several zones within an account, and
+  `apps/platform/src/config/clusterissuer-letsencrypt-prod.yaml` pins no `dnsZones` on its solver, so it
+  already solves for every zone its token can edit. The existing token currently lists exactly one zone
+  (`vgijssel.nl`, id `8e5a9db0a62108e5fff87072dbb939d0`); `blueora.ng` is not a zone in that account yet.
+  So the chart's `certIssuer: letsencrypt-prod` default stands and task 2.2 is a token *re-scope*, not a
+  second issuer. Oddity noted in passing: that token is rejected by `/user/tokens/verify` ("Invalid API
+  Token") while `/zones` authenticates fine with it, so do not use the verify endpoint as task 2.2's check.
+- **1.5 PASS.** `grep -rn "netbird.cloud" .` hits three files, none functional: a docstring in
+  `apps/pikvm/inventories/production.py` describing `PIKVM_HOST` overrides, and this change's own
+  `proposal.md` + `tasks.md`. No code or manifest derives behaviour from the peer DNS domain.
+
+- [x] 1.1 Prove extra DNS labels work on the pinned operator `v0.7.0`: apply a throwaway enrolment key (extra-DNS-labels allowed, ephemeral) plus a sidecar profile carrying label `spike` against a trivial pod on the secret cluster; verify by resolving `spike.<current-peer-domain>` from the Mac and seeing it return that pod's overlay address. **BLOCKING** — if the field is accepted but never reaches the client, retry via the sidecar's container env override and re-verify; only if both fail, stop and re-open the operator version decision
+- [x] 1.2 Verify arm64 support: `docker buildx imagetools inspect docker.io/envoyproxy/gateway:v1.9.2` and the data-plane Envoy image both list `linux/arm64` in their manifest lists
+- [x] 1.3 Verify peer headroom: record the current peer count against the account plan limit and confirm room for one peer per service plus rollout churn
+- [x] 1.4 Determine Cloudflare token scope (resolves a design Open Question): check whether one token can edit DNS in both `vgijssel.nl` and `blueora.ng`; record the answer, since a "no" means a sibling `ClusterIssuer` in task 4.3
+- [x] 1.5 Verify nothing depends on the current peer DNS domain: `grep -rn "netbird.cloud" .` returns no functional references
 
 ## 2. Zone and account prerequisites
+
+> **BLOCKED 2026-09-30 — `blueora.ng` is not a registered domain.** Not "registered but
+> undelegated": the `.ng` registry itself has no record of it. `dig NS blueora.ng` is empty
+> against `1.1.1.1`, `8.8.8.8` and the authoritative `ns4.nic.net.ng` (which answers with the
+> `ng.` SOA, i.e. no delegation), and `rdap.nic.net.ng/domain/blueora.ng` returns
+> `{"errorCode":404}`. It is also not a zone in the Cloudflare account that holds `vgijssel.nl`
+> — that account's `/zones` lists exactly one zone.
+>
+> Registering a domain and pointing it at Cloudflare is a registrar action, so 2.1 cannot be
+> done from here, and 2.2–2.8 all sit behind it (no zone → no DNS-edit token → no DNS-01 → no
+> certificate). Groups 5–11 then inherit the block: every service exposure needs a `Ready`
+> `Certificate` for `<name>.vpn.blueora.ng`.
+>
+> Two things in this group are NOT blocked and are API-doable once the go-ahead is given —
+> `2.5` (peer DNS domain) and `2.6` (login expiration) are both fields on the account-settings
+> object, readable and writable with the existing management PAT
+> (`PUT /api/accounts/<id>`, currently `dns_domain: ""` and
+> `peer_login_expiration_enabled: true`). They were left alone deliberately: flipping the
+> account DNS domain renames every peer FQDN account-wide, and doing that before a certificate
+> can be issued would break the current `*.vgijssel.nl` paths with nothing ready to replace them.
+>
+> **Do not substitute `vpn.vgijssel.nl` for the peer DNS domain without removing the wildcard
+> first.** Measured: `a.b.c.vgijssel.nl` and `probe.vpn.vgijssel.nl` both answer from
+> `1.1.1.1` (CNAME → `eu1.netbird.services`), because Cloudflare wildcards match at arbitrary
+> label depth. Reusing that zone would make every mesh hostname publicly resolvable and let
+> public DNS override NetBird's resolver — a direct violation of the spec scenario "No wildcard
+> makes mesh names public", which is a requirement of this capability and not a preference.
 
 - [ ] 2.1 Delegate `blueora.ng` to Cloudflare and create the zone; verify `dig +short NS blueora.ng` returns Cloudflare nameservers
 - [ ] 2.2 Mint a scoped Cloudflare API token (`Zone:DNS:Edit` on `blueora.ng`, plus `vgijssel.nl` if 1.4 said one token suffices); verify with an authenticated token-verify API call
@@ -23,24 +92,24 @@ These can invalidate the design, so they run before any other work.
 
 ## 3. Vendor and deploy the gateway control plane
 
-- [ ] 3.1 Add a `charts/envoy-gateway` entry to `third_party/vendir/vendir.yml` pinned to `1.9.2` (`oci://docker.io/envoyproxy/gateway-helm`); verify `vendir sync` succeeds and the lock entry sits in the same position as the `vendir.yml` entry (CI flags reordering)
-- [ ] 3.2 Verify the vendored chart carries the L4 route kinds: `grep -c "kind: TCPRoute\|kind: UDPRoute" third_party/vendir/charts/envoy-gateway/charts/crds/crds/gatewayapi-crds.yaml` is non-zero and the bundle-version annotation reads `v1.6.1`
-- [ ] 3.3 Create `apps/platform/src/envoy-gateway/` (umbrella `Chart.yaml` with one `file://` dep, `values.yaml`, `fleet.yaml` with both cluster targets **and** the terminal `doNotDeploy` catch-all); verify `helm dependency build` + `helm template` render, then `bin/fleet-lint-targets` passes
-- [ ] 3.4 Apply to the secret cluster (`moon run secret:apply`); verify the `envoy` `GatewayClass` reports `Accepted` and the control-plane pod is Running on arm64
-- [ ] 3.5 Apply to the network cluster (`moon run network:apply`); verify the same two conditions
+- [x] 3.1 Add a `charts/envoy-gateway` entry to `third_party/vendir/vendir.yml` pinned to `1.9.2` (`oci://docker.io/envoyproxy/gateway-helm`); verify `vendir sync` succeeds and the lock entry sits in the same position as the `vendir.yml` entry (CI flags reordering)
+- [x] 3.2 Verify the vendored chart carries the L4 route kinds: `grep -c "kind: TCPRoute\|kind: UDPRoute" third_party/vendir/charts/envoy-gateway/charts/crds/crds/gatewayapi-crds.yaml` is non-zero and the bundle-version annotation reads `v1.6.1`
+- [x] 3.3 Create `apps/platform/src/envoy-gateway/` (umbrella `Chart.yaml` with one `file://` dep, `values.yaml`, `fleet.yaml` with both cluster targets **and** the terminal `doNotDeploy` catch-all); verify `helm dependency build` + `helm template` render, then `bin/fleet-lint-targets` passes
+- [x] 3.4 Apply to the secret cluster (`moon run secret:apply`); verify the `envoy` `GatewayClass` reports `Accepted` and the control-plane pod is Running on arm64
+- [x] 3.5 Apply to the network cluster (`moon run network:apply`); verify the same two conditions
 
 ## 4. Shared mesh-service chart
 
-- [ ] 4.1 Create `apps/platform/src/mesh-service/` as a first-party chart with **no `fleet.yaml`**; verify it is never picked up standalone by checking it is absent from `moon run :fleet_build` output
-- [ ] 4.2 Define the `values.yaml` parameter contract (`name`, `domain`, `sourceGroups[]`, `listeners[]`, `certIssuer`) with fail-fast on empty `name`/`domain`; verify `helm template` with an empty `name` errors instead of rendering a certificate for a bare domain (spec: "Incomplete declaration fails fast")
-- [ ] 4.3 Add the `Certificate` template with a parameterised `issuerRef` (defaults to `letsencrypt-prod`, so 1.4's answer is a values change); verify rendered `dnsNames` is exactly `<name>.<domain>`
-- [ ] 4.4 Add the `EnvoyProxy` template with `useListenerPortAsContainerPort: true`, `NET_BIND_SERVICE`, 1 replica, `Recreate` strategy, `ClusterIP` service, and the pod label the sidecar profile selects; verify the rendered output contains no `10080`/`10443` anywhere
-- [ ] 4.5 Document **in the template header** why the port shift is disabled (no Service in the path — traffic lands on the WireGuard interface inside the pod netns); verify the comment names that reason, since a future reader deleting the flag breaks every service silently
-- [ ] 4.6 Add the `Gateway` + route templates rendering one listener per entry and the matching `HTTPRoute`/`TLSRoute`/`TCPRoute`/`UDPRoute`; verify a mixed HTTPS+TCP+UDP values file renders all three route kinds with the declared port numbers
-- [ ] 4.7 Add the NetBird identity templates (`Group`, enrolment key with extra-DNS-labels allowed + ephemeral, sidecar profile with the extra DNS label); verify the rendered label equals `name` and the pod selector matches 4.4's label
-- [ ] 4.8 Add the access-policy template deriving protocols and ports from `listeners[]` with sources from `sourceGroups[]`; verify a values file declaring only HTTPS renders a policy limited to TCP 443 (spec: "Undeclared port is not reachable")
-- [ ] 4.9 Add the watchdog CronJob + ServiceAccount using an image with a shell, detecting wedged sessions from the client's **reported output** not its exit status; verify a dry-run of the detection logic against both healthy and wedged sample output classifies each correctly
-- [ ] 4.10 Document the chart's parameter contract inline in `values.yaml` in the house comment style; verify by rendering both an HTTPS-only and an HTTPS+TCP+UDP service purely from the documented knobs
+- [x] 4.1 Create `apps/platform/src/mesh-service/` as a first-party chart with **no `fleet.yaml`**; verify it is never picked up standalone by checking it is absent from `moon run :fleet_build` output
+- [x] 4.2 Define the `values.yaml` parameter contract (`name`, `domain`, `sourceGroups[]`, `listeners[]`, `certIssuer`) with fail-fast on empty `name`/`domain`; verify `helm template` with an empty `name` errors instead of rendering a certificate for a bare domain (spec: "Incomplete declaration fails fast")
+- [x] 4.3 Add the `Certificate` template with a parameterised `issuerRef` (defaults to `letsencrypt-prod`, so 1.4's answer is a values change); verify rendered `dnsNames` is exactly `<name>.<domain>`
+- [x] 4.4 Add the `EnvoyProxy` template with `useListenerPortAsContainerPort: true`, `NET_BIND_SERVICE`, 1 replica, `Recreate` strategy, `ClusterIP` service, and the pod label the sidecar profile selects; verify the rendered output contains no `10080`/`10443` anywhere
+- [x] 4.5 Document **in the template header** why the port shift is disabled (no Service in the path — traffic lands on the WireGuard interface inside the pod netns); verify the comment names that reason, since a future reader deleting the flag breaks every service silently
+- [x] 4.6 Add the `Gateway` + route templates rendering one listener per entry and the matching `HTTPRoute`/`TLSRoute`/`TCPRoute`/`UDPRoute`; verify a mixed HTTPS+TCP+UDP values file renders all three route kinds with the declared port numbers
+- [x] 4.7 Add the NetBird identity templates (`Group`, enrolment key with extra-DNS-labels allowed + ephemeral, sidecar profile with the extra DNS label); verify the rendered label equals `name` and the pod selector matches 4.4's label
+- [x] 4.8 Add the access-policy template deriving protocols and ports from `listeners[]` with sources from `sourceGroups[]`; verify a values file declaring only HTTPS renders a policy limited to TCP 443 (spec: "Undeclared port is not reachable")
+- [x] 4.9 Add the watchdog CronJob + ServiceAccount using an image with a shell, detecting wedged sessions from the client's **reported output** not its exit status; verify a dry-run of the detection logic against both healthy and wedged sample output classifies each correctly
+- [x] 4.10 Document the chart's parameter contract inline in `values.yaml` in the house comment style; verify by rendering both an HTTPS-only and an HTTPS+TCP+UDP service purely from the documented knobs
 
 ## 5. Expose OpenBao (first real service)
 

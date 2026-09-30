@@ -1,0 +1,18 @@
+{{/*
+The `envoy` GatewayClass. The upstream gateway-helm chart installs the controller and the CRDs
+but no GatewayClass, so it is added here — one per cluster, created alongside the control plane
+that claims it.
+
+NO parametersRef on purpose. A GatewayClass-level EnvoyProxy would apply one proxy spec to every
+Gateway in the cluster, and each mesh-exposed service needs its own: distinct pod labels (for the
+NetBird SidecarProfile to select), 1 replica with the Recreate strategy, and the port shift
+disabled. Those are attached per-Gateway via Gateway.spec.infrastructure.parametersRef in
+../mesh-service, which Gateway API v1.6.1 supports and which overrides nothing here.
+*/}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: {{ required "envoy-gateway: .Values.gatewayClassName is required" .Values.gatewayClassName }}
+spec:
+  # Fixed by Envoy Gateway; the control plane only reconciles classes naming this controller.
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller

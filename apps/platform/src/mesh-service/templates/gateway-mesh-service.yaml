@@ -1,0 +1,65 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+This service's Gateway — one listener per declared port.
+
+Ports need no arbitration with any other service: each exposure is its own peer with its own
+overlay address, so two services can both listen on 443 and both be reached on 443. That is the
+property the reverse-proxy stack could not provide, and the reason each Gateway gets its own
+Envoy pod rather than sharing one.
+
+A declared port list (`ports: [...]`) is expanded to one listener per port by
+`mesh-service.listeners`, because Gateway API has no port-range concept — a contiguous device
+range like 29811-29817 is seven listeners.
+
+infrastructure.parametersRef attaches this service's own EnvoyProxy (1 replica, Recreate, port
+shift disabled, pod label). Per-Gateway rather than per-GatewayClass so services do not share
+proxy settings.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  gatewayClassName: envoy
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: {{ .Values.name }}-mesh
+  listeners:
+    {{- range $l := $listeners }}
+    - name: {{ $l.name }}
+      port: {{ $l.port }}
+      {{- if eq $l.protocol "HTTPS" }}
+      # Terminate TLS here with this service's certificate, then plain HTTP to the backend.
+      # `hostname` restricts this listener to the mesh name, which is also the only SAN on the
+      # certificate — an SNI for anything else gets no listener rather than a name mismatch.
+      protocol: HTTPS
+      hostname: {{ include "mesh-service.fqdn" $ | quote }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ $.Values.name }}-mesh-tls
+      {{- else if eq $l.protocol "TLS" }}
+      # Pass TLS through untouched — the backend terminates and presents its own certificate.
+      # For services whose own endpoint must stay end-to-end, so nothing here sees plaintext.
+      protocol: TLS
+      hostname: {{ include "mesh-service.fqdn" $ | quote }}
+      tls:
+        mode: Passthrough
+      {{- else }}
+      # Raw L4. Gateway API graduated TCPRoute + UDPRoute to Standard in v1.6, which is why
+      # this chart can carry device protocols that the reverse proxy never could.
+      protocol: {{ $l.protocol }}
+      {{- end }}
+      allowedRoutes:
+        # Routes for this Gateway are rendered by this same chart into this same namespace.
+        # Keeping it Same means a route in another namespace cannot attach itself to a
+        # service's listener and redirect its traffic.
+        namespaces:
+          from: Same
+    {{- end }}

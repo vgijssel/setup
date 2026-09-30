@@ -1,0 +1,45 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+Injects a NetBird client sidecar into this service's Envoy pod, turning the proxy into a
+first-class mesh peer with its own overlay address — and pins the stable hostname onto it.
+
+extraDNSLabels is the mechanism the whole flat namespace rests on. A peer's default DNS name
+derives from its hostname, which in Kubernetes is a GENERATED pod name
+(`envoy-<ns>-<gw>-<hash>-...`), so it changes on every rollout and is useless as an address. An
+extra DNS label is stable across replacement, and resolves as `[label].[peer-dns-domain]` —
+which is exactly `<name>.<domain>`. Verified live on operator v0.7.0: the label reaches the
+client and resolves cross-cluster from other peers, not merely from the pod itself.
+
+Injection is what makes the port story work: the client's WireGuard interface comes up inside
+THIS POD'S network namespace, so a peer connecting to `<name>.<domain>:443` lands on Envoy's own
+:443 socket with no Service, no NAT and no port translation in between. See the port-shift block
+in envoyproxy-mesh-service.yaml.
+
+podSelector matches the label the EnvoyProxy stamps on the data-plane pod, read from the same
+helper so the two cannot drift. Only this service's proxy is selected: the label carries the
+service name, so one namespace can host several exposures without cross-injection.
+
+On operator v0.7.0 the injected client rewrites the pod's shared /etc/resolv.conf IN PLACE, so
+Envoy inherits the mesh resolver and still resolves in-cluster backends through it. Do NOT add a
+resolv-conf volumeMount — that indirection belongs to v0.8.0, whose sidecar-DNS regression
+(netbirdio/kubernetes-operator#383) is why the operator is pinned.
+*/}}
+apiVersion: netbird.io/v1alpha1
+kind: SidecarProfile
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  setupKeyRef:
+    name: {{ .Values.name }}
+  # The stable mesh hostname. Equals .Values.name by definition — the chart derives the
+  # certificate SAN, the Gateway listener hostname and this label from the same value, so the
+  # name a consumer dials, the name on the certificate and the name NetBird resolves are one
+  # string that cannot drift.
+  extraDNSLabels:
+    - {{ .Values.name }}
+  podSelector:
+    matchLabels:
+      {{ include "mesh-service.podLabelKey" . }}: {{ .Values.name }}
+  injectionMode: Sidecar

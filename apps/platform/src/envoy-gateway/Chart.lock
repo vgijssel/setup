@@ -1,0 +1,6 @@
+dependencies:
+- name: gateway-helm
+  repository: file://../../../../third_party/vendir/charts/envoy-gateway
+  version: 1.9.2
+digest: sha256:f400eb60eb05035a533fcea60f31bd53e92bbccafcc17820ebb8b64af6dd431a
+generated: "2026-09-30T19:25:31.979022+02:00"
