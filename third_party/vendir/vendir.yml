@@ -155,7 +155,10 @@ directories:
           name: k8s-gateway
           version: 3.7.2
           repository:
-            url: https://k8s-gateway.github.io/k8s_gateway/
+            # The k8s-gateway.github.io Pages chart repo is gone (index.yaml 404s), which
+            # broke `vendir sync` from scratch; upstream publishes the same charts as OCI
+            # artifacts. 3.7.2 from here extracts byte-identical to the vendored copy.
+            url: oci://ghcr.io/k8s-gateway/charts
   - path: charts/cert-manager
     contents:
       - path: .

@@ -11,6 +11,12 @@ tasks:
   # bin/fleet-build.
   fleet_build:
     command: fleet-build $projectSource
+    # `vendir sync` wipes and re-creates third_party/vendir/charts/*, which the umbrella
+    # bundles resolve their file:// deps against. Without this dep moon happily schedules
+    # both at once and the bundle read fails on half-synced chart dirs
+    # ("directory third_party/vendir/charts/<chart> not found").
+    deps:
+      - vendir:build
     inputs:
       - "**/*"
       - "**/.*"
