@@ -54,25 +54,24 @@ These can invalidate the design, so they run before any other work.
 
 ## 2. Zone and account prerequisites
 
-> **BLOCKED 2026-09-30 — `blueora.ng` is not a registered domain.** Not "registered but
-> undelegated": the `.ng` registry itself has no record of it. `dig NS blueora.ng` is empty
-> against `1.1.1.1`, `8.8.8.8` and the authoritative `ns4.nic.net.ng` (which answers with the
-> `ng.` SOA, i.e. no delegation), and `rdap.nic.net.ng/domain/blueora.ng` returns
-> `{"errorCode":404}`. It is also not a zone in the Cloudflare account that holds `vgijssel.nl`
-> — that account's `/zones` lists exactly one zone.
+> **UNBLOCKED 2026-10-01 — `blueora.ng` is registered and delegated to Cloudflare** (the
+> 2026-09-30 registrar block is resolved). `dig +short NS blueora.ng @1.1.1.1` returns
+> `katelyn.ns.cloudflare.com` + `ken.ns.cloudflare.com`, and the apex answers `127.0.0.1`.
 >
-> Registering a domain and pointing it at Cloudflare is a registrar action, so 2.1 cannot be
-> done from here, and 2.2–2.8 all sit behind it (no zone → no DNS-edit token → no DNS-01 → no
-> certificate). Groups 5–11 then inherit the block: every service exposure needs a `Ready`
-> `Certificate` for `<name>.vpn.blueora.ng`.
+> **NEW BLOCKER 2026-10-01 — the Cloudflare API token in OpenBao is dead.** `kv/cloudflare#credential`
+> (a `cfat_`-prefixed token) is rejected account-wide with `9109 Invalid access token`: on
+> `/zones`, and live on the network cluster, where `deploy/external-dns` is in a fatal crash loop
+> on the same error. So this is not a scope problem — the credential itself is invalid, and it was
+> *already* invalid before this session (external-dns has been failing on it). It is also not in
+> 1Password (the `enigma-prod` vault holds no Cloudflare item).
 >
-> Two things in this group are NOT blocked and are API-doable once the go-ahead is given —
-> `2.5` (peer DNS domain) and `2.6` (login expiration) are both fields on the account-settings
-> object, readable and writable with the existing management PAT
-> (`PUT /api/accounts/<id>`, currently `dns_domain: ""` and
-> `peer_login_expiration_enabled: true`). They were left alone deliberately: flipping the
-> account DNS domain renames every peer FQDN account-wide, and doing that before a certificate
-> can be issued would break the current `*.vgijssel.nl` paths with nothing ready to replace them.
+> Minting or re-scoping a Cloudflare token needs dashboard access, or a token carrying
+> `User API Tokens: Edit` — neither of which exists here. So **2.2 is a human step**, and
+> 2.3 (zone id), 2.4 (store it), 2.7/2.8 (the DNS-01 go/no-go gate) sit behind it, as does every
+> certificate-dependent task in groups 5–11.
+>
+> Note this blocker is wider than this change: it is why `omada.network.vgijssel.nl`'s record is
+> currently unmanaged and why no certificate can renew on either cluster today.
 >
 > **Do not substitute `vpn.vgijssel.nl` for the peer DNS domain without removing the wildcard
 > first.** Measured: `a.b.c.vgijssel.nl` and `probe.vpn.vgijssel.nl` both answer from
@@ -80,13 +79,34 @@ These can invalidate the design, so they run before any other work.
 > label depth. Reusing that zone would make every mesh hostname publicly resolvable and let
 > public DNS override NetBird's resolver — a direct violation of the spec scenario "No wildcard
 > makes mesh names public", which is a requirement of this capability and not a preference.
+> `blueora.ng` itself is clean: `*.blueora.ng`, `probe.vpn.blueora.ng` and `a.b.c.blueora.ng`
+> all return nothing from `1.1.1.1` (2.3's assertion half, verified 2026-10-01).
 
-- [ ] 2.1 Delegate `blueora.ng` to Cloudflare and create the zone; verify `dig +short NS blueora.ng` returns Cloudflare nameservers
+- [x] 2.1 Delegate `blueora.ng` to Cloudflare and create the zone; verify `dig +short NS blueora.ng` returns Cloudflare nameservers
 - [ ] 2.2 Mint a scoped Cloudflare API token (`Zone:DNS:Edit` on `blueora.ng`, plus `vgijssel.nl` if 1.4 said one token suffices); verify with an authenticated token-verify API call
 - [ ] 2.3 Assert the no-wildcard constraint: verify `dig +short '*.blueora.ng' @1.1.1.1` returns nothing, and record the zone id as a non-secret constant alongside the existing `cloudflareZoneId` comment
 - [ ] 2.4 Store the token in OpenBao at `kv/blueora-cloudflare#token` using `moon run secret:forward` + `moon run secret:get_openbao_auth`; verify by reading the key back (no mesh involved in this path)
-- [ ] 2.5 Set the account peer DNS domain to `vpn.blueora.ng`; verify `netbird status` on the Mac reports the new domain and an existing peer resolves at `<label>.vpn.blueora.ng`
-- [ ] 2.6 Disable peer login expiration account-wide; verify the setting persists in the dashboard and record the change in the session-expiry runbook notes
+- [x] 2.5 Set the account peer DNS domain to `vpn.blueora.ng`; verify `netbird status` on the Mac reports the new domain and an existing peer resolves at `<label>.vpn.blueora.ng`
+- [x] 2.6 Disable peer login expiration account-wide; verify the setting persists in the dashboard and record the change in the session-expiry runbook notes
+**Results (verified live 2026-10-01):**
+
+- **2.1 PASS.** Zone live on Cloudflare (`katelyn`/`ken` nameservers), apex A → `127.0.0.1`.
+- **2.5 PASS.** `PUT /api/accounts/<id>` with `settings.dns_domain = vpn.blueora.ng`. All 19 peers
+  renamed account-wide in one step; the Mac now reports
+  `FQDN: macbook-pro-van-maarten.vpn.blueora.ng` and macOS registered the scoped resolver
+  (`scutil --dns`: `domain vpn.blueora.ng → 100.65.255.254`). Resolution confirmed for three
+  existing peers, including through the SYSTEM resolver, not just the NetBird one.
+  **Gotcha for the remaining "verify from the Mac" steps: plain `dig` does NOT see this.** macOS
+  scoped resolvers are invisible to `dig`, which goes straight to `/etc/resolv.conf`. Use
+  `dig @100.65.255.254 <name>`, or `ping`/`dscacheutil -q host -a name` for the system path. The
+  task text's bare `dig +short` will look like a failure when the name resolves fine.
+- **2.6 PASS.** `peer_login_expiration_enabled: false` in the same PUT. `netbird status` on the
+  Mac no longer prints a `Session expires:` line at all (it read `in 4h 27m` beforehand) — which
+  is the runbook-relevant fact: the 24 h forced re-auth that wedged `deploy/router`,
+  the ESO sidecar and the reverse-proxy peer is gone at the account level. The per-peer watchdog
+  CronJobs stay as defence in depth, because host suspend/resume still wedges a client
+  independently of login expiry.
+
 - [ ] 2.7 **GO/NO-GO GATE** — add a throwaway `Certificate` for `probe.vpn.blueora.ng` on the secret cluster using the new token; verify it reaches `Ready` **and** that `dig +short probe.vpn.blueora.ng @1.1.1.1` is empty. Do not proceed if either check fails; nothing has been deleted yet
 - [ ] 2.8 Delete the probe `Certificate` and its Secret; verify the challenge TXT record is cleaned up from the zone
 
@@ -113,7 +133,21 @@ These can invalidate the design, so they run before any other work.
 
 ## 5. Expose OpenBao (first real service)
 
-- [ ] 5.1 Create `apps/secret/src/mesh-openbao/` (one `file://` dep on the shared chart; `name: openbao`, HTTPS 443 → `openbao:8200`, sources `homelab` + `network-k8s`; `dependsOn` the operator and gateway bundles; terminal `doNotDeploy` target); verify `moon run :fleet_build` and `bin/fleet-lint-targets` pass
+**Results (2026-10-01):**
+
+- **5.1 DONE.** `apps/secret/src/mesh-openbao/` = `Chart.yaml` (one `file://` dep) + `fleet.yaml`
+  (whole declaration under `mesh-service:`), no `templates/`. `defaultNamespace: secret`, NOT
+  `netbird`: a SidecarProfile selects pods in its own namespace and backendRefs resolve in the
+  release namespace, so the exposure has to sit where the backing Service does (same reason
+  `apps/network/src/eso-sidecar` lives in `external-secrets`). Renders 12 resources, certificate
+  SAN exactly `openbao.vpn.blueora.ng`, one `tcp/443` NBPolicy, no `10443`/`10080` anywhere.
+  `bin/fleet-lint-targets` 31/31 ok and `moon run :fleet_build` builds `secret-mesh-openbao` —
+  with `mesh-service` still absent from the output, which re-confirms 4.1.
+  `dependsOn` is netbird-operator + envoy-gateway only: cert-manager and the `letsencrypt-prod`
+  ClusterIssuer live in shared platform bundles that carry no `fleet.vgijssel.nl/bundle` label to
+  select on, and a Certificate may sit Pending until its issuer exists.
+
+- [x] 5.1 Create `apps/secret/src/mesh-openbao/` (one `file://` dep on the shared chart; `name: openbao`, HTTPS 443 → `openbao:8200`, sources `homelab` + `network-k8s`; `dependsOn` the operator and gateway bundles; terminal `doNotDeploy` target); verify `moon run :fleet_build` and `bin/fleet-lint-targets` pass
 - [ ] 5.2 Apply with `moon run secret:apply`; verify the `Certificate` is `Ready`, the `Gateway` is `Accepted` + `Programmed`, and the data-plane pod has **both** the proxy and mesh-client containers
 - [ ] 5.3 Verify peer identity: the peer carries DNS label `openbao`, sits in group `svc-openbao`, and its access policy exists
 - [ ] 5.4 Verify the spec's resolution contract from the Mac: `dig +short openbao.vpn.blueora.ng` returns an overlay address **and** `dig +short openbao.vpn.blueora.ng @1.1.1.1` returns nothing
@@ -128,7 +162,37 @@ These can invalidate the design, so they run before any other work.
 
 ## 7. Expose Omada and the JWKS mirror
 
-- [ ] 7.1 Create `apps/network/src/mesh-omada/` (HTTPS 443 → `omada:8088`, TCP `29811-29817`, UDP `19810`/`27001`/`29810`, source `homelab`); verify `helm template` renders every declared port
+**Results (2026-10-01) — authoring only; 7.2–7.6 deliberately NOT started.**
+
+Everything from 7.2 on mutates the LIVE Omada device path (drops the annotations the operator
+infers the device exposure from, renames the device record, re-issues the device certificate).
+Doing that before `omada.vpn.blueora.ng` can serve a certificate would take Omada down with no
+replacement, so it waits on the DNS-01 gate like the rest of groups 5–11.
+
+- **7.1 DONE.** `apps/network/src/mesh-omada/` renders 22 resources from one declaration:
+  11 Gateway listeners (HTTPS 443, TCP 29811–29817, UDP 19810/27001/29810), 1 HTTPRoute →
+  `omada:8088`, 7 TCPRoutes and 3 UDPRoutes each → `omada:<same port>`, and two policies that
+  are correctly SPLIT by protocol — `tcp [443, 29811..29817]` and `udp [19810, 27001, 29810]`,
+  never the cross product. Every declared port appears; no shifted port appears.
+  **One risk found while writing it, flagged in the bundle header for 7.10:** `:8088` is the
+  controller's HTTP listener and it redirects to its own HTTPS port. If that redirect is
+  absolute (`https://<host>:8043`) the mesh UI will bounce off the mesh name. Fallback is a
+  `protocol: TLS` passthrough listener to `:8043` — already supported by the shared chart — at
+  the cost of serving the controller's own certificate instead of the mesh one.
+- **7.7 PARTIAL — bundle authored, verification blocked.** `apps/network/src/mesh-jwks/` renders
+  `jwks-network.vpn.blueora.ng` → `jwks-mirror:80`. The `Certificate`/`Gateway` half of 7.7 needs
+  the DNS-01 gate, so it stays unchecked.
+  **Correction to this task's stated source group.** 7.7 says source `secret-k8s`, but the
+  consuming peer — the `jwks-gateway` socat pod — enrolled only into `secret` (the group its
+  NBRoutingPeer auto-creates), so as written the policy would have had no effective source and
+  8.6 would fail. `secret-k8s` is nonetheless the right choice, because it is a real `Group` CR
+  and therefore survives 9.7 deleting that routing peer, which `secret` would not. Resolved
+  additively: `apps/secret/src/jwks-gateway/setupkey-jwks-gateway.yaml` now auto-joins BOTH
+  groups, so the old NBResource path and the new mesh path work simultaneously (the
+  "additive until step 9" rule). `autoGroups` apply at enrolment only, so the running peer gains
+  `secret-k8s` when 8.1 recreates that pod; **9.7 should drop `secret` from that key.**
+
+- [x] 7.1 Create `apps/network/src/mesh-omada/` (HTTPS 443 → `omada:8088`, TCP `29811-29817`, UDP `19810`/`27001`/`29810`, source `homelab`); verify `helm template` renders every declared port
 - [ ] 7.2 Remove the `netbird.io/expose` and `netbird.io/policy*` annotations from `apps/network/src/omada/templates/service-omada.yaml` while **keeping** the pinned ClusterIP and `external-dns` annotations; verify the rendered Service still carries `clusterIP: 10.96.0.20`
 - [ ] 7.3 Rewrite that Service's header comment to describe the split path (devices via ClusterIP + public record, mesh peers via the peer hostname) and mark it as the named exception; verify the comment states the reason devices cannot be peers
 - [ ] 7.4 Rename the device-facing record to `omada.blueora.ng` and update `apps/network/src/external-dns/values.yaml` domain filters, keeping the record unproxied; verify `dig +short omada.blueora.ng @1.1.1.1` returns the pinned ClusterIP
@@ -165,7 +229,14 @@ Only after every verification in groups 5–8 is green.
 
 ## 10. PiKVM
 
-- [ ] 10.1 Verify the PiKVM peer resolves at `pikvm.vpn.blueora.ng` after the domain flip
+**Results (verified live 2026-10-01):**
+
+- **10.1 PASS.** The PiKVM peer picked the new domain up with no action on the box: it is
+  `Connected` as `pikvm.vpn.blueora.ng`, resolves to `100.65.192.152` from the Mac, and answers
+  ICMP there. No re-enrolment and no client restart was needed — the account DNS domain is served
+  by the resolver, not baked into the peer.
+
+- [x] 10.1 Verify the PiKVM peer resolves at `pikvm.vpn.blueora.ng` after the domain flip
 - [ ] 10.2 Update `apps/pikvm` and `apps/network/network.md` hostname references and the goss health contract; verify the goss suite passes over the mesh (create unit symlinks directly rather than via `systemctl enable`, which hits a read-only filesystem over mesh SSH)
 - [ ] 10.3 Record the self-signed certificate warning as a known, accepted consequence and file both upgrade paths as follow-ups; verify the note states that the removed proxy existed solely to paper over it
 

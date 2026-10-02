@@ -117,17 +117,25 @@ Steps 1–8 are **additive**. Nothing is deleted until step 9, after every new p
 
 **Rollback**: before step 9, rollback is reverting the consumer hostnames — the old reverse-proxy path is still deployed and functional throughout steps 1–8. After step 9, rollback means re-applying the deleted bundles from git and re-minting proxy tokens, which is why step 9 is gated on every verification in 6–8 passing.
 
-## Implementation blockers found live (2026-09-30)
+## Implementation blockers found live (2026-09-30, updated 2026-10-01)
 
-Neither invalidates the design; both are inputs it assumed were already in place.
+None invalidates the design; all are inputs it assumed were already in place.
 
-- **`blueora.ng` is not registered.** The `.ng` registry has no record of it (authoritative
-  `ns4.nic.net.ng` answers with the `ng.` SOA; `rdap.nic.net.ng` returns 404), and it is not a
-  zone in the Cloudflare account holding `vgijssel.nl`. Registration + delegation is a registrar
-  action, so tasks 2.1–2.8 and every certificate-dependent task in groups 5–11 are blocked on it.
-  Reusing `vgijssel.nl` is not a drop-in substitute: its wildcard answers at arbitrary label depth
-  (verified — `probe.vpn.vgijssel.nl` resolves publicly today), which the capability explicitly
-  forbids.
+- ~~**`blueora.ng` is not registered.**~~ **RESOLVED 2026-10-01.** The zone is live on Cloudflare
+  (`katelyn`/`ken` nameservers, apex A → `127.0.0.1`) and verified clean of wildcards at arbitrary
+  depth, which is the property the capability actually requires. Tasks 2.1, 2.5 and 2.6 are done.
+  (The reason `vgijssel.nl` was never a substitute still stands: its wildcard answers at arbitrary
+  label depth, so every mesh hostname would resolve publicly.)
+- **The Cloudflare API token is invalid — this is now the single blocker.** `kv/cloudflare#credential`
+  is rejected with `9109 Invalid access token` on `/zones`, and the network cluster's
+  `deploy/external-dns` is in a fatal crash loop on the identical error, so the credential was
+  already dead before this change reached it. It is not in 1Password either. Minting or re-scoping
+  a Cloudflare token requires dashboard access or a token with `User API Tokens: Edit`, so it is a
+  human step. Everything certificate-dependent — 2.2–2.4, the 2.7/2.8 DNS-01 gate, and groups 5–11
+  — waits on it. Note the blast radius is wider than this change: no certificate can renew and no
+  DNS record is managed on either cluster until it is replaced. Task 1.4's conclusion (one token,
+  no sibling issuer) is unaffected and now cheap to satisfy, since the replacement token can be
+  scoped to both zones at creation.
 - **The Mac was not a mesh peer during the spikes** (`netbird status` → `NeedsLogin`; re-login is
   interactive SSO), so task 1.1 verified from an in-cluster peer pod instead — and was stronger for
   it: resolving the label from the *network* cluster's peer proves cross-cluster mesh resolution,
