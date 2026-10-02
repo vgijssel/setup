@@ -5,6 +5,14 @@ url: ""
 # If unspecified or empty it will watch all namespaces.
 namespaces: []
 
+# fieldSelector -- Kubernetes field selector for filtering pods.
+# Use this filter instead of .values.namespaces
+fieldSelector: ""
+
+# labelSelector -- Kubernetes label selector for filtering pods
+# Use this filter instead of .values.namespaces
+labelSelector: ""
+
 # volumes -- A list of extra volumes to add to the coder-logstream pod.
 volumes:
   #   emptyDir: {}
@@ -14,6 +22,9 @@ volumes:
 volumeMounts:
   # - name: "my-volume"
   #   mountPath: "/mnt/my-volume"
+
+# args -- A list of optional arguments to supply at runtime.
+args: []
 
 # image -- The image to use.
 image:
@@ -45,6 +56,12 @@ serviceAccount:
   labels: {}
   # coder.serviceAccount.name -- The service account name
   name: coder-logstream-kube
+
+rbac:
+  # rbac.roleName -- The name of the role created in Kubernetes.
+  roleName: coder-logstream-kube-role
+  # rbac.roleBindingName -- The name of the role binding created in Kubernetes.
+  roleBindingName: coder-logstream-kube-rolebinding
 
 # resources -- The resources to request for the Deployment. These are optional
 # and are not set by default.
@@ -85,6 +102,13 @@ tolerations:
   #   operator: "Equal"
   #   value: "value"
   #   effect: "NoSchedule"
+
+# metrics -- Prometheus metrics configuration.
+metrics:
+  # metrics.enabled -- Whether to expose a Prometheus /metrics endpoint.
+  enabled: false
+  # metrics.port -- The port to serve Prometheus metrics on.
+  port: 9100
 
 # labels -- The pod labels for coder-logstream-kube. See:
 # https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
