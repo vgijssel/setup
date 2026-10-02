@@ -69,6 +69,8 @@ lint:
         # OpenBao ExternalSecret template embeds Helm-escaped ESO Go-templates
         - apps/secret/src/openbao/templates/**
         - apps/platform/src/netbird-reverse-proxy-shared/templates/**
+        - apps/platform/src/mesh-service/templates/**
+        - apps/platform/src/envoy-gateway/templates/**
     # Ignore prettier syntax errors for Helm templates with complex syntax
     - linters: [prettier]
       paths:

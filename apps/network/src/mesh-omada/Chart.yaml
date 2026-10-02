@@ -1,0 +1,27 @@
+# Thin per-service bundle: publishes the Omada controller into the NetBird mesh as
+# `omada.vpn.blueora.ng` — the HTTPS admin UI plus its raw TCP and UDP device ports, all on one
+# peer that owns its whole port space.
+#
+# This is the exposure the old stacks could not produce between them: the BYOP reverse proxy
+# carried the UI but silently never bound L4 (netbirdio/netbird#6400), and the NBResource path
+# carried L4 but needed a pinned ClusterIP plus a public A record shadowing the zone wildcard.
+#
+# It does NOT replace the device path. Physical APs and switches cannot run a mesh client, so
+# they keep the pinned-ClusterIP + NBResource + public-record route under their own name
+# (`omada.blueora.ng`) — a named exception, documented in ../omada/templates/service-omada.yaml.
+#
+# ONE single-level `file://` dependency, never a nested umbrella: `.gitignore` ignores
+# `apps/**/charts/`, and `bin/fleet-apply` builds only the TOP-LEVEL bundle chart — helm does not
+# recurse into a subchart's own `file://` deps, so a wrapped subchart would silently vanish.
+#
+# Chart.lock + charts/*.tgz are gitignored under apps/network/src (Fleet builds the dep at apply
+# time); do not commit them.
+apiVersion: v2
+name: mesh-omada
+description: Omada controller exposed on the NetBird mesh at omada.vpn.blueora.ng (mesh-service chart)
+type: application
+version: 1.0.0
+dependencies:
+  - name: mesh-service
+    version: 1.0.0
+    repository: file://../../../platform/src/mesh-service

@@ -70,6 +70,10 @@ libs/**/charts/
 # apps/secret umbrella charts let Fleet resolve deps at build time (no committed
 # Chart.lock — see apps/secret/SPEC.md). ArgoCD-managed apps elsewhere still commit it.
 apps/secret/src/**/Chart.lock
+# Same for the network cluster's mesh-* bundles: their only dependency is a `file://` path, so a
+# lock would pin a digest of a local directory. Fleet builds it at apply time. (The other
+# apps/network/src bundles DO commit Chart.lock — they depend on remote charts by version.)
+apps/network/src/mesh-*/Chart.lock
 
 **/textual.log
 **/textual_serve.log

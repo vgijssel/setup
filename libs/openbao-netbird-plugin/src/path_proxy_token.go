@@ -49,6 +49,11 @@ func (b *netbirdBackend) pathProxyTokenRead(ctx context.Context, req *logical.Re
 		return nil, err
 	}
 
+	// NO VENDOR-SIDE EXPIRY IS POSSIBLE HERE. NetBird's reverse-proxy token API
+	// (POST /api/reverse-proxies/proxy-tokens) accepts only a name — there is no `expires_in`
+	// field to set, unlike PATs and setup keys. So a proxy token has ONLY the OpenBao lease
+	// bounding it, and with manage_lease=false it has nothing at all. That is a vendor API
+	// limitation, not a choice; treat an unleased proxy-token role as a permanent credential.
 	proxyResp, err := client.CreateProxyToken(&CreateProxyTokenRequest{
 		Name: config.ProxyName,
 	})
@@ -56,14 +61,12 @@ func (b *netbirdBackend) pathProxyTokenRead(ctx context.Context, req *logical.Re
 		return nil, fmt.Errorf("creating proxy token in NetBird: %w", err)
 	}
 
-	resp := b.Secret(secretTypeProxyToken).Response(map[string]interface{}{
-		"token_id": proxyResp.ID,
-		"token":    proxyResp.Token,
-	}, map[string]interface{}{
-		"token_id": proxyResp.ID,
-	})
-	resp.Secret.TTL = config.TTL
-	resp.Secret.MaxTTL = config.MaxTTL
-
-	return resp, nil
+	return b.leaseResponse(secretTypeProxyToken, name, config.ManageLease, config.TTL, config.MaxTTL,
+		map[string]interface{}{
+			"token_id": proxyResp.ID,
+			"token":    proxyResp.Token,
+		},
+		map[string]interface{}{
+			"token_id": proxyResp.ID,
+		}), nil
 }

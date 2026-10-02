@@ -11,12 +11,30 @@
 # sets cloudflare-proxied=false explicitly (an orange-cloud record would hand back
 # Cloudflare edge IPs instead of the mesh-routable ClusterIP).
 #
-# The Cloudflare API token comes from the external-dns-cloudflare-api-token Secret
-# (templates/externalsecret-external-dns.yaml, synced from OpenBao kv/cloudflare#credential).
+# The Cloudflare API token is MINTED PER READ by the OpenBao cloudflare secrets engine
+# (templates/externalsecret-external-dns.yaml): a token scoped to DNS Write + Zone Read on the
+# two managed zones, living 48h and rotated every 24h, revoked with its lease. It is no longer
+# the long-lived token shared with cert-manager out of kv/cloudflare#credential.
+#
 # domainFilters + txtOwnerId scope external-dns to the vgijssel.nl zone and tag its TXT
 # ownership records to THIS cluster — the secret cluster's external-dns MUST use a different
 # owner id or the two would delete each other's records (historically observed).
 external-dns:
+  # external-dns reads CF_API_TOKEN from env ONCE, at startup, so a rotated Secret is invisible
+  # to the running pod — it would keep using a token that gets revoked 48h later and then
+  # CrashLoopBackOff on its startup zone enumeration (exactly what 393 restarts looked like when
+  # the old static token died).
+  #
+  # Reloader (apps/platform/src/reloader, watchGlobally) hashes the Secrets a workload
+  # references and performs a rolling restart when the contents change, so each 24h rotation
+  # recycles this Deployment onto the fresh token. The 24h overlap between successive tokens is
+  # what makes that safe rather than urgent: the running pod's token stays valid for another day,
+  # so a delayed restart degrades nothing.
+  #
+  # This MUST be deploymentAnnotations, not podAnnotations: Reloader looks for the annotation on
+  # the Deployment, and an annotation on the pod template would be silently ignored.
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
   provider:
     name: cloudflare
   sources:

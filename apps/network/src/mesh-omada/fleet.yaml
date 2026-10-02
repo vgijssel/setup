@@ -1,0 +1,91 @@
+# Fleet bundle exposing the Omada controller on the mesh at `omada.vpn.blueora.ng`.
+#
+# This is the exposure that proves the capability's port-space requirement: one peer, one
+# hostname, HTTPS on 443 *and* seven raw TCP ports *and* three raw UDP ports, none of them
+# arbitrated against any other service. Gateway API v1.6 graduating TCPRoute + UDPRoute to
+# Standard is what makes that a single mechanism rather than two.
+#
+# Humans use this name. Physical APs and switches CANNOT — they run no mesh client — so they keep
+# their own path and their own name (`omada.blueora.ng`, pinned ClusterIP + public A record). That
+# split is a named exception recorded in ../omada/templates/service-omada.yaml; neither path
+# constrains the other's ports, hostname or certificate.
+#
+# defaultNamespace `omada`: the SidecarProfile selects pods in its OWN namespace and the Gateway's
+# backendRefs resolve in the release namespace, so the exposure must live where the backing
+# Service does.
+#
+# dependsOn:
+#   - netbird-operator : owns the netbird.io CRDs and the injecting mutating webhook.
+#   - envoy-gateway    : owns the Gateway API v1.6.1 CRDs and the `envoy` GatewayClass.
+#   - network-omada    : the backing Service. Listed so a fresh cluster brings the controller up
+#                        before the Gateway starts resolving backendRefs at it.
+labels:
+  fleet.vgijssel.nl/bundle: mesh-omada
+defaultNamespace: omada
+helm:
+  releaseName: mesh-omada
+  values:
+    # The entire per-service declaration, keyed under the subchart name. See
+    # apps/platform/src/mesh-service/values.yaml for the documented contract.
+    mesh-service:
+      name: omada
+      domain: vpn.blueora.ng
+      # Omada traffic is all trusted homelab traffic (the UI, and device protocols proxied for
+      # on-mesh tooling). No cluster group is a source: nothing in Kubernetes consumes Omada.
+      sourceGroups:
+        - homelab
+      listeners:
+        # Admin UI. Envoy terminates the publicly-trusted mesh certificate on :443 and forwards
+        # plain HTTP to the controller's :8088 — so the mesh name gets a valid certificate
+        # without the controller's own self-signed :8043 endpoint being involved at all.
+        #
+        # NOTE for the live verification (task 7.10): :8088 is the controller's HTTP listener and
+        # it redirects to its own HTTPS port. If it redirects to an absolute
+        # `https://<host>:8043` the mesh UI will bounce off the mesh name; the fix is a TLS
+        # passthrough listener to :8043 (protocol: TLS, which this chart already supports),
+        # at the cost of serving the controller's own certificate instead of the mesh one.
+        - name: https
+          protocol: HTTPS
+          port: 443
+          backend:
+            name: omada
+            port: 8088
+        # Device management/adoption/upgrade/rtty/monitor. A contiguous range is one listener per
+        # port (Gateway API has no port-range concept), expanded by the shared chart. Each is the
+        # OBSERVED port: no translation, because the mesh client's WireGuard interface is inside
+        # the Envoy pod's own netns. backend.port is omitted, so each reuses its listener port.
+        - name: device-tcp
+          protocol: TCP
+          ports: [29811, 29812, 29813, 29814, 29815, 29816, 29817]
+          backend:
+            name: omada
+        # Discovery + UDP device management. Raw UDP is the half the BYOP reverse proxy could
+        # never carry at all.
+        - name: device-udp
+          protocol: UDP
+          ports: [19810, 27001, 29810]
+          backend:
+            name: omada
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: envoy-gateway
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: network-omada
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly — the Omada controller only exists here.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

@@ -1,0 +1,40 @@
+# Shared, first-party Helm chart that renders ONE complete mesh peer for ONE exposed service.
+#
+# A release of this chart turns an in-cluster Service into `<name>.<domain>` on the NetBird
+# overlay: its own Envoy pod, its own overlay address, its own full TCP/UDP port space, a
+# publicly-trusted certificate, and an access policy naming exactly which peer groups may reach
+# it. One declaration (name + domain + sourceGroups + listeners) produces all of it.
+#
+# WHAT IT SHIPS (all parameterized — nothing cluster- or service-specific is hardcoded):
+#   - certificate-mesh-service.yaml     cert-manager Certificate for <name>.<domain> (DNS-01)
+#   - envoyproxy-mesh-service.yaml      EnvoyProxy: port shift OFF, 1 replica, Recreate, pod label
+#   - gateway-mesh-service.yaml         Gateway with one listener per declared port
+#   - route-http.yaml / route-tls.yaml / route-tcp.yaml / route-udp.yaml
+#                                       one route per listener, matched to its protocol
+#   - group-mesh-service.yaml           NetBird Group `svc-<name>` (this service's identity)
+#   - setupkey-mesh-service.yaml        enrolment key: extra DNS labels allowed + ephemeral
+#   - sidecarprofile-mesh-service.yaml  injects the mesh client, pins extra DNS label <name>
+#   - nbpolicy-mesh-service.yaml        one policy per protocol: sourceGroups -> svc-<name>
+#   - cronjob-watchdog.yaml + serviceaccount-watchdog.yaml  self-heal for a wedged mesh client
+#
+# WHAT IT DELIBERATELY DOES NOT SHIP: the Envoy Gateway control plane and the `envoy`
+# GatewayClass. Those are one-per-cluster and live in ../envoy-gateway, which every bundle
+# consuming this chart must `dependsOn`.
+#
+# ── Composition: single-level `file://` dependency, never a nested umbrella ───────────────
+# Each per-service bundle (apps/secret/src/mesh-openbao, apps/network/src/mesh-{omada,jwks})
+# declares ONE `file://` dependency on this chart and sets its values from fleet.yaml. It must
+# not be wrapped in another umbrella, because:
+#   * `.gitignore` ignores `apps/**/charts/`, so a subchart cannot be committed under a bundle, and
+#   * `bin/fleet-apply` builds ONLY the top-level bundle chart — helm does not recurse into a
+#     subchart's own `file://` deps, so a wrapped subchart is absent from the built package and
+#     its resources silently vanish.
+# Same constraint, same shape as the chart this one replaces (../netbird-reverse-proxy-shared).
+#
+# No `fleet.yaml` lives here → this chart is never deployed standalone and never becomes its own
+# Fleet bundle; it exists only as a `file://` dependency of the per-service bundles.
+apiVersion: v2
+name: mesh-service
+description: Publish one in-cluster Service as a dedicated NetBird mesh peer at <name>.<domain> (Envoy Gateway data plane, DNS-01 certificate, NetBird identity + access policy, self-heal watchdog)
+type: application
+version: 1.0.0

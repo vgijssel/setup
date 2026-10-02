@@ -1,0 +1,31 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+The publicly-trusted certificate for this service's mesh hostname.
+
+This is what reconciles two requirements that read as contradictory: a certificate a standard
+client validates against the public root store, on a name that does not resolve publicly. A
+DNS-01 challenge needs only a temporary TXT record at `_acme-challenge.<name>.<domain>` — no A
+or CNAME for the hostname is created at any point, so the name stays mesh-only while the
+certificate is fully public. HTTP-01 could not do this at all; it would require the name to
+resolve from the internet to a reachable listener.
+
+Exactly ONE SAN: `<name>.<domain>`. Not a wildcard. The stack this replaces used one wildcard
+certificate per reverse proxy, which is how `*.secret.vgijssel.nl` ended up covering names that
+had nothing to do with each other. One name per service keeps the blast radius of a key to the
+service that owns it.
+*/}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.name }}-mesh
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  # Consumed by the Gateway's HTTPS listeners (gateway-mesh-service.yaml). Envoy Gateway reads
+  # the Secret itself and delivers the certificate over xDS, so nothing mounts it.
+  secretName: {{ .Values.name }}-mesh-tls
+  dnsNames:
+    - {{ include "mesh-service.fqdn" . | quote }}
+  issuerRef:
+    kind: ClusterIssuer
+    name: {{ required "mesh-service: .Values.certIssuer is required" .Values.certIssuer }}

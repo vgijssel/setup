@@ -1,0 +1,34 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+TCPRoute per raw TCP listener — one per port, since a declared port range expands to one
+listener each.
+
+This kind is why the chart exists in this shape. The BYOP reverse proxy it replaces could not
+carry L4 at all: `mode=tcp` services silently never bind on reverse-proxy 0.72.x
+(netbirdio/netbird#6400), which is what forced Omada onto a second, incompatible exposure stack.
+TCPRoute reached Standard in Gateway API v1.6, bundled with Envoy Gateway 1.9.2.
+
+There is no hostname on an L4 route: the port and the peer's overlay address are the whole
+address. That is exactly why each service needs its OWN peer — sharing one would put every
+service's raw ports in one namespace and bring the arbitration back.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+{{- range $l := $listeners }}
+{{- if eq $l.protocol "TCP" }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: TCPRoute
+metadata:
+  name: {{ printf "%s-%s" $.Values.name $l.name }}
+  labels:
+    {{- include "mesh-service.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ $.Values.name }}
+      sectionName: {{ $l.name }}
+  rules:
+    - backendRefs:
+        - name: {{ $l.backend.name }}
+          port: {{ $l.backend.port }}
+{{- end }}
+{{- end }}

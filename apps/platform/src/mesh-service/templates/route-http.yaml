@@ -1,0 +1,35 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+HTTPRoute per HTTPS listener: everything on the mesh hostname goes to the backing Service.
+
+No path matching, no rewriting, no header manipulation. This chart publishes a service, it does
+not reshape it — a consumer talking to `<name>.<domain>` must see exactly what it would see
+talking to the in-cluster Service, or the mesh hostname stops being a drop-in address. Anything
+cleverer belongs in a per-service route, not in the shared chart.
+
+`sectionName` binds each route to its own listener rather than to the Gateway as a whole, so a
+service mixing HTTPS with raw TCP/UDP does not accidentally attach its HTTP route to an L4
+listener.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+{{- range $l := $listeners }}
+{{- if eq $l.protocol "HTTPS" }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ printf "%s-%s" $.Values.name $l.name }}
+  labels:
+    {{- include "mesh-service.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ $.Values.name }}
+      sectionName: {{ $l.name }}
+  hostnames:
+    - {{ include "mesh-service.fqdn" $ | quote }}
+  rules:
+    - backendRefs:
+        - name: {{ $l.backend.name }}
+          port: {{ $l.backend.port }}
+{{- end }}
+{{- end }}

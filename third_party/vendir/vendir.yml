@@ -242,6 +242,31 @@ directories:
           version: 0.15.4
           repository:
             url: https://rancher.github.io/fleet-helm-charts/
+  # Envoy Gateway — the data plane behind every mesh-exposed service
+  # (apps/platform/src/envoy-gateway + the apps/platform/src/mesh-service chart). One
+  # Envoy pod per exposed service, each carrying an injected NetBird client sidecar, so
+  # the service is its own mesh peer owning its full TCP/UDP port space.
+  #
+  # Pinned 1.9.2 for the CRDs it bundles: Gateway API v1.6.1, the first Standard-channel
+  # bundle with TCPRoute + UDPRoute (verify with
+  # `grep "bundle-version" charts/envoy-gateway/charts/crds/crds/gatewayapi-crds.yaml`).
+  # That is the whole reason this replaces both the BYOP reverse proxy (which cannot
+  # carry L4 at all — mode=tcp services silently never bind, netbirdio/netbird#6400) and
+  # the NBResource path: ONE mechanism terminates HTTPS with a real certificate and
+  # forwards raw TCP and UDP.
+  #
+  # arm64 (both vind clusters run on an arm64 Mac): control plane
+  # docker.io/envoyproxy/gateway:v1.9.2 and data plane
+  # docker.io/envoyproxy/envoy:distroless-v1.39.1 (resolved by the chart's _helpers.tpl,
+  # since values leave the proxy image empty) both publish linux/arm64.
+  - path: charts/envoy-gateway
+    contents:
+      - path: .
+        helmChart:
+          name: gateway-helm
+          version: 1.9.2
+          repository:
+            url: oci://docker.io/envoyproxy
   - path: shell/zimfw
     contents:
       - path: .

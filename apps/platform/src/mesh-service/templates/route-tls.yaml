@@ -1,0 +1,32 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+TLSRoute per TLS (passthrough) listener. Envoy routes on SNI alone and forwards the encrypted
+stream, so the backend terminates and presents its OWN certificate — this chart's certificate is
+not used on a passthrough listener.
+
+Use this only where the backend must own the TLS session end to end. For the normal case prefer
+HTTPS: terminating here is what gives the service a publicly-trusted certificate for its mesh
+name without the backend having to know that name exists.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+{{- range $l := $listeners }}
+{{- if eq $l.protocol "TLS" }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: TLSRoute
+metadata:
+  name: {{ printf "%s-%s" $.Values.name $l.name }}
+  labels:
+    {{- include "mesh-service.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ $.Values.name }}
+      sectionName: {{ $l.name }}
+  hostnames:
+    - {{ include "mesh-service.fqdn" $ | quote }}
+  rules:
+    - backendRefs:
+        - name: {{ $l.backend.name }}
+          port: {{ $l.backend.port }}
+{{- end }}
+{{- end }}
