@@ -34,7 +34,7 @@ type CreatePATRequest struct {
 }
 
 type CreatePATResponse struct {
-	PlainToken       string `json:"plain_token"`
+	PlainToken          string `json:"plain_token"`
 	PersonalAccessToken struct {
 		ID string `json:"id"`
 	} `json:"personal_access_token"`

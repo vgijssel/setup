@@ -27,24 +27,50 @@ type configToken struct {
 	AllowedIPs []string      `json:"allowed_ips"`
 	TTL        time.Duration `json:"ttl"`
 	MaxTTL     time.Duration `json:"max_ttl"`
-	// ManageLease decides whether OpenBao owns the token's lifecycle.
+	// ManageLease decides whether OpenBao owns the token's lifecycle. DEFAULT TRUE.
 	//
-	// DEFAULT false, and that default is load-bearing for every ExternalSecret consumer.
+	// Every token gets TWO independent expiries, and they are not redundant:
 	//
-	// In OpenBao a secret lease is a CHILD of the auth token that created it, so revoking that
-	// auth token revokes the lease — which runs this engine's revoke and deletes the Cloudflare
-	// token. External Secrets Operator logs in, reads, and then revokes its own Vault token, so
-	// a leased credential it mints is destroyed within seconds of being written to the Secret.
-	// Measured: the consumer's Secret held a token that answered 9109 twenty seconds after a
-	// successful sync, with zero leases and zero minted tokens left in Cloudflare.
+	//	1. the OpenBao lease (this field) — renewable up to max_ttl, revokes the token upstream
+	//	   when it ends. Gives early revocation and cleanup, but only while OpenBao is healthy
+	//	   and remembers the lease.
+	//	2. Cloudflare's own `expires_on`, always set from max_ttl — holds even if OpenBao is
+	//	   gone, its storage was restored from a snapshot, or the mount was deleted.
 	//
-	//	false  no OpenBao lease. Lifetime is enforced by Cloudflare's own `expires_on`
-	//	       (= max_ttl), which is independent of OpenBao being up, and rotation is the
-	//	       consumer's refresh interval. Nothing can revoke the token early, which is
-	//	       exactly what makes it survive the caller's auth token going away.
-	//	true   lease of ttl/max_ttl; the token is deleted when the lease ends. ONLY safe when
-	//	       the caller's auth token outlives the credential — interactive `bao read`, not ESO.
+	// Set to FALSE only for a consumer that cannot hold a lease. An OpenBao secret lease is a
+	// CHILD of the auth token that created it: revoke that auth token and the lease goes with it,
+	// running this engine's revoke and deleting the Cloudflare token. External Secrets Operator
+	// calls RevokeSelf after every read (its fix for leaking token leases,
+	// external-secrets#376), so a leased credential it mints is destroyed seconds after landing
+	// in the Secret. Measured exactly that: a Secret synced successfully and its token answered
+	// 9109 twenty seconds later, with zero leases and zero tokens left upstream. ESO cannot
+	// manage leases at all and the upstream issue (external-secrets#2198) was closed unfixed.
+	//
+	// With false, expiry (2) is the only bound — which is why max_ttl may not be 0 in that mode.
 	ManageLease bool `json:"manage_lease"`
+}
+
+// vendorLifetime is the `expires_on` this role's tokens get — the longest the token could
+// legitimately still be in use.
+//
+//	LEASED    max_ttl, and NOTHING if max_ttl is 0. A renewal can extend the lease up to max_ttl,
+//	          so the token must outlive every renewal. With max_ttl 0 renewal is effectively
+//	          unbounded, so there is no safe finite value: falling back to ttl would kill the
+//	          token upstream at the FIRST renewal while OpenBao still believed the lease was good.
+//	          The lease is the control in that case.
+//	UNLEASED  ttl, falling back to max_ttl. Nothing can extend anything, so ttl is the whole
+//	          intended lifetime, and expires_on is the ONLY bound that exists — which is why a
+//	          role with neither value set is refused.
+func (c *configToken) vendorLifetime() time.Duration {
+	if c.ManageLease {
+		return c.MaxTTL
+	}
+	for _, d := range []time.Duration{c.TTL, c.MaxTTL} {
+		if d > 0 {
+			return d
+		}
+	}
+	return 0
 }
 
 func pathConfigToken(b *cloudflareBackend) []*framework.Path {
@@ -91,10 +117,11 @@ func pathConfigToken(b *cloudflareBackend) []*framework.Path {
 				},
 				"manage_lease": {
 					Type: framework.TypeBool,
-					Description: "Attach an OpenBao lease that deletes the token when it ends. Leave false for " +
-						"ExternalSecret consumers: a lease is a child of the caller's auth token, and ESO revokes " +
-						"its own token after each read, which would destroy the credential immediately",
-					Default: false,
+					Description: "Attach a renewable OpenBao lease that revokes the token upstream when it ends. " +
+						"Set false ONLY for a consumer that cannot hold a lease (External Secrets Operator revokes " +
+						"its own auth token after each read, which cascades and destroys the credential); " +
+						"Cloudflare's expires_on still bounds the token either way",
+					Default: true,
 				},
 			},
 			Operations: map[logical.Operation]framework.OperationHandler{
@@ -164,8 +191,9 @@ func (b *cloudflareBackend) pathConfigTokenWrite(ctx context.Context, req *logic
 	isNew := config == nil
 	if isNew {
 		config = &configToken{
-			TTL:    time.Duration(data.Get("ttl").(int)) * time.Second,
-			MaxTTL: time.Duration(data.Get("max_ttl").(int)) * time.Second,
+			TTL:         time.Duration(data.Get("ttl").(int)) * time.Second,
+			MaxTTL:      time.Duration(data.Get("max_ttl").(int)) * time.Second,
+			ManageLease: data.Get("manage_lease").(bool),
 		}
 	}
 
@@ -206,18 +234,25 @@ func (b *cloudflareBackend) pathConfigTokenWrite(ctx context.Context, req *logic
 	if len(config.ZoneIDs) == 0 && len(config.AccountIDs) == 0 {
 		return logical.ErrorResponse("at least one of zone_ids or account_ids is required (a policy with no resources grants nothing)"), nil
 	}
-	// Only meaningful for a leased role: ttl IS the lease TTL. With manage_lease=false nothing
-	// consumes ttl at all (lifetime comes from Cloudflare's expires_on), so enforcing it there
-	// would reject a perfectly good role for a field that has no effect — and would do so with a
-	// confusing message, since the ttl in question is one the operator never set.
-	if config.ManageLease && config.MaxTTL > 0 && config.TTL > config.MaxTTL {
-		return logical.ErrorResponse("ttl must not exceed max_ttl"), nil
+	// ttl must never exceed max_ttl, in EITHER mode. Leased, ttl is the lease TTL and max_ttl its
+	// ceiling. Unleased, ttl becomes the token's whole lifetime, so a role setting only
+	// max_ttl=48h must not silently get the 30-day ttl DEFAULT as its expiry — that would be a
+	// token living 15x longer than asked for, with nothing able to revoke it.
+	//
+	// A default the operator never chose is clamped; a ttl they actually supplied is rejected.
+	if config.MaxTTL > 0 && config.TTL > config.MaxTTL {
+		if _, supplied := data.GetOk("ttl"); !supplied {
+			config.TTL = config.MaxTTL
+		} else {
+			return logical.ErrorResponse("ttl (%s) must not exceed max_ttl (%s)",
+				config.TTL, config.MaxTTL), nil
+		}
 	}
-	// Without a lease, Cloudflare's expires_on is the ONLY thing that ever ends the token's
-	// life, so max_ttl=0 (no expiry) would mint credentials that live forever with nothing
-	// tracking them. Refuse rather than quietly leak.
-	if !config.ManageLease && config.MaxTTL == 0 {
-		return logical.ErrorResponse("max_ttl must be greater than 0 when manage_lease is false: " +
+	// Without a lease, Cloudflare's expires_on is the ONLY thing that ever ends the token's life,
+	// so a zero effective lifetime would mint credentials that live forever with nothing tracking
+	// them. Refuse rather than quietly leak.
+	if !config.ManageLease && config.vendorLifetime() == 0 {
+		return logical.ErrorResponse("ttl must be greater than 0 when manage_lease is false: " +
 			"it sets Cloudflare's expires_on, which is the only thing that expires an unleased token"), nil
 	}
 

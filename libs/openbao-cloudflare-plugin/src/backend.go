@@ -61,12 +61,8 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 		Secrets: []*framework.Secret{
 			{
 				Type:   secretTypeToken,
+				Renew:  b.renewToken,
 				Revoke: b.revokeToken,
-				// No Renew handler on purpose. Cloudflare's update-token endpoint replaces the
-				// whole token definition, so extending `expires_on` in place risks silently
-				// dropping the policies. Instead the minted token's `expires_on` is set from
-				// max_ttl while the lease TTL is `ttl`, so any renewal inside max_ttl is always
-				// backed by a still-valid token and no Cloudflare-side edit is ever needed.
 			},
 		},
 		Invalidate: b.invalidate,
@@ -77,6 +73,41 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 	}
 
 	return b, nil
+}
+
+// renewToken extends the lease WITHOUT touching Cloudflare. That is deliberate and is what the
+// mint path is built around: the token's `expires_on` is set from MAX_TTL while the lease starts
+// at TTL, so every renewal inside max_ttl is already backed by a credential that is still valid
+// upstream. Nothing has to be changed at Cloudflare to honour it.
+//
+// Renewing upstream instead would mean Cloudflare's update-token endpoint, which replaces the
+// WHOLE token definition — resend the policies imperfectly and you silently widen or empty the
+// token's permissions. Not worth it for an operation that buys nothing.
+//
+// Making the lease renewable at all matters for lease-aware consumers: a non-renewable lease
+// forces them to discard the credential and mint a replacement at every cycle, where a renewable
+// one lets them keep a working token until max_ttl. The expiration manager caps extension at
+// MaxTTL, so a lease can never outlive the upstream expiry.
+func (b *cloudflareBackend) renewToken(ctx context.Context, req *logical.Request, _ *framework.FieldData) (*logical.Response, error) {
+	role, _ := req.Secret.InternalData["role"].(string)
+	if role == "" {
+		return nil, fmt.Errorf("missing internal data for token renewal")
+	}
+
+	config, err := getConfigToken(ctx, req.Storage, role)
+	if err != nil {
+		return nil, err
+	}
+	if config == nil {
+		// The role was deleted under a live lease. Refusing renewal lets the lease run out and
+		// revoke, rather than extending a credential whose definition no longer exists.
+		return nil, fmt.Errorf("role %q no longer exists; not renewing", role)
+	}
+
+	resp := &logical.Response{Secret: req.Secret}
+	resp.Secret.TTL = config.TTL
+	resp.Secret.MaxTTL = config.MaxTTL
+	return resp, nil
 }
 
 func (b *cloudflareBackend) revokeToken(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {

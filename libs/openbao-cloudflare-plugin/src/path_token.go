@@ -105,16 +105,20 @@ func (b *cloudflareBackend) pathTokenRead(ctx context.Context, req *logical.Requ
 		},
 	}
 
-	// Cloudflare-side expiry always comes from MAX_TTL. With manage_lease=false it is the ONLY
-	// thing that ends the token's life, and a role is refused at write time if max_ttl is 0.
-	// With manage_lease=true the lease gets TTL while expires_on stays at max_ttl, so a renewal
-	// inside max_ttl is always backed by a still-valid token and no Cloudflare-side update (which
-	// would have to resend the whole policy set) is ever needed.
+	// Cloudflare-side expiry — the second of the two independent expiries, and the one that holds
+	// even if OpenBao is gone entirely (storage restored from a snapshot, the mount deleted).
+	// Set to the longest the token could legitimately still be in use:
 	//
-	// Either way expires_on holds even if OpenBao is gone — storage restored from a snapshot, the
-	// mount deleted — which is why it is set unconditionally rather than only for leased roles.
-	if config.MaxTTL > 0 {
-		createReq.ExpiresOn = time.Now().UTC().Add(config.MaxTTL).Format(time.RFC3339)
+	//	LEASED    max_ttl — a renewal can extend the lease that far, so the token has to outlive
+	//	          every renewal. Using ttl would kill it upstream at the FIRST renewal while
+	//	          OpenBao still believed the lease was good.
+	//	UNLEASED  ttl — nothing can extend anything, so ttl is the whole intended lifetime. Using
+	//	          max_ttl would silently inflate the exposure of a token nothing can revoke.
+	//
+	// A role is refused at write time if its effective lifetime here would be 0 while unleased,
+	// since expires_on would then be the only bound and there would not be one.
+	if lifetime := config.vendorLifetime(); lifetime > 0 {
+		createReq.ExpiresOn = time.Now().UTC().Add(lifetime).Format(time.RFC3339)
 	}
 
 	if len(config.AllowedIPs) > 0 {
@@ -155,6 +159,8 @@ func (b *cloudflareBackend) pathTokenRead(ctx context.Context, req *logical.Requ
 
 	resp := b.Secret(secretTypeToken).Response(respData, map[string]interface{}{
 		"token_id": result.ID,
+		// Needed by renewToken to re-read the role's TTLs, and by revokeToken to find the token.
+		"role": name,
 	})
 	resp.Secret.TTL = config.TTL
 	resp.Secret.MaxTTL = config.MaxTTL

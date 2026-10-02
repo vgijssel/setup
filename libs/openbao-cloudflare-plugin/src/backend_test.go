@@ -180,9 +180,10 @@ func TestConfigTokenRoleIgnoresTTLWhenUnleased(t *testing.T) {
 
 	// ttl defaults to 30d, far above this max_ttl. An unleased role must still be accepted.
 	resp := write(t, b, storage, "config/token/eso", map[string]interface{}{
-		"permissions": []string{"DNS Write"},
-		"zone_ids":    []string{"zone-a"},
-		"max_ttl":     "48h",
+		"permissions":  []string{"DNS Write"},
+		"zone_ids":     []string{"zone-a"},
+		"max_ttl":      "48h",
+		"manage_lease": false,
 	})
 	if resp != nil && resp.IsError() {
 		t.Fatalf("unleased role should ignore ttl, got: %v", resp.Error())
@@ -337,8 +338,11 @@ func TestTokenReadOmitsExpiryWhenMaxTTLZero(t *testing.T) {
 	if _, err := read(t, b, storage, "token/forever"); err != nil {
 		t.Fatalf("read token: %v", err)
 	}
+	// LEASED with max_ttl 0: renewal is unbounded, so there is no safe finite expires_on —
+	// pinning it to ttl would kill the token upstream at the first renewal. The lease is the
+	// control here.
 	if gotReq.ExpiresOn != "" {
-		t.Errorf("max_ttl 0 must mint a non-expiring token, got expires_on=%q", gotReq.ExpiresOn)
+		t.Errorf("a leased role with max_ttl 0 must mint a non-expiring token, got expires_on=%q", gotReq.ExpiresOn)
 	}
 }
 
@@ -753,9 +757,10 @@ func TestMintWithoutLeaseByDefault(t *testing.T) {
 		"token_scope": string(ScopeUser), "api_url": server.URL, "api_token": "p",
 	})
 	write(t, b, storage, "config/token/eso", map[string]interface{}{
-		"permissions": []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
-		"zone_ids":    []string{"zone-a"},
-		"max_ttl":     "48h",
+		"permissions":  []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+		"zone_ids":     []string{"zone-a"},
+		"max_ttl":      "48h",
+		"manage_lease": false,
 	})
 
 	resp, err := read(t, b, storage, "token/eso")
@@ -773,30 +778,51 @@ func TestMintWithoutLeaseByDefault(t *testing.T) {
 	}
 
 	// Cloudflare-side expiry is still set — it is now the ONLY thing bounding the token's life.
+	// The role set only max_ttl=48h, so the 30-day ttl default is clamped to it rather than
+	// becoming a 30-day unrevocable token.
 	expires, err := time.Parse(time.RFC3339, gotReq.ExpiresOn)
 	if err != nil {
 		t.Fatalf("unleased token must still carry expires_on, got %q (%v)", gotReq.ExpiresOn, err)
 	}
 	if until := time.Until(expires); until < 47*time.Hour || until > 49*time.Hour {
-		t.Errorf("expires_on should track max_ttl (48h), got %v", until)
+		t.Errorf("unleased expires_on should be the clamped 48h lifetime, got %v", until)
 	}
 }
 
-// An unleased role with no expiry would mint credentials that live forever with nothing tracking
-// them, so the combination is refused rather than silently leaked.
-func TestUnleasedRoleRequiresMaxTTL(t *testing.T) {
+// An unleased role with NO expiry at all would mint tokens that live forever with nothing
+// tracking them, so the combination is refused rather than silently leaked. Zeroing only one of
+// ttl/max_ttl is fine — the other still bounds it.
+func TestUnleasedRoleRequiresSomeExpiry(t *testing.T) {
 	b, storage := getTestBackend(t)
 
 	resp := write(t, b, storage, "config/token/leaky", map[string]interface{}{
-		"permissions": []string{"DNS Write"},
-		"zone_ids":    []string{"zone-a"},
-		"max_ttl":     0,
+		"permissions":  []string{"DNS Write"},
+		"zone_ids":     []string{"zone-a"},
+		"ttl":          0,
+		"max_ttl":      0,
+		"manage_lease": false,
 	})
 	if resp == nil || !resp.IsError() {
-		t.Fatal("expected an error for manage_lease=false with max_ttl=0")
+		t.Fatal("expected an error for manage_lease=false with no expiry at all")
 	}
-	if !strings.Contains(resp.Error().Error(), "max_ttl must be greater than 0") {
+	if !strings.Contains(resp.Error().Error(), "must be greater than 0") {
 		t.Errorf("unexpected error: %v", resp.Error())
+	}
+}
+
+// max_ttl=0 alone is NOT a leak: ttl still provides the vendor expiry.
+func TestUnleasedRoleAcceptsTTLOnly(t *testing.T) {
+	b, storage := getTestBackend(t)
+
+	resp := write(t, b, storage, "config/token/ttlonly", map[string]interface{}{
+		"permissions":  []string{"DNS Write"},
+		"zone_ids":     []string{"zone-a"},
+		"ttl":          "12h",
+		"max_ttl":      0,
+		"manage_lease": false,
+	})
+	if resp != nil && resp.IsError() {
+		t.Fatalf("ttl alone should bound an unleased role, got: %v", resp.Error())
 	}
 }
 
@@ -837,13 +863,158 @@ func TestManageLeaseTrueStillLeases(t *testing.T) {
 	}
 }
 
-func TestRoleReportsManageLease(t *testing.T) {
+// Leases are the DEFAULT: a role written without thinking about it gets upstream revocation,
+// and opting out is an explicit, visible act.
+func TestRoleLeasesByDefault(t *testing.T) {
 	b, storage := getTestBackend(t)
 	write(t, b, storage, "config/token/r", map[string]interface{}{
 		"permissions": []string{"DNS Write"}, "zone_ids": []string{"z"}, "max_ttl": "48h",
 	})
 	resp, _ := read(t, b, storage, "config/token/r")
-	if resp.Data["manage_lease"] != false {
-		t.Errorf("manage_lease should default to false, got %v", resp.Data["manage_lease"])
+	if resp == nil {
+		t.Fatal("role write failed")
+	}
+	if resp.Data["manage_lease"] != true {
+		t.Errorf("manage_lease should default to true, got %v", resp.Data["manage_lease"])
+	}
+	// ttl was not supplied and its 30d default exceeds this max_ttl, so it is clamped rather
+	// than rejected — the operator never chose that 30d.
+	if resp.Data["ttl"] != int64((48 * time.Hour).Seconds()) {
+		t.Errorf("unsupplied ttl should clamp to max_ttl, got %v", resp.Data["ttl"])
+	}
+}
+
+// Both expiries are present on a leased token: the OpenBao lease AND Cloudflare's expires_on.
+// They are independent on purpose — the lease only works while OpenBao is healthy and remembers
+// it, expires_on holds even if OpenBao is gone entirely.
+func TestLeasedTokenAlsoCarriesVendorExpiry(t *testing.T) {
+	var gotReq CreateTokenRequest
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/permission_groups") {
+			envelope(w, http.StatusOK, []PermissionGroup{})
+			return
+		}
+		_ = json.NewDecoder(r.Body).Decode(&gotReq)
+		envelope(w, http.StatusOK, CreateTokenResult{ID: "m", Value: "v", ExpiresOn: gotReq.ExpiresOn})
+	}))
+	defer server.Close()
+
+	b, storage := getTestBackend(t)
+	write(t, b, storage, "config/root", map[string]interface{}{
+		"token_scope": string(ScopeUser), "api_url": server.URL, "api_token": "p",
+	})
+	write(t, b, storage, "config/token/both", map[string]interface{}{
+		"permissions": []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+		"zone_ids":    []string{"zone-a"},
+		"ttl":         "24h",
+		"max_ttl":     "48h",
+	})
+
+	resp, err := read(t, b, storage, "token/both")
+	if err != nil {
+		t.Fatalf("read token: %v", err)
+	}
+	if resp.Secret == nil {
+		t.Fatal("expiry 1 missing: no OpenBao lease")
+	}
+	if resp.Secret.TTL != 24*time.Hour {
+		t.Errorf("lease TTL should be ttl (24h), got %v", resp.Secret.TTL)
+	}
+	// expires_on tracks MAX_TTL, not ttl, so renewal inside max_ttl is always backed upstream.
+	expires, err := time.Parse(time.RFC3339, gotReq.ExpiresOn)
+	if err != nil {
+		t.Fatalf("expiry 2 missing: expires_on unparseable %q (%v)", gotReq.ExpiresOn, err)
+	}
+	if until := time.Until(expires); until < 47*time.Hour || until > 49*time.Hour {
+		t.Errorf("expires_on should track max_ttl (48h), got %v", until)
+	}
+	if resp.Secret.InternalData["role"] != "both" {
+		t.Errorf("role must be in InternalData for renewal: %v", resp.Secret.InternalData)
+	}
+}
+
+// A renewable lease lets a lease-aware consumer keep a working token instead of discarding and
+// re-minting every cycle. Renewal must NOT call Cloudflare — expires_on already covers max_ttl.
+func TestRenewExtendsLeaseWithoutCallingCloudflare(t *testing.T) {
+	var calls int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if strings.HasSuffix(r.URL.Path, "/permission_groups") {
+			envelope(w, http.StatusOK, []PermissionGroup{})
+			return
+		}
+		envelope(w, http.StatusOK, CreateTokenResult{ID: "m", Value: "v"})
+	}))
+	defer server.Close()
+
+	b, storage := getTestBackend(t)
+	write(t, b, storage, "config/root", map[string]interface{}{
+		"token_scope": string(ScopeUser), "api_url": server.URL, "api_token": "p",
+	})
+	write(t, b, storage, "config/token/r", map[string]interface{}{
+		"permissions": []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+		"zone_ids":    []string{"zone-a"},
+		"ttl":         "24h",
+		"max_ttl":     "48h",
+	})
+
+	minted, err := read(t, b, storage, "token/r")
+	if err != nil {
+		t.Fatalf("read token: %v", err)
+	}
+	afterMint := calls
+
+	resp, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.RenewOperation,
+		Storage:   storage,
+		Secret:    minted.Secret,
+	})
+	if err != nil {
+		t.Fatalf("renew: %v", err)
+	}
+	if resp == nil || resp.Secret == nil {
+		t.Fatal("renew returned no lease")
+	}
+	if resp.Secret.TTL != 24*time.Hour {
+		t.Errorf("renewed lease TTL should be the role ttl, got %v", resp.Secret.TTL)
+	}
+	if calls != afterMint {
+		t.Errorf("renew must not call Cloudflare (update-token replaces the whole definition), made %d call(s)", calls-afterMint)
+	}
+}
+
+// A lease outliving its role must not be extended: let it run out and revoke instead of
+// propping up a credential whose definition is gone.
+func TestRenewRefusedWhenRoleDeleted(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/permission_groups") {
+			envelope(w, http.StatusOK, []PermissionGroup{})
+			return
+		}
+		envelope(w, http.StatusOK, CreateTokenResult{ID: "m", Value: "v"})
+	}))
+	defer server.Close()
+
+	b, storage := getTestBackend(t)
+	write(t, b, storage, "config/root", map[string]interface{}{
+		"token_scope": string(ScopeUser), "api_url": server.URL, "api_token": "p",
+	})
+	write(t, b, storage, "config/token/doomed", map[string]interface{}{
+		"permissions": []string{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+		"zone_ids":    []string{"zone-a"},
+		"max_ttl":     "48h",
+	})
+	minted, _ := read(t, b, storage, "token/doomed")
+
+	if _, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.DeleteOperation, Path: "config/token/doomed", Storage: storage,
+	}); err != nil {
+		t.Fatalf("delete role: %v", err)
+	}
+
+	if _, err := b.HandleRequest(context.Background(), &logical.Request{
+		Operation: logical.RenewOperation, Storage: storage, Secret: minted.Secret,
+	}); err == nil {
+		t.Fatal("expected renewal to be refused once the role is gone")
 	}
 }
