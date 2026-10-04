@@ -267,6 +267,39 @@ directories:
           version: 1.9.2
           repository:
             url: oci://docker.io/envoyproxy
+  # HashiCorp Vault Secrets Operator — the lease-aware consumer for the dynamic secrets
+  # engines in libs/openbao-{cloudflare,netbird}-plugin.
+  #
+  # WHY NOT External Secrets Operator: ESO cannot hold a Vault/OpenBao lease. A secret lease is
+  # a CHILD of the auth token that created it, and ESO calls RevokeSelf after every read (its own
+  # fix for leaking token leases, external-secrets#376) — so the cascade destroys a leased
+  # credential seconds after it lands in the Secret. Measured live: a successfully-synced token
+  # answered Cloudflare 9109 twenty seconds later, with zero leases and zero tokens upstream.
+  # ESO has no lease management at all and the upstream issue (external-secrets#2198) was closed
+  # unfixed. VSO renews leases (renewalPercent), reissues on revoke/expire, revokes on teardown,
+  # and restarts target workloads itself via rolloutRestartTargets.
+  #
+  # WHY NOT the OpenBao agent injector: it renders FILES into pods, so it cannot produce the
+  # Kubernetes Secret that cert-manager's `apiTokenSecretRef` requires; env vars are frozen at
+  # process start so they can never rotate; and it has no restart-on-change (vault-k8s#196).
+  # This repo also disables that injector already — its runtime-patched webhook caBundle makes
+  # Fleet's server-side apply conflict on every re-apply (see apps/secret/src/openbao/values.yaml).
+  #
+  # LICENSING, stated plainly: VSO is HashiCorp-licensed (BUSL), unlike OpenBao itself. It is
+  # here because no OSI-licensed operator manages leases today. Re-evaluate if one appears.
+  # It speaks the Vault API, so it works against OpenBao via VaultConnection.address — but its
+  # issue tracker has zero OpenBao mentions, so treat OpenBao specifics as unverified upstream.
+  #
+  # arm64 (both vind clusters run on an arm64 Mac): hashicorp/vault-secrets-operator:1.6.0
+  # publishes linux/arm64 (verified with `docker buildx imagetools inspect`).
+  - path: charts/vault-secrets-operator
+    contents:
+      - path: .
+        helmChart:
+          name: vault-secrets-operator
+          version: 1.6.0
+          repository:
+            url: https://helm.releases.hashicorp.com
   - path: shell/zimfw
     contents:
       - path: .

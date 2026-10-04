@@ -1,0 +1,33 @@
+{{- /*
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+*/ -}}
+
+{{- if .Values.defaultVaultConnection.enabled }}
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: default
+  namespace: {{ .Release.Namespace }}
+  labels:
+    control-plane: controller-manager
+    component: controller-manager
+    app.kubernetes.io/component: controller-manager
+  {{- include "vso.chart.labels" . | nindent 4 }}
+spec:
+  address: {{ .Values.defaultVaultConnection.address }}
+  skipTLSVerify: {{ .Values.defaultVaultConnection.skipTLSVerify }}
+  {{- if .Values.defaultVaultConnection.caCertSecret }}
+  caCertSecretRef: {{ .Values.defaultVaultConnection.caCertSecret }}
+  {{- end }}
+  {{- if .Values.defaultVaultConnection.caCertPath }}
+  caCertPath: {{ .Values.defaultVaultConnection.caCertPath }}
+  {{- end }}
+  {{- if .Values.defaultVaultConnection.tlsServerName }}
+  tlsServerName: {{ .Values.defaultVaultConnection.tlsServerName }}
+  {{- end }}
+  {{- if .Values.defaultVaultConnection.headers }}
+  headers:
+    {{- toYaml .Values.defaultVaultConnection.headers | nindent 4 }}
+  {{- end }}
+{{- end }}

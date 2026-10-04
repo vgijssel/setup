@@ -1,0 +1,1184 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: BUSL-1.1
+
+# Top level configuration for the vault secrets operator deployment.
+# This consists of a controller and a kube rbac proxy container.
+controller:
+  # Set the number of replicas for the operator.
+  # @type: integer
+  replicas: 1
+
+  # Set the priority class for the operator.
+  # @type: string
+  priorityClassName: ""
+
+  # Configure update strategy for multi-replica deployments.
+  # Kubernetes supports types Recreate, and RollingUpdate
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  # Example:
+  # strategy: {}
+  #   rollingUpdate:
+  #     maxSurge: 1
+  #     maxUnavailable: 0
+  #   type: RollingUpdate
+  # @type: object
+  strategy: {}
+
+  # Host Aliases settings for vault-secrets-operator pod.
+  # The value is an array of PodSpec HostAlias maps.
+  # ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  # Example:
+  # hostAliases:
+  #   - ip: 192.168.1.100
+  #     hostnames:
+  #     - vault.example.com
+  # @type: array<map>
+  hostAliases: []
+
+  # nodeSelector labels for vault-secrets-operator pod assignment.
+  # @type: map
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+  # Example:
+  # nodeSelector:
+  #   beta.kubernetes.io/arch: amd64
+  nodeSelector: {}
+  # Toleration Settings for vault-secrets-operator pod.
+  # The value is an array of PodSpec Toleration maps.
+  # ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  # @type: array<map>
+  # Example:
+  # tolerations:
+  #  - key: "key1"
+  #    operator: "Equal"
+  #    value: "value1"
+  #    effect: "NoSchedule"
+  tolerations: []
+
+  # Affinity settings for vault-secrets-operator pod.
+  # The value is a map of PodSpec Affinity maps.
+  # ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  # Example:
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: topology.kubernetes.io/zone
+  #           operator: In
+  #           values:
+  #           - antarctica-east1
+  #           - antarctica-west1
+  affinity: {}
+
+  # Topology spread constraint settings for the `vault-secrets-operator` pod
+  # as an array of PodSpec `topologySpreadConstraints` maps.
+  # VSO automatically adds a `labelSelector` entry to the templates if you do not provide a value.
+  # ref: https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
+  # Example:
+  #
+  # ```yaml
+  # topologySpreadConstraints:
+  # - maxSkew: 1
+  #   topologyKey: zone
+  #   whenUnsatisfiable: DoNotSchedule
+  # ```
+  topologySpreadConstraints: []
+
+  # Configures the PodDisruptionBudget for the controller deployment.
+  podDisruptionBudget:
+
+    # Toggles the deployment of the PodDisruptionBudget for the controller.
+    # @type: boolean
+    enabled: false
+
+    # Sets the maximum number of unavailable pods during eviction.
+    # You cannot set both `maxUnavailable` and `minAvailable`.
+    # You can specify `maxUnavailable` as an integer ("2") or a percentage ("50%").
+    # @type: string
+    maxUnavailable: "0"
+
+    # Sets the minimum number of available pods allowed during eviction.
+    # You cannot set both `minAvailable` and `maxUnavailable`.
+    # You can specify `minAvailable` as an integer ("2") or a percentage ("50%").
+    # @type: string
+    minAvailable: "0"
+
+  rbac:
+    # enabled controls whether the chart creates the RBAC authorization resources
+    # (ClusterRole, ClusterRoleBinding, Role, RoleBinding) required by the operator.
+    # When set to false:
+    #   - RBAC authorization resources are not created by the chart.
+    #   - Non-RBAC resources (ServiceAccounts, Deployment, hook Jobs) are still
+    #     created and require equivalent RBAC to be pre-provisioned out-of-band by
+    #     a cluster administrator before running helm install/upgrade.
+    #   - Resource names are derived from the Helm release name (or fullnameOverride),
+    #     so the cluster admin must use the same name when pre-provisioning RBAC.
+    # @type: boolean
+    enabled: true
+
+    # clusterRoleAggregation defines the roles included in the aggregated ClusterRole.
+    clusterRoleAggregation:
+      # viewerRoles is a list of roles that will be aggregated into the viewer ClusterRole.
+      # The role name must be that of any VSO resource type. E.g. "VaultAuth".
+      # All values are case-insensitive.
+      # Specifying '*' as the first element will include all roles in the aggregation.
+      #
+      # The ClusterRole name takes the form of `<chart-fullname>`-aggregate-role-viewer.
+      #
+      # Example usages:
+      # all roles:
+      # - '*'
+      # individually specified roles:
+      # - "VaultAuth"
+      # @type: array<string>
+      viewerRoles: []
+
+      # editorRoles is a list of roles that will be aggregated into the editor ClusterRole.
+      # The role name must be that of any VSO resource type. E.g. "VaultAuth".
+      # All values are case-insensitive.
+      # Specifying '*' as the first element will include all roles in the aggregation.
+      #
+      # The ClusterRole name takes the form of `<chart-fullname>`-aggregate-role-editor.
+      #
+      # Example usages:
+      # all roles:
+      # - '*'
+      # individually specified roles:
+      # - "VaultAuth"
+      # @type: array<string>
+      editorRoles: []
+
+      # userFacingRoles is a map of roles that will be aggregated into the viewer and editor ClusterRoles.
+      # See https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles for more information.
+      # @type: object
+      userFacingRoles:
+        # view controls whether the aggregated viewer ClusterRole will be made available to the user-facing
+        # 'view' ClusterRole. Requires the viewerRoles to be set.
+        # @type: boolean
+        view: false
+        # view controls whether the aggregated editor ClusterRole will be made available to the user-facing
+        # 'edit' ClusterRole. Requires the editorRoles to be set.
+        # @type: boolean
+        edit: false
+
+  # Settings related to the kubeRbacProxy container. This container is an HTTP proxy for the
+  # controller manager which performs RBAC authorization against the Kubernetes API using SubjectAccessReviews.
+  kubeRbacProxy:
+    # Image sets the repo and tag of the kube-rbac-proxy image to use for the controller.
+    image:
+      pullPolicy: IfNotPresent
+      repository: quay.io/brancz/kube-rbac-proxy
+      tag: v0.18.1
+
+    # Configures the default resources for the kube rbac proxy container.
+    # For more information on configuring resources, see the K8s documentation:
+    # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    # @recurse: true
+    # @type: map
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 5m
+        memory: 64Mi
+
+  # Image pull secret to use for private container registry authentication which will be applied to the controllers
+  # service account. Alternatively, the value may be specified as an array of strings.
+  # Example:
+  # ```yaml
+  # imagePullSecrets:
+  #   - name: pull-secret-name-1
+  #   - name: pull-secret-name-2
+  # ```
+  # Refer to https://kubernetes.io/docs/concepts/containers/images/#using-a-private-registry.
+  # @type: array<map>
+  imagePullSecrets: []
+
+  # Extra labels to attach to the deployment. This should be formatted as a YAML object (map)
+  extraLabels: {}
+
+  # This value defines additional annotations for the deployment. This should be formatted as a YAML object (map)
+  annotations: {}
+
+  # Settings related to the vault-secrets-operator container.
+  manager:
+    # Image sets the repo and tag of the vault-secrets-operator image to use for the controller.
+    image:
+      pullPolicy: IfNotPresent
+      repository: hashicorp/vault-secrets-operator
+      tag: 1.6.0
+
+    # logging
+    logging:
+      # Sets the log level for the operator.
+      # Builtin levels are: info, error, debug, debug-extended, trace
+      # Default: info
+      # @type: string
+      level: info
+
+      # Sets the time encoding for the operator.
+      # Options are:
+      # - `epoch` - Unix timestamp in seconds (e.g. 1695382800)
+      # - `millis` - Unix timestamp in milliseconds (e.g. 1695382800000)
+      # - `nano` - Unix timestamp in nanoseconds (e.g. 1695382800000000000)
+      # - `iso8601` - ISO 8601 format (e.g. 2023-09-22T10:00:00Z)
+      # - `rfc3339` - RFC 3339 format (e.g. 2023-09-22T10:00:00Z)
+      # - `rfc3339nano` - RFC 3339 format with nanosecond precision (e.g. 2023-09-22T10:00:00.123456789Z)
+      # Default: rfc3339
+      # @type: string
+      timeEncoding: rfc3339
+
+      # Sets the stacktrace level for the operator.
+      # Options are: info, error, panic
+      # Default: panic
+      # @type: string
+      stacktraceLevel: panic
+
+    # Global secret transformation options. In addition to the boolean options
+    # below, these options may be set via the
+    # `VSO_GLOBAL_TRANSFORMATION_OPTIONS` environment variable as a
+    # comma-separated list. Valid values are: `exclude-raw`
+    globalTransformationOptions:
+      # excludeRaw directs the operator to prevent _raw secret data being stored
+      # in the destination K8s Secret.
+      excludeRaw: false
+
+    # Global Vault auth options. In addition to the boolean options
+    # below, these options may be set via the
+    # `VSO_GLOBAL_VAULT_AUTH_OPTIONS` environment variable as a
+    # comma-separated list. Valid values are: `allow-default-globals`
+    globalVaultAuthOptions:
+      # allowDefaultGlobals directs the operator search for a "default"
+      # VaultAuthGlobal if none is specified on the referring VaultAuth CR.
+      # Default: true
+      # @type: boolean
+      allowDefaultGlobals: true
+
+    # Backoff settings for the controller manager. These settings control the backoff behavior
+    # when the controller encounters an error while fetching secrets from the SecretSource.
+    # For example given the following settings:
+    #   initialInterval: 5s
+    #   maxInterval: 60s
+    #   randomizationFactor: 0.5
+    #   multiplier: 1.5
+    #
+    # The backoff retry sequence might be something like:
+    #  5.5s, 7.5s, 11.25s, 16.87s, 25.3125s, 37.96s, 56.95, 60.95s...
+    # @type: object
+    backoffOnSecretSourceError:
+      # Initial interval between retries.
+      # @type: duration
+      initialInterval: "5s"
+      # Maximum interval between retries.
+      # @type: duration
+      maxInterval: "60s"
+      # Maximum elapsed time without a successful sync from the secret's source.
+      # It's important to note that setting this option to anything other than
+      # its default will result in the secret sync no longer being retried after
+      # reaching the max elapsed time.
+      # @type: duration
+      maxElapsedTime: "0s"
+      # Randomization factor randomizes the backoff interval between retries.
+      # This helps to spread out the retries to avoid a thundering herd.
+      # If the value is 0, then the backoff interval will not be randomized.
+      # It is recommended to set this to a value that is greater than 0.
+      # @type: float
+      randomizationFactor: 0.5
+      # Sets the multiplier that is used to increase the backoff interval between retries.
+      # This value should always be set to a value greater than 0.
+      # The value must be greater than zero.
+      # @type: float
+      multiplier: 1.5
+
+    # Configures the client cache which is used by the controller to cache (and potentially persist) vault tokens that
+    # are the result of using the VaultAuthMethod. This enables re-use of Vault Tokens
+    # throughout their TTLs as well as the ability to renew.
+    # Persistence is only useful in the context of Dynamic Secrets, so "none" is an okay default.
+    clientCache:
+      # Defines the `-client-cache-persistence-model` which caches+persists vault tokens.
+      # May also be set via the `VSO_CLIENT_CACHE_PERSISTENCE_MODEL` environment variable.
+      # Valid values are:
+      # "none" - in-memory client cache is used, no tokens are persisted.
+      # "direct-unencrypted" - in-memory client cache is persisted, unencrypted. This is NOT recommended for any production workload.
+      # "direct-encrypted" - in-memory client cache is persisted encrypted using the Vault Transit engine.
+      # Note: It is strongly encouraged to not use the setting of "direct-unencrypted" in
+      # production due to the potential of vault tokens being leaked as they would then be stored
+      # in clear text.
+      #
+      # default: "none"
+      # @type: string
+      persistenceModel: ""
+
+      # Defines the size of the in-memory LRU cache *in entries*, that is used by the client cache controller.
+      # May also be set via the `VSO_CLIENT_CACHE_SIZE` environment variable.
+      # Larger numbers will increase memory usage by the controller, lower numbers will cause more frequent evictions
+      # of the client cache which can result in additional Vault client counts.
+      #
+      # default: 10000
+      # @type: integer
+      cacheSize:
+
+      # Defines the number of locks to use for the Vault client cache controller.
+      # May also be set via the `VSO_CLIENT_CACHE_NUM_LOCKS` environment variable.
+      #
+      # Setting this value less than 1 will cause the manager to set the number of locks equal
+      # to the number of logical CPUs of the run host.
+      #
+      # See the VSO help output for more information.
+      #
+      # default: 100
+      # @type: integer
+      numLocks:
+
+      # StorageEncryption provides the necessary configuration to encrypt the client storage
+      # cache within Kubernetes objects using (required) Vault Transit Engine.
+      # This should only be configured when client cache persistence with encryption is enabled and
+      # will deploy an additional VaultAuthMethod to be used by the Vault Transit Engine.
+      # E.g. when `controller.manager.clientCache.persistenceModel=direct-encrypted`
+      # Supported Vault authentication methods for the Transit Auth method are: jwt, appRole,
+      # aws, and kubernetes.
+      # Typically, there should only ever be one VaultAuth configured with
+      # StorageEncryption in the Cluster.
+      storageEncryption:
+        # toggles the deployment of the Transit VaultAuthMethod CR.
+        # @type: boolean
+        enabled: false
+
+        # Vault Connection Ref to be used by the Transit VaultAuthMethod.
+        # Default setting will use the default VaultConnectionRef, which must also be configured.
+        # @type: string
+        vaultConnectionRef: default
+
+        # KeyName to use for encrypt/decrypt operations via Vault Transit.
+        # @type: string
+        keyName: ""
+
+        # Mount path for the Transit VaultAuthMethod.
+        # @type: string
+        transitMount: ""
+
+        # Vault namespace for the Transit VaultAuthMethod CR.
+        # @type: string
+        namespace: ""
+
+        # Vault Auth method to be used with the Transit VaultAuthMethod CR.
+        # @type: string
+        method: kubernetes
+
+        # Mount path for the Transit VaultAuthMethod.
+        # @type: string
+        mount: kubernetes
+
+        # Vault Kubernetes auth method specific configuration
+        kubernetes:
+          # Vault Auth Role to use
+          # This is a required field and must be setup in Vault prior to deploying the helm chart
+          # if `defaultAuthMethod.enabled=true`
+          # @type: string
+          role: ""
+
+          # Kubernetes ServiceAccount associated with the Transit Vault Auth Role
+          # Defaults to using the Operator's service-account.
+          # @type: string
+          serviceAccount:
+
+          # Token Audience should match the audience of the vault kubernetes auth role.
+          # @type: array<string>
+          tokenAudiences: []
+
+        # Vault JWT auth method specific configuration
+        jwt:
+          # Vault Auth Role to use
+          # This is a required field and must be setup in Vault prior to deploying the helm chart
+          # if using JWT for the Transit VaultAuthMethod.
+          # @type: string
+          role: ""
+
+          # One of the following is required prior to deploying the helm chart
+          # - K8s secret that contains the JWT
+          # - K8s service account if a service account JWT is used as a Vault JWT auth token and
+          # needs generating by VSO.
+
+          # Name of Kubernetes Secret that has the Vault JWT auth token.
+          # The Kubernetes Secret must contain a key named `jwt` which references the JWT token, and
+          # must exist in the namespace of any consuming VaultSecret CR. This is a required field if
+          # a JWT token is provided.
+          # @type: string
+          secretRef: ""
+
+          # Kubernetes ServiceAccount to generate a service account JWT
+          # @type: string
+          serviceAccount: "default"
+
+          # Token Audience should match the bound_audiences or the `aud` list in bound_claims if
+          # applicable of the Vault JWT auth role.
+          # @type: array<string>
+          tokenAudiences: []
+
+        # AppRole auth method specific configuration
+        appRole:
+          # AppRole Role's RoleID to use for authenticating to Vault.
+          # This is a required field when using appRole and must be setup in Vault prior to deploying
+          # the helm chart.
+          # @type: string
+          roleId: ""
+          # Name of Kubernetes Secret that has the AppRole Role's SecretID used to authenticate with
+          # Vault. The Kubernetes Secret must contain a key named `id` which references the AppRole
+          # Role's SecretID, and must exist in the namespace of any consuming VaultSecret CR.
+          # This is a required field when using appRole and must be setup in Vault prior to
+          # deploying the helm chart.
+          # @type: string
+          secretRef: ""
+
+        # AWS auth method specific configuration
+        aws:
+          # Vault Auth Role to use
+          # This is a required field and must be setup in Vault prior to deploying the helm chart
+          # if using the AWS for the Transit auth method.
+          # @type: string
+          role: ""
+
+          # AWS region to use for signing the authentication request
+          # Optional, but most commonly will be the EKS cluster region.
+          # @type: string
+          region: ""
+
+          # Vault header value to include in the STS signing request
+          # @type: string
+          headerValue: ""
+
+          # The role session name to use when creating a WebIdentity provider
+          # @type: string
+          sessionName: ""
+
+          # The STS endpoint to use; if not set will use the default
+          # @type: string
+          stsEndpoint: ""
+
+          # The IAM endpoint to use; if not set will use the default
+          # @type: string
+          iamEndpoint: ""
+
+          # The name of a Kubernetes Secret which holds credentials for AWS. Supported keys
+          # include `access_key_id`, `secret_access_key`, `session_token`
+          # @type: string
+          secretRef: ""
+
+          # Name of a Kubernetes service account that is configured with IAM Roles
+          # for Service Accounts (IRSA). Should be annotated with "eks.amazonaws.com/role-arn".
+          # @type: string
+          irsaServiceAccount: ""
+
+        gcp:
+          # Vault Auth Role to use
+          # This is a required field and must be setup in Vault prior to deploying the helm chart
+          # if using GCP for the Transit auth method.
+          # @type: string
+          role: ""
+
+          # Name of a Kubernetes service account that is configured for workload
+          # identity in GKE.
+          # @type: string
+          workloadIdentityServiceAccount: ""
+
+          # GCP Region of the GKE cluster's identity provider. Defaults to the
+          # region returned from the operator pod's local metadata server if
+          # unspecified.
+          # @type: string
+          region: ""
+
+          # GKE cluster name. Defaults to the cluster-name returned from the
+          # operator pod's local metadata server if unspecified.
+          # @type: string
+          clusterName: ""
+
+          # GCP project id. Defaults to the project-id returned from the
+          # operator pod's local metadata server if unspecified.
+          # @type: string
+          projectID: ""
+
+        # Params to use when authenticating to Vault using this auth method.
+        # params:
+        #   param-something1: "foo"
+        # @type: map
+        params: {}
+
+        # Headers to be included in all Vault requests.
+        # headers:
+        #   X-vault-something1: "foo"
+        # @type:  map
+        headers: {}
+
+    # Defines the maximum number of concurrent reconciles for each controller.
+    # May also be set via the `VSO_MAX_CONCURRENT_RECONCILES` environment variable.
+    #
+    # default: 100
+    # @type: integer
+    maxConcurrentReconciles:
+
+    kubeClient:
+      # QPS indicates the maximum QPS to the kubernetes API.
+      # When the value is 0, the kubernetes client's default is used.
+      # May also set via the `VSO_KUBE_CLIENT_QPS` environment variable.
+      # Default: 0
+      # @type: float
+      qps:
+
+      # Maximum burst for throttling requests to the kubernetes API.
+      # When the value is 0, the kubernetes client's default is used.
+      # May also set via the `VSO_KUBE_CLIENT_BURST` environment variable.
+      # Default: 0
+      # @type: uint
+      burst:
+
+    # Defines additional environment variables to be added to the
+    # vault-secrets-operator manager container.
+    # Example:
+    #
+    # ```yaml
+    # extraEnv:
+    #   - name: HTTP_PROXY
+    #     value: http://proxy.example.com
+    #   - name: VSO_OUTPUT_FORMAT
+    #     value: json
+    #   - name: VSO_CLIENT_CACHE_SIZE
+    #     value: "20000"
+    #   - name: VSO_CLIENT_CACHE_PERSISTENCE_MODEL
+    #     value: "direct-encrypted"
+    #   - name: VSO_MAX_CONCURRENT_RECONCILES
+    #     value: "30"
+    # ```
+    # @type: array<map>
+    extraEnv: []
+
+    # Defines additional commandline arguments to be passed to the
+    # vault-secrets-operator manager container.
+    #
+    # @type: array
+    extraArgs: []
+
+    # Defines additional volumes to be added to the vault-secrets-operator manager pod.
+    # This can be used to mount secrets, configmaps, or other volume types.
+    # Note: The operator pod already has a downwardAPI volume named 'podinfo' at
+    # /var/run/podinfo. User-defined volumes cannot override this.
+    # Example:
+    #
+    # ```yaml
+    # volumes:
+    #   - name: approle-secret
+    #     secret:
+    #       secretName: my-approle-secret
+    #       defaultMode: 0400
+    #   - name: tls-certs
+    #     configMap:
+    #       name: vault-tls
+    # ```
+    # @type: array<map>
+    volumes: []
+
+    # Configures the default resources for the vault-secrets-operator container.
+    # For more information on configuring resources, see the K8s documentation:
+    # https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+    # @recurse: true
+    # @type: map
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+
+  # Configures the Pod Security Context
+  # https://kubernetes.io/docs/tasks/configure-pod-container/security-context
+  podSecurityContext:
+    runAsNonRoot: true
+
+  # Configures the Container Security Context
+  # https://kubernetes.io/docs/tasks/configure-pod-container/security-context
+  securityContext:
+    allowPrivilegeEscalation: false
+
+  # Sets the configuration settings used by the controller. Any custom changes will be reflected in the
+  # data field of the configmap.
+  # For more information on configuring resources, see the K8s documentation:
+  # https://kubernetes.io/docs/concepts/configuration/configmap/
+  # @recurse: true
+  # @type: map
+  controllerConfigMapYaml:
+    health:
+      healthProbeBindAddress: :8081
+    leaderElection:
+      leaderElect: true
+      resourceName: b0d477c0.hashicorp.com
+    metrics:
+      bindAddress: 127.0.0.1:8080
+    webhook:
+      port: 9443
+
+  # Configures the environment variable KUBERNETES_CLUSTER_DOMAIN used by KubeDNS.
+  # @type: string
+  kubernetesClusterDomain: cluster.local
+
+  # Duration in seconds the pod needs to terminate gracefully.
+  # See: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
+  terminationGracePeriodSeconds: 120
+
+  # Timeout in seconds for the pre-delete hook
+  preDeleteHookTimeoutSeconds: 120
+
+# Configure the metrics service ports used by the metrics service.
+# Set the configuration fo the metricsService port.
+# @recurse: true
+# @type: map
+metricsService:
+  # Set the port settings for the metrics service.
+  # For more information on configuring resources, see the K8s documentation:
+  # https://kubernetes.io/docs/concepts/services-networking/service/
+  # @type: map
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  type: ClusterIP
+
+# Configures the default VaultConnection CR which will be used by resources
+# if they do not specify a VaultConnection reference. The name is 'default' and will
+# always be installed in the same namespace as the operator.
+# NOTE:
+# * It is strongly recommended to deploy the vault secrets operator in a secure Vault environment
+#   which includes a configuration utilizing TLS and installing Vault into its own restricted namespace.
+defaultVaultConnection:
+  # toggles the deployment of the VaultAuthMethod CR
+  # @type: boolean
+  enabled: false
+
+  # Address of the Vault Server
+  # @type: string
+  # Example: http://vault.default.svc.cluster.local:8200
+  address: ""
+
+  # CACertSecret is the name of a Kubernetes secret containing the trusted PEM encoded CA certificate chain as `ca.crt`.
+  # Note: This secret must exist prior to deploying the CR.
+  # @type: string
+  caCertSecret: ""
+
+  # TLSServerName to use as the SNI host for TLS connections.
+  # @type: string
+  tlsServerName: ""
+
+  # SkipTLSVerify for TLS connections.
+  # @type: boolean
+  skipTLSVerify: false
+
+  # Headers to be included in all Vault requests.
+  # headers:
+  #   X-vault-something: "foo"
+  # @type: map
+  headers: {}
+
+# Configures and deploys the default VaultAuthMethod CR which will be used by resources
+# if they do not specify a VaultAuthMethod reference. The name is 'default' and will
+# always be installed in the same namespace as the operator.
+# NOTE:
+# * It is strongly recommended to deploy the vault secrets operator in a secure Vault environment
+#   which includes a configuration utilizing TLS and installing Vault into its own restricted namespace.
+defaultAuthMethod:
+  # toggles the deployment of the VaultAuthMethod CR
+  # @type: boolean
+  enabled: false
+
+  # Vault namespace for the VaultAuthMethod CR
+  # @type: string
+  namespace: ""
+
+  # Kubernetes namespace glob patterns which are allow-listed for use with the default AuthMethod.
+  # @type: array<string>
+  allowedNamespaces: []
+
+  # Vault Auth method to be used with the VaultAuthMethod CR
+  # @type: string
+  method: kubernetes
+
+  # Mount path for the Vault Auth Method.
+  # @type: string
+  mount: kubernetes
+
+  # Vault Kubernetes auth method specific configuration
+  kubernetes:
+    # Vault Auth Role to use
+    # This is a required field and must be setup in Vault prior to deploying the helm chart
+    # if `defaultAuthMethod.enabled=true`
+    # @type: string
+    role: ""
+
+    # Kubernetes ServiceAccount associated with the default Vault Auth Role
+    # @type: string
+    serviceAccount: default
+
+    # Token Audience should match the audience of the vault kubernetes auth role.
+    # @type: array<string>
+    tokenAudiences: []
+
+  # Vault JWT auth method specific configuration
+  jwt:
+    # Vault Auth Role to use
+    # This is a required field and must be setup in Vault prior to deploying the helm chart
+    # if using the JWT for the default auth method.
+    # @type: string
+    role: ""
+
+    # One of the following is required prior to deploying the helm chart
+    # - K8s secret that contains the JWT
+    # - K8s service account if a service account JWT is used as a Vault JWT auth token and needs generating by VSO
+
+    # Name of Kubernetes Secret that has the Vault JWT auth token.
+    # The Kubernetes Secret must contain a key named `jwt` which references the JWT token, and must exist in the namespace
+    # of any consuming VaultSecret CR. This is a required field if a JWT token is provided.
+    # @type: string
+    secretRef: ""
+
+    # Kubernetes ServiceAccount to generate a service account JWT
+    # @type: string
+    serviceAccount: "default"
+
+    # Token Audience should match the bound_audiences or the `aud` list in bound_claims if applicable
+    # of the Vault JWT auth role.
+    # @type: array<string>
+    tokenAudiences: []
+
+  # AppRole auth method specific configuration
+  appRole:
+    # AppRole Role's RoleID to use for authenticating to Vault.
+    # This is a required field when using appRole and must be setup in Vault prior to deploying the
+    # helm chart.
+    # @type: string
+    roleId: ""
+    # Name of Kubernetes Secret that has the AppRole Role's SecretID used to authenticate with Vault.
+    # The Kubernetes Secret must contain a key named `id` which references the AppRole Role's
+    # SecretID, and must exist in the namespace of any consuming VaultSecret CR.
+    # This is a required field when using appRole and must be setup in Vault prior to deploying the
+    # helm chart.
+    # @type: string
+    secretRef: ""
+
+  # AWS auth method specific configuration
+  aws:
+    # Vault Auth Role to use
+    # This is a required field and must be setup in Vault prior to deploying the helm chart
+    # if using the AWS for the default auth method.
+    # @type: string
+    role: ""
+
+    # AWS region to use for signing the authentication request
+    # Optional, but most commonly will be the region where the EKS cluster is running
+    # @type: string
+    region: ""
+
+    # Vault header value to include in the STS signing request
+    # @type: string
+    headerValue: ""
+
+    # The role session name to use when creating a WebIdentity provider
+    # @type: string
+    sessionName: ""
+
+    # The STS endpoint to use; if not set will use the default
+    # @type: string
+    stsEndpoint: ""
+
+    # The IAM endpoint to use; if not set will use the default
+    # @type: string
+    iamEndpoint: ""
+
+    # The name of a Kubernetes Secret which holds credentials for AWS. Supported keys include
+    # `access_key_id`, `secret_access_key`, `session_token`
+    # @type: string
+    secretRef: ""
+
+    # Name of a Kubernetes service account that is configured with IAM Roles
+    # for Service Accounts (IRSA). Should be annotated with "eks.amazonaws.com/role-arn".
+    # @type: string
+    irsaServiceAccount: ""
+
+  gcp:
+    # Vault Auth Role to use
+    # This is a required field and must be setup in Vault prior to deploying the helm chart
+    # if using GCP for the Transit auth method.
+    # @type: string
+    role: ""
+
+    # Name of a Kubernetes service account that is configured for workload
+    # identity in GKE.
+    # @type: string
+    workloadIdentityServiceAccount: ""
+
+    # GCP Region of the GKE cluster's identity provider. Defaults to the
+    # region returned from the operator pod's local metadata server if
+    # unspecified.
+    # @type: string
+    region: ""
+
+    # GKE cluster name. Defaults to the cluster-name returned from the
+    # operator pod's local metadata server if unspecified.
+    # @type: string
+    clusterName: ""
+
+    # GCP project id. Defaults to the project-id returned from the
+    # operator pod's local metadata server if unspecified.
+    # @type: string
+    projectID: ""
+
+  # Params to use when authenticating to Vault
+  # params:
+  #   param-something1: "foo"
+  # @type: map
+  params: {}
+
+  # Headers to be included in all Vault requests.
+  # headers:
+  #   X-vault-something1: "foo"
+  # @type: map
+  headers: {}
+
+  # VaultAuthGlobalRef
+  vaultAuthGlobalRef:
+    #  toggles the inclusion of the VaultAuthGlobal configuration in the
+    # default VaultAuth CR.
+    # @type: boolean
+    enabled: false
+    # Name of the VaultAuthGlobal CR to reference.
+    # @type: string
+    name: ""
+
+    # Namespace of the VaultAuthGlobal CR to reference.
+    # @type: string
+    namespace: ""
+
+    # allow default globals
+    # @type: boolean
+    allowDefault:
+
+    mergeStrategy:
+      # merge strategy for headers
+      # @type: string
+      # Valid values are: "replace", "merge", "none"
+      # Default: "replace"
+      # @type: string
+      headers: none
+
+      # merge strategy for params
+      # @type: string
+      # Valid values are: "replace", "merge", "none"
+      # Default: "replace"
+      # @type: string
+      params: none
+
+# Configures a Prometheus ServiceMonitor
+telemetry:
+  serviceMonitor:
+    # The Prometheus operator *must* be installed before enabling this feature,
+    # if not the chart will fail to install due to missing CustomResourceDefinitions
+    # provided by the operator.
+    #
+    # Instructions on how to install the Helm chart can be found here:
+    #  https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+    # More information can be found here:
+    #  https://github.com/prometheus-operator/prometheus-operator
+    #  https://github.com/prometheus-operator/kube-prometheus
+
+    # Enable deployment of the Vault Secrets Operator ServiceMonitor CustomResource.
+    # @type: boolean
+    enabled: false
+
+    # Selector labels to add to the ServiceMonitor.
+    # When empty, defaults to:
+    #  release: prometheus
+    # @type: string
+    selectors: {}
+
+    # Scheme of the service Prometheus scrapes metrics from. This must match the scheme of the metrics service of VSO
+    # @type: string
+    scheme: https
+
+    # Port at which Prometheus scrapes metrics. This must match the port of the metrics service of VSO
+    # @type: string
+    port: https
+
+    # Path at which Prometheus scrapes metrics
+    # @type: string
+    path: /metrics
+
+    # File Prometheus reads bearer token from for scraping metrics
+    # @type: string
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+    # Interval at which Prometheus scrapes metrics
+    # @type: string
+    interval: 30s
+
+    # Timeout for Prometheus scrapes
+    # @type: string
+    scrapeTimeout: 10s
+
+# Configure the behaviour of Helm hooks.
+hooks:
+  # Resources common to all hooks.
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  # Configure the Helm pre-upgrade hook that handles custom resource definition (CRD) upgrades.
+  upgradeCRDs:
+    # Set to true to automatically upgrade the CRDs.
+    # Disabling this will require manual intervention to upgrade the CRDs, so it is recommended to
+    # always leave it enabled.
+    # @type: boolean
+    enabled: true
+
+    # Limit the number of retries for the CRD upgrade.
+    # @type: integer
+    backoffLimit: 5
+
+    # Set the timeout for the CRD upgrade. The operation should typically take less than 5s
+    # to complete.
+    # @type: string
+    executionTimeout: 30s
+
+csi:
+  # Only supports Vault Enterprise servers.
+  # Toggles the deployment of the Vault Secrets Operator CSI driver. Setting `enabled` to `true`
+  # deploys the CSI driver and the necessary resources to the cluster.
+  # @type: boolean
+  enabled: false
+
+  # Configures the Pod level security context
+  # https://kubernetes.io/docs/tasks/configure-pod-container/security-context
+  #
+  # Note: the driver container security context can be configured below.
+  securityContext: {}
+
+  # Host Aliases settings for the `vault-secrets-operator-csi` pods as
+  # an array of PodSpec HostAlias maps.
+  # ref: https://kubernetes.io/docs/tasks/network/customize-hosts-file-for-pods/
+  # Example:
+  #
+  # ```yaml
+  # hostAliases:
+  #   - ip: 192.168.1.100
+  #     hostnames:
+  #     - vault.example.com
+  # @type: array<map>
+  hostAliases: []
+
+  # Node selector labels for `vault-secrets-operator-csi` pod assignment.
+  # @type: map
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+  # Example:
+  #
+  # ```yaml
+  # nodeSelector:
+  #   beta.kubernetes.io/arch: amd64
+  # ```
+  nodeSelector: {}
+
+  # Toleration settings for `vault-secrets-operator-csi` pods
+  # as an array of PodSpec Toleration maps.
+  # ref: https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
+  # @type: array<map>
+  # Example:
+  #
+  # ```yaml
+  # tolerations:
+  #  - key: "key1"
+  #    operator: "Equal"
+  #    value: "value1"
+  #    effect: "NoSchedule"
+  # ```
+  tolerations: []
+
+  # Affinity settings for `vault-secrets-operator-csi` pods
+  # as a map of PodSpec Affinity maps.
+  # ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
+  # Example:
+  #
+  # ```yaml
+  # affinity:
+  #   nodeAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: topology.kubernetes.io/zone
+  #           operator: In
+  #           values:
+  #           - antarctica-east1
+  #           - antarctica-west1
+  # ```
+  affinity: {}
+
+  # Image pull secrets as an array of maps or strings for private container registry authentication for the controller
+  # service account.
+  # Refer to https://kubernetes.io/docs/concepts/containers/images/#using-a-private-registry.
+  # Example:
+  #
+  # ```yaml
+  # imagePullSecrets:
+  #   - name: pull-secret-name-1
+  #   - name: pull-secret-name-2
+  # ```
+  # @type: array<map>
+  imagePullSecrets: []
+
+  # Additional deployment labels as a YAML object (map).
+  extraLabels: {}
+
+  # Additional deployment annotations as a YAML object (map).
+  annotations: {}
+
+  driver:
+    # Configures the driver container's security context
+    # https://kubernetes.io/docs/tasks/configure-pod-container/security-context
+    #
+    # Note: the Pod level security can also be configured above.
+    #
+    # Note: when deploying to an OpenShift cluster you should set:
+    #   privileged: true
+    #
+    securityContext: {}
+
+    # Image information for the CSI driver.
+    # ref: https://kubernetes.io/docs/concepts/containers/images/
+    image:
+      # Determines when the kubelet attempts to download the specified image.
+      pullPolicy: IfNotPresent
+      # The Docker repository of the CSI driver image.
+      repository: hashicorp/vault-secrets-operator-csi
+      # The version of the CSI driver image to download.
+      tag: 1.0.3
+
+    # Additional environment variables for the
+    # CSI driver container.
+    # @type: array<map>
+    extraEnv: []
+
+    # Additional arguments to pass to the CSI driver.
+    # @type: array
+    extraArgs: []
+
+    # Configures logging output settings for the CSI driver.
+    logging:
+      # Sets the log level for the CSI driver.
+      # Must be one of: info, error, debug, debug-extended, trace.
+      # Default: info
+      # @type: string
+      level: info
+
+      # Sets the time encoding for the CSI driver.
+      # Must be one of:
+      # - epoch - Unix timestamp in seconds (e.g. 1695382800)
+      # - millis - Unix timestamp in milliseconds (e.g. 1695382800000)
+      # - nano - Unix timestamp in nanoseconds (e.g. 1695382800000000000)
+      # - iso8601 - ISO 8601 format (e.g. 2023-09-22T10:00:00Z)
+      # - rfc3339 - RFC 3339 format (e.g. 2023-09-22T10:00:00Z)
+      # - rfc3339nano - RFC 3339 format with nanosecond precision (e.g. 2023-09-22T10:00:00.123456789Z)
+      # Default: rfc3339
+      # @type: string
+      timeEncoding: rfc3339
+
+      # Sets the stacktrace level for the CSI driver.
+      # Must be one of: info, error, panic.
+      # Default: panic
+      # @type: string
+      stacktraceLevel: panic
+
+    # Describes backoff behavior for the CSI driver when the driver encounters
+    # an error fetching secrets from `SecretSource`.
+    # For example, the following configuration creates a backoff retry sequence like
+    # 5.5s, 7.5s, 11.25s, 16.87s, 25.3125s, 37.96s, 56.95, 60.95s, etc.:
+    #
+    # ```yaml
+    #   initialInterval: 5s
+    #   maxInterval: 60s
+    #   randomizationFactor: 0.5
+    #   multiplier: 1.5
+    # ```
+    # @type: object
+    backoffOnSecretSourceError:
+      # Initial interval between retries.
+      # @type: duration
+      initialInterval: "5s"
+      # Maximum interval between retries.
+      # @type: duration
+      maxInterval: "60s"
+      # Maximum elapsed time without a successful sync from the secret source.
+      # Setting an explicit `maxElapsedTime` tells VSO not to
+      # retry the secret sync once it reaches the max elapsed time.
+      # @type: duration
+      maxElapsedTime: "0s"
+      # Custom factor used to randomize the backoff interval between retries
+      # to spread out the retries and avoid a thundering herd.
+      # We strongly recommend using a randomization factor, but you can set
+      # `randomizationFactor` to 0 to disable randomization.
+      # @type: float
+      randomizationFactor: 0.5
+      # Sets a multiplier used to increase the backoff interval between retries.
+      # You cannot set `multiplier` to a value less than or equal to 0.
+      # @type: float
+      multiplier: 1.5
+
+  # The liveness probe checks the health of the CSI driver container.
+  livenessProbe:
+    # Image information for the CSI driver liveness probe.
+    # ref: https://kubernetes.io/docs/concepts/containers/images/
+    image:
+      # Determines when the kubelet attempts to download the specified image.
+      pullPolicy: IfNotPresent
+      # The Docker repository of the liveness probe image.
+      repository: registry.k8s.io/sig-storage/livenessprobe
+      # The version of the liveness probe image to download.
+      tag: v2.16.0
+
+    # Additional arguments to pass to the liveness probe container.
+    # @type: array
+    extraArgs: []
+
+  # The node driver registrar sidecar container handles registration with the kubelet.
+  nodeDriverRegistrar:
+    # Image information for the CSI driver node driver registrar.
+    # ref: https://kubernetes.io/docs/concepts/containers/images/
+    image:
+      # Determines when the kubelet attempts to download the specified image.
+      pullPolicy: IfNotPresent
+      # The Docker repository of the node driver registrar image.
+      repository: registry.k8s.io/sig-storage/csi-node-driver-registrar
+      # The version of the node driver registrar image to download.
+      tag: v2.14.0
+
+    # Additional arguments to pass to the node driver registrar container.
+    # @type: array
+    extraArgs: []
+
+  # Configures the update strategy for the CSI driver DaemonSet.
+  # Must be one of: Recreate, RollingUpdate.
+  # ref: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
+  # Example:
+  #
+  # ```yaml
+  # strategy: {}
+  #   rollingUpdate:
+  #     maxSurge: 1
+  #     maxUnavailable: 0
+  #   type: RollingUpdate
+  # ```
+  # @type: object
+  updateStrategy: {}
+
+## Used by unit tests, and will not be rendered except when using `helm template`, this can be safely ignored.
+tests:
+  # @type: boolean
+  enabled: true
