@@ -2,6 +2,13 @@
 # (libs/openbao-cloudflare-plugin, libs/openbao-netbird-plugin). Runs alongside External Secrets
 # Operator during the migration; ESO keeps serving every kv secret until each consumer moves.
 #
+# SHARED bundle, deployed to BOTH clusters, because how it reaches OpenBao differs per cluster and
+# that difference is expressible as per-target helm values:
+#   secret   kubernetes auth over the in-cluster ClusterIP (no mesh hop)
+#   network  JWT auth over the NetBird mesh, same path its ESO uses
+# Both targets therefore declare their own helm.values block in fleet.yaml — a target that
+# inherits only the base defaults does not get re-rendered by Fleet.
+#
 # WHY A SECOND SECRET-DELIVERY OPERATOR AT ALL: ESO cannot hold an OpenBao lease. A secret lease
 # is a CHILD of the auth token that created it, and ESO calls RevokeSelf after every read (its own
 # fix for leaking token leases, external-secrets#376), so the cascade destroys a leased credential

@@ -1,0 +1,6 @@
+dependencies:
+- name: vault-secrets-operator
+  repository: file://../../../../third_party/vendir/charts/vault-secrets-operator
+  version: 1.6.0
+digest: sha256:99f666271a6fd5002312ec9988c5864416cd434b049f2d6e0b5e8672d9379dbb
+generated: "2026-10-02T16:54:32.30079+02:00"

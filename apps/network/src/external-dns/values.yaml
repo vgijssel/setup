@@ -11,30 +11,21 @@
 # sets cloudflare-proxied=false explicitly (an orange-cloud record would hand back
 # Cloudflare edge IPs instead of the mesh-routable ClusterIP).
 #
-# The Cloudflare API token is MINTED PER READ by the OpenBao cloudflare secrets engine
-# (templates/externalsecret-external-dns.yaml): a token scoped to DNS Write + Zone Read on the
-# two managed zones, living 48h and rotated every 24h, revoked with its lease. It is no longer
-# the long-lived token shared with cert-manager out of kv/cloudflare#credential.
+# The Cloudflare API token is MINTED PER READ by the OpenBao cloudflare secrets engine and
+# delivered by Vault Secrets Operator with a LIVE lease
+# (templates/vaultdynamicsecret-external-dns.yaml): a token scoped to DNS Write + Zone Read on
+# the two managed zones, renewed while in use and revoked upstream when the lease ends. It is no
+# longer the long-lived token shared with cert-manager out of kv/cloudflare#credential, nor the
+# unleased one ESO had to mint because it destroys its own leases.
 #
 # domainFilters + txtOwnerId scope external-dns to the vgijssel.nl zone and tag its TXT
 # ownership records to THIS cluster — the secret cluster's external-dns MUST use a different
 # owner id or the two would delete each other's records (historically observed).
 external-dns:
-  # external-dns reads CF_API_TOKEN from env ONCE, at startup, so a rotated Secret is invisible
-  # to the running pod — it would keep using a token that gets revoked 48h later and then
-  # CrashLoopBackOff on its startup zone enumeration (exactly what 393 restarts looked like when
-  # the old static token died).
-  #
-  # Reloader (apps/platform/src/reloader, watchGlobally) hashes the Secrets a workload
-  # references and performs a rolling restart when the contents change, so each 24h rotation
-  # recycles this Deployment onto the fresh token. The 24h overlap between successive tokens is
-  # what makes that safe rather than urgent: the running pod's token stays valid for another day,
-  # so a delayed restart degrades nothing.
-  #
-  # This MUST be deploymentAnnotations, not podAnnotations: Reloader looks for the annotation on
-  # the Deployment, and an annotation on the pod template would be silently ignored.
-  deploymentAnnotations:
-    reloader.stakater.com/auto: "true"
+  # NOTE no Reloader annotation. external-dns reads CF_API_TOKEN from env ONCE, at startup, so a
+  # rotated Secret is invisible to the running pod — but the restart is now driven by VSO's own
+  # `rolloutRestartTargets` (templates/vaultdynamicsecret-external-dns.yaml) rather than by
+  # Reloader watching the Secret. One mechanism, owned by the thing that rotates the credential.
   provider:
     name: cloudflare
   sources:
