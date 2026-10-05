@@ -13,7 +13,7 @@
 domain: ""
 
 # NetBird secrets engine role name for this proxy's management token. The ExternalSecret reads
-# from the `openbao-netbird` ClusterSecretStore at path proxy-token/<tokenKvPath>, which
+# by Vault Secrets Operator from the netbird engine at proxy-token/<tokenKvPath>, which
 # dynamically mints a fresh proxy token via the NetBird API. Surfaced into the `netbird`
 # namespace as the `netbird-proxy-token` Secret consumed by proxy.managementServer.auth.existingSecret.
 #   secret cluster  -> secret-proxy

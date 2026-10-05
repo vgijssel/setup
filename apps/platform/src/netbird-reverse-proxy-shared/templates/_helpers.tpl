@@ -1,7 +1,7 @@
 {{/*
 Fail-fast validation of the two required parameters. Included at the top of every template
 that consumes them so a bundle that forgets to set `domain`/`tokenKvPath` fails to render
-(loudly) instead of emitting a cert for `*.` or an ExternalSecret reading an empty KV path.
+(loudly) instead of emitting a cert for `*.` or a VaultDynamicSecret reading an empty role path.
 */}}
 {{- define "netbird-reverse-proxy-shared.validate" -}}
 {{- if not .Values.domain -}}

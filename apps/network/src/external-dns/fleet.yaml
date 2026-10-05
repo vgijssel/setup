@@ -14,6 +14,15 @@ labels:
 defaultNamespace: external-dns
 helm:
   releaseName: external-dns
+# dependsOn the vault-secrets-operator bundle, which installs the secrets.hashicorp.com CRDs.
+# Fleet applies a bundle as ONE atomic unit, so a VaultStaticSecret/VaultDynamicSecret here
+# cannot land before the CRD that defines it exists — without this a fresh cluster fails the
+# bundle with "no matches for kind", the same rule that keeps Crossplane CRs out of the
+# provider's own bundle.
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
 targetCustomizations:
   - name: network
     clusterSelector:

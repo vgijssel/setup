@@ -21,6 +21,15 @@ defaultNamespace: external-secrets
 # store, and without targeting it deploys on the secret cluster too and CLOBBERS
 # secret's own same-named store (internal service + kubernetes auth). Targeting keeps
 # the secret cluster on its internal-service store.
+# dependsOn the vault-secrets-operator bundle, which installs the secrets.hashicorp.com CRDs.
+# Fleet applies a bundle as ONE atomic unit, so a VaultStaticSecret/VaultDynamicSecret here
+# cannot land before the CRD that defines it exists — without this a fresh cluster fails the
+# bundle with "no matches for kind", the same rule that keeps Crossplane CRs out of the
+# provider's own bundle.
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
 targetCustomizations:
   - name: network
     clusterSelector:

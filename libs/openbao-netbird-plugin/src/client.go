@@ -28,6 +28,8 @@ func NewNetBirdClient(apiURL, token string, timeout time.Duration) *NetBirdClien
 	}
 }
 
+// CreatePATRequest. NOTE ExpiresIn is in DAYS here and validated 1..365 by the API, whereas the
+// identically-named field on CreateSetupKeyRequest is in SECONDS. Verified live.
 type CreatePATRequest struct {
 	Name      string `json:"name"`
 	ExpiresIn int    `json:"expires_in"`
@@ -49,6 +51,8 @@ type CreateProxyTokenResponse struct {
 	Token string `json:"plain_token"`
 }
 
+// CreateSetupKeyRequest. ExpiresIn is in SECONDS here — unlike CreatePATRequest, where the same
+// field name means DAYS.
 type CreateSetupKeyRequest struct {
 	Name       string   `json:"name"`
 	Type       string   `json:"type"`

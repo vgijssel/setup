@@ -59,8 +59,16 @@ targetCustomizations:
             # Explicit rather than a wildcard, so adding a consumer is a visible change. An empty
             # list confines the default auth to the operator's own namespace, and a
             # VaultDynamicSecret elsewhere then fails with a puzzling auth error.
+            #
+            # Must stay in step with boundServiceAccountNamespaces on the OpenBao role
+            # (../../../secret/src/openbao-config/role-vault-secrets-operator.yaml): this list
+            # gates which namespaces MAY use the auth, that one gates which can actually log in.
             allowedNamespaces:
               - cert-manager
+              - crossplane-system
+              - netbird
+              - netdata
+              - secret
   - name: network
     clusterSelector:
       matchLabels:
@@ -88,13 +96,18 @@ targetCustomizations:
               # Must match boundAudiences on the OpenBao role.
               tokenAudiences:
                 - openbao
-            # external-dns ONLY on this cluster, for now. The default VaultAuth names a single
-            # OpenBao role, and a JWT role binds a SINGLE subject — while the login SA must live
-            # in each consuming namespace (VaultAuth CRD). So one default auth cannot serve both
-            # external-dns and cert-manager here; cert-manager keeps ESO and the unleased
-            # `cert-manager-network` role until it gets its own VaultAuth + role.
+            # Must stay in step with boundClaims.sub on the OpenBao role
+            # (../../../secret/src/openbao-config/role-network-vso.yaml). boundSubject takes one
+            # value, so that role matches the `sub` claim against a comma-separated list instead —
+            # which is what lets ONE default VaultAuth serve every namespace here, as the secret
+            # cluster gets for free from boundServiceAccountNamespaces.
             allowedNamespaces:
+              - cert-manager
+              - crossplane-system
               - external-dns
+              - netbird
+              - netdata
+              - omada
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
   # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.

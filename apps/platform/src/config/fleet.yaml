@@ -23,6 +23,15 @@ defaultNamespace: external-secrets
 # Multi-cluster: deploys on BOTH the secret and network clusters. The selectors alone do
 # NOT restrict anything under a Rancher GitRepo, which appends its own catch-all target —
 # the terminal doNotDeploy entry below is what keeps this off every other cluster.
+# dependsOn the vault-secrets-operator bundle, which installs the secrets.hashicorp.com CRDs.
+# Fleet applies a bundle as ONE atomic unit, so a VaultStaticSecret/VaultDynamicSecret here
+# cannot land before the CRD that defines it exists — without this a fresh cluster fails the
+# bundle with "no matches for kind", the same rule that keeps Crossplane CRs out of the
+# provider's own bundle.
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
 targetCustomizations:
   - name: secret
     clusterSelector:

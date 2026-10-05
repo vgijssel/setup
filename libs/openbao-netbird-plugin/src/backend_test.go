@@ -619,8 +619,11 @@ func TestPATVendorExpiryComesFromMaxTTL(t *testing.T) {
 	}
 	// Expiry 2: NetBird's own, at MAX_TTL -- not ttl. Using ttl would kill the PAT upstream at
 	// the first lease renewal while OpenBao still believed it was valid.
-	if got["expires_in"] != float64(86400) {
-		t.Errorf("expires_in should track max_ttl (86400), got %v", got["expires_in"])
+	//
+	// In DAYS: the PAT endpoint validates expires_in to 1..365 and rejects a seconds value with
+	// 422 "expiration has to be between 1 and 365". max_ttl 86400s == 1 day.
+	if got["expires_in"] != float64(1) {
+		t.Errorf("PAT expires_in should be max_ttl in DAYS (1), got %v", got["expires_in"])
 	}
 	if resp.Secret.InternalData["role"] != "r" {
 		t.Errorf("role must be in InternalData for renewal: %v", resp.Secret.InternalData)
@@ -724,9 +727,9 @@ func TestUnleasedRoleReturnsNoLease(t *testing.T) {
 	}
 	// NetBird's expiry is then the ONLY bound, so it must still be set — and from TTL, not
 	// max_ttl: nothing can renew an unleased credential, so max_ttl would merely double the
-	// exposure of something that cannot be revoked.
-	if got["expires_in"] != float64(3600) {
-		t.Errorf("unleased vendor expiry should track ttl (3600), got %v", got["expires_in"])
+	// exposure of something that cannot be revoked. 3600s rounds UP to 1 day, the API minimum.
+	if got["expires_in"] != float64(1) {
+		t.Errorf("unleased PAT expiry should be ttl in DAYS, rounded up (1), got %v", got["expires_in"])
 	}
 }
 
@@ -842,5 +845,55 @@ func TestUnsuppliedTTLClampsToMaxTTL(t *testing.T) {
 	}
 	if resp == nil || !resp.IsError() {
 		t.Fatal("an explicitly supplied ttl above max_ttl must be rejected")
+	}
+}
+
+// ── expires_in units differ per NetBird endpoint ─────────────────────────────────────────
+//
+// Verified against the live API: the PAT endpoint takes DAYS and validates 1..365 (a seconds
+// value is rejected with 422 "expiration has to be between 1 and 365"), while the setup-key
+// endpoint takes the SAME FIELD NAME in SECONDS. Getting it backwards is not a soft failure —
+// PAT minting dies with a 500 out of the engine, which is how this was found.
+
+func TestVendorExpiryDaysConversion(t *testing.T) {
+	day := 24 * time.Hour
+	for _, tc := range []struct {
+		name        string
+		leased      bool
+		ttl, maxTTL time.Duration
+		want        int
+	}{
+		{"leased takes max_ttl", true, 30 * day, 60 * day, 60},
+		{"unleased takes ttl", false, 30 * day, 60 * day, 30},
+		{"sub-day rounds up to the API minimum", false, time.Hour, 0, 1},
+		{"partial day rounds up", false, 36 * time.Hour, 0, 2},
+		{"clamped to the API maximum", true, 0, 400 * day, 365},
+	} {
+		if got := vendorExpiryDays(tc.leased, tc.ttl, tc.maxTTL, 1); got != tc.want {
+			t.Errorf("%s: got %d days, want %d", tc.name, got, tc.want)
+		}
+	}
+}
+
+// Setup keys keep SECONDS — the conversion must not leak across endpoints.
+func TestSetupKeyExpiryStaysInSeconds(t *testing.T) {
+	var got map[string]interface{}
+	server := captureNetBird(t, &got, CreateSetupKeyResponse{ID: "sk", Key: "k", ExpiresAt: "x"})
+	defer server.Close()
+
+	b, storage := getTestBackend(t)
+	ctx := context.Background()
+	writeRootConfig(t, b, storage, server.URL)
+	b.HandleRequest(ctx, &logical.Request{
+		Operation: logical.CreateOperation, Path: "config/setup-key/r", Storage: storage,
+		Data: map[string]interface{}{"ttl": 3600, "max_ttl": 172800},
+	})
+	if _, err := b.HandleRequest(ctx, &logical.Request{
+		Operation: logical.ReadOperation, Path: "setup-key/r", Storage: storage,
+	}); err != nil {
+		t.Fatalf("generate setup key: %v", err)
+	}
+	if got["expires_in"] != float64(172800) {
+		t.Errorf("setup-key expires_in must stay SECONDS (172800), got %v", got["expires_in"])
 	}
 }

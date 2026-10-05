@@ -61,6 +61,15 @@ func manageLeaseField() *framework.FieldSchema {
 //
 // Unlike Cloudflare there is no "no expiry" option: NetBird rejects a create with a zero or
 // absent expires_in, so a caller-supplied floor is used when the role yields nothing.
+//
+// ⚠ THE UNIT OF `expires_in` DIFFERS BY ENDPOINT, verified against the live API:
+//
+//	setup keys  SECONDS -- expires_in 2592000 gives a key expiring in 30 days.
+//	PATs        DAYS, and validated 1..365 -- expires_in 2592000 is REJECTED with
+//	            422 "expiration has to be between 1 and 365"; expires_in 30 gives 30 days.
+//
+// So PAT callers must use vendorExpiryDays, NOT this function. Getting it wrong does not degrade
+// quietly: PAT minting fails outright with a 500 out of the engine.
 func vendorExpirySeconds(manageLease bool, ttl, maxTTL time.Duration, floor int) int {
 	order := []time.Duration{ttl, maxTTL}
 	if manageLease {
@@ -159,4 +168,24 @@ func (b *netbirdBackend) leaseResponse(secretType, role string, manageLease bool
 	resp.Secret.TTL = ttl
 	resp.Secret.MaxTTL = maxTTL
 	return resp
+}
+
+// vendorExpiryDays is vendorExpirySeconds converted for NetBird's PAT endpoint, whose expires_in
+// is in DAYS and validated to 1..365 (verified live: 2592000 is rejected with 422 "expiration has
+// to be between 1 and 365", while 30 yields a 30-day token).
+//
+// Rounds UP, so a sub-day TTL still produces a valid 1, and clamps to 365 so a long max_ttl does
+// not make every mint fail. Clamping rather than erroring is deliberate: the OpenBao lease is the
+// precise control, and this value is the backstop — a backstop that is shorter than asked for is
+// still a backstop, whereas a hard failure means no credential at all.
+func vendorExpiryDays(manageLease bool, ttl, maxTTL time.Duration, floorDays int) int {
+	secs := vendorExpirySeconds(manageLease, ttl, maxTTL, floorDays*86400)
+	days := (secs + 86399) / 86400
+	if days < 1 {
+		days = 1
+	}
+	if days > 365 {
+		days = 365
+	}
+	return days
 }

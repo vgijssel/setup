@@ -1,3 +1,12 @@
+# NETWORK CLUSTER ONLY. ESO used to run on both, serving every OpenBao-backed secret; all of
+# those moved to Vault Secrets Operator (apps/platform/src/vault-secrets-operator), which can
+# hold the OpenBao leases ESO destroys by revoking its own auth token after each read.
+#
+# It survives here for exactly ONE resource that is not OpenBao-backed at all:
+# ../../../network/src/omada/templates/externalsecret-mongodb-uri.yaml, which reads a
+# Percona-generated connection string from the mongodb namespace via ESO's KUBERNETES provider.
+# The secret cluster has no ExternalSecret and no SecretStore left, so ESO is not deployed there —
+# removing it takes its three Deployments and its CRDs off that cluster entirely.
 # Portable Fleet bundle for the external-secrets operator. Fleet detects the
 # umbrella Chart.yaml in this directory and deploys it (its values.yaml is the
 # chart's own values, applied automatically). Same file, both worlds: `fleet
@@ -9,10 +18,6 @@ helm:
 # NOT restrict anything under a Rancher GitRepo, which appends its own catch-all target —
 # the terminal doNotDeploy entry below is what keeps this off every other cluster.
 targetCustomizations:
-  - name: secret
-    clusterSelector:
-      matchLabels:
-        cluster.vgijssel.nl/name: secret
   - name: network
     clusterSelector:
       matchLabels:

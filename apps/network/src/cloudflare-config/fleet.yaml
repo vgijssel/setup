@@ -9,6 +9,9 @@
 dependsOn:
   - selector:
       matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
+  - selector:
+      matchLabels:
         fleet.vgijssel.nl/bundle: crossplane-provider
 labels:
   fleet.vgijssel.nl/bundle: cloudflare-config
