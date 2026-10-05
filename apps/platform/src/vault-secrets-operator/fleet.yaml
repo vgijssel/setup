@@ -105,6 +105,7 @@ targetCustomizations:
               - cert-manager
               - crossplane-system
               - external-dns
+              - mongodb
               - netbird
               - netdata
               - omada

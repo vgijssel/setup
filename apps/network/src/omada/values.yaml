@@ -67,3 +67,18 @@ backup:
     regionProperty: region
     bucketProperty: bucket
     endpointProperty: endpoint
+
+# MongoDB topology the connection string is assembled from
+# (templates/vaultstaticsecret-mongodb-uri.yaml). Only the PASSWORD is a secret and it comes from
+# OpenBao (kv/mongodb#omada_password); everything here is static and must match the
+# PerconaServerMongoDB CR in ../mongodb/perconaservermongodb.yaml -- change one without the other
+# and Omada points at hosts that do not exist.
+mongodb:
+  clusterName: mongodb
+  namespace: mongodb
+  replsetName: rs0
+  # Number of replica-set members, i.e. how many seed hosts to list. Must equal
+  # spec.replsets[0].size in the CR.
+  replicas: 3
+  user: omada
+  database: omada
