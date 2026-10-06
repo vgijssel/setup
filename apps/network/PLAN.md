@@ -1,5 +1,20 @@
 # Plan: Migrate the network cluster from Terranetes to Crossplane
 
+> ## ⚠️ SUPERSEDED — historical. Every phase below is either done or obsolete.
+>
+> This is the archived implementation plan for `apps/network/SPEC.md`, whose own banner lists what
+> has since been replaced. Do not run these phases: the Tailscale/ACL track (P1–P3, P7) describes
+> a provider and a tailnet that no longer exist, and the ESO-based MongoDB credential path (P5–P6)
+> was inverted — OpenBao now owns `kv/mongodb#omada_password` and Percona consumes it.
+>
+> Service exposure is no longer in scope for this cluster's plan at all: it is one shared
+> mechanism, `apps/platform/src/mesh-service` (one Envoy Gateway pod + its own NetBird client per
+> service, flat `<service>.vpn.blueora.ng` names, mesh-only resolution, publicly-trusted shared
+> wildcard). The reverse-proxy and `NBResource`/`netbird.io/expose` paths are gone, bar the
+> documented Omada device exception.
+>
+> See `openspec/changes/netbird-peer-mesh-envoy-gateway/` for the live plan and its task log.
+
 Implementation plan for `apps/network/SPEC.md`. Tasks are dependency-ordered; each is a
 single focused session touching ≤~5 files, with acceptance + verification. The reference
 implementation is the `secret` cluster (PR #989) — clone its structure, adapt names/targets.

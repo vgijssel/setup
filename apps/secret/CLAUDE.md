@@ -38,8 +38,9 @@ Init items and their required mirrors (keep in sync):
 | `crossplane` k8s-auth role | `role-crossplane.yaml` |
 
 Crossplane-**only** (must NOT be in init): the `admin` policy+role (`policy-admin.yaml`,
-`role-admin.yaml`), the `kv` mount, `external-secrets` policy+role, and the `jwt-network`
-backend + `network-*` roles/policy.
+`role-admin.yaml`), the `kv` mount, the `vault-secrets-operator` policy+role, the `snapshot`
+policy+role, the NetBird + Cloudflare secrets-engine registration and role config
+(`plugin-*.yaml`), and the `jwt-network` backend + `network-*` roles/policy.
 
 ### Why the mirror is safe (not a fight)
 - Self-init is **fire-once**: it runs only while OpenBao is uninitialized and never again
@@ -74,9 +75,16 @@ Use it to seed human-only kv secrets and to run recovery-key rotation
 cluster's Fleet runs it. Cluster targeting is the **only** deploy gate, so **every**
 `fleet.yaml` must declare `targetCustomizations` with a `clusterSelector` on
 `cluster.vgijssel.nl/name`. A bundle without one deploys everywhere and will collide
-across clusters (e.g. a same-named `ClusterSecretStore` clobbering another cluster's).
+across clusters — and the collision is not always a Kubernetes object. `src/netbird-account`
+reconciles NetBird **account-global** state (the peer DNS domain, the cross-cutting access
+policies), so a second cluster running it would flap the account itself.
 apps/secret bundles target `secret`; shared platform bundles target the clusters that
 consume them.
+
+A `clusterSelector` alone restricts NOTHING under a Rancher GitRepo: it only populates
+`spec.targets`, the GitRepo appends its own catch-all, and targets are first-match-wins — so
+every `fleet.yaml` also needs a terminal `{name: none, doNotDeploy: true, clusterSelector: {}}`.
+`bin/fleet-lint-targets` enforces it.
 
 ## Non-obvious gotchas (all cost a debug cycle)
 - **self-init `operation`** takes an ACL capability (`update`/`read`/…), **not** `"write"`.
@@ -89,5 +97,17 @@ consume them.
   + all MRs live in `src/openbao-config` (dependsOn crossplane-provider).
 - **Fleet builds umbrella `file://` chart deps at apply time** — do NOT commit
   `charts/*.tgz` or `Chart.lock` (both gitignored under `apps/secret/src`).
-- The `jwt-network` backend fetches the network cluster's live JWKS over the tailnet, so
-  it only reconciles when the network cluster is reachable (not in an isolated cluster).
+- The `jwt-network` backend fetches the network cluster's live JWKS **over the NetBird mesh**,
+  so it only reconciles when the network cluster is reachable (not in an isolated cluster). The
+  tailnet is long gone. The path is deliberately indirect and worth understanding before touching
+  it: `jwksUrl` is `https://jwks-network.vpn.blueora.ng/openid/v1/jwks`, a CoreDNS override maps
+  that name to a pinned in-cluster ClusterIP, and the Pod behind it is a **raw-TCP socat relay**
+  (`src/jwks-gateway`) carrying its own mesh client. Because the relay never terminates TLS, both
+  horizons end at the SAME certificate for the SAME name, which is why no `jwks_ca_pem` and no
+  skip-verify are needed. Turning that relay into an HTTP proxy would break exactly that property.
+- **OpenBao must never become a mesh client.** The NetBird operator's mutating webhook runs
+  `failurePolicy: Fail` and the operator itself needs a PAT out of OpenBao, so injecting a sidecar
+  into OpenBao is a cold-start deadlock. That is why the relay above exists, and why this
+  cluster's own Vault Secrets Operator reaches OpenBao over the in-cluster ClusterIP in plain HTTP
+  rather than over the mesh — which also keeps the certificate chain acyclic, since OpenBao
+  distributes (in `kv/mesh-tls`) the wildcard its own exposure serves.

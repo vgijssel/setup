@@ -5,10 +5,21 @@
 #
 # The dns/addr resources below rely on goss seeing systemd-resolved's stub resolver
 # (127.0.0.53) -- goss-serve.service binds the stub resolv.conf into the unit so goss's
-# Go resolver sees the box-wide resolution: omada.network.vgijssel.nl is a public Cloudflare
+# Go resolver sees the box-wide resolution: omada.blueora.ng is a public Cloudflare
 # A record pointing at Omada's pinned in-cluster ClusterIP (published by external-dns), and
 # that ClusterIP is routed over NetBird, so the checks exercise real mesh reachability. goss
 # manages its own per-check timeouts.
+#
+# THE HOSTNAME IS `omada.blueora.ng`, NOT `omada.network.vgijssel.nl` (renamed 2026-10-06).
+# This is the DEVICE path's name, which is the right thing for this box to assert: the PiKVM is
+# the routing peer the LAN gateway sends `10.96.0.20/32` to, so these checks verify the exact
+# path Omada's APs and switches depend on. Do NOT "modernise" it to `omada.vpn.blueora.ng` --
+# that is the mesh peer, which deliberately serves only 443 plus the raw device ports and has no
+# 8088/8043/8843 listener, so most of the assertions below would fail.
+# The old name is now NXDOMAIN. It had kept resolving only because it fell through the
+# `*.vgijssel.nl` wildcard CNAME, which was deleted with the reverse-proxy stack -- so this file
+# was asserting reachability against a name that pointed at NetBird's shared proxy IPs rather
+# than at Omada.
 command:
   # 1. NetBird management plane is connected (the mesh is up).
   netbird-connected:
@@ -29,33 +40,33 @@ command:
 
 # 2. Omada's public hostname resolves (Cloudflare A -> pinned ClusterIP, mesh-routed).
 dns:
-  omada.network.vgijssel.nl:
+  omada.blueora.ng:
     resolvable: true
 
 # 3. TCP reachability to the Omada controller on every documented TCP port, reached at its
-#    real hostname omada.network.vgijssel.nl over NetBird cross-cluster routing.
+#    real hostname omada.blueora.ng over NetBird cross-cluster routing.
 #    Ports mirror apps/network/src/omada/templates/service-omada.yaml (TCP only -- the UDP
 #    27001/29810/19810 entries are L2-only discovery and cannot be connect-tested).
 addr:
-  tcp://omada.network.vgijssel.nl:8088:      # manage-http
+  tcp://omada.blueora.ng:8088:      # manage-http
     reachable: true
-  tcp://omada.network.vgijssel.nl:8043:      # manage-https
+  tcp://omada.blueora.ng:8043:      # manage-https
     reachable: true
-  tcp://omada.network.vgijssel.nl:8843:      # portal-https
+  tcp://omada.blueora.ng:8843:      # portal-https
     reachable: true
-  tcp://omada.network.vgijssel.nl:29811:     # manager-v1
+  tcp://omada.blueora.ng:29811:     # manager-v1
     reachable: true
-  tcp://omada.network.vgijssel.nl:29812:     # adopt-v1
+  tcp://omada.blueora.ng:29812:     # adopt-v1
     reachable: true
-  tcp://omada.network.vgijssel.nl:29813:     # upgrade-v1
+  tcp://omada.blueora.ng:29813:     # upgrade-v1
     reachable: true
-  tcp://omada.network.vgijssel.nl:29814:     # manager-v2
+  tcp://omada.blueora.ng:29814:     # manager-v2
     reachable: true
-  tcp://omada.network.vgijssel.nl:29815:     # transfer-v2
+  tcp://omada.blueora.ng:29815:     # transfer-v2
     reachable: true
-  tcp://omada.network.vgijssel.nl:29816:     # rtty
+  tcp://omada.blueora.ng:29816:     # rtty
     reachable: true
-  tcp://omada.network.vgijssel.nl:29817:     # device-monitor
+  tcp://omada.blueora.ng:29817:     # device-monitor
     reachable: true
 
 # 4. The NetBird systemd instance is enabled (survives reboot) and running.

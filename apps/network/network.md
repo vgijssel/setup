@@ -139,6 +139,40 @@ so return traffic comes back through it. The NetBird dashboard must (a) designat
 as a routing peer advertising `10.96.0.20/32` with Masquerade, and (b) permit the LAN source
 group → the Omada resource.
 
+## PiKVM web UI: the certificate warning is accepted, not a defect
+
+`https://pikvm.vpn.blueora.ng/` serves the box's **self-signed** certificate, so every browser
+shows a warning that has to be clicked through. This is a deliberate, recorded trade — not an
+oversight and not something to "fix" by reintroducing a proxy.
+
+**The reverse proxy that used to front it existed for this reason and no other.** PiKVM was
+published through a NetBird BYOP reverse-proxy service at `pikvm.network.vgijssel.nl`, which
+terminated TLS with a real Let's Encrypt wildcard and spoke to the box over the tunnel with
+verification disabled (`skip_tls_verify`, because the box's certificate is for its LAN IP, not
+its overlay address). So the proxy was not adding security — the tunnel was already encrypted —
+it was converting a self-signed certificate into a green padlock. Buying that cosmetic with a
+proxy fleet, a minted proxy token, a registered reverse-proxy domain, a wildcard certificate,
+a watchdog and two `moon` tasks is what the mesh migration deleted. Access itself is unchanged
+and still mesh-only: the name resolves solely inside the overlay, and reaching it needs the
+`homelab-devices` policy (`apps/secret/src/netbird-account/`).
+
+Two upgrade paths exist, both **open follow-ups**, neither blocking:
+
+1. **Put a real certificate on the box.** Issue `pikvm.vpn.blueora.ng` by DNS-01 — the same
+   mechanism the mesh wildcard already uses, so no inbound path is needed — and install it into
+   PiKVM's nginx (`/etc/kvmd/nginx/ssl/`) via `apps/pikvm`'s pyinfra deploy, with renewal driven
+   from the cluster. Cleanest outcome: the box serves a name it legitimately owns. Cost is a
+   certificate-distribution path onto a read-only-rootfs appliance that is not a Kubernetes
+   consumer, which is why it was not done inline.
+2. **Expose it as a mesh service like everything else** — a `mesh-service` exposure whose Envoy
+   terminates the shared `*.vpn.blueora.ng` wildcard and re-encrypts to the box with a
+   `BackendTLSPolicy`. The chart already supports exactly this (`listeners[].backend.tls`, added
+   for Omada's `:8043`). The blocker is that `BackendTLSPolicy` requires `validation.hostname`
+   and offers no skip-verify, and the box's self-signed certificate matches no name we could
+   validate — so it needs path 1 first, or a custom CA.
+
+Until then: click through the warning, or use `kvmd` over NetBird-SSH, which is unaffected.
+
 ## Firewall / ACL policy
 
 Default **deny** between VLANs. Rules belong to the class, not the device:
@@ -196,8 +230,15 @@ internet policy) at the price of losing Sonos peering.
   pairwise relationships, so selecting these four also lets Trusted see IoT-Local.
 - VLANs 60, 80 and 90 are deliberately **excluded**: cloud appliances integrate via vendor
   clouds, and media-server clients use explicit URLs rather than discovery.
-- Public DNS resolution via the gateway; `omada.network.vgijssel.nl` resolves publicly
-  (Cloudflare) to `10.96.0.20` and is reached over the mesh route.
+- Public DNS resolution via the gateway; the Omada controller's **device-facing** name
+  `omada.blueora.ng` resolves publicly (Cloudflare A, unproxied) to the pinned ClusterIP
+  `10.96.0.20` and is reached over the mesh route the PiKVM routing peer carries. Renamed from
+  `omada.network.vgijssel.nl` on 2026-10-06; the old name is NXDOMAIN and had only kept answering
+  because it fell through the `*.vgijssel.nl` wildcard CNAME, which has since been deleted.
+  Humans and on-mesh tooling use a **different** name, `omada.vpn.blueora.ng`, served by its own
+  mesh peer — see `apps/network/src/mesh-omada/`. The two paths are independent by design: the
+  device name is publicly resolvable and carries the controller's own certificate on `:8043`,
+  the mesh name resolves only inside the overlay and carries the shared mesh wildcard on `:443`.
 
 ### Shared services (VLAN 80) — planned
 

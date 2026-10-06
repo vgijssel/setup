@@ -1393,16 +1393,262 @@ clients, it stalls any in-pod timer, and cert-manager's webhook is one with a ha
   ICMP there. No re-enrolment and no client restart was needed — the account DNS domain is served
   by the resolver, not baked into the peer.
 
+**Results (2026-10-06) — 10.2 and 10.3 done; 10.2's verification is partly blocked on the box.**
+
+- **10.2 DONE in code; verified by proxy, not on the box.** All 13 `omada.network.vgijssel.nl`
+  references in `apps/pikvm/files/goss.yaml` are now `omada.blueora.ng`, plus the two header
+  comments that explained the old name. `apps/network/network.md`'s DNS section was rewritten to
+  name both paths and state that the two are independent by design.
+  This was urgent rather than cosmetic: the old name only ever resolved by falling through the
+  `*.vgijssel.nl` wildcard CNAME, which 9.10 deleted — so the goss contract had been asserting
+  reachability against **NetBird's shared reverse-proxy anycast IPs rather than Omada**, and would
+  now fail outright on NXDOMAIN. A header note records exactly that, plus a do-not-do: the name
+  must NOT be "modernised" to `omada.vpn.blueora.ng`, because the mesh peer deliberately serves
+  only 443 plus the raw device ports and has no 8088/8043/8843 listener, so most assertions would
+  fail. `omada.blueora.ng` is also the right thing for THIS box to assert — the PiKVM is the
+  routing peer the LAN gateway sends `10.96.0.20/32` to, so the checks exercise the exact path
+  the APs and switches depend on.
+  **Verification: 11/11 assertions pass, measured from the Mac rather than the PiKVM.** `dns`
+  resolves to `10.96.0.20` and all ten declared TCP ports connect (8088, 8043, 8843,
+  29811–29817) via a real socket connect per port, not `nc -z`. The Mac is in `homelab` and
+  carries the same policies as the PiKVM, so the contract is satisfiable from an equivalent peer.
+  **What is NOT verified, and cannot be by me:** the suite running ON the box. `goss serve`
+  listens on `127.0.0.1:8080` (localhost only) and the box still holds the OLD goss.yaml until
+  `moon run pikvm:apply` deploys it — and NetBird-SSH demands interactive SSO, which a
+  non-interactive session cannot satisfy (`Error: SSH proxy: JWT authentication: wait for JWT
+  token`, the same wall task 7.5 hit). So the remaining step is a human running
+  `moon run pikvm:apply` and checking the goss report. Nothing is broken in the meantime: the
+  box's current contract points at a dead name, so it is already failing — the fix is authored
+  and waiting to be deployed.
+- **10.3 DONE.** A named-exception section in `apps/network/network.md` records the accepted
+  self-signed warning on `https://pikvm.vpn.blueora.ng/`, and states the thing the task asked for
+  explicitly: **the removed reverse proxy existed solely to paper over it.** The evidence is in the
+  deleted config — that service terminated TLS with a real wildcard and then spoke to the box with
+  `skip_tls_verify`, because the box's certificate is for its LAN IP and not its overlay address.
+  So the proxy added no security over an already-encrypted tunnel; it converted a self-signed
+  certificate into a green padlock, and the price was a proxy fleet, a minted token, a registered
+  domain, a wildcard certificate, a watchdog and two `moon` tasks.
+  Both upgrade paths are filed as open follow-ups with their real blockers, not as vague
+  intentions: (1) issue `pikvm.vpn.blueora.ng` by DNS-01 and install it into the box's nginx via
+  the pyinfra deploy — cost is a certificate-distribution path onto a read-only-rootfs appliance
+  that is not a Kubernetes consumer; (2) expose it as a `mesh-service` with a `BackendTLSPolicy`,
+  which the chart already supports after 7.10 — blocked because `BackendTLSPolicy` requires
+  `validation.hostname` with no skip-verify and the box's certificate matches no name we could
+  validate, so it needs (1) first or a custom CA.
+
 - [x] 10.1 Verify the PiKVM peer resolves at `pikvm.vpn.blueora.ng` after the domain flip
-- [ ] 10.2 Update `apps/pikvm` and `apps/network/network.md` hostname references and the goss health contract; verify the goss suite passes over the mesh (create unit symlinks directly rather than via `systemctl enable`, which hits a read-only filesystem over mesh SSH)
-- [ ] 10.3 Record the self-signed certificate warning as a known, accepted consequence and file both upgrade paths as follow-ups; verify the note states that the removed proxy existed solely to paper over it
+- [x] 10.2 Update `apps/pikvm` and `apps/network/network.md` hostname references and the goss health contract; verify the goss suite passes over the mesh (create unit symlinks directly rather than via `systemctl enable`, which hits a read-only filesystem over mesh SSH)
+- [x] 10.3 Record the self-signed certificate warning as a known, accepted consequence and file both upgrade paths as follow-ups; verify the note states that the removed proxy existed solely to paper over it
+
+## 9c. Account state moved into code (added 2026-10-06)
+
+Not in the original plan. 9.11 and tasks 2.5/2.6 left real account state hand-managed, which this
+closes. New bundle `apps/secret/src/netbird-account/` — **secret-cluster ONLY, and that targeting
+is load-bearing rather than tidy**: these objects are account-GLOBAL, so two clusters reconciling
+them would flap each other. Same single-writer reasoning as `mesh-tls`.
+
+- **`netbird_account_settings` codifies tasks 2.5 and 2.6.** `dns_domain = vpn.blueora.ng` and
+  `peer_login_expiration_enabled = false` were applied as a one-off `PUT /api/accounts/<id>` and
+  existed nowhere in git — the weakest link in the whole story, since `vpn.blueora.ng` is the
+  domain every mesh hostname and the shared wildcard certificate are built on.
+  **It adopts with no `import`, which is what makes it safe to add to a live account:** the
+  resource is a singleton whose `Create` lists the account and PUTs, so a first apply takes over
+  whatever is there. Verified: it reconciled first try and the live settings were unchanged
+  (`dns_domain: vpn.blueora.ng`, `peer_login_expiration_enabled: False`). Its `Delete` is a
+  deliberate no-op upstream, so removing the file stops managing the settings rather than
+  resetting the account.
+- **`homelab-devices` and `pikvm-ssh` adopted with ZERO downtime**, which needed a specific order.
+  Rather than delete-then-create (a gap in PiKVM access), the Workspace was applied FIRST so tofu
+  created its own copies alongside the hand-made ones — NetBird permits duplicate policy names —
+  then the originals were deleted once the new ones were confirmed **byte-identical** on every
+  field (action, protocol, ports, bidirectional, sources, destinationResource, authorized_groups).
+  `pikvm-ssh` resolves the box BY NAME through `data "netbird_peer"` instead of its hardcoded id,
+  so a re-enrolled box does not orphan the policy; that data source is why provider **0.0.10** is
+  the floor. It resolved to the same id the hand-made policy carried.
+- **The built-in `Default` policy is now DELETED, not merely disabled.** It cannot be managed here:
+  adopting a NetBird-created resource needs a one-shot `import` block, and an `import` left in
+  config errors on every later plan ("resource already managed") — which in a Crossplane Workspace
+  means a permanently un-reconciling bundle. Deleting it leaves the account's allow-list exactly
+  what code declares. The fresh-account bootstrap step (find `Default` by name, delete it) is
+  documented in the Workspace header beside a verification that actually proves it, in the same
+  category as seeding the seal key and the operator PAT.
+- **A REGRESSION THIS FOUND, which 9.11's matrix had missed: a routed resource needs TWO
+  authorisations, and the Omada DEVICE path was broken.** Deleting `Default` took out
+  `omada.blueora.ng:8043` while every check that mattered still looked healthy — the autogenerated
+  `homelab -> omada-devices` policy was correct and enabled, the route was `Selected` on the client
+  and resolved to the right ClusterIP, and the controller answered **200 from inside the cluster**.
+  Only the overlay hop was dead. The model is:
+  * leg 1 — client → the ROUTING PEER. The device path is forwarded by the network cluster's
+    `router`, which sits in the `network` group, and nothing granted `homelab -> network`.
+  * leg 2 — client → the resource behind it. That is the operator's autogenerated policy.
+  **Why it hid so well:** the LAN `cidr-*` resources never broke, because THEIR routing peer is
+  the PiKVM, which is itself in `homelab` — so `homelab-devices` authorises their leg 1 by pure
+  coincidence. Fixed with a `homelab-to-network-router` policy, and the fix was derived by
+  measurement rather than guessed: a temporary wide-open policy restored it (confirming the
+  mechanism), a port-restricted variant also worked, and then — the useful part — with leg 1 set
+  to `protocol = all` the DECLARED device ports stayed reachable while UNDECLARED ones (9999,
+  8200) were still refused. **Leg 2 gates the ports**, so leg 1 needs no port list: restating one
+  would add no security and would create a third copy to keep in sync with the Service and the
+  NBResource.
+- **Still hand-managed, and deliberately not half-done:** the four `cidr-*` policies and the
+  `lan-*` networks/resources/routers they target. Those policies reference generated resource ids,
+  so codifying them alone would hardcode ids; they belong with a `netbird_network`/
+  `netbird_network_resource` migration of the whole LAN stack. Flagged in the bundle header.
+  **Policy ownership audit after this work: 12 policies, 8 in code, 4 hand-managed** (down from 6).
+- **Full matrix re-verified after every change** — ALLOWED: `omada.blueora.ng:8043` (device, both
+  legs), LAN `192.168.20.1` (cidr-*), `pikvm.vpn.blueora.ng:443` (homelab-devices), PiKVM ssh/22
+  (pikvm-ssh), `openbao.vpn.blueora.ng` (svc-openbao), `omada.vpn.blueora.ng` (svc-omada).
+  DENIED, as the spec requires: `jwks-network` from the Mac (source is `secret-k8s` only) and
+  `omada.blueora.ng:9999` (undeclared port).
+
+## 9d. observedGeneration — fixed automatically, not just documented (added 2026-10-06)
+
+8a.5 root-caused the bug and left a documented manual remedy. That is now a reconciler:
+`apps/platform/src/netbird-operator/templates/cronjob-setupkey-status.yaml` (+ its own RBAC),
+deployed to BOTH clusters by the operator bundle's existing targeting, every 10 min.
+
+- **It patches `setupkeys/status` rather than deleting the derived Secret, and the reason is
+  privilege.** Deleting `setup-key-<name>` is the operator-native way to force the create path,
+  but SetupKeys live in several namespaces (`netbird`, plus the release namespace of every mesh
+  exposure), RBAC cannot wildcard `resourceNames`, so that job would need **cluster-wide `delete`
+  on Secrets** — which on these clusters includes the OpenBao seal key. Patching the status
+  subresource needs no Secret access at all: one subresource of one CRD and nothing else.
+- **It is a statement of fact, not a forgery, and is gated so it stays one.** The spec has already
+  been pushed to the management API by the time the operator returns early — that is literally the
+  line above the early return — so the generation HAS been observed and acted on; only the record
+  is missing. The job refuses to act unless the operator's own `Ready=True` is present, so it can
+  never paper over a reconcile that genuinely failed.
+- **Verified on BOTH branches, including against a real lagging CR** — the join 4.9 and 8a got
+  wrong by testing halves. No-op branch: ran against healthy state, logged nothing and exited 0.
+  Acting branch: created a throwaway `SetupKey/obsgen-probe`, edited its spec in place (the exact
+  trigger), and confirmed the operator applied the edit account-side (2 `auto_groups`) while
+  leaving the status behind. The scheduled CronJob then fixed it **unprompted** before it was even
+  inspected:
+  `setupkey-status: netbird/obsgen-probe generation=2 observedGeneration=1 with Ready=True -> recording the generation the operator already applied`
+  **Independent corroboration of the root cause:** after the fix the CR reads `gen 2 / obs 2` while
+  the Ready condition's own nested `observedGeneration` is still **1**, dated to creation — proof
+  the operator never re-wrote status and that only the top-level field (the one Fleet reads) was
+  repaired.
+- **Self-disabling by construction:** when upstream is fixed the job finds nothing and logs
+  "nothing to do" forever, which is the signal to delete it with the version pin. The header
+  carries the upstream source excerpt so the next reader does not re-derive it.
+- Only `SetupKey` is affected — `group_controller.go` has a single return path and always patches,
+  matching the live survey that found just the one edited SetupKey lagging.
+
+## 9e. A blocker that was neither planned nor mine: DiskPressure on both clusters
+
+Surfaced while testing 9d — the reconciler Job sat `Pending` with
+`0/1 nodes are available: 1 node(s) had untolerated taint(s)`. Both clusters carried
+`node.kubernetes.io/disk-pressure:NoSchedule` and `DiskPressure=True`: the known shared-OrbStack-disk
+failure mode, where the two vind clusters sit on one 79 GB filesystem and crossing ~85% taints
+BOTH at once and stops all pod creation.
+
+What actually reclaimed it, in order of yield — and the first attempt was the wrong one:
+`docker builder prune -af` freed only 36 MB, because it targets the DEFAULT builder. The space was
+in a **buildx** builder's state volume: `buildx_buildkit_netbuilder0_state` at **16.8 GB**, freed
+with `docker buildx prune --builder netbuilder -af`, plus 1.36 GB of dangling volumes. Volumes
+38.63 GB → 20.46 GB, disk 85% → 77%, and `DiskPressure=False` with the taints cleared on both
+clusters within a minute. Worth remembering that `docker system df` reports that cache under
+"Local Volumes", not "Build Cache", so it does not look like reclaimable cache at a glance.
 
 ## 11. Integration verification
 
 Cross-cutting checks only; each group above landed its own tests and docs.
 
-- [ ] 11.1 Run `moon run :fleet_build` and `moon run platform:fleet_build_gitrepo`; verify no stale umbrella pins and the GitRepo catch-all bundle stays under 3 MiB
-- [ ] 11.2 Run `bin/fleet-lint-targets` and `trunk fmt && trunk check`; verify both pass with no findings
+**Results (2026-10-06) — 11.1 and 11.2 PASS.**
+
+- **11.1 PASS.** `moon run :fleet_build` builds all 30 bundles (7 platform + 11 secret + 12
+  network) with no stale umbrella pins, and `moon run platform:fleet_build_gitrepo` reports the
+  `apps` GitRepo path within the 3145728-byte Bundle limit.
+- **11.2 PASS.** `bin/fleet-lint-targets` 30/30 ok (every bundle carries its terminal
+  `doNotDeploy` catch-all, including the new `netbird-account`), and `trunk fmt` + `trunk check`
+  are clean over 230 modified files.
+- **11.4 PASS — every scenario in `specs/mesh-service-exposure/spec.md` holds.** Requirement by
+  requirement, with the method that produced each:
+
+  | requirement | result |
+  |---|---|
+  | Flat mesh hostname per service | `openbao`/`omada` resolve via the mesh resolver to their peer addresses; names carry no cluster or namespace label |
+  | Each service owns its full port space | both `openbao` and `omada` answer on **:443** at their own addresses with no arbitration; `:10443`/`:10080` closed on both; omada 7/7 raw TCP (29811–29817) |
+  | Raw TCP and UDP alongside HTTPS | Envoy bound to exactly the **11 declared sockets** (443, 29811–29817, 19810, 27001, 29810) and nothing else |
+  | Publicly-trusted certificate | all three serve `CN=*.vpn.blueora.ng`, SAN `['*.vpn.blueora.ng']`, issuer Let's Encrypt `YR2`, validated against the **default trust store with no override** |
+  | Hostname does not resolve publicly | all three return nothing from `1.1.1.1` |
+  | No wildcard makes mesh names public | `*.blueora.ng` empty; no `_acme-challenge` TXT residue |
+  | Enrolled peer outside the allowed groups is denied | `jwks-network` DENIED from the Mac (`homelab`/`roaming`; source is `secret-k8s` only); `omada` DENIED from `network-k8s` |
+  | Undeclared port is not reachable | `8043`, `8088`, `8843`, `9999` all refused on `omada.vpn.blueora.ng` |
+  | Stable identity across replacement | rollout went 1 → **0** → 1 peer; never 2, never two DNS answers |
+  | Recovery from a wedged client | a watchdog per exposure, all three selecting on the **Gateway** name (8a's fix) |
+  | Cross-cluster consumption | fresh JWT login + 10/10 VSO objects after a forced re-auth |
+  | Non-peer consumer keeps end-to-end TLS | the raw-TCP socat relay validates the service's own certificate |
+  | Devices that cannot join keep a separate path | `omada.blueora.ng` 11/11 assertions |
+  | Single declarative unit / fails fast | one values file renders **15** resources incl. HTTPRoute + 2 TCPRoute + 2 UDPRoute, zero shifted ports; empty `name` or `domain` errors instead of rendering |
+
+  **The sharpest single result** is the port-space pair: `8043`/`8088`/`8843` are OPEN on
+  `omada.blueora.ng` and REFUSED on `omada.vpn.blueora.ng`. Same backend, two names, genuinely
+  independent port spaces — which is the requirement in its most falsifiable form.
+
+  **UDP was verified from the RECEIVING end**, per 7.9's finding that `nc -zu` is vacuous. Sending
+  5 datagrams to each of the 3 declared UDP ports moved Envoy's counters
+  `udp.service.downstream_sess_rx_datagrams` 12 → **27** (+15, exactly what was sent) and
+  `downstream_sess_total` 3 → **6** (+3, one session per declared port). The Envoy container is
+  distroless, so the admin interface was reached by `kubectl port-forward`, not `exec`.
+
+  **A METHOD CORRECTION that this task's own wording invites, and that cost two wrong conclusions
+  before it was spotted — worth more than any single PASS above:**
+  * **`jwks-network` cannot be verified "from the Mac" at all, and that is the spec working.**
+    NetBird's DNS is **policy-scoped**: a peer with no policy access cannot even RESOLVE the name
+    (`wget: bad address`), let alone connect. The Mac is not in `secret-k8s`, so this one has to
+    be checked from an allowed peer — done from the `jwks-gateway` forwarder pod, where it
+    resolves and validates its certificate with default trust.
+  * **macOS caches the system-resolver answer across a rollout, and the stale entry looks exactly
+    like a broken service.** After rolling `omada-mesh`, `curl` reported `http=000` for minutes.
+    It was trying `100.65.25.111` — the PREVIOUS pod's peer — while the mesh resolver correctly
+    returned the new `100.65.70.129`. `curl --resolve` to the live address returned
+    `http=200 ssl_verify_result=0` immediately. Nothing was wrong with the service.
+    *Two conclusions were drawn and then disproved along the way, recorded so the next reader does
+    not repeat them:* (1) `transport_socket: dummy.transport_socket` with an empty
+    `common_tls_context` looked like a mis-translated `BackendTLSPolicy` — it is simply Envoy
+    Gateway's normal name for the generated upstream socket, identical in working and
+    "broken" states; (2) an Envoy Gateway control-plane restart appeared to fix it — coincidence,
+    since the failure recurred with the control plane freshly restarted. **Always re-resolve
+    through `dig @100.65.255.254` (or `--resolve` to the live peer) before concluding anything
+    about a mesh service after a rollout.**
+- **11.5 DONE, and two of the three files turned out to need a banner rather than a rewrite.**
+  * `apps/secret/CLAUDE.md` is a LIVING doc and got real corrections: the Crossplane-only list
+    now names `vault-secrets-operator` (not `external-secrets`) plus the snapshot role and the
+    plugin configs; the Fleet-targeting warning now says the collision is not always a Kubernetes
+    object (`netbird-account` reconciles account-global state, so a second cluster would flap the
+    NetBird account itself) and adds the terminal-`doNotDeploy` rule; and the `jwt-network` note
+    no longer says "over the tailnet" — it describes the real path (mesh hostname → CoreDNS
+    override → pinned ClusterIP → raw-TCP socat relay) and *why* both horizons ending at the same
+    certificate is what lets verification stay on. A new bullet states the invariant that explains
+    the whole arrangement: **OpenBao must never become a mesh client** (failurePolicy: Fail webhook
+    + the operator's PAT dependency = cold-start deadlock), which is also why this cluster's VSO
+    reaches OpenBao over a plaintext ClusterIP and why the certificate chain stays acyclic.
+  * `apps/network/SPEC.md` and `apps/network/PLAN.md` are ARCHIVED specs for a long-superseded
+    migration — Terranetes → Crossplane with **Tailscale** ACLs, ESO, a root `VAULT_TOKEN` in
+    `.env`, and Percona-generated MongoDB credentials. Essentially every premise has since been
+    replaced, so rewriting them as current-state docs would be fiction; they are change records,
+    and `openspec/changes/` is where current plans live. Each now opens with a **SUPERSEDED**
+    banner carrying a was/is table and — what 11.5 actually asks for — a one-paragraph statement
+    of the single exposure model, naming explicitly that the reverse proxy and the
+    `NBRoutingPeer`/`NBResource`/`netbird.io/expose` path are **gone, not deprecated**, bar the
+    documented Omada device exception and the routing peer that forwards it. Both point at the
+    current sources of truth.
+  * **One genuinely stale CURRENT statement was found and fixed** by the task's own verification
+    criterion: `apps/platform/src/netbird-operator/values.yaml` justified
+    `allowAutomaticPolicyCreation: true` by the `netbird.io/expose` annotation flow — which no
+    longer exists anywhere in the repo. 9.9 established the real reason (the explicit
+    `NBResource/omada-devices` declares `policyName` + `policySourceGroups` and the operator mints
+    the device path's policy from them; a standalone `NBPolicy` creates nothing on v0.7.0), so the
+    comment now says that, and records that the flag's blast radius is now one resource rather
+    than every annotated Service.
+  * Verified: no file presents the reverse-proxy or `NBResource` mesh path as current. The
+    remaining `netbird.io/expose` hits are all explanatory ("rather than inferred from…",
+    "the OLD … path, which is gone") or inside the SUPERSEDED banners.
+
+- [x] 11.1 Run `moon run :fleet_build` and `moon run platform:fleet_build_gitrepo`; verify no stale umbrella pins and the GitRepo catch-all bundle stays under 3 MiB
+- [x] 11.2 Run `bin/fleet-lint-targets` and `trunk fmt && trunk check`; verify both pass with no findings
 - [ ] 11.3 Full cold-start proof: `moon run secret:stop && moon run secret:start`, then `moon run network:stop && moon run network:start`; verify every service comes up with no manual intervention beyond the existing seal-key and operator-PAT seeding
-- [ ] 11.4 Re-run the complete spec verification matrix from the Mac across all three services (mesh resolution, public non-resolution, certificate validation, declared ports reachable, undeclared port refused); verify every scenario in `specs/mesh-service-exposure/spec.md` holds
-- [ ] 11.5 Update `apps/network/SPEC.md`, `apps/network/PLAN.md` and `apps/secret/CLAUDE.md` to describe the single exposure model; verify no doc still describes the reverse-proxy or `NBResource` mesh path as current
+- [x] 11.4 Re-run the complete spec verification matrix from the Mac across all three services (mesh resolution, public non-resolution, certificate validation, declared ports reachable, undeclared port refused); verify every scenario in `specs/mesh-service-exposure/spec.md` holds
+- [x] 11.5 Update `apps/network/SPEC.md`, `apps/network/PLAN.md` and `apps/secret/CLAUDE.md` to describe the single exposure model; verify no doc still describes the reverse-proxy or `NBResource` mesh path as current
