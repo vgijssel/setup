@@ -1,7 +1,17 @@
-# Let's Encrypt production issuer. TLS for the *.vgijssel.nl hostnames is
-# solved over Cloudflare DNS-01, so we bring our own publicly-trusted cert here
-# (consumed by the OpenBao BYOP reverse-proxy wildcard and the Omada cert). Stays
-# NotReady until the cloudflare-api-token ExternalSecret below is populated from OpenBao.
+# Let's Encrypt production issuer, solved over Cloudflare DNS-01.
+#
+# DNS-01 specifically, not HTTP-01: the two certificates it issues are for names that must NOT be
+# publicly reachable or even publicly resolvable — `*.vpn.blueora.ng` (the one shared mesh
+# wildcard, apps/secret/src/mesh-tls) and `omada.blueora.ng` (the Omada device exception). A TXT
+# challenge needs no inbound path and publishes no address record, which is the whole mechanism
+# behind "publicly-trusted certificate, privately resolvable name".
+#
+# NO `dnsZones` on the solver, deliberately: it solves for whatever zone its token can edit, and
+# the token minted at `cloudflare/token/cert-manager` covers both `blueora.ng` and `vgijssel.nl`
+# (in two different Cloudflare accounts — scoping is by zone id, which is globally unique). So
+# adding a zone is a change to the OpenBao role, not to this issuer.
+#
+# Stays NotReady until the cloudflare-api-token VaultDynamicSecret alongside is populated.
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:

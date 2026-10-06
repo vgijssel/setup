@@ -810,10 +810,58 @@ cascade shape that took seven bundles down in 8a. Group 9 edits several of these
 `secret` from this same key). Options when it bites: avoid in-place spec edits of netbird CRs
 (recreate instead), or keep such CRs out of bundles that others depend on.
 
+### 8a.5 — ROOT-CAUSED IN UPSTREAM SOURCE AND FIXED 2026-10-06 (added; was "NEW LIMITATION" above)
+
+The diagnosis above was right about the symptom and wrong about the mechanism, which matters
+because the wrong mechanism ("writes status on create, not on update") has no cheap remedy while
+the real one does. Read `internal/controller/setupkey_controller.go` at tag `v0.7.0`:
+
+```go
+ok, err := func() (bool, error) { ... r.Netbird.SetupKeys.Update(ctx, id, {AutoGroups: ...}); return true, nil }()
+if ok { return ctrl.Result{RequeueAfter: 15 * time.Minute}, nil }   // <-- early return
+...
+conditions.MarkTrue(...); sp.Patch(ctx, setupKey, patch.WithStatusObservedGeneration{})  // never reached
+```
+
+The closure named "check if setup key is up to date" **performs the `auto_groups` PUT itself** and
+returns `true`, so Reconcile takes the early return and never reaches the one
+`WithStatusObservedGeneration{}` patch at the bottom. `status.observedGeneration` is therefore
+written **only on the create/recreate path**. That explains both halves of what was observed: the
+desired state really is live in NetBird, and no amount of reconciling or operator-restarting fixes
+the status.
+
+**The remedy follows directly from the root cause — force the create path.** The same closure
+returns `false` (→ recreate) when the derived Secret `setup-key-<name>` is missing, so:
+
+```
+kubectl -n netbird delete secret setup-key-jwks-gateway
+```
+
+mints a fresh account-side key, rewrites the Secret, deletes the old key, and patches
+`observedGeneration`. **Verified twice, on two different generations:** `gen 2 → obsGen 1` became
+`obsGen 2` in under 20 s and the BundleDeployment flipped `Ready=True`; then 9.7's edit took it to
+`gen 3 / obsGen 2` and the same step produced `obsGen 3`. No status hand-patching, no CR deletion,
+and harmless to the running peer — a setup key is only read at enrolment.
+
+It also composes with what 9.7 needed anyway: `autoGroups` apply at ENROLMENT ONLY, so the pod has
+to be recreated regardless for a group change to reach the peer. One procedure covers both.
+
+**Durability, stated honestly.** This is not self-healing — it is a documented remedy, recorded in
+a boxed header on `setupkey-jwks-gateway.yaml` itself (with the upstream file and the exact
+command) rather than in tribal memory. Deliberate, for two reasons. A cold start never hits the
+bug at all: a fresh CR is created at generation 1 and the create path writes `observedGeneration 1`,
+so **11.3 is unaffected**. And the trigger is narrow — an in-place spec edit of a SetupKey whose
+account-side key does not need recreating. `Group` has only one return path and always patches
+(`group_controller.go`), and the shared mesh-service chart's SetupKey spec is effectively static
+(name, ephemeral, allowExtraDnsLabels, one localRef). A self-healing CronJob was considered and
+rejected as machinery out of proportion to a once-per-migration event.
+*Not reported upstream* — worth filing, and flagged as a follow-up rather than done.
+
 - [x] 8a.1 Fix the watchdog's Deployment selector to use the Gateway name, not the service name; verify a dry run against a genuinely wedged client restarts the data plane
 - [x] 8a.2 Recover the three reaped peers and confirm each re-claims its DNS label with exactly one connected peer
 - [x] 8a.3 Confirm the dependent-bundle cascade clears without manual intervention once resolution returns
 - [x] 8a.4 Get the jwks-gateway peer into `secret-k8s` so its access policy is not masked by `Default`; verify the peer's groups and a fresh cross-cluster login
+- [x] 8a.5 (added) Root-cause and fix the permanent `NotReady` on the jwks-gateway bundle; verify `observedGeneration` catches up and the BundleDeployment reports Ready
 
 ## 8. Re-point OpenBao's JWKS path
 
@@ -1006,17 +1054,335 @@ Only after every verification in groups 5–8 is green.
 > would break cross-cluster secret consumption even though the Omada device path happens to keep it
 > alive for an unrelated reason. 9.7's condition must be rewritten to make that dependency explicit
 > instead of incidental.
+>
+> **9.B RESOLVED 2026-10-06 — the condition is rewritten as a flat asymmetry rather than a test.**
+> The network cluster's routing peer is KEPT unconditionally and its own header now names both
+> reasons (device exception + every ordinary pod's route), so the dependency is stated rather than
+> rediscovered. The secret cluster's is DELETED. Both halves were checked rather than assumed —
+> see 9.7 below.
+>
+> **9.A RESOLVED DURABLY 2026-10-06 — as a reconciler in the bundle, not a `network:start` step.**
+> `apps/network/src/netbird-config/cronjob-router-groups.yaml` (+ its own least-privilege SA) reads
+> `network-k8s`'s group id from the `Group` CR status and the routing peer's key id from the
+> `NBRoutingPeer` status — nothing hardcoded, so it survives the rebuild that regenerates both —
+> then APPENDS the group to the key's `auto_groups` (never replacing, or the operator decides the
+> key is wrong and mints a new one) and rollout-restarts `deploy/router`, because `auto_groups`
+> apply at enrolment only.
+> **A CronJob beat the `network:start` script the task text proposed, on two counts.** Ordering: the
+> routing peer — and therefore `.status.setupKeyID` — does not exist until well after `apply`, and
+> `start.sh` ends by exec'ing `apply.sh`, so a start-time step has no correct moment to run. And
+> coverage: the thing 9.A actually worries about is a cluster REBUILD silently losing the fix, which
+> a scheduled reconciler handles and a one-shot script invoked at the wrong time does not.
+> **Tested against the real failure state, not just the happy path** — which is the lesson 8a paid
+> for. The no-op branch was confirmed first (`already auto-joins network-k8s; nothing to do`), then
+> the account was deliberately regressed to the pre-9.A state (`auto_groups` PUT back to
+> `["network"]`), and the next run logged `adding network-k8s … (was ["d9irqtifadhs738ttul0"])` +
+> `rollout restart`, after which the re-enrolled peer came back as
+> `['All', 'network', 'network-k8s']`. Both branches exercised; 9.A is no longer imperative account
+> state. With that, `svc-openbao-tcp` genuinely covers the network cluster's egress peer and no
+> longer depends on `Default` to work.
+> *Known limit, in the header:* it reconciles the KEY, not the peer's live group list, so a
+> hand-removal in the dashboard is not detected until the peer next enrols.
 
-- [ ] 9.1 Delete `apps/secret/src/netbird-reverse-proxy/`, `apps/network/src/netbird-reverse-proxy/` and `apps/platform/src/netbird-reverse-proxy-shared/`; verify `moon run :fleet_build` still succeeds and the removed bundles are gone from its output
-- [ ] 9.2 Check for Crossplane resources needing an orphan deletion policy and a live patch **before** pruning the OpenTofu Workspaces (a cross-bundle move without this previously caused an outage); verify no live resource is scheduled for destroy in the plan output
-- [ ] 9.3 Delete the three reverse-proxy Workspaces from `apps/{secret,network}/src/cloudflare-config/`, removing any bundle left with no resources; verify the surviving Cloudflare state still reconciles clean
-- [ ] 9.4 Delete `third_party/vendir/charts/netbird-reverse-proxy/` and its `vendir.yml` entry, leaving `charts/tailscale-operator` untouched (`apps/enigma-cluster` still consumes it); verify `vendir sync` succeeds and the tailscale chart is still present
-- [ ] 9.5 Delete `apps/secret/scripts/put_netbird_proxy_auth.sh` and both proxy-token tasks from `apps/secret/moon.yml`; verify `moon query tasks` no longer lists them and no remaining script references the deleted file
-- [ ] 9.6 Remove the OpenBao `proxy-token` role config and delete the stale `kv/secret-netbird-proxy` and `kv/network-netbird-pikvm-proxy` entries; verify the role is gone from the OpenBao config and no ExternalSecret references those paths
-- [ ] 9.7 Delete the routing peer and its watchdog from `apps/secret/src/netbird-config/`, and from the network cluster only if 7.5's device-path resource does not need it; verify whichever survives carries a header explaining why, and that no service regressed
-- [ ] 9.8 Reconcile remaining hostname references: `grep -rn "vgijssel.nl" apps/{secret,network,platform}/src` shows no mesh service names, only legitimate zone-level references
-- [ ] 9.9 Turn off the operator's automatic-policy-creation flag if and only if no policy annotation survives 9.7 (resolves the second design Open Question); verify every service is still reachable afterwards — **ANSWERED by 7.5: the flag must STAY ON. The design Open Question asked "does the Omada device exception still require automatic-policy-creation, or can it be turned off entirely?" It still requires it.** No `netbird.io/*` ANNOTATION survives anywhere (8.7), which is what the task's condition literally tests — but the condition is the wrong test. `NBResource/omada-devices` declares `policyName` + `policySourceGroups` and the operator mints `Autogenerated policy for resource omada/omada-devices in cluster network TCP`/`UDP` from them, which the flag gates. And there is no alternative: on operator `v0.7.0` a standalone `NBPolicy` creates nothing (defect A under group 5), so an NBResource's own `policy*` fields are the only working declarative route for a resource-backed policy. Turning the flag off would silently strip the device path's access policy. The mesh exposures are unaffected either way — they carry no NBResource and get their policies from OpenTofu Workspaces
-- [ ] 9.10 Delete the account-side artifacts: both BYOP proxy clusters, their private services, the registered reverse-proxy domains and orphaned proxy tokens; verify the dashboard lists no reverse-proxy clusters
+**Results (verified live 2026-10-06) — the BYOP reverse-proxy stack is GONE, repo and account.**
+
+- **9.1 DONE.** `apps/secret/src/netbird-reverse-proxy/`, `apps/network/src/netbird-reverse-proxy/`
+  and `apps/platform/src/netbird-reverse-proxy-shared/` deleted. `moon run :fleet_build` succeeds
+  with 0 hits for `reverse-proxy` in its output, `bin/fleet-lint-targets` reports 29/29 ok (was 31,
+  i.e. exactly the two removed bundles), and `platform:fleet_build_gitrepo` still passes the 3 MiB
+  catch-all limit. Also swept `apps/platform/src/external-secrets/`, a directory left holding only a
+  gitignored `charts/*.tgz` after ESO's removal — nothing tracked, so it was invisible to git while
+  still being a real directory on disk.
+  **Fleet does not prune a bundle you delete from the repo.** `bin/fleet-apply` only ever upserts,
+  so the `Bundle` objects survived the file deletion and kept their resources alive. The prune is
+  `kubectl delete bundle` — done for both reverse-proxy bundles on both clusters (each cluster holds
+  a `Bundle` for every repo bundle, deploying only the ones it targets), plus
+  `platform-terranetes-…`, a 0/0 leftover from an earlier migration.
+- **9.2 DONE, and the defensive check inverted into the thing that made the teardown safe.** As
+  written ("verify no live resource is scheduled for destroy") the task does not fit a teardown —
+  here every resource those Workspaces own is *meant* to die. The property actually worth enforcing
+  is that the prune does not run `tofu destroy` **at all**, and that is not fastidiousness:
+  **three of the five Workspaces could not have destroyed successfully.** `reverse-proxy-dns`,
+  `reverse-proxy-dns-secret` and `reverse-proxy-dns-network` were all `Synced=False` with
+  `403 Authentication error` from Cloudflare — they hold a `cloudflare_dns_record` and read the
+  Cloudflare credential from `kv/cloudflare#credential`, which since the 2026-10-05 engine migration
+  is a **user-scoped parent** that cannot edit zone DNS. A Workspace that cannot `plan` cannot
+  `destroy`, and Crossplane blocks deletion on its finalizer until destroy succeeds — so pruning
+  them as-is would have hung three CRs indefinitely.
+  So: all five were patched to `deletionPolicy: Orphan` **before** either apply
+  (two needed it — secret's `reverse-proxy-services` and network's `reverse-proxy-dns`; the other
+  three already had it), making every prune a no-op against live state, and the real artifacts were
+  then deleted deliberately and verifiably in 9.10. This is the same `Orphan`-then-prune discipline
+  the shared chart's own header records from the earlier cross-bundle move.
+  Their `tfstate-reverse-proxy-*` Secrets in `crossplane-system` (2 on secret, 3 on network) were
+  deleted afterwards — `Orphan` leaves state behind by design.
+- **9.3 DONE, and the bundles deliberately NOT removed.** Deleted network's
+  `workspace-reverse-proxy-dns.yaml` + `workspace-reverse-proxy-services.yaml` and secret's
+  `workspace-reverse-proxy-services.yaml`, plus both clusters'
+  `vaultstaticsecret-cloudflare-credentials.yaml` — orphaned the moment the DNS Workspaces went,
+  since the surviving Cloudflare consumers read a *different* secret
+  (`src/config/vaultstaticsecret-cloudflare-admin-token.yaml` for the engine parent,
+  `platform/src/config/vaultdynamicsecret-cloudflare-api-token.yaml` for cert-manager).
+  Neither `cloudflare-config` bundle is empty — each still holds the `default` provider-opentofu
+  `ProviderConfig` and the NetBird PAT — so neither was removed. **The name is now a misnomer and
+  stays**, which both headers say outright: renaming the directory renames the Fleet bundle, which
+  prunes and re-creates the `ProviderConfig` that every Workspace on that cluster references
+  (`mesh-openbao`, `mesh-tls`, `openbao-config` / `mesh-omada`, `mesh-jwks`) — a self-inflicted
+  outage window for a cosmetic gain. Surviving Cloudflare state reconciles clean: all 5 remaining
+  Workspaces `Synced=True Ready=True`, and the `403` Workspaces are simply gone.
+- **9.4 DONE.** `third_party/vendir/charts/netbird-reverse-proxy/` and its `vendir.yml` entry
+  removed; `vendir sync` succeeds and the lock entry is gone. `charts/tailscale-operator` is intact
+  (`apps/enigma-cluster` still consumes it — [[netbird-tailscale-vendir-enigma-shared]]).
+  *Gotcha:* `vendir sync` does NOT prune a chart directory dropped from `vendir.yml` — it
+  disappears from `vendir.lock.yml` while the files stay on disk, so the directory has to be deleted
+  by hand or it silently persists as an untracked vendored chart.
+- **9.5 DONE.** `apps/secret/scripts/put_netbird_proxy_auth.sh` deleted and both
+  `put_netbird_proxy_auth` / `put_netbird_pikvm_proxy_auth` tasks removed from `apps/secret/moon.yml`
+  (replaced by a note saying what they did and that nothing replaces them — a mesh exposure's
+  identity is a SetupKey the operator mints from a CR, with no out-of-band value to seed).
+  `moon query tasks` lists neither, and the only remaining mention in the repo is that note.
+- **9.6 DONE, and the kv half was already satisfied — which is worth recording because the task
+  would otherwise read as skipped.** `kv/secret-netbird-proxy` and `kv/network-netbird-pikvm-proxy`
+  **do not exist**: `bao list kv/metadata` returns exactly `cloudflare, mesh-tls, mongodb, netbird,
+  netdata, pikvm, s3-backup`. They went when proxy tokens became dynamic (the engine's
+  `proxy-token` roles superseded the hand-minted kv values), so there was nothing to delete.
+  What did remain were the roles and their grants:
+  * the two `vault_generic_endpoint` blocks in `plugin-netbird.yaml` (`secret-proxy`,
+    `network-pikvm-proxy`) — removed;
+  * **`disable_delete = true` on those blocks means removing the HCL does NOT remove the live
+    roles**, so both were deleted once by hand (`bao delete netbird/config/proxy-token/<name>`,
+    verified unreadable afterwards). A fresh cluster never creates them, so this is a one-time
+    cleanup and not a drift;
+  * `netbird/proxy-token/*` dropped from `policy-vault-secrets-operator.yaml`;
+  * `policy-netbird-read.yaml` deleted outright — bound to NO role (its header still claimed
+    "bound to the external-secrets role", which ESO's removal invalidated), and every grant it
+    held is already in the `vault-secrets-operator` policy. Live policy deleted too, since the MR
+    was `Orphan`.
+  *Left alone, flagged:* the live `external-secrets` and `network-read` OpenBao policies are also
+  orphaned with no MR — residue of ESO's removal rather than of this change, so they belong to that
+  follow-up.
+- **9.7 DONE — asymmetric, and both halves checked rather than inferred.** The secret cluster's
+  `nbroutingpeer-router.yaml` + watchdog CronJob + watchdog SA are deleted; the network cluster's are
+  kept.
+  *Why secret's could go:* it existed for exactly one consumer — OpenBao's `jwt-network` backend
+  fetching the network JWKS over the old `netbird.io/expose` NBResource path, whose source group was
+  the operator-auto-created `secret`. That path is gone (8.7). Verified nothing else on that cluster
+  resolves a `*.vpn.blueora.ng` name from an ordinary pod: OpenBao reaches the JWKS via a CoreDNS
+  override to an in-cluster ClusterIP, that cluster's VSO reaches OpenBao over a ClusterIP in plain
+  HTTP, and the ClusterProxy and the mesh exposure each run their own client. Checked explicitly
+  because an unused-LOOKING routing peer is precisely what the network cluster's turned out not to
+  be (9.B).
+  *Downstream edit:* `SetupKey/jwks-gateway`'s `autoGroups` dropped `secret` (the group dies with
+  the peer), leaving only `secret-k8s` — the real `Group` CR, which was chosen for exactly this
+  reason back in 7.7. That edit tripped the `observedGeneration` trap on cue (`gen 3 / obsGen 2`)
+  and was cleared by 8a.5's remedy.
+  **A bare Pod needs the BundleDeployment deleted, not just the Secret.** Deleting
+  `setup-key-jwks-gateway` fixed the status but the forwarder Pod, once deleted, was not recreated by
+  Helm (nothing in the release changed) — `kubectl delete bundledeployment` is what forced it back.
+  Result: peer `100.65.150.251` connected with groups `['secret-k8s', 'All']` — `secret` gone — and a
+  **fresh** cross-cluster login proved the path end to end: a newly-minted network-cluster SA token
+  presented to `auth/jwt-network/login` returned `role=network-vso`,
+  `policies=[default, vault-secrets-operator]`, i.e. OpenBao pulled the JWKS through the rebuilt
+  forwarder and validated an RS256 signature with it.
+  No service regressed: all three mesh names, the Omada device path and PiKVM re-checked green
+  after the change (see 9.10).
+- **9.8 DONE, and it caught a FUNCTIONAL break that no comment-level grep would have.**
+  `grep -rn "vgijssel.nl" apps/{secret,network,platform}/src` now yields only legitimate hits: the
+  two zone ids/names the Cloudflare engine manages, `vgijssel.nl` in external-dns `domainFilters`,
+  the two ClusterProxy headers stating that no `api.<cluster>.vgijssel.nl` endpoint exists, and
+  deliberate historical notes recording what was removed. No mesh service name survives.
+  **The important find was outside that grep's scope.** `apps/network/scripts/put_netbird_operator_auth.sh`
+  — the ONE manual step the network cluster needs, and a direct input to 11.3's cold-start proof —
+  was stale in two independent ways, each fatal on a fresh cluster:
+  1. `REMOTE_BAO_ADDR` defaulted to `https://openbao.secret.vgijssel.nl`, the reverse-proxy name
+     deleted in this very group;
+  2. it read the PAT from a static `kv/network-netbird-operator` entry that **no longer exists**
+     (see 9.6) — stale since the ESO→VSO migration, not since this change.
+  Now it mints from `netbird/pat/network-operator`, the same engine role VSO reads, so the seed and
+  the steady state no longer disagree. Its auth was stale too: it demanded a "root token from .env"
+  that self-init revokes, and now accepts `BAO_TOKEN`/`VAULT_TOKEN` and points at
+  `secret:get_openbao_auth`. Its failure message lists the checks in the order they actually fail,
+  starting with "is this workstation a connected NetBird peer?" — because the new address is
+  mesh-only by design, so a disconnected laptop looks like a broken credential.
+  Also corrected: `clusterissuer-letsencrypt-prod.yaml` (said it served `*.vgijssel.nl`; it now
+  records the two names it really issues and why DNS-01 rather than HTTP-01 is load-bearing),
+  `openbao/values.yaml`, both `config/fleet.yaml` headers (still describing ESO ClusterSecretStores
+  that no longer exist), `crossplane-provider/provider-opentofu.yaml`, `jwks-gateway/fleet.yaml`,
+  and `libs/pyinfra-custom`'s `VAULT_ADDR` hint.
+  *Out of 9.8's scope, flagged for 11.5 and 10.2:* `apps/network/SPEC.md` (lines 54/81) still tells
+  a human to use `openbao.secret.vgijssel.nl`, `apps/network/network.md` still describes
+  `omada.network.vgijssel.nl` as resolving publicly, and `apps/pikvm/files/goss.yaml` still probes
+  twelve ports at that name. **10.2 is now urgent rather than tidy-up:** that name resolved until
+  today only because it fell through the `*.vgijssel.nl` wildcard, and 9.10 deleted the wildcard,
+  so it is NXDOMAIN and the PiKVM goss contract will fail until it is re-pointed.
+
+- [x] 9.1 Delete `apps/secret/src/netbird-reverse-proxy/`, `apps/network/src/netbird-reverse-proxy/` and `apps/platform/src/netbird-reverse-proxy-shared/`; verify `moon run :fleet_build` still succeeds and the removed bundles are gone from its output
+- [x] 9.2 Check for Crossplane resources needing an orphan deletion policy and a live patch **before** pruning the OpenTofu Workspaces (a cross-bundle move without this previously caused an outage); verify no live resource is scheduled for destroy in the plan output — **reinterpreted for a teardown: enforced that NO destroy runs at all, which is what kept three un-plannable Workspaces from hanging on their finalizers**
+- [x] 9.3 Delete the three reverse-proxy Workspaces from `apps/{secret,network}/src/cloudflare-config/`, removing any bundle left with no resources; verify the surviving Cloudflare state still reconciles clean — **neither bundle is empty, and both are deliberately NOT renamed (see above)**
+- [x] 9.4 Delete `third_party/vendir/charts/netbird-reverse-proxy/` and its `vendir.yml` entry, leaving `charts/tailscale-operator` untouched (`apps/enigma-cluster` still consumes it); verify `vendir sync` succeeds and the tailscale chart is still present
+- [x] 9.5 Delete `apps/secret/scripts/put_netbird_proxy_auth.sh` and both proxy-token tasks from `apps/secret/moon.yml`; verify `moon query tasks` no longer lists them and no remaining script references the deleted file
+- [x] 9.6 Remove the OpenBao `proxy-token` role config and delete the stale `kv/secret-netbird-proxy` and `kv/network-netbird-pikvm-proxy` entries; verify the role is gone from the OpenBao config and no ExternalSecret references those paths — **the kv entries were already absent; the roles needed a hand delete because `disable_delete = true`**
+- [x] 9.7 Delete the routing peer and its watchdog from `apps/secret/src/netbird-config/`, and from the network cluster only if 7.5's device-path resource does not need it; verify whichever survives carries a header explaining why, and that no service regressed — **condition rewritten per 9.B: network's is kept unconditionally**
+- [x] 9.8 Reconcile remaining hostname references: `grep -rn "vgijssel.nl" apps/{secret,network,platform}/src` shows no mesh service names, only legitimate zone-level references
+- [x] 9.9 Turn off the operator's automatic-policy-creation flag if and only if no policy annotation survives 9.7 (resolves the second design Open Question); verify every service is still reachable afterwards — **ANSWERED by 7.5: the flag must STAY ON. The design Open Question asked "does the Omada device exception still require automatic-policy-creation, or can it be turned off entirely?" It still requires it.** No `netbird.io/*` ANNOTATION survives anywhere (8.7), which is what the task's condition literally tests — but the condition is the wrong test. `NBResource/omada-devices` declares `policyName` + `policySourceGroups` and the operator mints `Autogenerated policy for resource omada/omada-devices in cluster network TCP`/`UDP` from them, which the flag gates. And there is no alternative: on operator `v0.7.0` a standalone `NBPolicy` creates nothing (defect A under group 5), so an NBResource's own `policy*` fields are the only working declarative route for a resource-backed policy. Turning the flag off would silently strip the device path's access policy. The mesh exposures are unaffected either way — they carry no NBResource and get their policies from OpenTofu Workspaces
+- [x] 9.10 Delete the account-side artifacts: both BYOP proxy clusters, their private services, the registered reverse-proxy domains and orphaned proxy tokens; verify the dashboard lists no reverse-proxy clusters
+
+**9.10 results (verified live 2026-10-06) — the account holds no reverse-proxy artifact.**
+
+Order mattered: services → domains → clusters, so nothing was deleted while still referenced.
+
+| artifact | before | after |
+|---|---|---|
+| private services | `openbao-secret`, `pikvm-network` | **0** |
+| custom reverse-proxy domains | `secret.vgijssel.nl`, `network.vgijssel.nl`, `vgijssel.nl` | **0** |
+| reverse-proxy clusters | shared `eu1` + 2 private `account` | **1** (shared `eu1` only) |
+| proxy tokens | 48, 35 of them live | 48 records, **0 live** |
+
+**Two API shapes worth recording, because both read as success while doing nothing:**
+
+- **A proxy cluster is deleted by its ADDRESS, not by the `id` the GET returns.**
+  `DELETE /api/reverse-proxies/clusters/netbird-proxy-<uuid>` returns **404**;
+  `DELETE /api/reverse-proxies/clusters/secret.vgijssel.nl` returns 200 and actually removes it.
+- **`DELETE` on a proxy token REVOKES it, it does not remove the record.** All 48 returned
+  `200 {}` and all 48 are still listed — now with `revoked: true`, 0 live. That is the meaningful
+  outcome (a revoked token cannot authenticate a proxy) and the API exposes no way to purge the
+  history. Counting `revoked` is the only honest check here; counting rows looks like total failure.
+
+**Orphans the operator does NOT reap on CR deletion — the same class 7.5 found, now swept.**
+Deleting a `netbird.io` CR frequently leaves its account-side object behind, so the secret
+cluster's routing-peer teardown left: the `secret` **network**, the `secret` **group**, and **two**
+orphaned `secret` setup keys. Deleting the group failed first with
+`group has been linked to setup key: secret` — a useful ordering constraint: setup keys pin groups,
+so keys go first. Also removed two superseded `network` setup keys (the live one is the id in
+`NBRoutingPeer.status.setupKeyID`; every key a live CR owns was enumerated from both clusters
+first, so nothing in use was touched) and four groups with 0 peers and no policy reference
+(`omada`, `omada-adopt`, `omada-domain`, `secret`).
+**Plus 9 stale peer registrations**, 8 of them `jwks-gateway` — task 1.3 spotted 5 of these back in
+September and filed them as out of scope; the non-ephemeral key kept accumulating one per pod
+replacement. Peer count 24 → 15, and every survivor is accounted for: 4 real devices, 6
+clusterproxy, 3 mesh services, 1 router, 1 jwks-gateway.
+Final account state — groups: `All, homelab, network, network-k8s, omada-devices, roaming,
+secret-k8s, svc-jwks-network, svc-omada, svc-openbao`; policies: the 4 `svc-*` mesh ones, the 2
+autogenerated `omada-devices` ones, `pikvm-ssh`, `Default` and the 4 LAN `cidr-*` ones.
+
+**Cloudflare: three wildcard CNAMEs deleted, and this is the one step with blast radius beyond
+this change.** `*.vgijssel.nl`, `*.secret.vgijssel.nl` and `*.network.vgijssel.nl` (all →
+`eu1.netbird.services`) are gone. They existed only as the validation anchor for the reverse-proxy
+domain registrations deleted above, and the proposal retires `*.vgijssel.nl` as a mesh namespace
+explicitly — but the apex wildcard answered at **arbitrary depth**, so it was also the only thing
+making every `*.enigma.vgijssel.nl` name resolve publicly. Checked before deleting: the zone
+contains **no other A or CNAME record at all**, so those names were resolving to NetBird's
+reverse-proxy anycast IPs — which are not and never were the enigma cluster. Removing the wildcard
+turns a wrong answer into NXDOMAIN, and `apps/cluster-networking`'s k8s-gateway serves those names
+internally regardless. Mail was the real risk and is untouched: 7 MX + 4 TXT (SPF/DKIM/site
+verification) intact and re-resolved from `1.1.1.1`.
+*Reversible if ever needed:* re-creating one CNAME. *The token:* the dead static `cfat_` parent
+cannot edit zone DNS, so the deletions used a freshly-minted `cloudflare/token/external-dns`
+credential from the OpenBao engine — incidentally a live re-proof of 6.2's chain.
+
+**Post-demolition regression sweep — all green, from the Mac with no `-k`:**
+`openbao.vpn.blueora.ng/v1/sys/health` 200, `omada.vpn.blueora.ng/` 200,
+`jwks-network.vpn.blueora.ng/openid/v1/jwks` 200, `omada.blueora.ng:8043/` 200 — every one with
+`ssl_verify_result=0`. `pikvm.vpn.blueora.ng` 302 under `-k` (its self-signed certificate, the
+accepted consequence recorded in 10.3 — confirmed working BEFORE the proxy was removed, so the
+replacement path was never absent). All four mesh names return nothing from `1.1.1.1`. Old proxy
+names (`openbao.secret.vgijssel.nl`, `pikvm.network.vgijssel.nl`) now NXDOMAIN. **19 + 20
+BundleDeployments across both clusters, 0 not green** — checked on `appliedDeploymentID ==
+spec.deploymentID` as well as conditions, per the lesson from 5.2/7.2 that conditions lie. All 10
+network-cluster VSO objects `Synced`/`Valid`, i.e. cross-cluster secret consumption still flows
+over the mesh. `trunk fmt` and `trunk check` clean on 225 files.
+
+- [x] 9.11 (added) Narrow the account's built-in `Default` policy so the per-service `svc-*` policies actually bite; verify every intended path still works and that a peer outside a service's source groups is refused
+
+**9.11 results (verified live 2026-10-06) — the spec's access-control requirement is now MET, not
+masked.** This task was never numbered: group 5 recorded that the `svc-*` policies "do not BITE
+until the account's built-in `Default` policy is narrowed or removed" and assigned that to group 9.
+It was the last thing standing between the spec scenarios *"Enrolled peer outside the allowed
+groups is denied"* / *"Undeclared port is not reachable"* and reality. **Maintainer chose
+"narrow now, fix what breaks"** after being shown the risk below.
+
+`Default` was `All + homelab + network-k8s ↔ the same three`, protocol `all`, bidirectional, every
+port — so with every peer in `All` it granted everything to everything. It is now
+**`enabled: false`** rather than deleted: identical effect, one PUT to reverse, and the exact
+restore payload is snapshotted.
+
+**The lockout risk turned out not to apply here, and that is worth recording rather than having
+merely got lucky.** The concern was that `netbird kubernetes write-kubeconfig` (ClusterProxy) is
+the documented break-glass path and has no explicit policy, so narrowing `Default` could kill
+kubectl — the very tool needed to repair it. Checked first: `kubectl config view` shows both vind
+clusters at `https://localhost:11979` / `:12847`, i.e. **Docker-published ports, not the
+ClusterProxy**. kubectl on this workstation is mesh-independent, confirmed still working after the
+change. The ClusterProxy path is an alternative for remote access, not the one in use. On a
+non-vind cluster this would be a genuine lockout and would need its policy authored first.
+
+**Exactly one real regression, found and fixed: PiKVM's web UI.** `homelab → homelab:443` rode
+`Default` and nothing else — `pikvm-ssh` covers only `netbird-ssh`/22 (which kept working
+throughout). Fixed with an explicit `homelab-devices` policy (`homelab ↔ homelab`, protocol `all`,
+bidirectional) — deliberately the same shape `Default` gave homelab members, scoped to `homelab`
+alone so the `svc-*` groups stay gated. **This does not weaken the spec:** the requirement
+constrains *exposed mesh services*, each of which sits in its own `svc-*` group behind its own
+per-protocol policy. PiKVM, Home Assistant and the phone are plain device peers, not exposures.
+
+**Final allow/deny matrix, measured — the DENIED rows are the point:**
+
+| from | to | policy | result |
+|---|---|---|---|
+| Mac `[homelab]` | `openbao.vpn.blueora.ng:443` | `svc-openbao-tcp` | ALLOWED |
+| Mac `[homelab]` | `omada.vpn.blueora.ng:443` | `svc-omada-tcp` | ALLOWED |
+| Mac `[homelab]` | `omada.blueora.ng:8043` | autogen `omada-devices` | ALLOWED |
+| Mac `[homelab]` | `pikvm.vpn.blueora.ng:443` | `homelab-devices` | ALLOWED |
+| Mac `[homelab]` | `pikvm.vpn.blueora.ng:22` | `pikvm-ssh` | ALLOWED |
+| router `[network-k8s]` | `openbao.vpn.blueora.ng:443` | `svc-openbao-tcp` | ALLOWED |
+| jwks-gw `[secret-k8s]` | `jwks-network.vpn.blueora.ng:443` | `svc-jwks-network-tcp` | ALLOWED |
+| **Mac `[homelab, roaming]`** | **`jwks-network.vpn.blueora.ng:443`** | **source is `secret-k8s` only** | **DENIED** |
+| **router `[network-k8s]`** | **`omada.vpn.blueora.ng:443`** | **source is `homelab` only** | **DENIED** |
+
+**A bonus finding in those two denials: NetBird's DNS is policy-scoped.** The denied attempts did
+not time out at the transport — they failed to RESOLVE (`wget: bad address
+'omada.vpn.blueora.ng'`). A peer cannot even learn the name of a service it has no policy access
+to, which is a stronger form of the spec's "off-mesh client cannot reach the service" than the
+requirement asks for.
+
+**Proven not-cached.** Cluster health under the new ACL was re-established by forcing fresh work,
+not by reading stale `Synced` columns: a newly-minted network-cluster SA token presented to
+`auth/jwt-network/login` returned `role=network-vso` / `policies=[default,
+vault-secrets-operator]`, and the network VSO controller was restarted to force re-authentication —
+all **10** VaultStaticSecret/VaultDynamicSecret objects came back `Synced`/`Valid`. Both clusters:
+19 + 20 BundleDeployments, **0 not green** (checked on `appliedDeploymentID == spec.deploymentID`
+as well as conditions).
+
+**A NetBird control-plane outage hit mid-test and nearly produced a false conclusion — recorded
+because it is a trap for anyone re-running this.** `api.netbird.io` went to `http=000` (timeouts)
+for several minutes while the data plane stayed up; the router pod reported `Management:
+Disconnected / Signal: Disconnected` with `connection refused` to `85.9.201.14:443`. During that
+window every cross-cluster probe failed, which looks exactly like the ACL change having broken
+cross-cluster access — and it was not. The Mac's own daemon reporting `Management: Connected` while
+`curl` to the API failed is what separated the two. Two consequences: **do not interpret a
+connectivity matrix without first checking daemon `Management`/`Signal` state**, and note that
+while the API is down a policy change cannot be rolled back, which is a real argument for
+`enabled: false` plus a saved payload over deletion.
+*Also re-confirmed:* `nc -z` is unreliable on 443 here (reported CLOSED while `curl` to the same
+IP:port returned 302) — the same vacuousness task 7.9 recorded for `nc -zu` on UDP. Every row above
+uses a protocol-level probe.
+
+**NOT IN GIT, flagged.** `Default`'s disabled state, `homelab-devices`, `pikvm-ssh` and the four
+LAN `cidr-*` policies are all hand-managed account state. That is consistent with existing practice
+(the `cidr-*` and `pikvm-ssh` policies were always account-side) and the durability concern is
+much weaker than 9.A's — NetBird account state is cloud-side and survives any cluster rebuild, so
+11.3 is unaffected. But it is not reproducible onto a fresh ACCOUNT, and the mesh exposures' own
+policies ARE in git (OpenTofu Workspaces in the shared chart). Codifying the device-side policies
+the same way is a follow-up.
+
+**A pre-existing blocker surfaced mid-apply and is fixed: cert-manager's own webhook serving
+certificate had EXPIRED** (`notAfter 2026-10-05T18:26:36Z`). Every `netbird-operator` bundle apply
+failed with `failed calling webhook "webhook.cert-manager.io" … certificate has expired`, which
+cascaded to `jwks-gateway` and `netbird-config` through `dependsOn` — the 8a cascade shape again,
+from an unrelated cause. The `cert-manager-webhook-ca` is valid to 2027; it is the webhook's
+in-memory **serving** cert, rotated by the pod itself, that lapsed — the pod was 69 days old and
+the host slept, so the rotation timer never fired. `rollout restart deploy/cert-manager-webhook`
+on both clusters regenerated it. Unrelated to this change, but worth carrying forward as a
+suspend/resume consequence in the same family as 8a: a sleeping host does not just wedge mesh
+clients, it stalls any in-pod timer, and cert-manager's webhook is one with a hard deadline.
 
 ## 10. PiKVM
 

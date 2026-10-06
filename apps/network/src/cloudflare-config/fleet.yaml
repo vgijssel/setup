@@ -1,6 +1,14 @@
-# Raw-manifest Fleet bundle: the provider-opentofu ProviderConfig + the ESO ExternalSecret
-# feeding it the Cloudflare token, and the Workspace MR that manages the NetBird reverse-proxy
-# CNAME record (inline OpenTofu, cloudflare/cloudflare v5).
+# Raw-manifest Fleet bundle: the shared provider-opentofu `default` ProviderConfig (state in the
+# kubernetes backend) plus the NetBird management PAT the Workspaces authenticate with.
+#
+# The bundle NAME is now a misnomer and is kept on purpose. It used to own the Cloudflare
+# reverse-proxy DNS: a `*.vgijssel.nl` CNAME, the `vgijssel.nl` NetBird reverse-proxy domain
+# registration and the PiKVM private service. All three went with the BYOP reverse proxy
+# (mesh exposure replaced it — see apps/platform/src/mesh-service), and the Cloudflare credential
+# they needed went with them; nothing here touches Cloudflare any more. Renaming the directory
+# would rename the Fleet bundle, which prunes and re-creates the `default` ProviderConfig that
+# EVERY Workspace on this cluster references (../mesh-omada, ../mesh-jwks) — a self-inflicted
+# outage window for a cosmetic gain, so the name stays.
 #
 # dependsOn crossplane-provider (label selector): the opentofu.upbound.io CRDs (ProviderConfig,
 # Workspace) are registered by the provider, so it must be installed before these CRs apply —

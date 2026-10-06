@@ -11,13 +11,18 @@
 #      `openbao.vpn.blueora.ng` WITHOUT a sidecar of its own. That dependency is easy to miss
 #      because it is implicit: nothing names this peer, pods just resolve and route through it.
 #
-# The operator auto-creates the backing NetBird Network + group + reusable setup key (named after
-# the operator's --cluster-name, i.e. "network"), and the Network's generated id is the
-# `networkID` the explicit device resource has to name — read it from `.status.networkID` here.
+# The secret cluster's equivalent WAS deleted (it existed only to consume the old
+# `netbird.io/expose` NBResource path, which is gone), so this asymmetry is deliberate rather
+# than an oversight — see ../../../secret/src/netbird-config/fleet.yaml.
 #
-# The operator auto-creates the backing NetBird Network + group + reusable setup key
-# (named after the operator's --cluster-name, i.e. "network") and writes the setup key to
-# a Secret named after this CR. Single replica is plenty for the homelab.
+# The operator auto-creates the backing NetBird Network + group + reusable setup key (named after
+# the operator's --cluster-name, i.e. "network") and writes the setup key to a Secret named after
+# this CR. Two consequences:
+#   - the Network's generated id is the `networkID` the explicit device resource has to name —
+#     read it from `.status.networkID` here;
+#   - the key auto-joins `network` ONLY, which is not the group the mesh exposures admit, and the
+#     spec below has no field to change that. ./cronjob-router-groups.yaml reconciles it.
+# Single replica is plenty for the homelab.
 apiVersion: netbird.io/v1
 kind: NBRoutingPeer
 metadata:
