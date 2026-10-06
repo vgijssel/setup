@@ -14,12 +14,17 @@ range like 29811-29817 is seven listeners.
 infrastructure.parametersRef attaches this service's own EnvoyProxy (1 replica, Recreate, port
 shift disabled, pod label). Per-Gateway rather than per-GatewayClass so services do not share
 proxy settings.
+
+The name comes from `mesh-service.gatewayName`, NOT `.Values.name` — read the helper before
+changing it, because under `deploy.type: GatewayNamespace` this name is also the name of the
+data-plane ServiceAccount/Deployment/Service, in the same namespace as the workload being
+published.
 */}}
 {{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "mesh-service.gatewayName" . }}
   labels:
     {{- include "mesh-service.labels" . | nindent 4 }}
 spec:

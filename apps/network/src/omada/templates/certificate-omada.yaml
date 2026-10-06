@@ -1,22 +1,30 @@
-# Let's Encrypt cert for omada.network.vgijssel.nl, issued over Cloudflare DNS-01 by
-# the shared letsencrypt-prod ClusterIssuer (apps/platform/src/config). cert-manager
-# writes the chain into omada-network-vgijssel-nl-tls in the `omada` namespace, which
-# the Omada controller mounts at /cert (config.tlsSecretName) and serves on 8043 — so
-# mesh clients reaching the omada NBResource get a valid public cert with no proxy in the
-# path (SPEC R3). Lives in the omada bundle so it shares the omada namespace with the pod
-# that mounts it.
+# Let's Encrypt cert for the DEVICE path's hostname, omada.blueora.ng, issued over Cloudflare
+# DNS-01 by the shared letsencrypt-prod ClusterIssuer (apps/platform/src/config). cert-manager
+# writes the chain into omada-blueora-ng-tls in the `omada` namespace, which the Omada
+# controller mounts at /cert (config.tlsSecretName) and serves on 8043.
 #
-# Stays NotReady until the cloudflare-api-token Secret is synced from OpenBao
-# (platform-config ExternalSecret) — i.e. until the secrets path is unblocked.
+# This is the LAN/device-facing certificate and the only one this bundle owns. Mesh peers do
+# not use it: they reach `omada.vpn.blueora.ng`, where ../../mesh-omada/'s Envoy terminates the
+# shared mesh wildcard out of kv/mesh-tls. The two names, and the two certificates, are
+# independent by design — see the named exception in service-omada.yaml.
+#
+# It is a SEPARATE issuance rather than a second SAN on the mesh wildcard for two reasons:
+# the wildcard covers `*.vpn.blueora.ng` only, and `omada.blueora.ng` must be publicly
+# resolvable while every name under `vpn.blueora.ng` must not be. Keeping them apart keeps
+# that distinction in the certificate as well as in DNS.
+#
+# Stays NotReady until the cloudflare-api-token Secret is populated from OpenBao
+# (apps/platform/src/config/vaultdynamicsecret-cloudflare-api-token.yaml), whose role is
+# scoped to both managed zones — blueora.ng included.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: omada-network-vgijssel-nl
-  namespace: omada
+  name: omada-blueora-ng
+  namespace: {{ .Release.Namespace }}
 spec:
-  secretName: omada-network-vgijssel-nl-tls
+  secretName: omada-blueora-ng-tls
   dnsNames:
-    - omada.network.vgijssel.nl
+    - omada.blueora.ng
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

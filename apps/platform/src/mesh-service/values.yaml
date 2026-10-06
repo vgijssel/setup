@@ -8,8 +8,8 @@
 
 # ── Identity ───────────────────────────────────────────────────────────────────────────────
 # The service's mesh name. Becomes ALL of: the hostname's first label, the NetBird extra DNS
-# label pinned onto this service's peer, the `svc-<name>` NetBird group, the Gateway name, and
-# the Envoy pod label the sidecar profile selects.
+# label pinned onto this service's peer, the `svc-<name>` NetBird group, the `<name>-mesh`
+# Gateway, and the Envoy pod label.
 #
 # MUST be globally unique across every cluster in the NetBird account. The namespace is flat on
 # purpose — the name must not encode which cluster runs the service, so a service can move
@@ -30,14 +30,19 @@ name: ""
 domain: ""
 
 # ── Access ─────────────────────────────────────────────────────────────────────────────────
-# NetBird groups whose peers may reach this service. Nothing else can: being enrolled in the
-# account grants no access by itself. Rendered into one NBPolicy per protocol, restricted to
-# the ports in `listeners` below, so a port this service did not declare is not reachable even
-# from an allowed group.
+# NetBird groups whose peers may reach this service. Nothing else should: being enrolled in the
+# account is not meant to grant access by itself. Rendered into one account policy with one rule
+# per protocol, restricted to the ports in `listeners` below, so a port this service did not
+# declare is not reachable even from an allowed group.
 #
 # Groups are referenced by NAME and must already exist in the account (the per-cluster
 # netbird-config bundles create the long-lived ones: homelab, roaming, secret-k8s, network-k8s).
 # This chart creates only its own `svc-<name>` destination group.
+#
+# ⚠️ These restrictions only BITE once the account's built-in `Default` policy is narrowed or
+# removed. `Default` is All <-> All on protocol `all`, bidirectional, so while it exists every
+# enrolled peer reaches every port here regardless of what this list says. See
+# templates/workspace-policy-mesh-service.yaml.
 sourceGroups: []
 
 # ── Listeners ──────────────────────────────────────────────────────────────────────────────
@@ -61,6 +66,24 @@ sourceGroups: []
 #   backend.name  in-cluster Service to forward to; must be in this release's namespace
 #   backend.port  backend port. OMIT to reuse the listener port — the common case for raw
 #                 TCP/UDP, where the mesh port and the Service port are the same number.
+#   backend.tls   OPTIONAL, HTTPS listeners only. Present = RE-ENCRYPT to the backend instead of
+#                 forwarding plain HTTP, because the backend terminates TLS itself. Renders a
+#                 BackendTLSPolicy; Envoy then validates the backend's certificate, so this is
+#                 not a "trust anything" switch and there is no skip-verify option on purpose.
+#       .hostname            SNI to send AND the name to validate in the backend's certificate.
+#                            This is the backend's OWN name, which is usually NOT the mesh
+#                            hostname — see the Omada example below.
+#       .caCertificates      `System` to validate against the public root store (the backend holds
+#                            a publicly-trusted certificate), or the name of a ConfigMap in this
+#                            namespace holding `ca.crt` for a private CA.
+#       .portName            The backend Service's port NAME for `backend.port`. Required, and it
+#                            cannot be derived: Gateway API scopes a BackendTLSPolicy by port NAME,
+#                            not number, and a wrong one attaches to NOTHING SILENTLY — Envoy keeps
+#                            sending plaintext to a TLS-only backend and requests hang with no
+#                            status condition anywhere (measured; see the template header).
+#                            Find it with:
+#                              kubectl get svc <backend.name> \
+#                                -o jsonpath='{.spec.ports[?(@.port==<backend.port>)].name}'
 #
 # Example — HTTPS only (the OpenBao shape):
 #   listeners:
@@ -69,12 +92,15 @@ sourceGroups: []
 #       port: 443
 #       backend: {name: openbao, port: 8200}
 #
-# Example — HTTPS plus raw TCP and UDP (the Omada shape):
+# Example — HTTPS plus raw TCP and UDP, with a TLS-terminating backend (the Omada shape):
 #   listeners:
 #     - name: https
 #       protocol: HTTPS
 #       port: 443
-#       backend: {name: omada, port: 8088}
+#       backend:
+#         name: omada
+#         port: 8043
+#         tls: {hostname: omada.blueora.ng, caCertificates: System, portName: manage-https}
 #     - name: device-tcp
 #       protocol: TCP
 #       ports: [29811, 29812, 29813, 29814, 29815, 29816, 29817]
@@ -83,18 +109,53 @@ sourceGroups: []
 #       protocol: UDP
 #       ports: [19810, 27001, 29810]
 #       backend: {name: omada}
+#
+# WHY THAT OMADA ENTRY TARGETS :8043 RATHER THAN THE CONTROLLER'S PLAIN-HTTP :8088 — a trap worth
+# knowing, because :8088 looks like the obvious choice and silently breaks the UI. Omada's HTTP
+# listener answers every request with an ABSOLUTE redirect to its own HTTPS port
+# (`302 Location: https://<host>:8043/`). Behind a mesh peer that becomes
+# `https://omada.vpn.blueora.ng:8043/`, a port the Gateway does not listen on, so the browser
+# dead-ends. Forwarding to the backend's HTTPS port instead means the controller sees HTTPS on
+# its HTTPS port and emits no redirect at all — one port, the mesh certificate, no interstitial.
+# A TLS *passthrough* listener on :8043 would also connect, but would serve the backend's own
+# certificate under the mesh hostname: a name mismatch, and a direct violation of the
+# capability's "client validates the certificate with no override".
 listeners: []
 
 # ── Certificate ────────────────────────────────────────────────────────────────────────────
-# cert-manager ClusterIssuer that signs `<name>.<domain>`. The default solves DNS-01 over
-# Cloudflare and is scoped to no particular zone, so one issuer covers every zone its API token
-# can edit — which is why adding a second peer DNS domain is a token re-scope rather than a
-# second issuer here. Parameterised anyway so a service on a zone that needs different
-# credentials is a values change, not a template change.
-certIssuer: letsencrypt-prod
+# Where to read the TLS keypair from. There is NO per-service issuance: one wildcard certificate
+# for `*.<domain>` is issued once on the secret cluster (apps/secret/src/mesh-tls) and published
+# to this OpenBao path, and every exposure on both clusters reads that same entry. Adding a
+# service involves no ACME interaction, no DNS-01 challenge and no issuer.
+#
+# The entry must hold `tls.crt` and `tls.key` under exactly those names. Vault Secrets Operator
+# mirrors it into a `kubernetes.io/tls` Secret named `<name>-mesh-tls`, which is what the Gateway
+# references.
+#
+# Parameterised so a cluster with a different store layout is a values change rather than a
+# template change. There is deliberately no `certIssuer` knob any more — nothing in this chart
+# talks to cert-manager.
+tls:
+  mount: kv
+  path: mesh-tls
+
+# ── Mesh client ────────────────────────────────────────────────────────────────────────────
+# The NetBird client that gives this service's Envoy pod its peer identity. Run by this chart as
+# a native sidecar rather than injected by the operator's SidecarProfile, so it can carry a
+# `preStop` that deregisters the peer at teardown — see the block comment in
+# templates/envoyproxy-mesh-service.yaml for why that is not optional.
+#
+# Pinned by digest. Keep in step with the operator's own client version
+# (third_party/vendir/charts/netbird-operator): the operator injects this same image elsewhere in
+# the repo, and a split between the two is the kind of difference that only shows up as a subtle
+# protocol incompatibility against management.
+netbirdImage: ghcr.io/netbirdio/netbird:0.72.4@sha256:6c6c20baffae4a3ec50f29ec9361608a420625185505e8cd6f0c44d71c5d4798
+
+# NetBird management API. Only change this for a self-hosted control plane.
+netbirdManagementUrl: https://api.netbird.io
 
 # ── Recovery ───────────────────────────────────────────────────────────────────────────────
-# Self-heal watchdog for a wedged mesh client. The injected client authenticates once at pod
+# Self-heal watchdog for a wedged mesh client. The client authenticates once at pod
 # start; if management later forces a re-auth (host suspend/resume, login expiry) it drops to a
 # terminal state and never recovers on its own, taking the service offline silently. Disabling
 # account-wide peer login expiration removes the dominant cause; this stays as defence in depth

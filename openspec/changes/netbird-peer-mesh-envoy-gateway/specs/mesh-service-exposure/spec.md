@@ -66,7 +66,8 @@ Each exposed service SHALL serve a certificate issued by a publicly-trusted auth
 #### Scenario: No wildcard makes mesh names public
 
 - **WHEN** the public zone containing the peer DNS domain is inspected
-- **THEN** it contains no wildcard record, because a wildcard answers at arbitrary label depth and would make every mesh hostname publicly resolvable and let public DNS override the mesh resolver
+- **THEN** it contains no wildcard **address record**, because a wildcard answers at arbitrary label depth and would make every mesh hostname publicly resolvable and let public DNS override the mesh resolver
+- **NOTE** this constrains DNS records only, and says nothing about certificates. A wildcard *certificate* for the peer DNS domain publishes no address record and is therefore permitted — it is in fact what the implementation uses, because it keeps individual service names out of public Certificate Transparency logs as well
 
 ### Requirement: Access restricted to explicitly named peer groups
 

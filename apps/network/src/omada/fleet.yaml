@@ -3,12 +3,16 @@
 # (the LE Certificate, the mongodb-uri ExternalSecret, and the mesh-exposed omada
 # Service in templates/). Owns the `omada` namespace.
 #
-# dependsOn the mongodb bundle so the database is up before Omada connects. The pod
-# also needs the mongodb-uri + TLS Secrets (ESO/cert-manager) before it is fully Ready;
-# Omada is exposed cross-cluster over the NetBird mesh via service-omada.yaml (a ClusterIP
-# annotated netbird.io/expose → an NBResource on the netbird-config `router` routing peer),
-# so there is no LoadBalancer/VIP dependency. Fleet error-and-retries during
-# bootstrap until the DB + secrets exist, which is expected.
+# dependsOn the mongodb bundle so the database is up before Omada connects. The pod also needs
+# the mongodb-uri + TLS Secrets (VSO/cert-manager) before it is fully Ready. Fleet
+# error-and-retries during bootstrap until the DB + secrets exist, which is expected.
+#
+# This bundle owns the DEVICE path only — the pinned-ClusterIP Service, its explicit NetBird
+# resource, the CoreDNS override and the `omada.blueora.ng` certificate, all for physical APs and
+# switches that cannot run a mesh client. Mesh peers reach the controller at
+# `omada.vpn.blueora.ng` through the separate ../mesh-omada bundle, which has its own peer and its
+# own port space. The split is documented as a named exception in
+# templates/service-omada.yaml. There is no LoadBalancer/VIP dependency on either path.
 labels:
   fleet.vgijssel.nl/bundle: network-omada
 defaultNamespace: omada

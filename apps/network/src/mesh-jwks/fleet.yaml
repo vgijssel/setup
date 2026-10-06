@@ -7,13 +7,15 @@
 # forwarder relays RAW TCP — so TLS is end-to-end from OpenBao to this peer, with correct SNI and
 # full validation against the public root store. Nothing in the path disables verification.
 #
-# defaultNamespace `netbird`: the SidecarProfile selects pods in its OWN namespace and the
-# Gateway's backendRefs resolve in the release namespace, so the exposure must live where the
-# jwks-mirror Service does (../jwks-mirror, defaultNamespace netbird).
+# defaultNamespace `netbird`: the Gateway's backendRefs resolve in the release namespace, so the
+# exposure must live where the jwks-mirror Service does (../jwks-mirror, defaultNamespace netbird).
 #
 # dependsOn:
-#   - netbird-operator : owns the netbird.io CRDs and the injecting mutating webhook.
-#   - envoy-gateway    : owns the Gateway API v1.6.1 CRDs and the `envoy` GatewayClass.
+#   - netbird-operator    : owns the netbird.io CRDs for the Group and SetupKey.
+#   - envoy-gateway       : owns the Gateway API v1.6.1 CRDs and the `envoy` GatewayClass.
+#   - crossplane-provider : owns the opentofu.upbound.io Provider behind the access policy.
+#   - vault-secrets-operator : owns the secrets.hashicorp.com CRDs + the default
+#                           VaultConnection/VaultAuth the TLS VaultStaticSecret reads through.
 #   - jwks-mirror      : the backing Service + its Deployment.
 labels:
   fleet.vgijssel.nl/bundle: mesh-jwks
@@ -53,6 +55,12 @@ dependsOn:
   - selector:
       matchLabels:
         fleet.vgijssel.nl/bundle: envoy-gateway
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane-provider
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
   - selector:
       matchLabels:
         fleet.vgijssel.nl/bundle: jwks-mirror

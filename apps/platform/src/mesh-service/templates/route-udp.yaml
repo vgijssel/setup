@@ -20,7 +20,7 @@ metadata:
     {{- include "mesh-service.labels" $ | nindent 4 }}
 spec:
   parentRefs:
-    - name: {{ $.Values.name }}
+    - name: {{ include "mesh-service.gatewayName" $ }}
       sectionName: {{ $l.name }}
   rules:
     - backendRefs:

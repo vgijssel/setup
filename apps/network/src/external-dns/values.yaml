@@ -1,8 +1,14 @@
-# external-dns, Cloudflare provider, on the NETWORK cluster. Publishes the omada
-# controller's pinned ClusterIP as a grey-cloud (DNS-only) A record for
-# omada.network.vgijssel.nl, so every NetBird client (regardless of resolver — getaddrinfo,
-# dig, or DoH browsers) resolves the hostname to the ClusterIP and reaches Omada over the
-# mesh with a valid LE cert. See apps/network/src/omada/templates/service-omada.yaml.
+# external-dns, Cloudflare provider, on the NETWORK cluster. Publishes the omada controller's
+# pinned ClusterIP as a grey-cloud (DNS-only) A record for omada.blueora.ng — the DEVICE path's
+# hostname, used by Omada's gateway/switches/APs and by LAN browsers that are not mesh peers,
+# which resolve it publicly and reach the ClusterIP over the PiKVM static route. See the named
+# exception in apps/network/src/omada/templates/service-omada.yaml.
+#
+# This is the ONLY record external-dns publishes here, and it is deliberately NOT a mesh name.
+# Mesh services are reached at `<service>.vpn.blueora.ng`, which must never gain a public
+# address record at all — their certificates come from DNS-01 TXT challenges and a wildcard in
+# this zone would answer at arbitrary label depth, making every mesh hostname publicly
+# resolvable and letting public DNS override NetBird's own resolver.
 #
 # source=service + publish-internal-services makes external-dns publish ClusterIP Services;
 # it only touches Services carrying external-dns.alpha.kubernetes.io/hostname, so the omada
@@ -18,9 +24,14 @@
 # longer the long-lived token shared with cert-manager out of kv/cloudflare#credential, nor the
 # unleased one ESO had to mint because it destroys its own leases.
 #
-# domainFilters + txtOwnerId scope external-dns to the vgijssel.nl zone and tag its TXT
-# ownership records to THIS cluster — the secret cluster's external-dns MUST use a different
-# owner id or the two would delete each other's records (historically observed).
+# domainFilters + txtOwnerId scope external-dns to the managed zones and tag its TXT ownership
+# records to THIS cluster — the secret cluster's external-dns MUST use a different owner id or
+# the two would delete each other's records (historically observed).
+#
+# `blueora.ng` is listed because the omada DEVICE record moved there; `vgijssel.nl` stays
+# because the zone is still in use for non-mesh groupings. policy=sync only removes records
+# carrying a matching TXT ownership record, so pre-existing entries this cluster never created
+# (the blueora.ng apex, cert-manager's transient _acme-challenge TXTs) are not at risk.
 external-dns:
   # NOTE no Reloader annotation. external-dns reads CF_API_TOKEN from env ONCE, at startup, so a
   # rotated Secret is invisible to the running pod — but the restart is now driven by VSO's own
@@ -34,6 +45,7 @@ external-dns:
   registry: txt
   txtOwnerId: network-cluster
   domainFilters:
+    - blueora.ng
     - vgijssel.nl
   # Publish ClusterIP Services' cluster IPs (external-dns skips ClusterIP Services by
   # default). Still gated to Services with the hostname annotation.

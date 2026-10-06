@@ -1,18 +1,22 @@
 # TP-Link Omada controller, run rootless against EXTERNAL MongoDB, with a Let's
 # Encrypt cert mounted at /cert (no ingress-nginx on this cluster — the controller
-# terminates TLS itself on 8043). Exposure is over the NetBird mesh: a dedicated
-# ClusterIP Service (templates/service-omada.yaml) annotated netbird.io/expose, which the
-# operator turns into a domain NBResource on the `router` routing peer; the chart's own
-# Service stays ClusterIP-only here.
+# terminates TLS itself on 8043).
+#
+# TWO exposure paths, sharing only this pod (see templates/service-omada.yaml's header):
+#   * mesh peers reach `omada.vpn.blueora.ng` via ../mesh-omada/, which runs its own peer and
+#     terminates the shared mesh wildcard — nothing in this bundle is involved;
+#   * non-peer physical devices reach `omada.blueora.ng` -> the pinned ClusterIP in
+#     templates/service-omada.yaml, which is the named exception this bundle owns.
+# The chart's own built-in Service stays ClusterIP-only and is used by neither.
 omada-controller-helm:
   config:
     # Rootless mode is the chart's supported external-MongoDB path.
     rootless: true
 
-    # Mount the cert-manager-issued LE cert (certificate-omada.yaml) at /cert. The
-    # controller serves it on 8043, so mesh clients reaching the omada NBResource get a
-    # valid omada.network.vgijssel.nl cert with no proxy in the path (SPEC R3).
-    tlsSecretName: omada-network-vgijssel-nl-tls
+    # Mount the cert-manager-issued LE cert (templates/certificate-omada.yaml) at /cert. The
+    # controller serves it on 8043, so a LAN browser on the DEVICE path gets a valid
+    # omada.blueora.ng cert with no proxy in the path. Mesh peers never see this certificate.
+    tlsSecretName: omada-blueora-ng-tls
 
     # External MongoDB connection string from the ESO-synced mongodb-uri Secret
     # (built in externalsecret-mongodb-uri.yaml). Mutually exclusive with
@@ -23,9 +27,9 @@ omada-controller-helm:
 
     timezone: Europe/Amsterdam
 
-  # The mesh-exposed Service is a dedicated Service in this umbrella chart's
-  # templates/ (service-omada.yaml, netbird.io/expose); keep the chart's built-in
-  # Service internal.
+  # The device path's Service is a dedicated, pinned-ClusterIP Service in this umbrella chart's
+  # templates/ (service-omada.yaml); keep the chart's built-in Service internal, since neither
+  # exposure path uses it.
   service:
     type: ClusterIP
 

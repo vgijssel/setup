@@ -1,7 +1,7 @@
 {{- include "mesh-service.validate" . -}}
 {{/*
 The enrolment key for this service's Envoy pod. Referenced by
-sidecarprofile-mesh-service.yaml via setupKeyRef; the operator mints the key in NetBird and
+the mesh client in envoyproxy-mesh-service.yaml; the operator mints the key in NetBird and
 stores it in Secret `setup-key-<name>`, which the injected client consumes as NB_SETUP_KEY.
 
 allowExtraDnsLabels: true is REQUIRED, not optional hardening in reverse. Without it the

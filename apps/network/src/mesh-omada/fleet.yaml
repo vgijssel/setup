@@ -10,13 +10,15 @@
 # split is a named exception recorded in ../omada/templates/service-omada.yaml; neither path
 # constrains the other's ports, hostname or certificate.
 #
-# defaultNamespace `omada`: the SidecarProfile selects pods in its OWN namespace and the Gateway's
-# backendRefs resolve in the release namespace, so the exposure must live where the backing
-# Service does.
+# defaultNamespace `omada`: the Gateway's backendRefs resolve in the release namespace, so the
+# exposure must live where the backing Service does.
 #
 # dependsOn:
-#   - netbird-operator : owns the netbird.io CRDs and the injecting mutating webhook.
-#   - envoy-gateway    : owns the Gateway API v1.6.1 CRDs and the `envoy` GatewayClass.
+#   - netbird-operator    : owns the netbird.io CRDs for the Group and SetupKey.
+#   - envoy-gateway       : owns the Gateway API v1.6.1 CRDs and the `envoy` GatewayClass.
+#   - crossplane-provider : owns the opentofu.upbound.io Provider behind the access policy.
+#   - vault-secrets-operator : owns the secrets.hashicorp.com CRDs + the default
+#                           VaultConnection/VaultAuth the TLS VaultStaticSecret reads through.
 #   - network-omada    : the backing Service. Listed so a fresh cluster brings the controller up
 #                        before the Gateway starts resolving backendRefs at it.
 labels:
@@ -35,21 +37,38 @@ helm:
       sourceGroups:
         - homelab
       listeners:
-        # Admin UI. Envoy terminates the publicly-trusted mesh certificate on :443 and forwards
-        # plain HTTP to the controller's :8088 — so the mesh name gets a valid certificate
-        # without the controller's own self-signed :8043 endpoint being involved at all.
+        # Admin UI. Envoy terminates the publicly-trusted mesh certificate on :443, then
+        # RE-ENCRYPTS to the controller's own HTTPS port :8043 and validates the certificate the
+        # controller serves there (`omada.blueora.ng`, the device path's, against the public root
+        # store). So the mesh name gets a valid certificate on a single port and the hop to the
+        # backend is authenticated rather than merely encrypted.
         #
-        # NOTE for the live verification (task 7.10): :8088 is the controller's HTTP listener and
-        # it redirects to its own HTTPS port. If it redirects to an absolute
-        # `https://<host>:8043` the mesh UI will bounce off the mesh name; the fix is a TLS
-        # passthrough listener to :8043 (protocol: TLS, which this chart already supports),
-        # at the cost of serving the controller's own certificate instead of the mesh one.
+        # IT MUST NOT TARGET :8088 — measured 2026-10-05, this is the task-7.10 failure. :8088 is
+        # the controller's HTTP listener and it answers with an ABSOLUTE redirect to its own HTTPS
+        # port, which behind a mesh peer becomes `https://omada.vpn.blueora.ng:8043/` — a port the
+        # Gateway does not listen on, so the browser dead-ends. Talking HTTPS to its HTTPS port
+        # means the controller never emits the redirect. The alternative considered and rejected
+        # was a `protocol: TLS` passthrough on :8043: it connects, but serves
+        # `CN=omada.blueora.ng` under the mesh hostname, which is a name mismatch and a direct
+        # violation of the capability's "client validates the certificate with no override".
+        #
+        # Note this is the ONE place the mesh path knows the device path's hostname. The two
+        # certificates stay independent — this is a validation target, not a shared certificate.
         - name: https
           protocol: HTTPS
           port: 443
           backend:
             name: omada
-            port: 8088
+            port: 8043
+            tls:
+              hostname: omada.blueora.ng
+              caCertificates: System
+              # The Service's port NAME for 8043, NOT the number. Gateway API scopes a
+              # BackendTLSPolicy by port name, and a number attaches to nothing SILENTLY —
+              # Envoy keeps sending plaintext to the TLS-only port and every request hangs,
+              # with no status condition to show for it (measured 2026-10-05). Must stay in
+              # step with ../omada/templates/service-omada.yaml.
+              portName: manage-https
         # Device management/adoption/upgrade/rtty/monitor. A contiguous range is one listener per
         # port (Gateway API has no port-range concept), expanded by the shared chart. Each is the
         # OBSERVED port: no translation, because the mesh client's WireGuard interface is inside
@@ -73,6 +92,12 @@ dependsOn:
   - selector:
       matchLabels:
         fleet.vgijssel.nl/bundle: envoy-gateway
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane-provider
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
   - selector:
       matchLabels:
         fleet.vgijssel.nl/bundle: network-omada

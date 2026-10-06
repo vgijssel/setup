@@ -28,6 +28,32 @@ and the name consumers configure are all THIS, computed once so they cannot drif
 {{- end -}}
 
 {{/*
+The Gateway's name — and therefore the name of every resource Envoy Gateway creates for it.
+
+`-mesh` suffixed rather than bare `<name>`, and that is LOAD-BEARING, not cosmetic. The control
+plane runs with `deploy.type: GatewayNamespace` (see ../../envoy-gateway/values.yaml for why),
+which names the data-plane ServiceAccount, Deployment and Service after the GATEWAY, in the
+Gateway's own namespace. A mesh-service release deliberately sits in the namespace of the Service
+it publishes, so a Gateway named `<name>` collides head-on with the very workload it fronts: the
+`openbao` exposure tried to create ServiceAccount `secret/openbao`, which the OpenBao StatefulSet
+already owns.
+
+The failure is quiet in the worst way. Envoy Gateway refuses to adopt a resource it does not own
+("resource already exists and is not owned by this Gateway, skipping"), aborts infra creation, and
+never builds the data-plane Deployment at all — so the Gateway reports `Accepted=True` with every
+listener `Programmed=True`, and only the top-level `Programmed=False / AddressNotAssigned` hints
+that nothing is serving. The Certificate goes Ready regardless, so the exposure looks almost
+healthy while answering on no port. Had it got as far as the Service, the name it wanted was the
+backing Service's own.
+
+So: never name the Gateway after the service alone. Every other resource in this chart already
+carries the suffix.
+*/}}
+{{- define "mesh-service.gatewayName" -}}
+{{- printf "%s-mesh" .Values.name -}}
+{{- end -}}
+
+{{/*
 This service's own NetBird group — the destination group of its access policies and the group its
 peer is enrolled into by the setup key. Prefixed so a service group can never be confused with
 the long-lived peer groups (homelab, roaming, secret-k8s, network-k8s) that appear as SOURCES.
@@ -73,6 +99,16 @@ missing backend name — all of which would otherwise render a listener that bin
   backend:
     name: {{ $l.backend.name }}
     port: {{ $l.backend.port | default $p }}
+    {{- if $l.backend.tls }}
+    {{- if ne $l.protocol "HTTPS" }}
+    {{- fail (printf "mesh-service: listener %q sets backend.tls on protocol %s; re-encryption applies only to HTTPS listeners (TLS passes through untouched, TCP/UDP carry no TLS of their own)" $l.name (toString $l.protocol)) }}
+    {{- end }}
+    # Re-encrypt to a TLS-terminating backend. Carried through verbatim so
+    # backendtlspolicy-mesh-service.yaml can render a policy per affected listener; this helper
+    # normalises listeners, so anything it does not copy is silently invisible downstream.
+    tls:
+      {{- toYaml $l.backend.tls | nindent 6 }}
+    {{- end }}
 {{- end }}
 {{- end }}
 {{- end -}}
@@ -81,9 +117,9 @@ missing backend name — all of which would otherwise render a listener that bin
 The ports this service declares for one protocol, as seen from the mesh. `protocols` in NetBird
 policy terms are only tcp/udp, so HTTPS and TLS listeners both count as tcp.
 
-Used by nbpolicy-mesh-service.yaml to derive the access policy from the listeners instead of
-restating the ports — the spec's "undeclared port is not reachable" holds by construction rather
-than by remembering to keep two lists in sync.
+Used by workspace-policy-mesh-service.yaml to derive the access policy from the listeners instead
+of restating the ports — the spec's "undeclared port is not reachable" holds by construction
+rather than by remembering to keep two lists in sync.
 */}}
 {{- define "mesh-service.portsFor" -}}
 {{- $proto := .proto -}}
@@ -94,16 +130,18 @@ than by remembering to keep two lists in sync.
 {{- $ports = append $ports $l.port -}}
 {{- end -}}
 {{- end -}}
-{{/* No sort: `sortAlpha` would stringify the ports and NBPolicy.spec.ports is []integer.
-     Declaration order is deterministic, which is all that matters for a stable render. */}}
+{{/* No sort: `sortAlpha` would stringify the ports, and the caller needs them as numbers it
+     can format itself. Declaration order is deterministic, which is all a stable render needs. */}}
 {{- $ports | uniq | toJson -}}
 {{- end -}}
 
 {{/*
-Label stamped on the Envoy data-plane POD by the EnvoyProxy, and selected by the SidecarProfile
-so the NetBird client is injected into exactly this service's proxy. Defined once because a
-mismatch between the two is silent: the pod comes up healthy with no mesh client, so the service
-is simply unreachable with nothing reporting an error.
+Label stamped on every resource belonging to one exposure, including the Envoy data-plane pod,
+so a service's resources are greppable as a unit.
+
+It used to also be a pod SELECTOR, read by a SidecarProfile to decide which pod to inject the
+mesh client into. That injection is gone (the chart runs the client itself — see
+envoyproxy-mesh-service.yaml), so this is now identification only.
 */}}
 {{- define "mesh-service.podLabelKey" -}}
 mesh.vgijssel.nl/service

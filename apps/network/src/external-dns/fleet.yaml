@@ -8,7 +8,7 @@
 # explicitly — this keeps external-dns (and its network-cluster txtOwnerId) off the secret
 # cluster. If the secret cluster ever needs its own external-dns it MUST declare a distinct
 # txtOwnerId, or the two clusters would treat each other's records as orphans and delete
-# them (a hard boundary observed with omada.network.vgijssel.nl).
+# them (a hard boundary observed with the omada record).
 labels:
   fleet.vgijssel.nl/bundle: network-external-dns
 defaultNamespace: external-dns

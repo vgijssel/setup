@@ -1,8 +1,19 @@
-# NetBird routing peer for the network cluster (operator v1 stack). Deploys a netbird
-# client that routes traffic for domain-type NBResources (Services annotated
-# netbird.io/expose) to their in-cluster ClusterIPs — how the JWKS mirror (and later
-# other Services) are reached cross-cluster over NetBird, with NO DNS zone and NO
-# kube-egress-forwarder (that's only the zone-based v1alpha1 NetworkRouter stack).
+# NetBird routing peer for the network cluster (operator v1 stack). Deploys a netbird client that
+# routes traffic for domain-type NBResources to their in-cluster addresses, with NO DNS zone and
+# NO kube-egress-forwarder (that's only the zone-based v1alpha1 NetworkRouter stack).
+#
+# IT IS NO LONGER A SERVICE-EXPOSURE MECHANISM — every exposed service is now its own mesh peer
+# (apps/network/src/mesh-*). Two things still need it, and they are why it must not be deleted:
+#   1. `../omada/templates/nbresource-omada-devices.yaml` — the device exception. This peer is what
+#      forwards for `omada.blueora.ng`.
+#   2. Ordinary pods on this cluster. CoreDNS forwards to the mesh resolver through this peer and
+#      this peer carries the route, which is how Vault Secrets Operator reaches
+#      `openbao.vpn.blueora.ng` WITHOUT a sidecar of its own. That dependency is easy to miss
+#      because it is implicit: nothing names this peer, pods just resolve and route through it.
+#
+# The operator auto-creates the backing NetBird Network + group + reusable setup key (named after
+# the operator's --cluster-name, i.e. "network"), and the Network's generated id is the
+# `networkID` the explicit device resource has to name — read it from `.status.networkID` here.
 #
 # The operator auto-creates the backing NetBird Network + group + reusable setup key
 # (named after the operator's --cluster-name, i.e. "network") and writes the setup key to

@@ -43,19 +43,106 @@ spec:
         # three clusterproxy replicas sharing one label resolve to all three addresses.
         #
         # So a second replica, or a RollingUpdate that briefly runs old and new together, would
-        # load-balance consumers onto a pod that is terminating or not yet enrolled. Recreate
-        # trades that for a short, honest outage on every rollout. HA is an explicit non-goal;
-        # buying it needs a different identity mechanism, not another replica.
+        # load-balance consumers onto a pod that is terminating or not yet enrolled. HA is an
+        # explicit non-goal; buying it needs a different identity mechanism, not another replica.
+        #
+        # Recreate is also what makes the preStop deregister below SUFFICIENT rather than merely
+        # helpful: the outgoing pod is fully gone — and therefore deregistered — before the
+        # replacement starts enrolling, so the label is never held by two peers at once. Under
+        # RollingUpdate the new peer would enrol while the old one still held the label, and the
+        # deregister would come too late. The pair is load-bearing; neither half works alone.
         replicas: 1
         strategy:
           type: Recreate
         pod:
           labels:
-            # Selected by sidecarprofile-mesh-service.yaml to inject the NetBird client into
-            # this pod. If the two ever disagree the pod comes up healthy with NO mesh client:
-            # the service is unreachable and nothing reports an error. Both sides read the key
-            # from the same helper for that reason.
+            # Identifies every resource belonging to one exposure, so a service's pods are
+            # greppable as a unit alongside its other resources.
             {{ include "mesh-service.podLabelKey" . }}: {{ .Values.name }}
+        # ── THE MESH CLIENT, RUN BY US RATHER THAN INJECTED ───────────────────────────────
+        # This is what makes the Envoy pod a first-class peer: the client's WireGuard interface
+        # comes up inside THIS POD'S network namespace, so a peer connecting to
+        # `<name>.<domain>:443` lands on Envoy's own :443 socket with no Service, no NAT and no
+        # port translation in between (see the port-shift block above).
+        #
+        # A native Kubernetes sidecar — an initContainer with restartPolicy: Always — so it
+        # starts before Envoy and, critically, terminates AFTER it.
+        #
+        # ╔═══════════════════════════════════════════════════════════════════════════════════╗
+        # ║ WHY NOT THE OPERATOR'S `SidecarProfile`, WHICH IS THE OBVIOUS WAY TO DO THIS.     ║
+        # ║                                                                                   ║
+        # ║ Because of `preStop` below, which a SidecarProfile cannot express: its             ║
+        # ║ `containerOverride` carries only env, image, probes and securityContext — there is  ║
+        # ║ no `lifecycle` field.                                                              ║
+        # ║                                                                                   ║
+        # ║ Without it, a replaced pod leaves its peer REGISTERED, and a stale registration    ║
+        # ║ keeps this service's extra DNS label. Two peers on one label do not conflict, they  ║
+        # ║ ROUND-ROBIN — so the hostname resolves to a dead address for as long as the stale   ║
+        # ║ peer survives. Measured on a plain `rollout restart`: two peers still present 7     ║
+        # ║ minutes later, `dig` serving the dead address stickily, and 0 of 12 requests        ║
+        # ║ succeeding while the new pod was perfectly healthy (it answered immediately when    ║
+        # ║ addressed directly). Ephemeral enrolment does reap it, but on NetBird's ~10 minute  ║
+        # ║ inactivity timer, not at pod teardown.                                             ║
+        # ║                                                                                   ║
+        # ║ Upstream has declined to fix this (netbirdio/kubernetes-operator#220: "a nice-to-   ║
+        # ║ have rather than a bug"), on the grounds that a stale ROUTING peer is harmless —    ║
+        # ║ which is true, because a routing peer holds no name. A stale peer holding an extra  ║
+        # ║ DNS label hijacks the service hostname, and that case is unreported.                ║
+        # ║                                                                                   ║
+        # ║ So the chart runs the client itself. Bonus, and the reason this is not purely a     ║
+        # ║ workaround: it takes the operator's mutating webhook — `failurePolicy: Fail` — out  ║
+        # ║ of the data plane's critical path, so a wedged webhook can no longer stop an        ║
+        # ║ exposure's pod from being created.                                                 ║
+        # ╚═══════════════════════════════════════════════════════════════════════════════════╝
+        initContainers:
+          - name: netbird
+            image: {{ .Values.netbirdImage | quote }}
+            restartPolicy: Always
+            securityContext:
+              capabilities:
+                add:
+                  # Required to create the WireGuard interface. Nothing else is granted.
+                  - NET_ADMIN
+            env:
+              # Minted by the operator from setupkey-mesh-service.yaml into Secret
+              # `setup-key-<name>` under key `setup-key`. The key is REUSABLE, which is what
+              # lets the pod re-enrol after a preStop deregister — verified live.
+              - name: NB_SETUP_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: setup-key-{{ .Values.name }}
+                    key: setup-key
+              - name: NB_MANAGEMENT_URL
+                value: {{ .Values.netbirdManagementUrl | quote }}
+              # ── The stable mesh hostname, and the mechanism the flat namespace rests on ──
+              # A peer's default DNS name derives from its hostname, which in Kubernetes is a
+              # GENERATED pod name — it changes on every rollout and is useless as an address.
+              # An extra DNS label is stable across replacement and resolves as
+              # `[label].[peer-dns-domain]`, which is exactly `<name>.<domain>`.
+              #
+              # Equals .Values.name by definition: the certificate SAN, the Gateway listener
+              # hostname and this label all derive from the same value, so the name a consumer
+              # dials, the name on the certificate and the name NetBird resolves are one string
+              # that cannot drift.
+              #
+              # Requires allowExtraDnsLabels on the enrolment key — without it the management
+              # API refuses the label and the peer silently keeps only its pod-name default.
+              - name: NB_EXTRA_DNS_LABELS
+                value: {{ .Values.name | quote }}
+            lifecycle:
+              preStop:
+                exec:
+                  # Deletes this peer from the management service, releasing the DNS label at
+                  # teardown instead of leaving it on a dead registration. Read the block above
+                  # before removing this — it is the whole reason the client is not injected.
+                  #
+                  # Ordering works out because a native sidecar terminates after the main
+                  # containers and the deployment strategy is Recreate: Envoy stops, the peer
+                  # deregisters, and only then does the replacement pod enrol. So the label is
+                  # never held by two peers at once.
+                  command:
+                    - netbird
+                    - deregister
         container:
           securityContext:
             allowPrivilegeEscalation: false

@@ -6,20 +6,39 @@
 # it. One declaration (name + domain + sourceGroups + listeners) produces all of it.
 #
 # WHAT IT SHIPS (all parameterized — nothing cluster- or service-specific is hardcoded):
-#   - certificate-mesh-service.yaml     cert-manager Certificate for <name>.<domain> (DNS-01)
-#   - envoyproxy-mesh-service.yaml      EnvoyProxy: port shift OFF, 1 replica, Recreate, pod label
-#   - gateway-mesh-service.yaml         Gateway with one listener per declared port
+#   - vaultstaticsecret-mesh-service.yaml  pulls the SHARED `*.<domain>` wildcard keypair
+#                                       out of OpenBao into a kubernetes.io/tls Secret.
+#                                       NOT a per-service cert-manager Certificate — see
+#                                       apps/secret/src/mesh-tls for why, and what it costs
+#   - envoyproxy-mesh-service.yaml      EnvoyProxy: port shift OFF, 1 replica, Recreate, and the
+#                                       mesh-client sidecar that gives the pod its peer identity
+#                                       (run here, NOT injected — see that file's comments)
+#   - gateway-mesh-service.yaml         Gateway `<name>-mesh` with one listener per declared port
 #   - route-http.yaml / route-tls.yaml / route-tcp.yaml / route-udp.yaml
 #                                       one route per listener, matched to its protocol
 #   - group-mesh-service.yaml           NetBird Group `svc-<name>` (this service's identity)
 #   - setupkey-mesh-service.yaml        enrolment key: extra DNS labels allowed + ephemeral
-#   - sidecarprofile-mesh-service.yaml  injects the mesh client, pins extra DNS label <name>
-#   - nbpolicy-mesh-service.yaml        one policy per protocol: sourceGroups -> svc-<name>
+#   - workspace-policy-mesh-service.yaml  account access policy, one rule per protocol:
+#                                       sourceGroups -> svc-<name>, on the declared ports only
 #   - cronjob-watchdog.yaml + serviceaccount-watchdog.yaml  self-heal for a wedged mesh client
 #
 # WHAT IT DELIBERATELY DOES NOT SHIP: the Envoy Gateway control plane and the `envoy`
 # GatewayClass. Those are one-per-cluster and live in ../envoy-gateway, which every bundle
 # consuming this chart must `dependsOn`.
+#
+# ── Cluster prerequisites every consuming bundle must `dependsOn` ─────────────────────────
+#   envoy-gateway       the control plane + `envoy` GatewayClass (../envoy-gateway)
+#   netbird-operator    the netbird.io CRDs for Group and SetupKey
+#   crossplane-provider the opentofu.upbound.io Provider behind the access-policy Workspace,
+#                       plus its `default` ProviderConfig. Fleet applies a bundle as one atomic
+#                       Helm release, so a Workspace cannot land before that CRD is established.
+#   vault-secrets-operator  the secrets.hashicorp.com CRDs behind the TLS VaultStaticSecret, and
+#                       the default VaultConnection/VaultAuth it reads OpenBao through.
+#
+# NOT a prerequisite any more: cert-manager. Nothing here issues a certificate.
+# NOT expressible as a dependsOn: `kv/mesh-tls` being populated. It is written on the secret
+# cluster (apps/secret/src/mesh-tls), which a network-cluster bundle cannot select on — so a
+# fresh exposure sits without a certificate until that has happened, and reconciles into health.
 #
 # ── Composition: single-level `file://` dependency, never a nested umbrella ───────────────
 # Each per-service bundle (apps/secret/src/mesh-openbao, apps/network/src/mesh-{omada,jwks})

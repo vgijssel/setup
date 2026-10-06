@@ -1,0 +1,72 @@
+# The DEVICE path's NetBird resource — exists ONLY for non-peer physical devices.
+#
+# This is the named exception described in service-omada.yaml's header. Omada's gateway,
+# switches and APs run stock TP-Link firmware and cannot run a NetBird client, so they can
+# never hold an overlay address or resolve a `vpn.blueora.ng` name. They reach the controller
+# at `omada.blueora.ng` -> the pinned ClusterIP, over a `10.96.0.20/32 -> PiKVM` static route
+# on the LAN gateway; this resource is what puts that /32 into the PiKVM's routing table.
+#
+# Humans and on-mesh tooling do NOT use this. They use `omada.vpn.blueora.ng`, served by its
+# own peer from ../../mesh-omada/. Nothing here constrains that path's hostname, ports or
+# certificate, and nothing there constrains this one.
+#
+# WHY IT IS DECLARED EXPLICITLY rather than inferred from a `netbird.io/expose` annotation:
+#   * The device exception should be visible as a resource someone has to delete on purpose,
+#     not as a side effect of an annotation that reads like a normal mesh exposure.
+#   * The annotation path also made the operator mint the access policy, which pins
+#     ingress.allowAutomaticPolicyCreation=true on for the whole cluster. Naming policyName
+#     and policySourceGroups here keeps the policy declared where the resource is. (On
+#     operator v0.7.0 `NBPolicy` is an AGGREGATOR that creates nothing standalone — it
+#     collects its ports from the NBResources naming it — so an NBResource's own
+#     policy* fields are the only working declarative route for a resource-backed policy.
+#     The mesh-service chart, which has no NBResource, has to use an OpenTofu Workspace
+#     instead; see apps/platform/src/mesh-service/templates/workspace-policy-mesh-service.yaml.)
+#
+# ADDRESS IS THE PUBLIC NAME, NOT THE CLUSTER-LOCAL ONE. Measured during the omada-resolution
+# spike: NetBird installs a resource's route on a client only when that client resolves the
+# RESOURCE's own domain. A device-facing name has to be the publicly resolvable one, so
+# `omada.omada.svc.cluster.local` never produced a route on the PiKVM. The matching override
+# in configmap-coredns-omada.yaml is what stops the in-cluster `router` peer from resolving
+# this same public name back into the mesh.
+#
+# networkID IS A GENERATED, IMMUTABLE ACCOUNT-SIDE ID and the CRD requires it — there is no
+# "network by name" field on operator v0.7.0. It is the Network the operator auto-creates for
+# this cluster, named after its --cluster-name ("network"), and it is reported by the routing
+# peer: `kubectl get nbroutingpeer router -n netbird -o jsonpath='{.status.networkID}'`. It
+# survives cluster rebuilds because the Network lives in the NetBird account, not in the
+# cluster. If the account-side Network is ever deleted and recreated, this value must be
+# re-read from that status field — the resource will sit NotReady until it is.
+apiVersion: netbird.io/v1
+kind: NBResource
+metadata:
+  name: omada-devices
+  namespace: {{ .Release.Namespace }}
+spec:
+  name: omada-devices
+  address: omada.blueora.ng
+  networkID: d9irqtifadhs738ttu3g
+  groups:
+    - omada-devices
+  policyName: omada-devices
+  # All Omada device traffic is trusted homelab traffic. `homelab` is the group the PiKVM
+  # routing peer carries, which is the peer that actually forwards for the devices.
+  policySourceGroups:
+    - homelab
+  # Mirrors service-omada.yaml's port list. The device protocols are the reason this path
+  # exists at all; 8088/8043/8843 are kept so a LAN browser that is not a mesh peer can still
+  # reach the UI on this name.
+  tcpPorts:
+    - 8088
+    - 8043
+    - 8843
+    - 29811
+    - 29812
+    - 29813
+    - 29814
+    - 29815
+    - 29816
+    - 29817
+  udpPorts:
+    - 19810
+    - 27001
+    - 29810
