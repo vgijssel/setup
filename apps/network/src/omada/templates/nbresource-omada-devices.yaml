@@ -22,12 +22,36 @@
 #     The mesh-service chart, which has no NBResource, has to use an OpenTofu Workspace
 #     instead; see apps/platform/src/mesh-service/templates/workspace-policy-mesh-service.yaml.)
 #
-# ADDRESS IS THE PUBLIC NAME, NOT THE CLUSTER-LOCAL ONE. Measured during the omada-resolution
-# spike: NetBird installs a resource's route on a client only when that client resolves the
-# RESOURCE's own domain. A device-facing name has to be the publicly resolvable one, so
-# `omada.omada.svc.cluster.local` never produced a route on the PiKVM. The matching override
-# in configmap-coredns-omada.yaml is what stops the in-cluster `router` peer from resolving
-# this same public name back into the mesh.
+# ADDRESS IS THE PINNED ClusterIP — A HOST RESOURCE, NOT A DOMAIN RESOURCE. This is the whole
+# reason the device path works, and getting it wrong silently takes every AP and switch offline.
+#
+# NetBird installs a DOMAIN resource's route on a client only AFTER that client resolves the
+# resource's domain through NetBird's own resolver; the route follows the DNS answer. That is
+# fine for an interactive consumer, which looks the name up before connecting. It is useless
+# here: the devices send UNSOLICITED inform packets straight to 10.96.0.20, and nothing ever
+# makes the PiKVM — the peer that forwards for them — resolve any name at all. So the /32 is
+# never installed, the packets die at the forwarder, and the controller reports every device as
+# `Disconnected / Inform timeout`.
+#
+# That is not hypothetical: with `address: omada.blueora.ng` here, ALL SEVEN devices dropped
+# within seconds of this resource replacing the old cluster-local ones (2026-10-05 14:23 UTC)
+# and stayed down for ~22 h. A HOST resource has no DNS precondition — the route is installed
+# on every peer the policy admits, unconditionally and permanently, which is exactly what an
+# unsolicited inbound protocol needs.
+#
+# The earlier note here cited the omada-resolution spike's finding that
+# `omada.omada.svc.cluster.local` "never produced a route on the PiKVM" and concluded the
+# address had to be the PUBLIC name. The finding was real but the conclusion did not follow: the
+# spike had shown a cluster-local DOMAIN cannot be resolved by an off-cluster peer, which argues
+# against a domain resource, not in favour of a different domain. Addressing the pinned IP
+# literally sidesteps resolution entirely — and the ClusterIP is pinned (service-omada.yaml)
+# precisely so it can be hardcoded like this.
+#
+# The name `omada.blueora.ng` still works for LAN browsers, and needs nothing from this
+# resource: it resolves PUBLICLY via the external-dns record to this same 10.96.0.20, then
+# follows the same static LAN route. Only the ROUTE comes from here. The override in
+# configmap-coredns-omada.yaml is what stops the in-cluster `router` peer from resolving that
+# public name back into the mesh.
 #
 # networkID IS A GENERATED, IMMUTABLE ACCOUNT-SIDE ID and the CRD requires it — there is no
 # "network by name" field on operator v0.7.0. It is the Network the operator auto-creates for
@@ -43,7 +67,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   name: omada-devices
-  address: omada.blueora.ng
+  # The pinned ClusterIP from service-omada.yaml, as a /32 host route. Keep the two in step:
+  # clusterIP is immutable, so if it ever has to change, this and the LAN gateway's static
+  # route change with it. See the ADDRESS note above for why this is an IP and not a name.
+  address: 10.96.0.20/32
   networkID: d9irqtifadhs738ttu3g
   groups:
     - omada-devices
