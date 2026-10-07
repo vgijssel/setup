@@ -1,20 +1,13 @@
-# external-dns, Cloudflare provider, on the NETWORK cluster. Publishes the omada controller's
-# pinned ClusterIP as a grey-cloud (DNS-only) A record for omada.blueora.ng — the DEVICE path's
-# hostname, used by Omada's gateway/switches/APs and by LAN browsers that are not mesh peers,
-# which resolve it publicly and reach the ClusterIP over the PiKVM static route. See the named
-# exception in apps/network/src/omada/templates/service-omada.yaml.
+# external-dns, Cloudflare provider, on the NETWORK cluster. Its ONLY job is to publish the
+# current overlay address of mesh exposures that opt into `publicDns`, so that consumers which
+# cannot run a mesh client can still resolve a mesh hostname.
 #
-# ── TWO SOURCES, AND THE `crd` ONE PUBLISHES MESH NAMES ON PURPOSE ──────────────────────────
-# `service` is the legacy device path above: the omada Service's hostname annotation. It is
-# being retired (openspec 12.9) once the fleet has re-homed onto the mesh hostname.
-#
-# `crd` is how an exposed mesh service publishes its CURRENT overlay address. A mesh hostname is
-# still not publicly resolvable BY DEFAULT — the shared mesh-service chart ships `publicDns`
-# disabled, and only an exposure whose consumers include devices that cannot run a mesh client
-# opts in (today: omada alone, for the TP-Link gateway/switches/APs). Each opt-in publishes ONE
-# explicit `<service>.vpn.blueora.ng` A record through a `DNSEndpoint` that the exposure's own
-# pod writes at startup and deletes at teardown, so the set of publicly resolvable mesh names is
-# enumerable from the zone rather than implied by it.
+# A mesh hostname is NOT publicly resolvable by default — the shared mesh-service chart ships
+# `publicDns` disabled, and only an exposure with non-peer consumers opts in (today: omada
+# alone, for the TP-Link gateway/switches/APs). Each opt-in publishes ONE explicit
+# `<service>.vpn.blueora.ng` A record through a `DNSEndpoint` that the chart renders and the
+# exposure's own pod patches, so the set of publicly resolvable mesh names is enumerable from
+# the zone rather than implied by it.
 #
 # A WILDCARD IN THIS ZONE REMAINS FORBIDDEN, and these per-name records do not weaken that: a
 # Cloudflare wildcard answers at arbitrary label depth, so one `*` would publish every mesh
@@ -31,12 +24,9 @@
 # changes exactly when the publishing pod starts, so the pod's own write is the trigger and the
 # record follows within seconds rather than up to a minute.
 #
-# source=service + publish-internal-services makes external-dns publish ClusterIP Services;
-# it only touches Services carrying external-dns.alpha.kubernetes.io/hostname, so the omada
-# Service's annotation is the scope of THAT source (no other Service is annotated). policy=sync lets it
-# create AND remove the records it owns. proxied defaults to false; the omada Service also
-# sets cloudflare-proxied=false explicitly (an orange-cloud record would hand back
-# Cloudflare edge IPs instead of the mesh-routable ClusterIP).
+# policy=sync lets it create AND remove the records it owns, which is what makes a deleted
+# exposure withdraw its name. proxied defaults to false and must stay false: an orange-cloud
+# record would hand back Cloudflare edge IPs instead of the mesh-routable overlay address.
 #
 # The Cloudflare API token is MINTED PER READ by the OpenBao cloudflare secrets engine and
 # delivered by Vault Secrets Operator with a LIVE lease
@@ -49,10 +39,12 @@
 # records to THIS cluster — the secret cluster's external-dns MUST use a different owner id or
 # the two would delete each other's records (historically observed).
 #
-# `blueora.ng` is listed because the omada DEVICE record moved there; `vgijssel.nl` stays
-# because the zone is still in use for non-mesh groupings. policy=sync only removes records
-# carrying a matching TXT ownership record, so pre-existing entries this cluster never created
-# (the blueora.ng apex, cert-manager's transient _acme-challenge TXTs) are not at risk.
+# `blueora.ng` is where the mesh peer DNS domain lives, so it is the zone the `publicDns` records
+# land in. `vgijssel.nl` stays listed because the zone is still in use for non-mesh groupings,
+# though nothing here publishes into it any more (`omada.network.vgijssel.nl`, the last such
+# record, was retired 2026-10-07). policy=sync only removes records carrying a matching TXT
+# ownership record, so pre-existing entries this cluster never created (the blueora.ng apex,
+# cert-manager's transient _acme-challenge TXTs) are not at risk.
 external-dns:
   # NOTE no Reloader annotation. external-dns reads CF_API_TOKEN from env ONCE, at startup, so a
   # rotated Secret is invisible to the running pod — but the restart is now driven by VSO's own
@@ -60,11 +52,18 @@ external-dns:
   # Reloader watching the Secret. One mechanism, owned by the thing that rotates the credential.
   provider:
     name: cloudflare
+  # ── ONE SOURCE: `crd`. ────────────────────────────────────────────────────────────────────
+  # DNSEndpoint CRs, rendered by mesh exposures that opt into `publicDns` and filled in by their
+  # publisher sidecars. The chart grants the dnsendpoints RBAC automatically when this source is
+  # listed (clusterrole.yaml keys off it), so there is nothing else to add. The CRD is installed
+  # cluster-wide already.
+  #
+  # `service` was removed on 2026-10-07 along with `--publish-internal-services`. It existed for
+  # exactly one annotated Service — the Omada device path's pinned ClusterIP — and that Service
+  # is deleted, so the source had no remaining input. Leaving it enabled would mean any future
+  # Service that happens to carry a hostname annotation gets published silently; requiring a
+  # DNSEndpoint makes publication an explicit, reviewable act.
   sources:
-    - service
-    # DNSEndpoint CRs, written by mesh exposures that opt into `publicDns`. The chart grants the
-    # dnsendpoints RBAC automatically when this source is listed (clusterrole.yaml keys off it),
-    # so there is nothing else to add. The CRD is installed cluster-wide already.
     - crd
   # Run the reconcile loop on watched-source changes, not only every `interval`. See the header:
   # this is what turns a peer-address change into a sub-minute DNS update instead of a polled one.
@@ -75,10 +74,6 @@ external-dns:
   domainFilters:
     - blueora.ng
     - vgijssel.nl
-  # Publish ClusterIP Services' cluster IPs (external-dns skips ClusterIP Services by
-  # default). Still gated to Services with the hostname annotation.
-  extraArgs:
-    - --publish-internal-services
   env:
     - name: CF_API_TOKEN
       valueFrom:

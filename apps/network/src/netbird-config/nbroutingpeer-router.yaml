@@ -3,13 +3,20 @@
 # NO kube-egress-forwarder (that's only the zone-based v1alpha1 NetworkRouter stack).
 #
 # IT IS NO LONGER A SERVICE-EXPOSURE MECHANISM — every exposed service is now its own mesh peer
-# (apps/network/src/mesh-*). Two things still need it, and they are why it must not be deleted:
-#   1. `../omada/templates/nbresource-omada-devices.yaml` — the device exception. This peer is what
-#      forwards for `omada.blueora.ng`.
-#   2. Ordinary pods on this cluster. CoreDNS forwards to the mesh resolver through this peer and
-#      this peer carries the route, which is how Vault Secrets Operator reaches
-#      `openbao.vpn.blueora.ng` WITHOUT a sidecar of its own. That dependency is easy to miss
-#      because it is implicit: nothing names this peer, pods just resolve and route through it.
+# (apps/network/src/mesh-*). Exactly ONE thing still needs it, and it is the reason this must not
+# be deleted:
+#
+#   ORDINARY PODS ON THIS CLUSTER. CoreDNS forwards to the mesh resolver through this peer and
+#   this peer carries the route, which is how Vault Secrets Operator reaches
+#   `openbao.vpn.blueora.ng` WITHOUT a sidecar of its own. That dependency is easy to miss
+#   because it is implicit: nothing names this peer, pods just resolve and route through it.
+#   Delete this and the cluster loses its secrets, not merely a route.
+#
+# It USED to have a second consumer — the Omada device exception's `NBResource`, for which this
+# peer forwarded `omada.blueora.ng`. That whole path is gone as of 2026-10-07 (the devices reach
+# the controller at `omada.vpn.blueora.ng` through its own mesh peer), so no NBResource exists
+# anywhere in this repo any more and nothing but the implicit pod-egress role above justifies
+# this object.
 #
 # The secret cluster's equivalent WAS deleted (it existed only to consume the old
 # `netbird.io/expose` NBResource path, which is gone), so this asymmetry is deliberate rather

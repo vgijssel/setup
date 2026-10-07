@@ -218,18 +218,27 @@ spec:
           #
           # PUSH, NOT POLL, in the case that matters. The overlay address changes exactly when a
           # pod starts, and this container starts with the pod — so the normal path is "interface
-          # appears -> write -> external-dns `triggerLoopOnEvent` fires", which is seconds. The
+          # appears -> patch -> external-dns `triggerLoopOnEvent` fires", which is seconds. The
           # loop below is not the mechanism; it is the guard for ONE case the pod lifecycle does
           # not cover: the mesh client is a `restartPolicy: Always` sidecar, so it can crash,
           # re-enrol with a DIFFERENT address, and leave the pod Running with a stale record and
           # nothing to notice. The loop re-reads a local interface and touches the API only on a
           # real change.
           #
-          # THE preStop DELETE IS THE SAME DISCIPLINE AS THE MESH CLIENT'S `deregister` ABOVE,
-          # and for the same reason: a record left pointing at a reaped peer's address is worse
-          # than no record, because a device would keep dialling an address nobody holds instead
-          # of failing and retrying. Native sidecars terminate after Envoy and the strategy is
-          # Recreate, so the withdraw lands before the replacement publishes.
+          # IT PATCHES AN OBJECT IT DOES NOT OWN, AND HAS NO preStop. The DNSEndpoint is rendered
+          # by the chart (dnsendpoint-mesh-service.yaml) with an empty endpoint list; this only
+          # ever writes the address into it. That is a deliberate change from creating and
+          # deleting it here, and the reasoning — a teardown that leaked a dead record, and an
+          # NXDOMAIN window on every pod roll that negative-caching resolvers held far longer
+          # than the window itself — is written out in that template's header.
+          #
+          # So there is NO withdraw on teardown, and that is correct rather than an omission:
+          # Helm deletes the object with the release, which is what makes external-dns withdraw
+          # the record. Across a ROLL the record deliberately keeps the outgoing address until the
+          # replacement patches it — briefly stale beats briefly absent. (Contrast the mesh
+          # client's own `deregister` preStop above, which IS still required: a stale PEER
+          # holding this service's DNS label hijacks the name inside the mesh, where a stale
+          # public A record merely points at an address that stops answering.)
           - name: public-dns
             image: {{ .Values.publicDns.image | quote }}
             restartPolicy: Always
@@ -258,9 +267,8 @@ spec:
                 # record. Failures are logged and retried on the next pass.
                 set -u
                 host={{ include "mesh-service.fqdn" . | quote }}
-                name={{ printf "%s-mesh" .Values.name | quote }}
+                name={{ include "mesh-service.gatewayName" . | quote }}
                 ttl={{ .Values.publicDns.recordTTL }}
-                published=""
                 echo "public-dns: publishing $host (ttl ${ttl}s) from wt0 in this pod"
                 while true; do
                   # `ip -4 -o addr show wt0` -> "N: wt0 inet 100.65.x.y/16 scope global ..."
@@ -271,37 +279,29 @@ spec:
                     sleep {{ .Values.publicDns.resyncSeconds }}
                     continue
                   fi
-                  if [ "$addr" != "$published" ]; then
-                    if kubectl apply -f - <<EOF
-                apiVersion: externaldns.k8s.io/v1alpha1
-                kind: DNSEndpoint
-                metadata:
-                  name: ${name}
-                  namespace: ${POD_NAMESPACE}
-                spec:
-                  endpoints:
-                    - dnsName: ${host}
-                      recordType: A
-                      recordTTL: ${ttl}
-                      targets:
-                        - ${addr}
-                EOF
+                  # COMPARE AGAINST THE LIVE OBJECT, not a variable this process remembers.
+                  # Caching the last-written value locally was wrong: anything that clobbers the
+                  # DNSEndpoint behind this process's back — a Helm upgrade, a hand edit, a
+                  # restore — would never be noticed, because from here nothing had "changed".
+                  # Reading it back makes the publisher genuinely self-healing, at the cost of
+                  # one GET per interval (which is why the Role grants `get` as well as `patch`).
+                  cur="$(kubectl get dnsendpoint "$name" -n "$POD_NAMESPACE" \
+                           -o jsonpath='{.spec.endpoints[0].targets[0]}' 2>/dev/null)"
+                  if [ "$addr" != "$cur" ]; then
+                    # A MERGE patch, not a create: the object is the chart's (rendered with an
+                    # empty endpoint list) and this only writes the address into it. `endpoints`
+                    # is a list, so a merge patch REPLACES it wholesale, which is exactly right —
+                    # one service publishes exactly one record and never accumulates stale ones.
+                    if kubectl patch dnsendpoint "$name" -n "$POD_NAMESPACE" --type=merge \
+                         -p "{\"spec\":{\"endpoints\":[{\"dnsName\":\"${host}\",\"recordType\":\"A\",\"recordTTL\":${ttl},\"targets\":[\"${addr}\"]}]}}"
                     then
                       echo "public-dns: $host -> $addr"
-                      published="$addr"
                     else
-                      echo "public-dns: apply failed for $host -> $addr; retrying" >&2
+                      echo "public-dns: patch failed for $host -> $addr; retrying" >&2
                     fi
                   fi
                   sleep {{ .Values.publicDns.resyncSeconds }}
                 done
-            lifecycle:
-              preStop:
-                exec:
-                  command:
-                    - /bin/sh
-                    - -c
-                    - kubectl delete dnsendpoint {{ printf "%s-mesh" .Values.name | quote }} -n "$POD_NAMESPACE" --ignore-not-found
 {{- end }}
         container:
           securityContext:

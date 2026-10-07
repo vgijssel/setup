@@ -230,15 +230,21 @@ internet policy) at the price of losing Sonos peering.
   pairwise relationships, so selecting these four also lets Trusted see IoT-Local.
 - VLANs 60, 80 and 90 are deliberately **excluded**: cloud appliances integrate via vendor
   clouds, and media-server clients use explicit URLs rather than discovery.
-- Public DNS resolution via the gateway; the Omada controller's **device-facing** name
-  `omada.blueora.ng` resolves publicly (Cloudflare A, unproxied) to the pinned ClusterIP
-  `10.96.0.20` and is reached over the mesh route the PiKVM routing peer carries. Renamed from
-  `omada.network.vgijssel.nl` on 2026-10-06; the old name is NXDOMAIN and had only kept answering
-  because it fell through the `*.vgijssel.nl` wildcard CNAME, which has since been deleted.
-  Humans and on-mesh tooling use a **different** name, `omada.vpn.blueora.ng`, served by its own
-  mesh peer — see `apps/network/src/mesh-omada/`. The two paths are independent by design: the
-  device name is publicly resolvable and carries the controller's own certificate on `:8043`,
-  the mesh name resolves only inside the overlay and carries the shared mesh wildcard on `:443`.
+- Public DNS resolution via the gateway. **Everything now reaches the Omada controller at one
+  name, `omada.vpn.blueora.ng`** — humans, on-mesh tooling AND the physical gateway/switches/APs.
+  It is served by the controller's own mesh peer (`apps/network/src/mesh-omada/`), which
+  publishes its current overlay address as a public A record so non-peer devices can resolve it;
+  they reach that address over the LAN gateway's `100.65.0.0/16 -> PiKVM` static route. See
+  openspec `netbird-peer-mesh-envoy-gateway` group 12.
+  - `omada.blueora.ng` still resolves publicly (Cloudflare A, unproxied) to the pinned ClusterIP
+    `10.96.0.20`, reached over the `10.96.0.20/32` route the PiKVM carries. It is now a
+    convenience for LAN browsers that are not mesh peers, and the name on the controller's own
+    `:8043` certificate — **not** the device fleet's path, which it was until 2026-10-07.
+  - `omada.network.vgijssel.nl` is **retired** (2026-10-07). It was the inform hostname the
+    devices held from their original adoption; dropping it during the 2026-10-06 rename, before
+    they had been re-homed, is what took all 7 offline for 22 hours with `Inform timeout` — they
+    were powered and on the LAN, simply unable to resolve their controller. It was republished
+    until the fleet had genuinely migrated off it, then withdrawn.
 
 ### Shared services (VLAN 80) — planned
 

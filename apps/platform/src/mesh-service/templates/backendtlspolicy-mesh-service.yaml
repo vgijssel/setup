@@ -12,11 +12,12 @@ Envoy checks the backend's certificate against it, so the re-encrypted hop is au
 rather than merely encrypted. Disabling that would make the mesh hostname's end-to-end claim
 false at the last leg, where nobody would look for it.
 
-NOTE the hostname is the BACKEND's own name, not the mesh hostname. The mesh certificate is
-terminated at Envoy; what this validates is the separate certificate the backend serves. For
-Omada those are deliberately different names (`omada.blueora.ng` vs `omada.vpn.blueora.ng`) —
-the device path's certificate and the mesh path's are independent by design, and this is the one
-place the mesh path has to know the other name.
+NOTE the hostname is whatever name the BACKEND presents, which is not necessarily this service's
+mesh hostname. The mesh certificate is terminated at Envoy; what this validates is the
+certificate the backend serves on its own port.
+Those two MAY be the same name — Omada's backend mounts the same shared wildcard this chart
+serves, which deliberately collapses two certificates into one — but a backend holding its own
+private certificate will present something else, which is why this is a parameter.
 
 `targetRefs.sectionName` MUST BE THE SERVICE'S PORT **NAME**, not its number — Gateway API defines
 it as "Service: Port name". A number renders fine, attaches to nothing, and gets no status

@@ -12,8 +12,10 @@
 #
 # That replaced a separate device hostname backed by a pinned ClusterIP, a device `NBResource` and
 # an in-cluster CoreDNS split horizon — three mechanisms whose only job was to give one class of
-# consumer a second name. See `publicDns` in apps/platform/src/mesh-service/values.yaml for the
-# trade this accepts (the device path now depends on this Envoy pod).
+# consumer a second name. All three are DELETED as of 2026-10-07, along with the `omada.blueora.ng`
+# record and its certificate: this is the only path to the controller now. See `publicDns` in
+# apps/platform/src/mesh-service/values.yaml for the trade that accepts (every consumer, including
+# the physical fleet, now depends on this Envoy pod).
 #
 # defaultNamespace `omada`: the Gateway's backendRefs resolve in the release namespace, so the
 # exposure must live where the backing Service does.
@@ -24,8 +26,9 @@
 #   - crossplane-provider : owns the opentofu.upbound.io Provider behind the access policy.
 #   - vault-secrets-operator : owns the secrets.hashicorp.com CRDs + the default
 #                           VaultConnection/VaultAuth the TLS VaultStaticSecret reads through.
-#   - network-omada    : the backing Service. Listed so a fresh cluster brings the controller up
-#                        before the Gateway starts resolving backendRefs at it.
+#   - network-omada    : the controller and its Service (`omada-omada-controller`, rendered by the
+#                        omada-controller chart). Listed so a fresh cluster brings the controller
+#                        up before the Gateway starts resolving backendRefs at it.
 labels:
   fleet.vgijssel.nl/bundle: mesh-omada
 defaultNamespace: omada
@@ -59,37 +62,40 @@ helm:
       publicDns:
         enabled: true
       listeners:
-        # Admin UI. Envoy terminates the publicly-trusted mesh certificate on :443, then
-        # RE-ENCRYPTS to the controller's own HTTPS port :8043 and validates the certificate the
-        # controller serves there (`omada.blueora.ng`, the device path's, against the public root
-        # store). So the mesh name gets a valid certificate on a single port and the hop to the
-        # backend is authenticated rather than merely encrypted.
+        # Admin UI. Envoy terminates the publicly-trusted mesh wildcard on :443, then
+        # RE-ENCRYPTS to the controller's own HTTPS port :8043 and validates what the controller
+        # presents there against the public root store.
+        #
+        # THE VALIDATED NAME IS NOW THE MESH NAME ITSELF. The controller serves that same
+        # `*.vpn.blueora.ng` wildcard on :8043 (../omada/templates/vaultstaticsecret-controller-tls.yaml),
+        # so one certificate covers both hops. It used to validate `omada.blueora.ng` — a second,
+        # dedicated cert-manager certificate for the old device-facing name — and collapsing the
+        # two is what let that name be retired outright rather than left lying around (openspec
+        # 12.9/12.10). Nothing here knows any hostname but this service's own any more.
         #
         # IT MUST NOT TARGET :8088 — measured 2026-10-05, this is the task-7.10 failure. :8088 is
         # the controller's HTTP listener and it answers with an ABSOLUTE redirect to its own HTTPS
         # port, which behind a mesh peer becomes `https://omada.vpn.blueora.ng:8043/` — a port the
         # Gateway does not listen on, so the browser dead-ends. Talking HTTPS to its HTTPS port
         # means the controller never emits the redirect. The alternative considered and rejected
-        # was a `protocol: TLS` passthrough on :8043: it connects, but serves
-        # `CN=omada.blueora.ng` under the mesh hostname, which is a name mismatch and a direct
-        # violation of the capability's "client validates the certificate with no override".
-        #
-        # Note this is the ONE place the mesh path knows the device path's hostname. The two
-        # certificates stay independent — this is a validation target, not a shared certificate.
+        # was a `protocol: TLS` passthrough on :8043: it connects, but with the controller now
+        # serving the wildcard that would also work — it is still rejected because passthrough
+        # gives Envoy no chance to validate the backend at all, where this re-encrypt does.
         - name: https
           protocol: HTTPS
           port: 443
           backend:
-            name: omada
+            name: omada-omada-controller
             port: 8043
             tls:
-              hostname: omada.blueora.ng
+              hostname: omada.vpn.blueora.ng
               caCertificates: System
               # The Service's port NAME for 8043, NOT the number. Gateway API scopes a
               # BackendTLSPolicy by port name, and a number attaches to nothing SILENTLY —
               # Envoy keeps sending plaintext to the TLS-only port and every request hangs,
-              # with no status condition to show for it (measured 2026-10-05). Must stay in
-              # step with ../omada/templates/service-omada.yaml.
+              # with no status condition to show for it (measured 2026-10-05). It is the port
+              # name on the omada-controller chart's OWN Service, which is now the only Service
+              # in the path — the hand-written pinned-ClusterIP one it used to target is gone.
               portName: manage-https
         # Device management/adoption/upgrade/rtty/monitor. A contiguous range is one listener per
         # port (Gateway API has no port-range concept), expanded by the shared chart. Each is the
@@ -99,14 +105,14 @@ helm:
           protocol: TCP
           ports: [29811, 29812, 29813, 29814, 29815, 29816, 29817]
           backend:
-            name: omada
+            name: omada-omada-controller
         # Discovery + UDP device management. Raw UDP is the half the BYOP reverse proxy could
         # never carry at all.
         - name: device-udp
           protocol: UDP
           ports: [19810, 27001, 29810]
           backend:
-            name: omada
+            name: omada-omada-controller
 dependsOn:
   - selector:
       matchLabels:

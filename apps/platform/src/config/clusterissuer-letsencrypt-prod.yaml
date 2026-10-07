@@ -2,7 +2,8 @@
 #
 # DNS-01 specifically, not HTTP-01: the two certificates it issues are for names that must NOT be
 # publicly reachable or even publicly resolvable — `*.vpn.blueora.ng` (the one shared mesh
-# wildcard, apps/secret/src/mesh-tls) and `omada.blueora.ng` (the Omada device exception). A TXT
+# wildcard, apps/secret/src/mesh-tls). It used to also issue `omada.blueora.ng` for the Omada
+# device exception; that certificate and the whole path it served were deleted 2026-10-07. A TXT
 # challenge needs no inbound path and publishes no address record, which is the whole mechanism
 # behind "publicly-trusted certificate, privately resolvable name".
 #

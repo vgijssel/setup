@@ -71,8 +71,11 @@ sourceGroups: []
 #                 BackendTLSPolicy; Envoy then validates the backend's certificate, so this is
 #                 not a "trust anything" switch and there is no skip-verify option on purpose.
 #       .hostname            SNI to send AND the name to validate in the backend's certificate.
-#                            This is the backend's OWN name, which is usually NOT the mesh
-#                            hostname — see the Omada example below.
+#                            This is whatever name the BACKEND presents. It MAY be the mesh
+#                            hostname — Omada's is, because that controller mounts the same
+#                            shared wildcard this chart serves, which collapses two certificates
+#                            into one — but it does not have to be, and for a backend with its
+#                            own private certificate it will not be.
 #       .caCertificates      `System` to validate against the public root store (the backend holds
 #                            a publicly-trusted certificate), or the name of a ConfigMap in this
 #                            namespace holding `ca.crt` for a private CA.
@@ -98,17 +101,17 @@ sourceGroups: []
 #       protocol: HTTPS
 #       port: 443
 #       backend:
-#         name: omada
+#         name: omada-omada-controller
 #         port: 8043
-#         tls: {hostname: omada.blueora.ng, caCertificates: System, portName: manage-https}
+#         tls: {hostname: omada.vpn.blueora.ng, caCertificates: System, portName: manage-https}
 #     - name: device-tcp
 #       protocol: TCP
 #       ports: [29811, 29812, 29813, 29814, 29815, 29816, 29817]
-#       backend: {name: omada}
+#       backend: {name: omada-omada-controller}
 #     - name: device-udp
 #       protocol: UDP
 #       ports: [19810, 27001, 29810]
-#       backend: {name: omada}
+#       backend: {name: omada-omada-controller}
 #
 # WHY THAT OMADA ENTRY TARGETS :8043 RATHER THAN THE CONTROLLER'S PLAIN-HTTP :8088 — a trap worth
 # knowing, because :8088 looks like the obvious choice and silently breaks the UI. Omada's HTTP

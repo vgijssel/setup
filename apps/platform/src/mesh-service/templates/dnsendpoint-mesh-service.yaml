@@ -1,0 +1,53 @@
+{{- include "mesh-service.validate" . -}}
+{{- if .Values.publicDns.enabled }}
+{{/*
+The public A record for `<name>.<domain>`, for consumers that cannot run a mesh client. See
+`publicDns` in values.yaml for why this exists and what it costs.
+
+╔═══════════════════════════════════════════════════════════════════════════════════════════════╗
+║ THIS OBJECT IS RENDERED HERE, AND `spec.endpoints` IS DELIBERATELY ABSENT — NOT `[]`.         ║
+║                                                                                               ║
+║ The chart cannot know the overlay address: NetBird assigns it when the data-plane pod enrols. ║
+║ The `public-dns` sidecar in envoyproxy-mesh-service.yaml PATCHES it in once it can read `wt0` ║
+║ in its own pod netns.                                                                         ║
+║                                                                                               ║
+║ OMITTING THE FIELD IS WHAT STOPS HELM AND THE SIDECAR FIGHTING OVER IT. Rendering             ║
+║ `endpoints: []` would be the obvious choice and is wrong: Helm records the rendered manifest   ║
+║ as last-applied, so EVERY upgrade of this bundle would patch the list back to empty,          ║
+║ external-dns would withdraw the record, and the sidecar would re-add it moments later — a      ║
+║ flap on every single `fleet apply`. With the key absent from the manifest, Helm's three-way    ║
+║ merge has nothing to say about it and leaves the sidecar's value alone.                        ║
+║                                                                                               ║
+║ A DNSEndpoint with no endpoints publishes nothing, so there is no window where a placeholder   ║
+║ address leaks either.                                                                          ║
+║                                                                                               ║
+║ It was previously CREATED by that sidecar instead, and owning it here fixes two defects that  ║
+║ both bit on 2026-10-07:                                                                       ║
+║                                                                                               ║
+║  1. TEARDOWN LEAKED A DEAD RECORD. An imperatively-created object has no Helm ownership, so   ║
+║     deleting the bundle left it behind — and because the same delete removed the sidecar's    ║
+║     RBAC, its preStop withdraw was Forbidden even when it ran. `omada-temp.vpn.blueora.ng`    ║
+║     kept resolving publicly to a peer that no longer existed until it was deleted by hand.    ║
+║     Helm/Fleet now garbage-collects it with the release.                                      ║
+║  2. EVERY POD ROLL OPENED AN NXDOMAIN WINDOW. The old preStop DELETED this object, so         ║
+║     external-dns withdrew the record and the name resolved to NOTHING for ~60s until the      ║
+║     replacement published. Devices tolerate that against an ~8-minute inform timeout, but     ║
+║     negative-caching resolvers do not: macOS served a cached NXDOMAIN long after the record    ║
+║     returned, so a service answering 200 looked down. Keeping the object across a roll means   ║
+║     the PREVIOUS address stays published until the replacement patches it — briefly stale      ║
+║     rather than briefly absent, which is strictly better for anything that caches negatives.  ║
+║                                                                                               ║
+║ Consequence to be aware of: between this object existing and the sidecar's first patch, the   ║
+║ name does not resolve. That is correct — there is genuinely no address yet.                   ║
+╚═══════════════════════════════════════════════════════════════════════════════════════════════╝
+*/}}
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: {{ include "mesh-service.gatewayName" . }}
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+# `spec` is present but EMPTY, and `spec.endpoints` is intentionally not rendered at all — see
+# the block above for why naming the field here would make every Helm upgrade flap the record.
+spec: {}
+{{- end }}

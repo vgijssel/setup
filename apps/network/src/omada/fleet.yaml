@@ -12,7 +12,7 @@
 # switches that cannot run a mesh client. Mesh peers reach the controller at
 # `omada.vpn.blueora.ng` through the separate ../mesh-omada bundle, which has its own peer and its
 # own port space. The split is documented as a named exception in
-# templates/service-omada.yaml. There is no LoadBalancer/VIP dependency on either path.
+# ../mesh-omada/. There is no LoadBalancer/VIP dependency and no pinned ClusterIP any more.
 labels:
   fleet.vgijssel.nl/bundle: network-omada
 defaultNamespace: omada

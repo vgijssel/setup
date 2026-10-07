@@ -11,16 +11,20 @@ EnvoyProxy pins that name explicitly rather than relying on the default (see
 `envoyServiceAccount` there), so this binding and that pod cannot drift apart silently: a wrong
 name here produces a Forbidden in the sidecar's log, which is at least loud.
 
-Scope is one namespace and one resource. The publisher needs `create` for the first write of a
-fresh pod, `get`/`patch`/`update` for the re-assert path when the mesh client re-enrols with a
-new address, and `delete` for the preStop that withdraws the record. It is deliberately NOT
-granted `list`/`watch` and holds no access to any other resource — a compromised data-plane pod
-gains the ability to publish one DNS name it already owns, and nothing else.
+Scope is one namespace, one resource, ONE OBJECT BY NAME, and two verbs. The publisher only ever
+patches the DNSEndpoint the chart renders for this service, so `get` + `patch` is the whole
+requirement.
 
-No resourceNames restriction: `create` cannot be constrained by name in Kubernetes RBAC (the
-object does not exist yet, so the authorizer has no name to match), and allowing create while
-restricting the others to one name would be a false sense of narrowing. The Role is scoped by
-namespace and resource type instead, which is the honest boundary.
+That narrowing is a direct consequence of the chart owning the object rather than the sidecar
+creating it (see dnsendpoint-mesh-service.yaml). `create` is gone — and with it the reason this
+Role could not use `resourceNames`, since `create` cannot be constrained by name in Kubernetes
+RBAC (the object does not exist yet, so the authorizer has nothing to match). `delete` is gone
+too, because teardown is Helm's job now; the sidecar deleting the record on the way out is what
+opened an NXDOMAIN window on every rollout.
+
+So a compromised data-plane pod can rewrite the address of the one DNS name it already serves,
+and nothing else — not create new names, not delete existing ones, not enumerate them
+(`list`/`watch` are deliberately absent).
 */}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -31,7 +35,8 @@ metadata:
 rules:
   - apiGroups: [externaldns.k8s.io]
     resources: [dnsendpoints]
-    verbs: [get, create, patch, update, delete]
+    resourceNames: [{{ include "mesh-service.gatewayName" . }}]
+    verbs: [get, patch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

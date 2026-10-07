@@ -2,21 +2,31 @@
 # Encrypt cert mounted at /cert (no ingress-nginx on this cluster — the controller
 # terminates TLS itself on 8043).
 #
-# TWO exposure paths, sharing only this pod (see templates/service-omada.yaml's header):
-#   * mesh peers reach `omada.vpn.blueora.ng` via ../mesh-omada/, which runs its own peer and
-#     terminates the shared mesh wildcard — nothing in this bundle is involved;
-#   * non-peer physical devices reach `omada.blueora.ng` -> the pinned ClusterIP in
-#     templates/service-omada.yaml, which is the named exception this bundle owns.
-# The chart's own built-in Service stays ClusterIP-only and is used by neither.
+# ONE exposure path, and this bundle is not it. Everything — humans, on-mesh tooling and the
+# physical gateway/switches/APs — reaches the controller at `omada.vpn.blueora.ng` via
+# ../mesh-omada/, which runs its own NetBird peer and terminates the shared mesh wildcard. This
+# bundle just runs the controller and its ordinary ClusterIP Service, which that exposure dials
+# as a normal in-cluster backendRef.
+#
+# Until 2026-10-07 there was a SECOND path for the devices: `omada.blueora.ng` -> a pinned
+# ClusterIP, with its own cert-manager certificate, a device `NBResource`, a CoreDNS split
+# horizon and an external-dns annotation. All of it is deleted — the devices were migrated onto
+# the mesh hostname (openspec 12.7) and the machinery that existed only to give them a second
+# name went with it.
 omada-controller-helm:
   config:
     # Rootless mode is the chart's supported external-MongoDB path.
     rootless: true
 
-    # Mount the cert-manager-issued LE cert (templates/certificate-omada.yaml) at /cert. The
-    # controller serves it on 8043, so a LAN browser on the DEVICE path gets a valid
-    # omada.blueora.ng cert with no proxy in the path. Mesh peers never see this certificate.
-    tlsSecretName: omada-blueora-ng-tls
+    # Mount the SHARED MESH WILDCARD at /cert (templates/vaultstaticsecret-controller-tls.yaml).
+    # The controller serves it on 8043, which is what lets the mesh exposure re-encrypt to this
+    # backend and still VALIDATE it: Gateway API requires a `validation.hostname`, and
+    # `*.vpn.blueora.ng` covers `omada.vpn.blueora.ng`, the one name anything uses now.
+    #
+    # It replaced a dedicated cert-manager certificate for `omada.blueora.ng`. Collapsing the two
+    # certificates into one is what allowed that name to be retired outright rather than left
+    # lying around, and it means adding or moving this controller needs no ACME interaction.
+    tlsSecretName: omada-controller-tls
 
     # External MongoDB connection string from the ESO-synced mongodb-uri Secret
     # (built in externalsecret-mongodb-uri.yaml). Mutually exclusive with
@@ -27,9 +37,11 @@ omada-controller-helm:
 
     timezone: Europe/Amsterdam
 
-  # The device path's Service is a dedicated, pinned-ClusterIP Service in this umbrella chart's
-  # templates/ (service-omada.yaml); keep the chart's built-in Service internal, since neither
-  # exposure path uses it.
+  # ClusterIP, with a DYNAMIC address. This is now the only Service in front of the controller
+  # and the mesh exposure's sole backend, dialled by name. The hand-written pinned-ClusterIP
+  # Service that used to sit beside it (and the `10.96.0.20` literal that had to be duplicated
+  # into a NetBird resource, a CoreDNS override and the LAN gateway's static routing table) is
+  # deleted — nothing addresses this controller by IP any more.
   service:
     type: ClusterIP
 
@@ -86,3 +98,9 @@ mongodb:
   replicas: 3
   user: omada
   database: omada
+
+# Where the shared mesh wildcard is read from, matching apps/platform/src/mesh-service's own
+# `tls` contract so the controller and its mesh exposure read the same OpenBao entry.
+tls:
+  mount: kv
+  path: mesh-tls
