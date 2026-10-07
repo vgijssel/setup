@@ -5,12 +5,12 @@
 # dedicated namespace would need three coordinated changes for a throwaway). Every object is
 # named from the release, so nothing collides.
 #
-# dependsOn:
-#   - vault-secrets-operator : owns secrets.hashicorp.com CRDs + the default VaultConnection /
-#                              VaultAuth both VaultStaticSecrets here read through.
-#   - network-mongodb        : the replica set, AND the `dbOwner db: omada_temp` grant this
-#                              controller's URI needs. Listed so a fresh cluster grants the role
-#                              before this tries to write.
+# dependsOn is vault-secrets-operator ONLY — it owns the secrets.hashicorp.com CRDs plus the
+# default VaultConnection/VaultAuth that the one VaultStaticSecret here (the wildcard this
+# controller serves on :8043) reads through.
+#
+# Deliberately NOT network-mongodb: this controller runs its own embedded mongod on its own PVC
+# and needs nothing at all from the shared replica set — no database, no credential, no grant.
 labels:
   fleet.vgijssel.nl/bundle: network-omada-temp
 defaultNamespace: omada
@@ -20,9 +20,6 @@ dependsOn:
   - selector:
       matchLabels:
         fleet.vgijssel.nl/bundle: vault-secrets-operator
-  - selector:
-      matchLabels:
-        fleet.vgijssel.nl/bundle: network-mongodb
 # network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
 # explicitly — the Omada controller only exists here.
 targetCustomizations:

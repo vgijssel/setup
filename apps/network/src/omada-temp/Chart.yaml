@@ -11,9 +11,13 @@
 # ║   omada  --migrate-->  omada-temp (omada-temp.vpn.blueora.ng)                              ║
 # ║   omada-temp  --migrate-->  omada (omada.vpn.blueora.ng)   <-- the fleet lands here         ║
 # ║                                                                                           ║
-# ║ After the second leg every device holds the mesh hostname and this bundle, its sibling      ║
-# ║ ../mesh-omada-temp, the `omada_temp` database and the `dbOwner db: omada_temp` grant in     ║
-# ║ ../mongodb/perconaservermongodb.yaml all come out together.                                ║
+# ║ TEARDOWN, once the fleet is on omada.vpn.blueora.ng — delete in this order:                 ║
+# ║   1. this bundle + its sibling ../mesh-omada-temp (removes the controller, the mesh peer,    ║
+# ║      its NetBird group/key/policy and its public DNS record);                                ║
+# ║   2. the `data-omada-temp-omada-controller-0` and `logs-...-0` PVCs — StatefulSet            ║
+# ║      volumeClaimTemplates are NOT garbage-collected with the bundle, and the embedded        ║
+# ║      MongoDB lives on the data one.                                                          ║
+# ║ Nothing else: it shares no database, credential or grant with the real controller.           ║
 # ╚═══════════════════════════════════════════════════════════════════════════════════════════╝
 #
 # DELIBERATELY IN THE `omada` NAMESPACE, not one of its own. A new namespace would need three

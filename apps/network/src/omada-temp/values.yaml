@@ -1,8 +1,7 @@
 # TEMPORARY parallel Omada controller — see Chart.yaml for why this exists and what deletes it.
 #
 # Differences from the real ../omada bundle, all deliberate:
-#   * its own MongoDB DATABASE (`omada_temp`) on the same replica set, reusing the same
-#     credential — hence the extra `dbOwner` role in ../mongodb/perconaservermongodb.yaml;
+#   * its own EMBEDDED MongoDB, sharing nothing with the real controller's replica set;
 #   * ONE exposure path (the mesh, via ../mesh-omada-temp). No pinned-ClusterIP Service, no
 #     device `NBResource`, no CoreDNS override, no external-dns annotation and no nightly backup
 #     CronJob — the whole point of group 12 is that a mesh peer needs none of that, and a
@@ -29,12 +28,24 @@ omada-controller-helm:
     # permanent and also faces LAN browsers.
     tlsSecretName: omada-temp-controller-tls
 
-    # Connection string assembled by templates/vaultstaticsecret-mongodb-uri.yaml. Mutually
-    # exclusive with externalMongoDBUrl.
-    externalMongoDBUrlSecret:
-      name: omada-temp-mongodb-uri
-      key: uri
-
+    # ── NO externalMongoDBUrl / externalMongoDBUrlSecret: THE EMBEDDED mongod IS THE POINT ─────
+    # Setting neither is what makes this controller run its own bundled mongod. The chart emits
+    # `EAP_MONGOD_URI` + `MONGO_EXTERNAL=true` only when one of those two values is set
+    # (third_party/vendir/charts/omada-controller-helm/templates/statefulset.yaml); with both
+    # absent the image falls back to the internal mongod on `../data/db` (port 27217 per the
+    # controller's own omada.properties), i.e. ON THIS RELEASE'S OWN data PVC.
+    #
+    # That is deliberate TOTAL isolation, chosen over a second database on the shared replica set:
+    # its own mongod process, its own storage, no shared credential, no `dbOwner` grant in
+    # ../mongodb/perconaservermongodb.yaml, and no chance of two controllers ever touching one
+    # dataset. It also makes teardown exact — deleting this bundle and its PVCs leaves NOTHING
+    # behind in the real MongoDB to find and drop later.
+    #
+    # Worth knowing if this is ever copied for something permanent: the real ../omada controller
+    # uses the external replica set precisely because its data matters — it gets real replication,
+    # and Omada additionally derives a sibling `<db>_data` database for statistics (which is why
+    # that bundle's user holds `dbOwner` on BOTH `omada` and `omada_data`). An embedded mongod is
+    # the right call for a throwaway and the wrong one for anything you intend to keep.
     timezone: Europe/Amsterdam
 
   # ClusterIP only. The mesh exposure dials this Service by name as an ordinary in-cluster
@@ -42,32 +53,24 @@ omada-controller-helm:
   service:
     type: ClusterIP
 
-  # Smaller than the real controller's: this holds a few days of a throwaway site's data, and
-  # the OrbStack VM disk is shared with both clusters (openspec 9e — DiskPressure above 85%
-  # evicts across BOTH, so a temporary bundle should not take 3Gi it does not need).
+  # The data volume now holds the EMBEDDED MongoDB as well as the controller's own files, so it
+  # is sized for both rather than trimmed to the minimum. For reference the real controller's
+  # databases are small — ~11 MB of config plus ~35 MB of statistics — and this one only ever
+  # holds one site for the duration of a migration.
+  #
+  # Still deliberately modest: the OrbStack VM disk is shared by BOTH clusters, and above 85% it
+  # puts DiskPressure on each of them simultaneously (openspec 9e), so a throwaway should not
+  # claim space it will not use.
+  #
+  # NOTE these PVCs are StatefulSet volumeClaimTemplates, so deleting the bundle does NOT delete
+  # them. Teardown has to remove them explicitly — see Chart.yaml's teardown list.
   persistence:
     data:
       enabled: true
-      size: 1Gi
+      size: 2Gi
     logs:
       enabled: true
       size: 512Mi
-
-# MongoDB topology the connection string is assembled from. Everything except `database` matches
-# the real controller — same replica set, same user, same password out of OpenBao — because the
-# only thing that must not be shared is the DATA.
-#
-# `database: omada_temp` REQUIRES the matching `dbOwner` role in
-# ../mongodb/perconaservermongodb.yaml. Without it the controller authenticates fine and then
-# fails on first write, which looks like a Mongo outage rather than a missing grant.
-mongodb:
-  clusterName: mongodb
-  namespace: mongodb
-  replsetName: rs0
-  # Must equal spec.replsets[0].size in the PerconaServerMongoDB CR.
-  replicas: 3
-  user: omada
-  database: omada_temp
 
 # Where the shared mesh wildcard is read from, matching apps/platform/src/mesh-service's own
 # `tls` contract so both read the same OpenBao entry.
