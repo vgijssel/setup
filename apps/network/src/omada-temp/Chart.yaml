@@ -1,0 +1,34 @@
+# ╔═══════════════════════════════════════════════════════════════════════════════════════════╗
+# ║ TEMPORARY BUNDLE — EXISTS TO BE DELETED. See openspec 12.7.                               ║
+# ║                                                                                           ║
+# ║ A second, parallel Omada controller whose only purpose is to be a REAL, DIFFERENT          ║
+# ║ migration destination. Omada's supported way to change an adopted device's inform URL is   ║
+# ║ site migration, and migrating to the SAME controller leaves it half-done (it sets the      ║
+# ║ device to "migrating", sends the new URL, then refuses to manage the device when it         ║
+# ║ arrives, logging `migrate info: null` / `mainRefer not exist`). With a genuine second       ║
+# ║ controller both legs are ordinary, supported migrations:                                   ║
+# ║                                                                                           ║
+# ║   omada  --migrate-->  omada-temp (omada-temp.vpn.blueora.ng)                              ║
+# ║   omada-temp  --migrate-->  omada (omada.vpn.blueora.ng)   <-- the fleet lands here         ║
+# ║                                                                                           ║
+# ║ After the second leg every device holds the mesh hostname and this bundle, its sibling      ║
+# ║ ../mesh-omada-temp, the `omada_temp` database and the `dbOwner db: omada_temp` grant in     ║
+# ║ ../mongodb/perconaservermongodb.yaml all come out together.                                ║
+# ╚═══════════════════════════════════════════════════════════════════════════════════════════╝
+#
+# DELIBERATELY IN THE `omada` NAMESPACE, not one of its own. A new namespace would need three
+# coordinated changes for a throwaway: the namespace added to VSO's `allowedNamespaces`
+# (apps/platform/src/vault-secrets-operator/fleet.yaml), a `vault-secrets-operator`
+# ServiceAccount created in it, AND its SA subject appended to the OpenBao role on the SECRET
+# cluster (apps/secret/src/openbao-config/role-network-vso.yaml) followed by a secret-cluster
+# apply. `omada` already satisfies all three. Every object here is named from the release, so
+# nothing collides with the real controller.
+apiVersion: v2
+name: omada-temp
+description: TEMPORARY parallel Omada controller — a real migration destination (network cluster)
+version: 1.0.0
+appVersion: 6.2.14.11
+dependencies:
+  - name: omada-controller-helm
+    version: 1.4.1
+    repository: file://../../../../third_party/vendir/charts/omada-controller-helm

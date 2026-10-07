@@ -1,0 +1,38 @@
+# TEMPORARY bundle — a parallel Omada controller that exists only to be a real migration
+# destination. See Chart.yaml for the full rationale and the teardown list.
+#
+# defaultNamespace `omada`: shared with the real controller on purpose (Chart.yaml explains why a
+# dedicated namespace would need three coordinated changes for a throwaway). Every object is
+# named from the release, so nothing collides.
+#
+# dependsOn:
+#   - vault-secrets-operator : owns secrets.hashicorp.com CRDs + the default VaultConnection /
+#                              VaultAuth both VaultStaticSecrets here read through.
+#   - network-mongodb        : the replica set, AND the `dbOwner db: omada_temp` grant this
+#                              controller's URI needs. Listed so a fresh cluster grants the role
+#                              before this tries to write.
+labels:
+  fleet.vgijssel.nl/bundle: network-omada-temp
+defaultNamespace: omada
+helm:
+  releaseName: omada-temp
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: network-mongodb
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly — the Omada controller only exists here.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target after
+  # these, so without this a non-matching cluster falls through and deploys with default values.
+  # See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

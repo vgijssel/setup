@@ -101,3 +101,12 @@ spec:
           db: omada
         - name: dbOwner
           db: omada_data
+        # TEMPORARY — delete with the omada-temp bundles. The parallel controller in
+        # ../omada-temp exists only to be a real, DIFFERENT migration destination, so the fleet's
+        # inform URL can be moved onto the mesh hostname via Omada's supported site-migration flow
+        # (out to omada-temp, then back to omada) instead of the migrate-then-cancel workaround.
+        # It needs its own database, and Omada reuses this same credential, so the role has to be
+        # granted here. Remove this entry when omada-temp is torn down; dropping the `omada_temp`
+        # database is then a manual mongosh step, since nothing else references it.
+        - name: dbOwner
+          db: omada_temp

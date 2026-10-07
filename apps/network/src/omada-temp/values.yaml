@@ -1,0 +1,76 @@
+# TEMPORARY parallel Omada controller — see Chart.yaml for why this exists and what deletes it.
+#
+# Differences from the real ../omada bundle, all deliberate:
+#   * its own MongoDB DATABASE (`omada_temp`) on the same replica set, reusing the same
+#     credential — hence the extra `dbOwner` role in ../mongodb/perconaservermongodb.yaml;
+#   * ONE exposure path (the mesh, via ../mesh-omada-temp). No pinned-ClusterIP Service, no
+#     device `NBResource`, no CoreDNS override, no external-dns annotation and no nightly backup
+#     CronJob — the whole point of group 12 is that a mesh peer needs none of that, and a
+#     throwaway controller needs its state backed up even less;
+#   * it serves the SHARED MESH WILDCARD on its own :8043 rather than a dedicated cert-manager
+#     certificate (see tlsSecretName below), so no ACME interaction is needed to stand it up.
+omada-controller-helm:
+  config:
+    # Rootless mode is the chart's supported external-MongoDB path.
+    rootless: true
+
+    # ── IT SERVES THE MESH WILDCARD ON ITS OWN :8043, AND THAT IS WHY NO CERTIFICATE IS ISSUED ──
+    # The mesh exposure's HTTPS listener terminates the wildcard on :443 and then RE-ENCRYPTS to
+    # this controller's own :8043, validating the name it presents (see
+    # ../mesh-omada-temp/fleet.yaml's `backend.tls`). That validation is not optional — Gateway
+    # API requires `validation.hostname` — so :8043 must present a certificate valid for
+    # `omada-temp.vpn.blueora.ng`.
+    #
+    # The shared `*.vpn.blueora.ng` wildcard already covers that name, so mounting it here
+    # satisfies the check with nothing new issued: no Certificate, no DNS-01, no ClusterIssuer,
+    # and no new name in a Certificate Transparency log for a controller that gets deleted.
+    # The real ../omada bundle instead validates `omada.blueora.ng`, its device-facing
+    # cert-manager certificate — a dedicated certificate makes sense there because that name is
+    # permanent and also faces LAN browsers.
+    tlsSecretName: omada-temp-controller-tls
+
+    # Connection string assembled by templates/vaultstaticsecret-mongodb-uri.yaml. Mutually
+    # exclusive with externalMongoDBUrl.
+    externalMongoDBUrlSecret:
+      name: omada-temp-mongodb-uri
+      key: uri
+
+    timezone: Europe/Amsterdam
+
+  # ClusterIP only. The mesh exposure dials this Service by name as an ordinary in-cluster
+  # backendRef; nothing else reaches this controller, so there is no second Service to pin.
+  service:
+    type: ClusterIP
+
+  # Smaller than the real controller's: this holds a few days of a throwaway site's data, and
+  # the OrbStack VM disk is shared with both clusters (openspec 9e — DiskPressure above 85%
+  # evicts across BOTH, so a temporary bundle should not take 3Gi it does not need).
+  persistence:
+    data:
+      enabled: true
+      size: 1Gi
+    logs:
+      enabled: true
+      size: 512Mi
+
+# MongoDB topology the connection string is assembled from. Everything except `database` matches
+# the real controller — same replica set, same user, same password out of OpenBao — because the
+# only thing that must not be shared is the DATA.
+#
+# `database: omada_temp` REQUIRES the matching `dbOwner` role in
+# ../mongodb/perconaservermongodb.yaml. Without it the controller authenticates fine and then
+# fails on first write, which looks like a Mongo outage rather than a missing grant.
+mongodb:
+  clusterName: mongodb
+  namespace: mongodb
+  replsetName: rs0
+  # Must equal spec.replsets[0].size in the PerconaServerMongoDB CR.
+  replicas: 3
+  user: omada
+  database: omada_temp
+
+# Where the shared mesh wildcard is read from, matching apps/platform/src/mesh-service's own
+# `tls` contract so both read the same OpenBao entry.
+tls:
+  mount: kv
+  path: mesh-tls

@@ -1,0 +1,96 @@
+# TEMPORARY — mesh exposure for the parallel ../omada-temp controller. See Chart.yaml and
+# ../omada-temp/Chart.yaml. Deleted with its controller once the fleet is on omada.vpn.blueora.ng.
+#
+# defaultNamespace `omada`: the Gateway's backendRefs resolve in the release namespace, and the
+# temporary controller deliberately shares the real one's namespace.
+#
+# dependsOn mirrors ../mesh-omada, plus network-omada-temp (the backing Service), so a fresh
+# cluster brings the controller up before this starts resolving backendRefs at it.
+labels:
+  fleet.vgijssel.nl/bundle: mesh-omada-temp
+defaultNamespace: omada
+helm:
+  releaseName: mesh-omada-temp
+  values:
+    mesh-service:
+      name: omada-temp
+      domain: vpn.blueora.ng
+      # Same source group as the real exposure. `homelab` is what admits the PiKVM, and the
+      # devices' packets are masqueraded to the PiKVM's own overlay address on their way into the
+      # mesh — so to this policy the physical fleet IS the PiKVM. Without `homelab` the devices
+      # could not reach this controller and the first migration leg would fail.
+      sourceGroups:
+        - homelab
+      # The devices must resolve this name from PUBLIC DNS while they are parked on this
+      # controller, exactly as they do for the real one. The peer's overlay address is published
+      # by the chart's publisher sidecar and withdrawn when this bundle is deleted.
+      publicDns:
+        enabled: true
+      listeners:
+        # Admin UI — and on this controller it is load-bearing, because the SECOND migration leg
+        # (omada-temp -> omada) is driven from THIS controller's UI. If this listener does not
+        # work, the fleet cannot be migrated home.
+        #
+        # Re-encrypts to the controller's own :8043 rather than forwarding to :8088, for the
+        # task-7.10 reason: :8088 answers with an absolute redirect to its own HTTPS port, which
+        # behind a mesh peer becomes a port no listener binds, so the browser dead-ends.
+        #
+        # `hostname` is THIS service's mesh name, which works because the controller is mounting
+        # the shared `*.vpn.blueora.ng` wildcard on :8043 (see
+        # ../omada-temp/templates/vaultstaticsecret-controller-tls.yaml). That differs from the
+        # real exposure, which validates the permanent device-facing `omada.blueora.ng` — and it
+        # is why standing this up needs no certificate issuance at all.
+        - name: https
+          protocol: HTTPS
+          port: 443
+          backend:
+            name: omada-temp-omada-controller
+            port: 8043
+            tls:
+              hostname: omada-temp.vpn.blueora.ng
+              caCertificates: System
+              # The Service's port NAME for 8043, not the number. Gateway API scopes a
+              # BackendTLSPolicy by port name and a number attaches to NOTHING SILENTLY —
+              # Envoy keeps sending plaintext to a TLS-only port and requests hang with no
+              # status condition anywhere (measured 2026-10-05).
+              portName: manage-https
+        # Device management / adoption / upgrade / rtty / monitor. The devices really do inform
+        # here during the detour, so the full range is required, not decorative.
+        - name: device-tcp
+          protocol: TCP
+          ports: [29811, 29812, 29813, 29814, 29815, 29816, 29817]
+          backend:
+            name: omada-temp-omada-controller
+        # Discovery + UDP device management.
+        - name: device-udp
+          protocol: UDP
+          ports: [19810, 27001, 29810]
+          backend:
+            name: omada-temp-omada-controller
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: envoy-gateway
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane-provider
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: network-omada-temp
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+  # Terminal catch-all — see bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
