@@ -154,6 +154,100 @@ netbirdImage: ghcr.io/netbirdio/netbird:0.72.4@sha256:6c6c20baffae4a3ec50f29ec93
 # NetBird management API. Only change this for a self-hosted control plane.
 netbirdManagementUrl: https://api.netbird.io
 
+# ── Rollout window (how long this service is unreachable while its pod is replaced) ────────
+# The hostname is bound to EXACTLY ONE peer (1 replica + Recreate + preStop deregister — see
+# templates/envoyproxy-mesh-service.yaml), so a replacement is a full stop-then-start and the
+# service is simply down for its duration. That duration is dominated by how long the OUTGOING
+# pod takes to disappear, because Recreate will not start the replacement until it has.
+#
+# MEASURED 2026-10-06, BEFORE THESE KNOBS EXISTED: a `rollout restart` of the Omada exposure took
+# ~6-7 MINUTES end to end. Envoy's own drain was not the cause — the shutdown-manager reported
+# "drain sequence completed" 11 seconds in, with zero downstream connections — the pod then sat
+# Terminating for the WHOLE of Envoy Gateway's default 360s terminationGracePeriodSeconds and was
+# killed at the deadline. The hostname resolved to nothing for that entire window.
+#
+# That was invisible until a device fleet depended on it. It is now the binding constraint: the
+# Omada controller declares `Inform timeout` at ~8 minutes (measured in the 2026-10-05 outage), so
+# the default window left almost no margin — one slow rollout and all 7 devices drop.
+#
+# MEASURED AFTER, same test: old pod gone at t+54s, public record repointed AND serving `200` with
+# a valid certificate at **t+81s**. So the window went from ~6-7 minutes to ~81 seconds, which is
+# roughly 6x inside the device budget instead of grazing it.
+#
+# So the drain is bounded and the grace period is sized to it rather than left at a default
+# chosen for long-lived connection draining. The ordering requirement is the thing to preserve if
+# these are ever retuned: terminationGracePeriodSeconds MUST exceed drainTimeout, and must leave
+# room for the two preStop hooks after it — the mesh client's `netbird deregister` (measured ~1s)
+# and the publicDns record withdraw (one API call). Too short and the pod is SIGKILLed mid-hook,
+# which leaves a stale peer holding this service's DNS label — the exact failure the preStop
+# exists to prevent, and a far worse outcome than a slow rollout.
+rollout:
+  # Hard cap on Envoy's graceful drain. Without a cap Envoy waits for downstream connections to
+  # reach zero, and the device protocols on this mesh hold long-lived TCP sessions that may never
+  # close on their own. A device reconnects by itself, so failing over fast beats draining
+  # politely.
+  drainTimeout: 10s
+  # Minimum drain, allowing endpoint deprogramming to finish before the listeners go away.
+  minDrainDuration: 2s
+  # Must be > drainTimeout and leave room for the preStop hooks. 45s against a 10s drain and ~2s
+  # of hooks is generous; the previous effective value was 360s.
+  terminationGracePeriodSeconds: 45
+
+# ── Public DNS (OFF by default — opt in only for non-peer devices) ─────────────────────────
+# Publishes this service's CURRENT overlay address as a public A record for `<name>.<domain>`,
+# so consumers that CANNOT run a mesh client can use the same hostname every mesh peer uses.
+# Leave it `false` unless such consumers exist: a mesh hostname is not meant to resolve publicly,
+# and every service that does not need this keeps that property.
+#
+# WHAT THIS IS FOR, with the one real example: the TP-Link Omada gateway/switches/APs run stock
+# firmware with no way to install a mesh client, and they have to dial the controller by name.
+# Before this existed they used a SEPARATE publicly-resolvable hostname pointing at a pinned
+# ClusterIP, which needed a NetBird network resource, a pinned Service IP and an in-cluster
+# CoreDNS split horizon to hold together — three mechanisms that existed only to give one
+# consumer a second name. Publishing the peer address instead deletes all three.
+#
+# HOW THE DEVICES REACH AN OVERLAY ADDRESS: they do not route to it themselves. Their LAN gateway
+# carries a static route for the overlay range (`100.65.0.0/16`) via a routing peer on the LAN,
+# which forwards into the mesh. The range is routed as a whole ON PURPOSE — it covers every peer
+# address this or any other service will ever be assigned, so a new peer address never needs a
+# routing change, only a DNS one.
+#
+# WHY IT IS SAFE FOR PEERS, verified rather than assumed (openspec 12.1): a public record does
+# NOT shadow NetBird's resolver. With a deliberately wrong public A record live for a real peer
+# name, a peer's system resolver, an in-cluster peer and an ordinary in-cluster pod all still
+# returned the overlay address while public resolvers returned the synthetic one. NetBird's
+# match-domain wins, so opting in changes nothing for existing consumers.
+#
+# ⚠️ WHAT YOU ARE ACCEPTING BY ENABLING THIS. The devices' path now terminates at THIS pod. With
+# the old separate hostname they reached the backing workload's Service directly, so an outage of
+# this Envoy pod left them connected; now it takes them down too. That is the price of one
+# hostname, and it is why the record is rewritten on every pod start rather than left to a
+# periodic scan — the replacement must be reachable again before the consumer gives up. For the
+# Omada fleet the budget is the controller's ~8-minute inform timeout, against a measured
+# peer-address change rate of roughly one every few days.
+#
+# ⚠️ REQUIRES an external-dns in THIS cluster with `crd` in its sources and, for the push path,
+# `triggerLoopOnEvent: true`. Nothing here validates that: with no such external-dns the
+# DNSEndpoint is written and simply never published, which looks like a DNS failure rather than a
+# missing dependency. The secret cluster runs no external-dns at all, so this cannot be enabled
+# for an exposure there without deploying one first.
+publicDns:
+  enabled: false
+  # Cloudflare's floor for a DNS-only record is 60s; anything lower is silently raised. This is
+  # the tail on a peer-address change, so it is deliberately at that floor rather than default.
+  recordTTL: 60
+  # How often the publisher re-reads the local WireGuard address. This is NOT how the record gets
+  # written in the normal case — the write happens as soon as the interface appears at pod start,
+  # which is the only moment the address normally changes. The loop exists because the mesh client
+  # is a `restartPolicy: Always` sidecar: if it crashes and re-enrols, the pod KEEPS RUNNING with
+  # a brand-new overlay address and nothing else would notice. It costs one `ip addr` read per
+  # interval and touches the API only when the address actually differs.
+  resyncSeconds: 15
+  # Same image and digest as `watchdog.image` below, and for the same reason: the publisher is a
+  # /bin/sh script driving kubectl, and the distroless kubectl images have no shell. Kept as its
+  # own value so this feature does not inherit `watchdog.enabled`'s lifecycle; bump both together.
+  image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
+
 # ── Recovery ───────────────────────────────────────────────────────────────────────────────
 # Self-heal watchdog for a wedged mesh client. The client authenticates once at pod
 # start; if management later forces a re-auth (host suspend/resume, login expiry) it drops to a
@@ -163,6 +257,13 @@ netbirdManagementUrl: https://api.netbird.io
 watchdog:
   enabled: true
   schedule: "*/5 * * * *"
+  # How long to wait before re-sampling a client that reported a dead session, and the single
+  # most important number here. `NeedsLogin` is what a HEALTHY daemon prints for the first few
+  # seconds of its life, identically to a wedged one, so a restart on one sample recycles pods
+  # that were about to be fine — and the replacement is young at the next tick too, which is a
+  # loop. Must comfortably exceed a normal login; measured at a few seconds, so this has a lot of
+  # headroom. The cost is one sleep on a path that should almost never run.
+  confirmSeconds: 45
   # alpine/kubectl, NOT registry.k8s.io/kubectl or rancher/kubectl — those are distroless with no
   # shell, and the detection logic runs in /bin/sh. Pinned to the multi-arch index digest.
   image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883

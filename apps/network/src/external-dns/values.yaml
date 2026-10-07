@@ -4,15 +4,36 @@
 # which resolve it publicly and reach the ClusterIP over the PiKVM static route. See the named
 # exception in apps/network/src/omada/templates/service-omada.yaml.
 #
-# This is the ONLY record external-dns publishes here, and it is deliberately NOT a mesh name.
-# Mesh services are reached at `<service>.vpn.blueora.ng`, which must never gain a public
-# address record at all — their certificates come from DNS-01 TXT challenges and a wildcard in
-# this zone would answer at arbitrary label depth, making every mesh hostname publicly
-# resolvable and letting public DNS override NetBird's own resolver.
+# ── TWO SOURCES, AND THE `crd` ONE PUBLISHES MESH NAMES ON PURPOSE ──────────────────────────
+# `service` is the legacy device path above: the omada Service's hostname annotation. It is
+# being retired (openspec 12.9) once the fleet has re-homed onto the mesh hostname.
+#
+# `crd` is how an exposed mesh service publishes its CURRENT overlay address. A mesh hostname is
+# still not publicly resolvable BY DEFAULT — the shared mesh-service chart ships `publicDns`
+# disabled, and only an exposure whose consumers include devices that cannot run a mesh client
+# opts in (today: omada alone, for the TP-Link gateway/switches/APs). Each opt-in publishes ONE
+# explicit `<service>.vpn.blueora.ng` A record through a `DNSEndpoint` that the exposure's own
+# pod writes at startup and deletes at teardown, so the set of publicly resolvable mesh names is
+# enumerable from the zone rather than implied by it.
+#
+# A WILDCARD IN THIS ZONE REMAINS FORBIDDEN, and these per-name records do not weaken that: a
+# Cloudflare wildcard answers at arbitrary label depth, so one `*` would publish every mesh
+# hostname that exists or ever will — including every service with no device consumers.
+#
+# VERIFIED BEFORE ENABLING THIS (openspec 12.1), because the obvious fear is that a public record
+# shadows NetBird's resolver for peers: with a deliberately wrong public A record live for a real
+# peer name (`pikvm.vpn.blueora.ng` -> `192.0.2.1`), the Mac's SYSTEM resolver, an in-cluster
+# peer's resolver and an ordinary in-cluster pod ALL still returned the overlay address, while
+# `1.1.1.1` and `8.8.8.8` returned the synthetic one. NetBird's match-domain wins.
+#
+# triggerLoopOnEvent is what makes this a PUSH path: external-dns runs its loop on
+# create/update/delete of a watched source instead of only every --interval. The peer address
+# changes exactly when the publishing pod starts, so the pod's own write is the trigger and the
+# record follows within seconds rather than up to a minute.
 #
 # source=service + publish-internal-services makes external-dns publish ClusterIP Services;
 # it only touches Services carrying external-dns.alpha.kubernetes.io/hostname, so the omada
-# Service's annotation is the scope (no other Service is annotated). policy=sync lets it
+# Service's annotation is the scope of THAT source (no other Service is annotated). policy=sync lets it
 # create AND remove the records it owns. proxied defaults to false; the omada Service also
 # sets cloudflare-proxied=false explicitly (an orange-cloud record would hand back
 # Cloudflare edge IPs instead of the mesh-routable ClusterIP).
@@ -41,6 +62,13 @@ external-dns:
     name: cloudflare
   sources:
     - service
+    # DNSEndpoint CRs, written by mesh exposures that opt into `publicDns`. The chart grants the
+    # dnsendpoints RBAC automatically when this source is listed (clusterrole.yaml keys off it),
+    # so there is nothing else to add. The CRD is installed cluster-wide already.
+    - crd
+  # Run the reconcile loop on watched-source changes, not only every `interval`. See the header:
+  # this is what turns a peer-address change into a sub-minute DNS update instead of a polled one.
+  triggerLoopOnEvent: true
   policy: sync
   registry: txt
   txtOwnerId: network-cluster

@@ -635,7 +635,7 @@ replacement, so it waits on the DNS-01 gate like the rest of groups 5–11.
 - [x] 7.3 Rewrite that Service's header comment to describe the split path (devices via ClusterIP + public record, mesh peers via the peer hostname) and mark it as the named exception; verify the comment states the reason devices cannot be peers
 - [x] 7.4 Rename the device-facing record to `omada.blueora.ng` and update `apps/network/src/external-dns/values.yaml` domain filters, keeping the record unproxied; verify `dig +short omada.blueora.ng @1.1.1.1` returns the pinned ClusterIP
 - [x] 7.5 Re-create the device-path exposure resource explicitly (7.2 removed the annotation the operator inferred it from), with a header noting it exists only for non-peer devices; verify the resource reports Ready and the LAN route survives
-- [ ] 7.6 Re-issue the device-facing certificate for `omada.blueora.ng` on `:8043`; verify every adopted AP and switch still reports Connected in the controller — **certificate half DONE and verified; the device-Connected half is BLOCKED on Omada UI access (human-held credential)**
+- [x] 7.6 Re-issue the device-facing certificate for `omada.blueora.ng` on `:8043`; verify every adopted AP and switch still reports Connected in the controller — **BOTH halves now verified. Certificate: Ready, `CN=omada.blueora.ng`, validates from the Mac with no `-k`. Devices: 7/7 Connected, held across a 21-minute soak with zero `Disconnected` events (see 7b). Never actually needed the UI credential — MongoDB answers it. NOTE the fleet is Connected via the OLD hostname, which 7.11 migrates**
 - [x] 7.7 Create `apps/network/src/mesh-jwks/` (`name: jwks-network`, HTTPS 443 → `jwks-mirror:80`, source `secret-k8s`); verify the `Certificate` is `Ready` and the `Gateway` is `Programmed`
 **7.8 is MIS-ORDERED and deferred to after 8.6 (found 2026-10-05).** It is listed in group 7 but it
 is not additive: the secret cluster's `jwks-gateway` socat pod forwards to
@@ -722,7 +722,191 @@ meant to be. Re-listed at the end of group 8 below.
   Still OPEN: "all devices still report Connected", which needs the Omada UI login (see 7.6).
 
 - [x] 7.9 Verify the port-space contract from the Mac: `openssl s_client -connect omada.vpn.blueora.ng:443 -servername omada.vpn.blueora.ng` shows the expected issuer and CN, `nc -z omada.vpn.blueora.ng 29811` succeeds, and `nc -zu omada.vpn.blueora.ng 29810` succeeds — **UDP half verified via Envoy's receive-side stats instead; `nc -zu` is a vacuous test (see above)**
-- [ ] 7.10 Verify the Omada UI loads over the mesh with no certificate warning and all devices still Connected — **UI-over-mesh half FIXED and verified (200 OK, mesh cert, no redirect); "all devices Connected" still BLOCKED on Omada UI access (human-held credential)**
+- [x] 7.10 Verify the Omada UI loads over the mesh with no certificate warning and all devices still Connected — **BOTH halves verified. UI over mesh: `HTTP/1.1 200 OK`, mesh wildcard certificate, no redirect, no interstitial. Devices: 7/7 Connected after the DNS fix in 7b**
+- [x] 7.11 ~~Migrate the adopted devices off the old inform hostname onto `omada.blueora.ng`~~ — **SUPERSEDED 2026-10-06 by 12.7.** Not done and deliberately not doing: the target name is being retired rather than migrated to. The fleet moves straight to `omada.vpn.blueora.ng`, so re-homing it twice would mean two fleet-wide inform migrations for no gain. The finding that made this task look permanently blocked still stands and is worth keeping: unlike 7.6/7.10 there is **no MongoDB side-channel** for the controller hostname — it is in neither the database nor the controller's filesystem, and no Omada account sits in OpenBao's kv (see 11a), so the UI step is genuine and has simply moved to 12.7
+- [x] 7.12 ~~Retire `omada.network.vgijssel.nl` alone~~ — **SUPERSEDED 2026-10-06 by 12.9**, which retires BOTH legacy names in one step and removes the annotation outright rather than editing it down to one entry
+
+## 7b. The device path was DEAD for 22 hours, and the UI credential was never what blocked checking it (added 2026-10-06)
+
+Found while establishing a safety net for 11.3, not by looking for it. Taking a MongoDB dump of
+the Omada controller — needed because a network-cluster cold start destroys it — meant reading
+`omada.device`, and that collection answers the exact question 7.6 and 7.10 had been carrying as
+"BLOCKED on Omada UI access (human-held credential)" since 2026-10-05.
+
+**The method, which is the reusable part.** Omada's controller state is just MongoDB. The
+`omada.device` collection holds one document per adopted device with `last_seen`,
+`disconnect_time` and `health_score`, and `omada.deviceevent_<isoweek>` holds the connect/
+disconnect log with a `reason`. Credentials come from `internal-mongodb-users`
+(`MONGODB_DATABASE_ADMIN_{USER,PASSWORD}`) in the `mongodb` namespace — **no controller login
+anywhere in the path**. Timestamps in `deviceevent` are BSON Longs split into `{high, low}`;
+`new Date(high * 4294967296 + low)` decodes them (`$toLong` and `new Date(e.timestamp)` both
+throw `RangeError: Invalid time value` on this schema, which is what made it look unreadable).
+So "every adopted AP and switch reports Connected" was always verifiable without the UI. Two
+tasks sat blocked on a credential that was never on the critical path.
+
+**What it reported.** All 7 devices — `hallway-gateway` (ER605), `hallway-switch`,
+`living-room-switch`, `garage-switch`, `garden-house-ap`, `living-room-ap`, `attic-ap` — logged
+`Disconnected : Inform timeout` within 20 seconds of each other at **2026-10-05 14:23 UTC** and
+none had reconnected 22 h later (`health_score: -1`, `last_seen == disconnect_time`). The
+controller had **zero** attached devices for that entire window. The LAN itself kept working —
+these devices forward independently of the controller, which is exactly why nothing surfaced it.
+
+**Root cause: the device path needs a HOST resource and 7.5 gave it a DOMAIN resource.** The
+`omada-devices` NBResource created by 7.5 is 22 h old — the same minute the devices dropped — and
+it replaced the cluster-local resources that preceded it (`omada-domain` deleted deliberately,
+`omada-omada` since reaped; the account now showed exactly one resource for this network). Its
+`address` was `omada.blueora.ng`, and **a domain resource's route is installed on a client only
+after that client resolves the domain through NetBird's own resolver.** Verified live from the
+Mac: resolving `omada.blueora.ng` through `@100.65.255.254` makes `route -n get 10.96.0.20`
+report `interface: utun100`. But the devices send *unsolicited* inform packets straight to
+`10.96.0.20` and nothing ever makes the **PiKVM** — the peer that forwards for them — resolve
+any name, so the `/32` was never installed and every packet died at the forwarder. Nothing
+advertised the pinned ClusterIP as an address any more.
+
+The file's own header had argued for the public name, citing the omada-resolution spike's finding
+that `omada.omada.svc.cluster.local` "never produced a route on the PiKVM". That finding was
+real; the conclusion did not follow. The spike showed a *cluster-local domain* cannot be resolved
+by an off-cluster peer — an argument against a DOMAIN resource, not for a different domain. A
+host resource has no DNS precondition at all, and the ClusterIP is pinned precisely so it can be
+addressed literally.
+
+**Fix + what it proved.** `address: 10.96.0.20/32`. The account-side resource flipped to
+`type=host`, and `living-room-switch` logged **`Adopt success` at 12:29:17 UTC**, ~90 seconds
+after the apply — on its own, with no device-side action. That is the mechanism confirmed: route
+restored, inform delivered, device re-adopted.
+
+**STILL OPEN, and honestly: the fix is necessary but not sufficient.** That device stopped
+informing again after ~3 minutes and the other six never returned. Everything observable from
+this side is healthy and stable, which is what isolates the remaining fault:
+- From the Mac — a `homelab` peer admitted by the *same* policy as the PiKVM — `10.96.0.20:29814`
+  is open on three probes 20 s apart, and `8088` too.
+- `NBResource/omada-devices` is `Ready`, `type=host`, policy `omada-devices` ← `homelab`.
+- The `router` routing peer has been up 3 h 36 m with **0 restarts**, so the route is not flapping
+  from the serving side.
+- The `pikvm` peer is `connected=true`, `login_expired=false`, in groups `homelab` + `All`.
+So the surviving suspect is PiKVM-side forwarding: whether the `/32` is actually in its routing
+table, and whether `setup-netbird-routing.sh`'s IPv4-forward + `-o wt0` SNAT rule is still in
+place (NetBird rebuilds the nat table on start, and that unit is `Wants=`, not `Requires=`).
+**Diagnosing that needs a shell on the PiKVM, which this session cannot get**: NetBird's own SSH
+server owns port 22 there (`allow_server_ssh=True`) and demands an interactive browser SSO, so
+both `ssh root@100.65.192.152` and the `netbird ssh proxy` path stop at
+"Please do the SSO login in your browser".
+
+**PiKVM shell data, supplied by the maintainer 2026-10-06 — the route is THERE, so forwarding is
+NOT the fault.** `ip route get 10.96.0.20` → `10.96.0.20 dev wt0 table 7120 src 100.65.192.152`.
+The host-resource fix reached the client. Three further findings from the same output:
+
+1. **I called the goss contract's 11 failures a stale-contract artefact. THAT WAS WRONG, and it
+   was the single most expensive misread of this whole investigation.** They were a TRUE
+   POSITIVE. The deployed contract asserts `omada.network.vgijssel.nl`, and that name genuinely
+   has to be reachable — see the ROOT CAUSE below. The health check was reporting the production
+   outage accurately; I dismissed it because git had already been updated to the new name, and
+   treated the divergence as the box being behind rather than as the contract knowing something
+   the rename had overlooked. The counters even dated it exactly (**~4 491 passes vs ~11 240
+   fails** per check: passing until the rename, failing on every run since). Lesson, and the
+   reason this is written out rather than quietly corrected: when a health contract and a
+   just-changed config disagree, the contract is a witness, not a straggler.
+2. ~~HYPOTHESIS: the goss DNS probe was load-bearing because it kept a DOMAIN resource's route
+   alive.~~ **Wrong, and superseded by the real cause.** It was the right instinct — a DNS probe
+   mattering to production — pointed at the wrong mechanism. The devices depend on that name
+   directly; nothing about keeping a NetBird route warm was involved.
+3. **The controller is healthy and the devices' silence is not a controller fault.** `server.log`
+   shows live Omada **Cloud Access** traffic (`proxyServer getConnectionStatus CONNECTED`,
+   `origin-request-user-ip: 178.226.150.113`), and for the re-adopted switch exactly ONE line —
+   `MANAGED_BY_OWN Device 5C-E9-31-A7-BF-88 ... is discovered` at 12:29:10 UTC — and nothing
+   after. Its `last_seen` has not advanced since that moment either, and `health_score` went
+   `-1 → 10`. So a single discovery packet completed the whole path and no management session
+   followed, which is a different shape of failure from "no route".
+
+**PiKVM read-only session 2026-10-06 — the box is CORRECT and my forwarding suspicion was wrong.**
+Every candidate listed above is eliminated:
+- `ip route get 10.96.0.20 from 192.168.0.104 iif eth0` → `dev wt0 table 7120`. The policy-routing
+  worry was unfounded: rule `110: not from all fwmark 0x1bd00 lookup 7120` matches forwarded
+  traffic too, so a device packet routes exactly like the shell's own probe.
+- `net.ipv4.ip_forward = 1`; `FORWARD` policy ACCEPT.
+- **The `iptables` MASQUERADE counter reading 0 is a red herring, and would have been easy to
+  over-read.** `iptables` on this box is the `nf_tables` shim (`v1.8.13 (nf_tables)`) and NetBird
+  installs its OWN nat chain at a HIGHER priority — `netbird-rt-postrouting`, `srcnat - 1` vs the
+  iptables table's `srcnat`. `masquerade` is terminal for the hook, so NetBird's rule
+  (`meta mark 0x0001bd22 oifname "wt0" masquerade`, fed by `netbird-mangle-prerouting` marking
+  `ct state new ip saddr 192.168.0.0/24`) consumes the packet and `setup-netbird-routing.sh`'s
+  rule is simply never reached. Its zero counter says nothing about traffic; NetBird's counter is
+  the one to read. Both cover the device subnet, so the SNAT is in place twice over.
+
+**What is actually true: the devices are SILENT, and the path works when used.**
+- NetBird's LAN→mesh counter is frozen at **3 packets / 742 bytes** (~247 B each) across a 75 s
+  sample, and `/proc/net/nf_conntrack` holds **no** entry for `10.96.0.20` and **none at all**
+  with `src=192.168.0.x`. So there is neither a new attempt nor an established flow.
+- Those 3 packets are almost certainly the single 12:29 discovery (NetBird rebuilds these chains
+  on a route change, so the counters date from the 12:28 apply). In the ~70 minutes after it,
+  seven devices produced **zero** further attempts.
+- **The 12:29 discovery is the load-bearing evidence**: for the controller to log
+  `MANAGED_BY_OWN ... is discovered`, that packet crossed the ER605's static route, the PiKVM,
+  the mesh and the routing peer. So the gateway's `10.96.0.20/32 → PiKVM` static route is
+  **intact** — which retires the "gateway lost its pushed config" theory from the previous
+  section, and with it the feared controller/gateway deadlock.
+- All 7 devices answer `ping` from the PiKVM (`192.168.0.1`, `.104`, `.107`, `.108`, `.109`,
+  `.113`, `.116` — ALIVE). They are powered and on the LAN; they are not trying to inform.
+
+**So the host-resource fix is correct and necessary, and it is not sufficient on its own** — the
+missing piece turned out to be DNS, not a device-side nudge. (My reading at this point was that
+the devices needed a power-cycle; that was wrong, and rested on the `last_seen` trap documented
+below. Once the old name resolved again they recovered on their own in 90 seconds.)
+
+### ROOT CAUSE, established 2026-10-06 by the maintainer and then proven live: DNS, not routing
+
+**The adopted devices hold `omada.network.vgijssel.nl` as their inform hostname.** A device
+re-homes only when the controller pushes it a new Controller Hostname/IP, so until that push
+happens the OLD name is the only address they will ever dial. Task 7.4 renamed the device record
+to `omada.blueora.ng`, and the `*.vgijssel.nl` wildcard that would otherwise have covered the old
+name had already gone with the reverse-proxy stack — so at 14:23 the name stopped resolving
+anywhere (`dig omada.network.vgijssel.nl @1.1.1.1` → empty, confirmed) and all 7 devices timed
+out within 20 seconds of each other. They were powered, on the LAN and pingable the entire time;
+they simply could not resolve their controller. That also explains the shape nothing else did:
+`Adopt success` for all 7 at 14:15–14:16, then `Inform timeout` for all 7 at 14:23 — a resolution
+failure hitting a whole fleet simultaneously, not a routing change degrading one hop.
+
+**Fix: publish BOTH names from the Service's external-dns annotation** (`omada.blueora.ng,
+omada.network.vgijssel.nl`). This needed no new machinery — external-dns's `domainFilters`
+already listed both `blueora.ng` and `vgijssel.nl` — and no second certificate, because the
+device protocols on 29810-29817 do not use the `:8043` web certificate. **The host-resource
+change above is what makes two names possible at all:** the route is now keyed on
+`10.96.0.20/32`, so it carries whichever hostname a device dials, where a domain resource would
+have needed one resource per name.
+
+**Verified live.** external-dns created the A + TXT at 13:43:10; the name resolved `10.96.0.20`
+on both `1.1.1.1` and `8.8.8.8`; and **6 of the 7 devices logged `Adopt success` between
+13:44:29 and 13:45:40 — within 90 seconds, with no device-side action.** `attic-ap` reported full
+telemetry (`status: 14`, uptime, CPU/mem) over the cloud status channel, i.e. a real management
+session rather than a bare handshake. All 7 then showed `last_seen > disconnect_time` and **zero
+`Disconnected` events after the restore**.
+
+**A measurement trap that produced two wrong readings before it was caught — worth more than the
+fix itself.** `device.last_seen` is written on **adopt/disconnect only, NOT on each inform
+heartbeat**. Polling "last_seen younger than 5 minutes" therefore measures *recently adopted*,
+not *currently connected*: after the recovery all seven ages climbed in lockstep
+(266 s → 337 s → 409 s) while every device was healthy. The same artefact is what made
+`living-room-switch` look like it had "adopted at 12:29 then gone silent" — its `last_seen` was
+simply frozen at its adopt, exactly like the others. **Use `last_seen > disconnect_time` plus the
+absence of fresh `Disconnected` events** as the liveness signal; the controller declares an
+inform timeout within ~8 minutes (14:15 adopt → 14:23 disconnect on Oct 5), so a soak longer
+than that is what makes "Connected" credible.
+
+**Migration still to do — the two-name state is transitional, not the end state.** In the
+controller: set Controller Hostname/IP to `omada.blueora.ng` so the push re-homes the fleet, then
+confirm every device is Connected on the new target, then remove `omada.network.vgijssel.nl` from
+the annotation and re-apply (external-dns runs `policy: sync`, so deleting the name withdraws the
+record) and re-verify — including across a device power-cycle. The removal criteria are written
+into the annotation's own comment so they travel with the code. Until that is done, **7.4 is only
+half-complete**: the new record exists but the fleet still depends on the old one.
+
+**Worth keeping regardless of how the devices recover:** `network.md:124` already warns that
+"PiKVM reservation is required — `eth0` is DHCP, but the Omada static route next-hop … need a
+predictable address", and the static-route table at `network.md:134` lists the next hop as the
+PiKVM's VLAN 10 reservation. Live, `eth0` is **`192.168.0.123` by DHCP** (`proto dhcp`) with the
+VLAN 10 static address `192.168.10.2` present but not the route target while the devices remain
+on the flat `192.168.0.0/24`. The documented reservation is the thing standing between this path
+and a silent repeat the next time that lease moves.
 
 ## 8a. Defect found 2026-10-06 — THE WATCHDOG WAS A NO-OP, and it cost all three services
 
@@ -1551,6 +1735,58 @@ with `docker buildx prune --builder netbuilder -af`, plus 1.36 GB of dangling vo
 clusters within a minute. Worth remembering that `docker system df` reports that cache under
 "Local Volumes", not "Build Cache", so it does not look like reclaimable cache at a glance.
 
+## 9f. A demolition-era regression found while preparing 11.3 (added 2026-10-06)
+
+Not a planned task. Found by asking what 11.3's safety net actually is before running it — the
+answer was "the hourly OpenBao Raft snapshot in S3", and that snapshot had been **silently failing
+for ~40 hours**, since the ESO→VSO migration (`88661d67`) that this change's demolition phase
+carried out.
+
+**The defect.** `apps/secret/src/config/vaultstaticsecret-openbao-backup-s3.yaml` wrote its VSO
+transformation templates in the Helm-escaped form `'{{ ` + backtick + `{{ get .Secrets "x" }}` +
+backtick + ` }}'`. That form is correct inside a chart's `templates/` directory, where Helm has to
+be told to emit the braces rather than evaluate them — and the sibling file
+`apps/network/src/external-dns/templates/vaultdynamicsecret-external-dns.yaml` is escaped that way
+*correctly*, which is presumably where it was copied from. But **`apps/secret/src/config/` has no
+`Chart.yaml`**: Fleet applies it as raw manifests and nothing Helm-renders it. VSO is then the only
+template engine in the path, so it evaluated the OUTER action, read the backticks as a Go raw string
+literal, and wrote the template TEXT into the Secret:
+
+```
+S3_HOST={{ get .Secrets "endpoint" | trimPrefix "https://" | trimPrefix "http://" }}
+```
+
+**Why it stayed invisible, which is the part worth keeping.** Every layer reported success. The
+`VaultStaticSecret` was healthy — it *did* produce a Secret with all five keys. The CronJob ran on
+schedule. Only the Job's log showed the failure, and only obliquely: s3cmd retrying forever against a
+hostname made of template text, in a message that lowercases the URL (`.secrets`, `trimprefix`) so
+it does not even grep like the source. A Helm-escaping mistake is normally a render-time error; this
+one is a *successful render of the wrong thing* by a second engine downstream, so there is no error
+anywhere to find.
+
+**Fix + verification.** Dropped the outer escaping so the raw manifest carries the VSO expression
+directly, matching the two working siblings in the same directory, and added a header stating the
+rule (this bundle is raw manifests — do not Helm-escape) with the failure mode spelled out. After
+`moon run secret:apply` the Secret holds real values, and `moon run secret:backup` uploaded a
+**54 199 085-byte snapshot** to `s3://enigma-s3-backup/openbao/` and resumed retention pruning
+(five stale September snapshots deleted). Last good snapshot before the fix: 2026-10-04 ≈ 1200.
+
+**Blast radius checked, not assumed.** A sweep of *every* Secret on *both* clusters for unrendered
+`{{` matched exactly these five keys and nothing else, so the Cloudflare/NetBird/mesh-TLS paths
+were never affected — the one casualty was the backup, i.e. precisely the thing 11.3 depends on.
+
+**Two unrelated observations from the same sweep, recorded but NOT fixed here** (neither belongs to
+this change; both want their own look):
+- `omada-backup` (network cluster) last ran **2026-10-02 01:17 UTC** and has missed four nightly
+  runs since. No Job objects were created for them, so the CronJob controller skipped the schedule
+  outright rather than failing a pod — consistent with its tight `startingDeadlineSeconds: 120`
+  colliding with the 9e DiskPressure window. The Omada controller's device/site state is what this
+  protects, so it matters for any future network-cluster cold start.
+- `omada-mesh-watchdog` and `openbao-mesh-watchdog` each logged three consecutive
+  `error: timed out waiting for the condition` runs ~45–60 min before this session and then went
+  green on their own. The timeout is the rollout wait *after* a restart, not the detection logic
+  from 8a, so the watchdog fired as designed and the data plane was simply slow to become ready.
+
 ## 11. Integration verification
 
 Cross-cutting checks only; each group above landed its own tests and docs.
@@ -1649,6 +1885,445 @@ Cross-cutting checks only; each group above landed its own tests and docs.
 
 - [x] 11.1 Run `moon run :fleet_build` and `moon run platform:fleet_build_gitrepo`; verify no stale umbrella pins and the GitRepo catch-all bundle stays under 3 MiB
 - [x] 11.2 Run `bin/fleet-lint-targets` and `trunk fmt && trunk check`; verify both pass with no findings
-- [ ] 11.3 Full cold-start proof: `moon run secret:stop && moon run secret:start`, then `moon run network:stop && moon run network:start`; verify every service comes up with no manual intervention beyond the existing seal-key and operator-PAT seeding
+- [ ] 11.3 Full cold-start proof: `moon run secret:stop && moon run secret:start`, then `moon run network:stop && moon run network:start`; verify every service comes up with no manual intervention beyond the existing seal-key and operator-PAT seeding — **BLOCKED ON A SCOPE DECISION, not on execution (see 11a). As phrased it cannot pass: OpenBao's kv values and the Omada controller's state are both in-cluster-only with human-driven restores, and the Omada restore runs through the same UI credential 7.11 waits on. Options (a)/(b)/(c) in 11a**
 - [x] 11.4 Re-run the complete spec verification matrix from the Mac across all three services (mesh resolution, public non-resolution, certificate validation, declared ports reachable, undeclared port refused); verify every scenario in `specs/mesh-service-exposure/spec.md` holds
 - [x] 11.5 Update `apps/network/SPEC.md`, `apps/network/PLAN.md` and `apps/secret/CLAUDE.md` to describe the single exposure model; verify no doc still describes the reverse-proxy or `NBResource` mesh path as current
+
+## 11a. Why the last three tasks are all blocked on the same thing (added 2026-10-06)
+
+7.11, 7.12 and 11.3 are the only open tasks, and they turn out to share one gate. Written out
+because the shape is not obvious from the task text: 11.3 looks independent of the Omada
+migration, and it is not.
+
+**Current live state, re-measured before concluding anything.** All 7 devices are Connected:
+`disconnect_time` is 0 for every one of them, `health_score` 9–10, and the newest
+`deviceevent_2026w41` entries are seven `Adopt success` lines at 12:29 / 13:44–13:45 UTC with
+**zero `Disconnected` events after them** — a 43-minute clean soak against a ~8-minute inform
+timeout, so "Connected" is credible rather than just freshly adopted (the `last_seen` trap from
+7b). The two-name annotation (`omada.blueora.ng,omada.network.vgijssel.nl`), the host-type
+`NBResource` (`10.96.0.20/32`) and the dropped `startingDeadlineSeconds` are all live on the
+cluster, matching git. Nothing is on fire; the blockers below are about what cannot be *finished*.
+
+**7.11 — the UI credential really is the gate, and unlike 7.6/7.10 there is no MongoDB
+side-channel.** 7b's lesson was that two tasks sat blocked on a credential that was never on the
+critical path, because `omada.device` answered the question directly. So the same avenue was
+tried here first, and it closes:
+- A full-database sweep for `vgijssel`/`blueora` across every collection returns **exactly one**
+  hit, and it is unrelated (a `landns` record for `rancher.vpn.blueora.ng`). The inform hostname
+  the devices hold is nowhere in the controller's database.
+- `systemsetting`, `globalsetting`, `omadac`, `cloud_access`, `maintenanceomadacsetting`,
+  `commonsitesetting`, `sitesetting*` carry no controller-hostname field at all, and a sweep for
+  field names matching `inform|controller_host|mgmt_url|access_addr` matches nothing.
+  `omada.device` documents have no inform/mgmt URL either — `adopt_info` is credentials plus
+  `sp_token`, `echo_server` is `0.0.0.0`.
+- Not on the filesystem either: `grep -rI` over the controller's `properties/` and `data/` finds
+  neither name, and its environment carries only ClusterIPs.
+So the setting is not persisted anywhere readable, which means it cannot be written out-of-band
+either — and even if a field were found, a raw DB write would not bump the device config version
+that makes the controller *push* the new target, so it would be unverifiable by construction.
+The remaining path is the controller's own API or UI, both of which need the admin login.
+**Checked that the login is not already in the stack: OpenBao's kv holds `cloudflare`,
+`mesh-tls`, `mongodb`, `netbird`, `netdata`, `pikvm`, `s3-backup` — no Omada controller
+account.** So this needs the maintainer, as the task says.
+
+**7.12 is gated on 7.11** and its removal criteria are already recorded in the annotation's own
+comment in `service-omada.yaml`, so nothing is lost by leaving it until the push has happened.
+
+**11.3 CANNOT PASS AS WRITTEN, and this is a finding about the task rather than a blocker to work
+around.** Its completion criterion is "no manual intervention beyond the existing seal-key and
+operator-PAT seeding". Two pieces of state in these clusters are in-cluster-only with a
+human-driven restore, so a cold start needs strictly more than that:
+
+1. **The Omada controller.** `network:stop` deletes the vind vcluster and with it the PSMDB
+   volumes and the controller's data PVC — i.e. the admin account, the site config (VLANs,
+   SSIDs, static routes) and all 7 devices' adoption state. Nothing in `apps/network/src/omada`
+   restores it: `grep -rni "restore\|mongorestore"` over `apps/network/src` matches only comments
+   pointing at the UI (`Settings > Backup & Restore`). The S3 `.cfg` autobackup is a *portable*
+   artifact, which is exactly why it was chosen — but it is restored **through the controller UI**,
+   so recovery lands on the same credential 7.11 is waiting for, after first completing the setup
+   wizard on a blank controller. A device fleet that just took 22 h to recover would be
+   re-adopting again.
+2. **OpenBao's kv.** `secret:stop` destroys the Raft volume. `start` reseeds only the seal key
+   (from 1Password) and lets Crossplane re-create mounts, auth backends, policies and roles — but
+   `mount-kv.yaml` creates the *mount*, and nothing populates it. Every kv **value** is
+   human-seeded (that is what `secret:forward`'s header describes), so the mesh wildcard,
+   the Cloudflare credential, the MongoDB password, the NetBird PAT and the S3 keys all come back
+   empty, and every consumer downstream of them fails. The hourly Raft snapshot is the answer,
+   but restoring it is a deliberate manual DR drill (same seal key, re-auth through the restored
+   admin role).
+
+So 11.3 as phrased measures something the system does not currently claim. Three honest options,
+for the maintainer to choose:
+- **(a) Re-scope 11.3 to the secret cluster plus a kv-snapshot restore step**, counting the
+  documented DR restore as expected intervention rather than a failure. Proves the Fleet/mesh
+  bring-up, which is what this change actually touched, without betting the home network on it.
+- **(b) Do 7.11 first, then run the full 11.3** with a `mongodump` of the `omada` database taken
+  immediately beforehand and restored into the fresh cluster's MongoDB *before* the controller
+  starts — which would skip the wizard and the UI entirely, and is the only non-UI Omada restore
+  path that exists. Needs building and rehearsing; it is new work, not part of this change.
+- **(c) Add automated restore** (kv seeding from 1Password; an Omada `mongorestore` init step) so
+  the criterion becomes true. Largest scope, and properly its own change.
+
+Not chosen here: running `network:stop` on a fleet whose only restore path is behind a credential
+this session does not have.
+
+**DECIDED 2026-10-06 with the maintainer: option (b), run as a JOINT DR drill** — the human holds
+the Omada UI, the AI drives everything scriptable, and the runbook below interleaves the two. The
+drill is the deliverable: 11.3 passes as "cold start + a documented, rehearsed restore", with the
+restore steps counted and named rather than discovered mid-outage.
+
+## 11b. Joint DR runbook for 11.3 (+ 7.11 / 7.12), authored 2026-10-06
+
+Steps are tagged **[AI]** or **[HUMAN]**. Order matters: 7.11 comes BEFORE the network cold start,
+because the Omada restore path runs through the same UI the migration needs, and doing the
+hostname push first means the recovered fleet has one inform target instead of two.
+
+Hard prerequisites, both already true at authoring time: the OpenBao seal key in 1Password is
+UNCHANGED (a Raft restore into a differently-sealed OpenBao is unrecoverable), and the hourly
+snapshot pipeline works again after 9f.
+
+### Phase 0 — safety net, before anything is destroyed
+
+- [AI] 0.1 `moon run secret:backup`; record the object name and byte size from the job log.
+- [AI] 0.2 Take an INDEPENDENT local snapshot that does not depend on S3 credentials surviving:
+  `secret:get_openbao_auth`, then `bao operator raft snapshot save` inside `openbao-0` and
+  `kubectl cp` it to the scratchpad. S3 is the archive; this file is the thing the restore reads.
+  (The `admin` role is required — the `snapshot` role is read-only on one path, and `crossplane`
+  has no raft grant at all.)
+- [AI] 0.3 `mongodump` the `omada` database out of the network cluster. This is the only non-UI
+  Omada restore path that exists, so it is the fallback if the `.cfg` restore misbehaves.
+- [AI] 0.4 Record a known-good inventory to compare against afterwards: `bao kv list kv` plus each
+  path's KEY NAMES (never values), the three mesh peers, every `Certificate`/`Gateway` condition,
+  and the 7 devices' `last_seen`/`disconnect_time`/`health_score`.
+- [AI] 0.5 Check OrbStack VM disk headroom BEFORE starting (9e: >85% full gives DiskPressure on
+  both clusters at once, and the netbird webhook's `failurePolicy: Fail` then deadlocks cold
+  start). Reclaim buildx builder volumes if needed.
+- [HUMAN] 0.6 In the Omada UI: confirm Auto Backup is enabled, take a manual backup now, and
+  confirm it appears under Settings > Backup & Restore. Then [AI] trigger the `omada-backup` Job
+  so the fresh `.cfg` reaches S3, and keep a local copy.
+
+### Phase 0 RESULTS — executed 2026-10-06 14:40–14:43 UTC, all [AI] steps done
+
+Nothing destructive has happened. Artifacts are in this session's scratchpad under `dr-11.3/`;
+**copy them somewhere durable if the drill spans sessions**, because that directory does not
+outlive the session (S3 still holds the OpenBao snapshot either way, but not the Mongo dump).
+
+- **0.5 found the first real problem, before anything was touched.** The OrbStack VM disk was at
+  **82% / 13.0 GB free** — inside one bad build of the 85% DiskPressure threshold that took out
+  both clusters in 9e, and a cold start of both clusters is exactly the image-churn that would
+  cross it. Pruned unused images + buildkit cache (5.1 GB) → **60% / 29.6 GB free**. Measured, not
+  assumed: `du` over the volumes shows the two `vcluster.cp.*.var` volumes ARE the clusters
+  (10.4 GB network + 6.6 GB secret), so Phase 5 frees ~10 GB before it re-pulls. The buildx state
+  volume named in the 9e memory is only 3.9 MB this time; the earlier `df` line that appears to
+  show it at 74 GB is the underlying filesystem, not the volume.
+- **0.1** `s3://enigma-s3-backup/openbao/bao_2026-10-06-1440.snapshot`, 54 852 816 bytes.
+- **0.2** Independent local copy: 54 850 420 bytes, sha256 `af17207f…55676d`, verified identical
+  inside the pod and on the Mac. Taken with the `admin` role (`snapshot` is read-only on one path,
+  `crossplane` has no raft grant) and the in-pod temp file removed afterwards.
+- **0.3** `mongodump` of `omada`: **383 collections**, 584 037-byte archive, sha256
+  `32b2535c…849d60`, verified both sides.
+- **0.4 baseline, all green.** Both clusters: **33 bundles, zero not-Ready, zero pods outside
+  Running/Completed.** kv holds 7 paths / 15 keys (`cloudflare`, `mesh-tls`, `mongodb`, `netbird`,
+  `netdata`, `pikvm`, `s3-backup` — captured via `kv/subkeys/<path>`, which returns the key NAMES
+  without the values). All three mesh sidecars `Management: Connected` + `Signal: Connected`.
+  Certificates `Ready` (`mesh-wildcard`, `omada-blueora-ng`), Gateways `Programmed`
+  (`openbao-mesh`, `omada-mesh`, `jwks-network-mesh`), 7 TCPRoutes + 3 UDPRoutes + the
+  `omada-https` `BackendTLSPolicy` all present. Devices: **7/7 `disconnect_time` 0, `health_score`
+  10**, no `Disconnected` events since the 13:45 recovery.
+- **A resolution result worth not misreading during the drill:** from the Mac,
+  `openbao.vpn.blueora.ng` → `100.65.249.230` and `omada.vpn.blueora.ng` → `100.65.70.129`, both
+  empty on `@1.1.1.1`; `omada.blueora.ng` and `omada.network.vgijssel.nl` both → `10.96.0.20`
+  publicly, as the transition intends. **`jwks-network.vpn.blueora.ng` correctly does NOT resolve
+  from the Mac** — NetBird DNS is policy-scoped and that exposure admits only `secret-k8s`, so a
+  `homelab` peer cannot resolve it. Do not chase this as a fault after the cold start. Its real
+  end-to-end check is OpenBao's `auth/jwt-network/config` (`jwks_url` set, `jwks_ca_pem` correctly
+  absent) plus the network cluster's 10 VSO resources (6 static + 4 dynamic) syncing with zero
+  warning events — which is the cross-cluster leg proving itself.
+- **One stale comment fixed, because it would mislead precisely during Phase 3/4.**
+  `apps/secret/src/openbao-config/policy-admin.yaml` claimed self-init seeds the `admin` policy
+  "so break-glass works even before/without Crossplane". It does not: the `initialize` stanza
+  seeds exactly the four `crossplane` foothold items, so on a fresh cluster
+  `secret:get_openbao_auth` fails until Crossplane reconciles `policy-admin` + `role-admin`. Not a
+  deadlock (provider-vault needs nothing from kv), but an operator trusting that comment during a
+  DR would conclude OpenBao was broken. Header now states the real ordering.
+
+**Remaining before Phase 1: 0.6 only, which is [HUMAN].**
+
+### Phase 1 — 7.11, the device migration (human-gated)
+
+- [HUMAN] 1.1 Omada UI → Controller Settings → set Controller Hostname/IP to `omada.blueora.ng`
+  and save, so the controller pushes the new inform target to all 7 devices.
+- [AI] 1.2 Verify the push from MongoDB, not the UI: `disconnect_time`/`last_seen` per device plus
+  `deviceevent_<isoweek>`. Liveness is `last_seen > disconnect_time` AND no fresh `Disconnected`
+  events — never "last_seen younger than N minutes", which measures *recently adopted* (7b).
+- [AI] 1.3 Soak longer than the controller's ~8-minute inform timeout before calling it Connected.
+- [HUMAN] 1.4 Power-cycle one device (an AP is the cheapest) — 7.11 explicitly asks for
+  power-cycle survival, which is what proves the new target is persisted device-side.
+- [AI] 1.5 Verify that device logs `Adopt success` and stays Connected through another soak.
+
+### Phase 2 — 7.12, retire the old name
+
+- [AI] 2.1 Drop `omada.network.vgijssel.nl` from `service-omada.yaml`'s external-dns annotation
+  (and collapse the TRANSITIONAL comment block), `moon run network:apply`.
+- [AI] 2.2 Verify `dig +short omada.network.vgijssel.nl @1.1.1.1` is empty (external-dns runs
+  `policy: sync`, so removal withdraws the record) and 7/7 stay Connected across a soak.
+  **This is the step that caused the 22-hour outage last time** — if any device drops, re-add the
+  name, re-apply, and stop: it means the push in 1.1 did not take.
+
+### Phase 3 — secret cluster cold start
+
+- [AI] 3.1 `moon run secret:stop` then `moon run secret:start`.
+- [AI] 3.2 EXPECTED, not a failure: OpenBao self-inits with the same static seal key but an EMPTY
+  kv, so VSO secrets, the mesh wildcard, the Cloudflare credential and the NetBird PAT are all
+  missing and their consumers are failing. Record the failure set — it is the measurement.
+- [AI] 3.3 Confirm `secret:get_openbao_auth` starts working only once Crossplane has reconciled
+  `policy-admin`/`role-admin` (self-init does not seed admin; see that file's header).
+
+### Phase 4 — OpenBao restore
+
+- [HUMAN] 4.1 Explicit go/no-go before overwriting the fresh OpenBao with Phase-0's snapshot.
+- [AI] 4.2 `kubectl cp` the snapshot in and `bao operator raft snapshot restore -force`. `-force`
+  is required because the fresh node has a different cluster id; the restore works at all only
+  because the seal key is identical.
+- [AI] 4.3 Re-auth and diff `bao kv list kv` + per-path key names against the 0.4 inventory.
+- [AI] 4.4 Roll the consumers that cached failures (VSO, cert-manager, netbird-operator,
+  crossplane provider) and let the mesh exposures reconcile.
+- [AI] 4.5 Verify the secret half end to end: `openbao.vpn.blueora.ng` resolves **via
+  `dig @100.65.255.254`** (the macOS system resolver serves dead peer IPs for minutes after a
+  rollout — two prior red herrings came from trusting it), serves the shared wildcard with no
+  `-k`, Gateways `Accepted`+`Programmed`, Certificates `Ready`, all watchdogs green.
+- [AI] 4.6 `moon run secret:backup` again, to prove the backup pipeline itself survived the
+  restore. Count and name every intervention Phases 3–4 needed; that list IS 11.3's result.
+
+### Phase 5 — network cluster cold start
+
+- [HUMAN] 5.1 Go/no-go. This destroys the controller, MongoDB and the adoption state of all 7
+  devices; the LAN keeps forwarding (devices forward independently of the controller) but nothing
+  is manageable until the restore completes.
+- [AI] 5.2 `moon run network:stop` then `moon run network:start`.
+- [AI] 5.3 Restore Omada. Prefer `mongorestore` of the Phase-0 dump into the fresh PSMDB with the
+  controller pod scaled to 0, then scale back — it skips the setup wizard entirely and is the only
+  path that does not need the UI. Fall back to [HUMAN] completing the wizard and restoring the
+  `.cfg` through Settings > Backup & Restore.
+- [AI] 5.4 Verify 7/7 Connected by the Phase-1 method, plus a power-cycle soak.
+- [AI] 5.5 Verify the network cluster's mesh exposures (`omada`, `jwks-network`) and the JWKS leg
+  the secret cluster depends on — the cross-cluster edge is the one 11.3 exists to prove.
+
+### Phase 6 — record
+
+- [AI] 6.1 Write the result into this file (what came up unattended, what needed hands, how long),
+  then mark 7.11 / 7.12 / 11.3 only for what actually passed.
+
+## 12. One hostname for everything: the LAN device path moves onto `omada.vpn.blueora.ng`
+
+**Decided 2026-10-06 with the maintainer.** The device fleet stops using a parallel, publicly
+named hostname and joins every other consumer on `omada.vpn.blueora.ng`. This supersedes 7.11 and
+7.12, whose target was the now-retired `omada.blueora.ng`, and it amends two requirements in
+`specs/mesh-service-exposure/spec.md` (public non-resolution becomes a per-service opt-in; the
+"devices keep a separate path" requirement is replaced by "devices reach the service at the mesh
+hostname"). The point is not aesthetic: it deletes a whole parallel mechanism — see 12.10.
+
+**The architecture.** The devices resolve `omada.vpn.blueora.ng` from PUBLIC DNS to the mesh peer's
+CURRENT overlay address, and reach that address because the LAN gateway routes `100.65.0.0/16` to
+the PiKVM routing peer. Mesh peers keep resolving the same name through NetBird's own resolver and
+are unaffected. One name, one certificate, one port space, one code path.
+
+**Measured evidence this rests on, so a future reader does not have to re-derive it:**
+
+- **Peer-IP churn is days, not hours.** The 3.3–7.7 h figure measured during group 5–7 work was
+  dominated by chart iteration (`openbao-mesh` re-registered 6 times in 24 minutes on 2026-10-05).
+  The honest baseline is a long-lived in-cluster peer nobody is editing: `jwks-gateway`, **13
+  registrations in 71.9 days = 0.18/day, bursty across only 9 distinct days**. `router` is the
+  pessimistic bound at 2.0/day (the watchdog restarts it). So a sub-minute update path is ample.
+- **The routing half already works end to end, verified live on the PiKVM.**
+  `100.65.0.0/16 dev wt0 proto kernel scope link` sits in the MAIN routing table — the whole mesh,
+  with no `NBResource` involved, which is exactly why the device path can stop declaring one.
+  `ip route get 100.65.70.129 from 192.168.0.104 iif eth0` → `dev wt0`. `ip_forward=1`. NetBird's
+  own `meta mark 0x1bd22 oifname "wt0" masquerade` is live and counting. And the PiKVM reaches the
+  peer: `https/443 → 200` with `ssl_verify_result=0`, `tcp/29811` and `tcp/29814` open.
+  **The only missing piece in the whole design is one static route**, and a `/16` covers every
+  future peer address, so it never needs re-pointing — unlike the `/32` it replaces.
+- **Push, not polling, and the right trigger is not a NetBird event.** The overlay address changes
+  exactly when the pod starts, so "new pod" IS the event and the pod itself is the only thing that
+  needs to know. NetBird Cloud does expose `/api/integrations/event-streaming` (confirmed live:
+  returns `[]`, so it exists and is unconfigured), but using it would mean exposing a
+  NetBird-reachable sink into the homelab to learn something the pod already knows locally.
+  Rejected on attack surface.
+- **`triggerLoopOnEvent` is the "force-run external-dns" knob** and the vendored chart 1.19.0
+  exposes it as a documented boolean ("triggers run loop on create/update/delete events in addition
+  of regular interval"). `dnsendpoints.externaldns.k8s.io` has been installed on the network
+  cluster since 2026-07-24, so the `crd` source needs no CRD work.
+- **Writing straight to Cloudflare from the pod was considered and rejected.** It is faster (~200 ms
+  vs sub-minute) but puts two writers in one zone and discards external-dns's TXT ownership
+  bookkeeping — the mechanism that stopped the two clusters deleting each other's records in the
+  `txtOwnerId` incident. One writer is worth the seconds.
+- **Everything the publisher needs is settable on the generated Envoy pod.** `EnvoyProxy`'s
+  `provider.kubernetes` exposes `envoyDeployment.initContainers` (already carrying the mesh client),
+  `envoyDeployment.pod.volumes`, `envoyDeployment.patch`, and `envoyServiceAccount.name`. The Envoy
+  Deployment's ServiceAccount is already the predictable `omada-mesh`, so a Role can bind to it.
+
+**Two cautions carried into the tasks below:**
+
+1. **TTL is NOT a discriminator between the two resolvers** — NetBird and Cloudflare both answer
+   `300` for these names (measured). So the precedence probe in 12.1 cannot infer which resolver
+   replied from the TTL and must use a deliberately distinct synthetic address instead.
+2. **This newly couples the device fleet to the Envoy mesh pod.** Today the device path terminates
+   at the CONTROLLER Service (selector `app.kubernetes.io/name: omada-controller`); the mesh path
+   terminates at the Envoy pod. Verified. After this change a mesh-pod outage takes the devices
+   down too, where today it leaves them Connected. That is the real price of one hostname, it is
+   accepted deliberately, and it is what makes 12.11 a required test rather than a nice-to-have.
+
+**Results (2026-10-06) — 12.1–12.4 and 12.11 DONE. Three defects found on the way, all fixed.**
+
+- **12.1 GATE: PASS, decisively.** With `pikvm.vpn.blueora.ng -> 192.0.2.1` live in Cloudflare
+  (confirmed from `1.1.1.1` AND `8.8.8.8`), the overlay address came back from *every* consumer
+  that matters: the Mac's **system** resolver (`dscacheutil`, and `ping` resolved it the same way
+  — not just an explicit `dig @100.65.255.254`), an in-cluster peer's resolver, and an ordinary
+  non-peer in-cluster pod. NetBird's match-domain wins; publishing changes nothing for peers.
+  Probe record deleted, zone re-listed to confirm no `vpn.blueora.ng` residue, and the OpenBao
+  Cloudflare lease revoked.
+  *Design note the gate forced:* **TTL is useless as a discriminator** — NetBird and Cloudflare
+  both answer `300` — which is why the probe used a synthetic unroutable address instead, and why
+  `pikvm` was chosen as the subject: a real, stable peer label that nothing addresses by name.
+  *Incidental finding, recorded so nobody depends on it:* the non-peer pod resolved the mesh name
+  only because cluster CoreDNS `forward . /etc/resolv.conf` chains to the vind node → OrbStack →
+  the MacBook's resolver, which carries NetBird's match-domain. That is an artifact of running on
+  the laptop and will NOT hold on an always-on cluster.
+- **12.2 DONE.** external-dns now runs `Sources:[service crd]` with `UpdateEvents:true` and
+  `MinEventSyncInterval:5s` (confirmed in its own startup config dump). No RBAC work was needed —
+  the chart's `clusterrole.yaml` grants `dnsendpoints` automatically when `crd` is in `sources`.
+- **12.3 DONE.** The chart gained `publicDns` (default off), a `public-dns` native sidecar that
+  reads `wt0` **in its own pod** and upserts the `DNSEndpoint`, a `preStop` that deletes it, and a
+  Role/RoleBinding on the Envoy ServiceAccount (pinned via `envoyServiceAccount.name`, which Envoy
+  Gateway already defaults to the Gateway name). Opt-out verified: `publicDns.enabled: false`
+  renders zero DNS objects, zero RBAC, zero extra containers and no extra volume.
+- **12.4 DONE and serving.** `public-dns: omada.vpn.blueora.ng -> 100.65.154.81`, external-dns
+  logged `action=CREATE record=omada.vpn.blueora.ng ttl=60 type=A` plus its ownership TXT, and the
+  name now returns the same address from `1.1.1.1`, `8.8.8.8`, the NetBird resolver and the
+  DNSEndpoint. The withdraw path was also exercised for real: on teardown the preStop deleted the
+  DNSEndpoint and external-dns (`policy: sync`) removed the public record.
+- **12.11 DONE — and this is the number the whole design hinges on.** Before any tuning, a
+  `rollout restart` left the hostname resolving to NOTHING for **~6-7 minutes**. Envoy's drain was
+  not the cause (`drain sequence completed` 11s in, zero downstream connections); the pod sat
+  Terminating for the whole of Envoy Gateway's default **360s** `terminationGracePeriodSeconds` and
+  was killed at the deadline, and Recreate will not start the replacement until it is gone — so
+  the deadline WAS the rollout duration. Against the controller's ~8-minute inform timeout that is
+  no margin at all. Bounded the drain (`shutdown.drainTimeout: 10s`, `minDrainDuration: 2s`) and
+  sized the grace period to it (45s, via the `envoyDeployment.patch` escape hatch — EnvoyProxy has
+  no first-class field). **Re-measured: old pod gone t+54s, record repointed AND serving `200`
+  with a valid certificate t+81s.** ~6x inside the device budget instead of grazing it.
+
+**Three defects found while doing this, none of them in the plan:**
+
+1. **`bin/fleet-apply` shipped a STALE subchart, so the first two applies deployed nothing.**
+   `fleet apply` resolves umbrella `file://` deps only when `charts/` is absent, and `Chart.lock`'s
+   digest covers the dependency *declaration*, not its *content* — so editing the shared chart
+   changed neither and the old tgz kept winning, with Fleet correctly reporting
+   `unchanged (bundle)`. The sting: `bin/fleet-build` already deletes `charts/` before building for
+   exactly this reason, so **the verify path was rebuilding while the apply path was not** — the
+   check that exists to catch problems was the only thing seeing the new code. `helm template`
+   passed, `moon run :fleet_build` passed, the cluster ran week-old templates. Fixed in
+   `bin/fleet-apply` with the same gitignore-guarded `rm -rf charts/`.
+2. **The injected SA token could not be reused, and the failure named the wrong thing.** Envoy
+   Gateway sets `automountServiceAccountToken: false` on both the data-plane pod and its SA, so
+   kubectl in the sidecar fell back to `localhost:8080` and failed with *"failed to download
+   openapi ... dial tcp [::1]:8080"* — which reads as a networking fault and is actually a missing
+   credential. The pod's existing `sa-token` volume is a trap: it is audience-scoped to
+   `envoy-gateway.envoy-gateway.svc.cluster.local` for xDS, so the API server would have rejected
+   it. Fixed with a hand-rolled projected volume (token + `kube-root-ca.crt` + namespace, i.e.
+   exactly what kubelet's automount provides) mounted ONLY into the publisher, so the Envoy
+   container still holds no API credential.
+3. **THE WATCHDOG WAS RESTART-LOOPING A HEALTHY POD, and the new design made that device-visible.**
+   `Daemon status: NeedsLogin` is what a healthy daemon prints in its first seconds, *identically*
+   to a wedged one — same block, same "use a setup-key" hint. So one sample cannot tell startup
+   from failure, and acting on it recycled a pod that was about to be fine, whose replacement was
+   also young at the next tick: a self-sustaining loop. Observed three consecutive cycles
+   restarting a pod that reported `Management: Connected` moments later, while the two unchanged
+   exposures beside it stayed healthy — which is what localised it to pod age rather than the
+   account. Also fixed `exec deploy/<x>`, which resolves to an arbitrary pod and during Recreate
+   can sample the TERMINATING one. Now: newest Running pod explicitly, and a bad verdict must
+   survive a re-check (`watchdog.confirmSeconds: 45`) with the same pod still selected.
+   **Verified both directions live** — one cycle logged `pod changed ... skipping this cycle`
+   (a false positive correctly suppressed) and another logged `dead on both samples -> rollout
+   restart` (a real one still caught).
+   This was pre-existing, but `publicDns` is what made it matter: every spurious restart is now a
+   public DNS change the device fleet has to chase.
+
+*One operational note: `kubectl patch cronjob ... suspend` survives a Fleet re-apply, because the
+chart does not render that field and SSA will not reset what it does not manage. Suspending a
+watchdog to stop a loop is therefore sticky — remember to unsuspend.*
+
+- [x] 12.1 **GO/NO-GO GATE — does a public address record shadow the mesh resolver for peers?** Publish a public A record for `pikvm.vpn.blueora.ng` (an existing, stable peer label that nothing addresses by name, so blast radius is nil) pointing at `192.0.2.1` (TEST-NET-1 — unroutable and unmistakably synthetic, which is the discriminator since TTL is not). Then resolve that name from the Mac and from an in-cluster peer. **PASS** = both return the PiKVM's overlay address, i.e. NetBird wins and publishing changes nothing for peers. **FAIL** = stop the whole group; publishing mesh names publicly would break every peer, and the device fleet would have to keep a separate name. Delete the record either way
+- [x] 12.2 Give external-dns the push path: `sources: [service, crd]`, `triggerLoopOnEvent: true`, and RBAC to read `DNSEndpoint`; verify a hand-written `DNSEndpoint` becomes a Cloudflare record in seconds rather than at the next `--interval=1m` tick, and that the existing `omada.blueora.ng` service-sourced record is untouched by the new source
+- [x] 12.3 Add an opt-in `publicDns` block to the shared mesh-service chart (default **off**): a `DNSEndpoint` for `<name>.<domain>`, a second native sidecar that waits for the mesh client to report an overlay address and upserts the record, a `preStop` that deletes it, and a Role/RoleBinding on the Envoy ServiceAccount; verify a values file with `publicDns.enabled: false` renders zero DNS objects and zero RBAC, so no other exposure is affected
+- [x] 12.4 Opt `mesh-omada` in, with the reason recorded in its own values; verify the rendered `DNSEndpoint` carries the live peer address and that `dig +short omada.vpn.blueora.ng @1.1.1.1` returns it
+- [x] 12.5 **[HUMAN] DONE 2026-10-07, and ADDED rather than replaced — which is better than this task asked for.** Both static routes are live and enabled in the controller (`staticrouting`): `omada_gateway` = `10.96.0.20/32 → 192.168.10.2` and `omada_gateway_new` = `100.65.0.0/16 → 192.168.10.2`. Keeping both means the cutover is reversible and the fleet can move one device at a time; retiring the `/32` moves to 12.10. **The next hop is the PiKVM's VLAN 10 address, not its flat-LAN `eth0`** — worth knowing because it means the device path ingresses on `vlan10`, and `network.md`'s route table was right about this all along where 7b's note was not
+- **Validation of 12.5 (2026-10-07) — every hop green, and the one risk I expected was already retired.**
+  - **The ingress-interface worry is void, because the OLD route uses the SAME next hop.** `10.96.0.20/32` has always pointed at `192.168.10.2`, so device traffic has been arriving on `vlan10` and being forwarded into the mesh this whole time, with 7/7 devices Connected to prove it. The only new variable is the destination prefix, not the path.
+  - **`rp_filter` was the real trap and it is clear.** A device packet arrives on `vlan10` with a source from `192.168.0.0/24`, whose reverse path is `eth0` — under strict (`1`) reverse-path filtering the kernel would have dropped it SILENTLY. Live: `all=0`, `eth0=2`, **`vlan10=2`** (loose), which accepts a source routable via any interface.
+  - **Routing decision, measured for a real device source on the real ingress interface:** `ip route get 100.65.154.81 from 192.168.0.104 iif vlan10` → `dev wt0` (main-table kernel route, no `NBResource` needed), and the control `ip route get 10.96.0.20 from 192.168.0.104 iif vlan10` → `dev wt0 table 7120`. Both forward.
+  - **SNAT covers it:** `netbird-mangle-prerouting` marks on `iifname != "wt0" ct state new ip saddr 192.168.0.0/24` — interface-agnostic except for the tunnel itself, so `vlan10` ingress is included — and `netbird-rt-postrouting` masquerades `meta mark 0x1bd22 oifname "wt0"`. `FORWARD` policy is `accept`.
+  - **Port reachability, both paths.** NEW (`100.65.154.81`): `443` plus `29811`–`29817` all OPEN, and `8043`/`9999` correctly TIME OUT — the port-space contract holds, so the mesh peer exposes exactly what it declares. OLD (`10.96.0.20`): `8043`, `8088`, `29811`, `29814`, `29817` all OPEN. HTTPS on the new path returns **`200` with `ssl_verify_result=0`** on the real hostname.
+  - **UDP proven from the RECEIVING end, since `nc -zu` is vacuous (7b).** After datagrams from the PiKVM, Envoy reports `downstream_sess_total: 3` — exactly the three declared UDP ports — with `rx_datagrams: 4` and `no_route: 0`.
+  - **Envoy is bound to precisely the 11 declared sockets:** `443`, `19810`, `27001`, `29810`, `29811`–`29817` (plus its own `19001`/`19003`). **No `10080`, no `10443`** — the port-shift decision confirmed live again on the current pod.
+  - **Public DNS is correct for a clean cutover, which is what the devices actually consume:** `omada.vpn.blueora.ng` → `100.65.154.81`, `omada.network.vgijssel.nl` → `10.96.0.20`, `omada.blueora.ng` → `10.96.0.20`, consistent on both `1.1.1.1` and `8.8.8.8`. All 7 devices healthy throughout; nothing has been cut over.
+  - *Two probes that lie, recorded so they are not repeated:* `curl telnet://…` reported every port closed including the known-good old path, and `curl --interface <lan-ip>` does not produce a LAN-sourced packet when the route is via `wt0` — it silently falls back to the interface's own address. A locally-originated LAN-sourced packet would FAIL anyway and prove nothing, because `netbird-mangle-prerouting` only marks *forwarded* traffic, so there would be no SNAT. Use plain TCP connects from the forwarder instead: after masquerade a forwarded device packet is indistinguishable from PiKVM-originated traffic, which is what makes that the accurate simulation.
+- [ ] 12.6 Verify the LAN path end to end from a NON-PEER host (not the Mac, which is a peer and would prove nothing): resolve `omada.vpn.blueora.ng` against the LAN's DNS, connect to 443 with no `-k`, and confirm a device port accepts a connection — **STILL OPEN, and deliberately not marked done: there is no non-peer LAN host this session can drive.** Every hop is validated under 12.5 and the LAN→forwarder leg is proven by the old route sharing the identical next hop and ingress interface, so the remaining gap is narrow — but it is exactly the leg only a real non-peer sender exercises, and the whole 22-hour outage came from assuming a path worked. Cheapest way to close it: open `https://omada.vpn.blueora.ng` on a phone on WiFi that is NOT a NetBird peer. Otherwise 12.8 closes it with the strongest possible evidence, since the devices themselves are non-peer LAN hosts
+- [ ] 12.7 **[HUMAN] SUPERSEDES 7.11** — set the controller's Controller Hostname/IP to `omada.vpn.blueora.ng` so the push re-homes the fleet
+- **Mechanism established 2026-10-07, before doing it. The field is NOT blank — the UI shows `10.244.0.249`, the controller's own POD IP, and that is a latent landmine.**
+  *Correcting the first pass of this investigation, because the method was wrong in a way worth remembering:* it concluded "unset" from sweeping the DB for the two HOSTNAMES. That search could only ever find the answer it expected — an IP-valued setting passes straight through it. The maintainer reading the actual UI is what caught it. **Sweep for the FIELD, not for the value you are expecting.**
+  What is actually true, after sweeping for field *names* across every collection:
+  * **No persisted controller-address setting exists anywhere** — no `controllerHostname`/`inform_url`/`mgmt_addr` in any collection, nothing in `properties/`, and `omada.properties` carries only ports. The `10.244.0.249` in the UI is **auto-detected live** from the controller's own interface (`server.log`: `list local interface macs` on the `client-inform-work-group`), not stored. So it has never been explicitly configured — the substance of the first conclusion survives, but it presents as a live WRONG value rather than a blank.
+  * **It is ephemeral and unroutable.** `10.244.0.x` is the vind pod CIDR; it already moved `.230 → .249` across a pod restart. The stale `.230` is still visible per-device in `connection.dst_ip` (one doc per MAC, all 7 identical) — which is the controller RECORDING the local socket address a device's inform landed on after kube-proxy DNAT, i.e. diagnostic, not configuration.
+  * **The auto-detected value is NOT being pushed, proven by the fleet's own behaviour.** Devices re-adopted 7× at 07:23 today and 7× at 13:45 yesterday and stayed up; had adoption delivered `10.244.0.x` as the inform target they would have been stranded instantly. So **the inform target lives in DEVICE FLASH** — the fleet holds `omada.network.vgijssel.nl` because that is the address it was originally ADOPTED through (July), and a re-adopt is the same device redialling the address it already holds. That is the missing half of 7b's root cause: nothing in the controller was ever telling them that name, so renaming the DNS record could not possibly re-home them.
+- **12.7 ATTEMPTED 2026-10-07 09:40:21Z — the setting took, the fleet did NOT move. No outage; this is a partial result, not a failure.**
+  * **Accepted and persisted**, and this is what finally proves it had never been set: the key appeared for the FIRST time at `systemsetting.web_port_setting.host_name = "omada.vpn.blueora.ng"`, alongside a new `auto_refresh: false`. The same document dumped an hour earlier had NEITHER key. `server.log`: `Controller Host Name is changed to omada.vpn.blueora.ng`.
+  * **No disruption whatsoever.** 7/7 still Connected, `health_score: 10`, `disconnect_time: 0`, and **zero** device events since the change — so the pod-IP landmine was defused without costing anything.
+  * **But the devices are still on the OLD path, proven two independent ways.** (1) Envoy on the mesh peer reports **zero** `downstream_cx_total` on every device listener — `443`, `29811`–`29817`, `19810`, `27001`, `29810` — since the pod came up at 07:21Z; the only non-zero counters are its own readiness probe (`19003`) and admin. The stat names were verified against a full `/stats` dump first, so the zero is a real measurement and not a bad filter. (2) `server.log` shows live device sessions re-establishing **every 10 seconds** from `/10.244.0.22` to `:29814` and `:29817` — and `10.244.0.22` is `netbird/router-7968658d8c-jwphd`, the NBRoutingPeer, i.e. traffic arriving via the pre-existing routing-peer → ClusterIP path. Had a device re-homed it would arrive from the Envoy pod's address instead.
+  * **Nothing was pushed.** The `configversion` counters are byte-identical before and after (`11/10, 9/8, 14/13, 9/8, 20/19, 11/10, 16/15`), consistent with the earlier finding that no `configSyncMap` section carries an inform/hostname — so this setting does not travel as a tracked per-device config push.
+  * **HYPOTHESIS TESTED AND REJECTED — a reboot does NOT re-home a device.** `attic-ap` was rebooted at 09:47:00Z and logged `Adopt success` at 09:49:19Z, 2m19s later. Envoy's device listeners stayed at **zero** throughout an 18-sample / 6-minute watch, and the controller log shows **36 device channels opened in the 11:49-11:50 window, every single one from `/10.244.0.22`** (the router peer) and none from `10.244.0.24` (the mesh Envoy pod). So the device came back on the OLD inform target after a full power cycle. The address is not merely cached in a live session — **it is baked in at ADOPTION and a reboot re-reads the same stored value.** This also discharges 12.8's power-cycle criterion for the old path.
+  * **FORCE PROVISION ALSO DOES NOT MOVE IT — and it was a FULL config send, not a delta.** Tested on `attic-ap` 2026-10-07 ~10:00Z at the maintainer's suggestion (correctly, since it re-pushes config without a factory reset and so cannot strand a device). The push unambiguously happened and completed: `configversion` went `current 16 → 17` / `acked 15 → 16`, `configSyncStatus` moved `3 → 4` with `ap_common 1 → 4` and then settled back to `3`/`1` — byte-identical to the untouched control device `living-room-ap`. The controller log confirms the heaviest available push: `need clearConfigHistory when send full config, remove all component`. **And the device never left the old path**: Envoy's device listeners stayed at zero across an 8-sample watch, and 197 device channels in the window all came from `/10.244.0.22`. So the inform target is not carried in the provisioned configuration at all, which matches the `configSyncMap` evidence (no section for it; `ap_common` was the plausible candidate and is demonstrably not it).
+  * **FULL CONFIG SEND + REBOOT: STILL NO. The question is now closed.** The second reboot (11:14:41Z → `Adopt success` 11:16:23Z) was the discriminator between "written to flash but unused" and "never written", because it followed the full config send. Result: Envoy's device listeners stayed at **zero** across a 16-sample / 5-minute watch, and **90 device channels in the 13:16-13:20 window, all from `/10.244.0.22`**. So the new address was never written anywhere the device reads. **Three independent mechanisms tried, all ineffective: setting Controller Hostname/IP, a reboot, and a force reprovision (full config send) followed by a reboot.** The inform target is fixed at adoption and no configuration push can move it.
+  * *Measurement note worth keeping, because it nearly produced a false alarm:* right after a re-adopt a device sits at **`health_score: -1` with `health_score_time` absent** — the score is simply not recomputed yet (7b saw the same `-1 → 10` settling), and `last_seen` freezes at the adopt. A quick "`disconnect_time == 0 && health_score > 0`" check therefore reports a perfectly healthy device as DOWN. Liveness is `last_seen > disconnect_time` + no fresh `Disconnected` event, corroborated by `device status change to connected` / `Device informed monitor Link UP` in `server.log`. `attic-ap` was live throughout all three tests; the fleet never dropped below 7/7.
+  * **DIRECT DEVICE LOGIN IS BLOCKED WHILE ADOPTED, which closes the last no-reset avenue.** The AP's own management UI answers but refuses to manage: *"This API is being managed by Omada controller. If you want to manage the API in standalone mode, forget the API from the omada controller or reset it"* ("API" is TP-Link's typo for AP). So the field the inform URL was originally set in is read-only for an adopted device — every route to it passes through Forget.
+  * **CORRECTION — the LAN *is* reachable from the Mac over the mesh, and my two probes that said otherwise were both invalid.** `ping` can never work (ICMP appears in no policy — the same class of error as `nc -zu` for UDP in 7b), and `nc -z -G3` gave a mesh round-trip to a small embedded device three seconds. With a real timeout: `192.168.0.108:80` and `:443` are **OPEN** and serve `<title>Login</title>`. The enabling config was already there: `lan-default` advertises `192.168.0.0/24` with policy `cidr-default Access` permitting source group `roaming`, which the Mac is in (`homelab`, `roaming`, `All`), and `netbird routes list` shows it `Selected`.
+  * **THAT REOPENS RE-ADOPTION, which the paragraph below had ruled out.** The reason Forget looked unrecoverable was "nothing can reach a factory-reset device". That is true of the CLUSTER but not of the MAC: a reset device drops into standalone mode, its UI becomes writable, and the Mac can reach it over the mesh to set the inform URL by hand — exactly how these devices were configured originally. So the real sequence is Forget → find the device's new DHCP address → set the inform URL from the Mac → let it be adopted. Risk is per device type: **APs lowest** (a brief WiFi outage on one radio), **switches medium** (a reset switch loses VLAN config; the PiKVM's untagged `eth0 192.168.0.123` survives a default-config switch so mesh access persists, but its tagged `vlan10 192.168.10.2` may not), **the ER605 gateway highest and still worth avoiding** — Forget wipes VLANs, DHCP and both static routes at once, which is a whole-home outage window even though the Mac's PiKVM-based access does not depend on them.
+  * **MIGRATION IS THE MECHANISM — IT DOES CHANGE THE INFORM URL — BUT MIGRATING TO THE *SAME* CONTROLLER LEAVES IT HALF-DONE. Tested on `attic-ap` 2026-10-07 11:41:39Z.** This is the one thing that moved the device, so the mechanism question is answered; what fails is the controller-side bookkeeping.
+    - **It worked, device-side.** `server.log`: `send Ap migrateUrl to [DeviceMac(rESHwzk…)]`, a brand-new `migrate: true` field appeared on the device document, the AP stopped informing on the old path (`timeout Disconnect Device` 11:51:45Z), and then **arrived over the mesh**: `MANAGED_BY_OWN Device F0-09-0D-79-CA-D2 … is discovered` at 11:51:51Z with three channels from the Envoy pod `10.244.0.24` on exactly `29811`/`29814`/`29817`. Envoy counted them too (`downstream_cx_total: 1` per port).
+    - **Then the CONTROLLER hung up.** Envoy's cluster stats name the direction unambiguously: `upstream_cx_total: 1`, `upstream_cx_destroy_remote: 1`, `upstream_cx_destroy_remote_with_active_rq: 1` — the upstream (controller) closed each connection mid-request. `downstream_cx_active` has been `0` ever since, the AP has not retried, and it is now **unmanaged**, re-timing-out (`timeout Disconnect Device` again at 12:02:05Z) while still serving WiFi.
+    - **Leading explanation, consistent with every observation but not yet proven:** the controller refuses to manage a device it believes has left. It logged `migrate info: null, migrate id: aa02628f…` and `Failed update device F0-09-0D-79-CA-D2 main refer to migration may mainRefer not exist` — i.e. it set the device to "migrating" but never built a valid migration record, because the destination *is* itself. So the device dutifully arrives at the new address and is turned away. Confirming test is the fix itself: clear the migrate state and see whether it adopts over the mesh.
+    - **Everything else was eliminated first, and two of my own probes were wrong.** DNS is correct from the LAN's own resolver (asking the ER605 directly: `omada.vpn.blueora.ng → 100.65.39.233`). The path is healthy (`http=200`, 2937 bytes, `tls=0`, device ports open). MTU is handled — `wt0` is MTU 1280 and NetBird installs an MSS clamp (`tcp option maxseg size > 1240 … set 1240`, 115 packets counted), so the broken-PMTUD theory is dead. The peer address did not churn (same `100.65.39.233` in NetBird DNS, public DNS and the DNSEndpoint; pod 0 restarts). **Discarded probes: `/proc/net/nf_conntrack` is UNREADABLE on the PiKVM, so three "no conntrack entries" readings were worthless rather than negative; and a bare-IP `https://<peer>/` fails instantly with `000` because the Gateway listener is bound to `omada.vpn.blueora.ng` and Envoy rejects non-matching SNI — always use `--resolve`.**
+    - **So: the inform URL IS now `omada.vpn.blueora.ng` on that AP.** Recovery is to clear the migration state (UI cancel if it exists, else the `migrate` field), after which the device should adopt over the mesh and land in the intended end state. If that works it generalises to the rest of the fleet; if it does not, the repoint below does the same job with no device involvement.
+  * **✅ SOLVED 2026-10-07 12:08:46Z — MIGRATE-THEN-CANCEL IS THE WORKING PROCEDURE, and the first device is live on the mesh hostname.** Cancelling the migration cleared the flag, and the AP — which was already holding the new inform URL — adopted immediately over the mesh. Confirmed from four angles:
+    - `migrate` field **gone** (`undefined`), `Adopt success` at 12:08:46Z, `device status change to connected`, `health_score` recomputed `-1 → 7`, **LIVE**, and **zero** fresh `Disconnected` events across an 11-minute soak — past the ~8-minute inform timeout, so "connected" is credible and not merely freshly-adopted.
+    - **Envoy proves the PATH, which is the whole point:** `listener.0.0.0.0_29814.downstream_cx_active: 1` and `29817.downstream_cx_active: 1` (totals `3`), i.e. live device-management sessions arriving through the mesh peer. Before the cancel these were `active: 0`.
+    - All 7 devices LIVE throughout; the other six untouched on the old path.
+    - *Reconciling an apparent contradiction, because it looks alarming and is not:* the controller log's channel-source tally still shows ~105 from the router peer and none from the Envoy pod. Those log lines are channel **teardowns** — the six old-path devices recycle their channels every ~10 s and so log constantly, whereas `attic-ap`'s mesh session is **persistent** (`active: 1`, total not climbing) and therefore logs nothing. A stable session is invisible in a disconnect-based tally.
+  * **PAVED-ROAD ROUTE CHOSEN INSTEAD 2026-10-07 — a parallel controller, so BOTH migration legs are ordinary supported migrations.** The maintainer elected the supported path over the migrate-then-cancel workaround, having done site moves before. I argued against it on cost/risk grounds (a throwaway controller temporarily owning the physical fleet, two whole-site config round-trips, and an unresolved return-leg site conflict); that was overruled, which is their call, and it is built. Plan: `omada --migrate--> omada-temp` then `omada-temp --migrate--> omada`, leaving the fleet on `omada.vpn.blueora.ng` with no half-state.
+    - **Deployed and verified 2026-10-07:** `apps/network/src/omada-temp` (controller, StatefulSet `omada-temp-omada-controller-0`) + `apps/network/src/mesh-omada-temp` (`omada-temp.vpn.blueora.ng`). Both bundles 1/1; `bin/fleet-lint-targets` 32/32. Peer `100.65.144.121`, Gateway `Accepted`+`Programmed`, `BackendTLSPolicy` `Accepted`+`ResolvedRefs`, DNSEndpoint published and resolving identically from NetBird **and** public DNS. **The UI works over the mesh — `http=200`, `tls_verify=0`, no redirect** — which matters because the SECOND leg is driven from this controller's UI. Device ports `443`/`29811`/`29814`/`29817` reachable from the PiKVM; `8043` correctly refused, so the port-space contract holds. Real fleet untouched: 7 devices, 7/7 live.
+    - **Three design choices that avoided new infrastructure.** (1) It lives in the EXISTING `omada` namespace — a new namespace would have needed VSO `allowedNamespaces`, a `vault-secrets-operator` SA, **and** an SA subject appended to the OpenBao role on the SECRET cluster plus a secret-cluster apply, for something being deleted. (2) It serves the **shared `*.vpn.blueora.ng` wildcard on its own `:8043`**, so the mandatory `BackendTLSPolicy` hostname validation passes with no certificate issued, no DNS-01, and no throwaway name in a public CT log. (3) It reuses the `omada` MongoDB credential with its own database `omada_temp`, which required adding `dbOwner db: omada_temp` in `../mongodb/perconaservermongodb.yaml`.
+    - **A latent bug found by rendering, fixed here and still present in the real bundle:** the omada-controller chart renders a **StatefulSet**, but `../omada/templates/vaultstaticsecret-mongodb-uri.yaml` sets `rolloutRestartTargets: {kind: Deployment, name: omada}` — an object that does not exist, so a rotated MongoDB password would silently never recycle the real controller. `omada-temp` uses `kind: StatefulSet, name: <release>-omada-controller`. **Deliberately NOT fixed in the real bundle mid-migration**, because correcting it would hand VSO a valid target and could trigger an immediate rollout of the live controller. Fix it after the fleet is home.
+    - **Next, and it needs the UI:** `omada-temp` is a FRESH controller — `omada_temp` holds 0 collections until its setup wizard is completed. So: complete the wizard at `https://omada-temp.vpn.blueora.ng/`, then run leg 1 from `omada`, then leg 2 from `omada-temp`. Teardown list when done: both bundles, the `dbOwner db: omada_temp` grant, and a manual `mongosh` drop of the `omada_temp` database.
+  * **THE PROCEDURE (workaround, superseded by the paved road above but kept because it is proven):** (1) start a device migration to `omada.vpn.blueora.ng`, which rewrites the inform URL device-side; (2) **cancel** the migration, which clears the controller-side `migrate` flag that otherwise makes it refuse the returning device; (3) the device adopts over the mesh. Non-destructive — no factory reset, no config loss, no device-side access needed. Expect a ~10-minute gap per device between step 1 and adoption, since the device must first time out on the old path (the controller's own inform timeout dominates).
+  * **The procedure leaves NO residue — verified by diffing the migrated device against an untouched one of the same model.** Identical key sets in both directions (zero fields present on one and not the other, so `migrate` is fully gone, not merely false); `configSyncStatus` 3 on both; same firmware, manager version and SSID count; and a whole-DB sweep finds **no leftover migration record** (the one remaining `migrat` hit is an unrelated `auditlogglobalsetting` notification key). **And the health score was simply settling, not a mesh penalty: `-1 → 7 → 9`**, converging on the control's `10`. So the earlier concern below is resolved.
+  * **Still to watch (RESOLVED — see above):** `attic-ap` settled at `health_score: 7` where the six old-path devices sit at `10`. It may be a freshly-adopted score still climbing (it went `-1 → 7`), or it may reflect the extra latency of the mesh hop. Worth re-checking before migrating the rest, and worth comparing again after a second device moves.
+  * **The ER605 gateway is still the one to treat separately** — not because of this procedure, which never factory-resets, but because it is the device whose static routes carry every other device's path, so it should move last and alone.
+  * **RECOMMENDED SYNTHESIS, since the two options are not exclusive:** do the legacy-name repoint FIRST (zero device touches, no reset, delivers the entire architectural goal of group 12 — Envoy in the device path, so the device `NBResource`, pinned ClusterIP and CoreDNS split horizon all become deletable). With both names resolving to the same peer, moving an individual device onto the new NAME becomes cosmetic, deadline-free and independently reversible, and **the gateway can simply stay on the legacy name indefinitely** at a cost of one extra DNS record.
+  * **AND RE-ADOPTION WAS JUDGED UNSAFE ON THE FOLLOWING GROUNDS, now superseded by the correction above for everything except the gateway.** Measured from both the router peer and the controller pod: `ip route get 192.168.0.1` resolves `via 10.244.0.1 dev eth0` — the default pod gateway, NOT the tunnel — and both the gateway (`192.168.0.1`) and the AP (`192.168.0.108`) are **unreachable** from inside the cluster. Traffic only ever flows LAN → PiKVM → mesh → cluster. Consequences, which are the real constraint on finishing this group:
+    - Omada's "Forget" **factory-resets** the device, which clears its inform URL. A reset device then depends on local-subnet discovery — and the controller is not on that subnet and cannot reach it — so **a forgotten device cannot be re-adopted at all** from here. There is no DHCP option 138 configured on any of the five LANs either (checked), so that fallback discovery path does not currently exist.
+    - For the ER605 **gateway** it is worse than unrecoverable-in-place: `staticrouting` is controller-managed config, so a Forget wipes **both** `10.96.0.20/32 → 192.168.10.2` and `100.65.0.0/16 → 192.168.10.2` along with the VLANs and DHCP. That destroys the only path any device has to the controller, in a direction the controller cannot repair. **Do not Forget the gateway.**
+  * **So the fleet's inform target cannot be changed by the means this plan assumed.** Three ways forward, recorded for the decision rather than silently picking one:
+    1. **Repoint the LEGACY name at the mesh peer** (`omada.network.vgijssel.nl` → peer overlay address, via an extra hostname on the chart's `publicDns` DNSEndpoint + dropping it from the Service annotation). Zero device touches, no factory reset, and it delivers the ENTIRE architectural goal of group 12 — all device traffic through Envoy, so the device `NBResource`, the pinned ClusterIP and the CoreDNS split horizon all become deletable (12.10). A DNS flap mid-change is harmless because both target addresses reach the controller. Cost: devices keep a legacy hostname, so the *name* is not unified for them.
+    2. **Omada's device/site migration feature**, if this build has it (Settings → Maintenance / Site Migration — it is not represented in MongoDB so it could not be verified from here). It is designed to hand devices a NEW controller address WITHOUT a factory reset, which is exactly the missing mechanism. **Worth checking the UI before anything else** — if present it delivers full name unification safely.
+    3. **Make the path two-way first** — have the PiKVM advertise `192.168.0.0/24` into the mesh so the controller can reach devices, which is what would make Forget + re-adopt recoverable. The PiKVM already has the mesh→LAN nft rules (`iifname "wt0" ... daddr 192.168.0.0/24` + masquerade); what is missing is the route being advertised to the cluster peer. Largest scope, but it also removes a standing single-direction fragility.
+  * ⚠️ **THEREFORE: NEVER press Apply on that page with the pod IP still in the field.** That is the one action that would push an address no device can ever reach to all 7 at once — self-inflicted 7b, with the controller then unable to push a correction. Overwrite the field with `omada.vpn.blueora.ng` FIRST, then apply. Setting it is consequently both the cutover and the fix for a real latent bug: a churning pod IP replaced by a stable name.
+  * **It is ONE controller-wide setting, not per-device**, and Omada exposes no per-device inform field anywhere (`omada.device` has no such key; `config_sync_status.configSyncMap` tracks ~20-37 config sections per device and none of them is an inform/hostname section, so the address rides the management channel itself rather than a tracked config push). Setting it once re-homes all 7.
+  * **Only devices ONLINE at the moment of the push receive it.** An offline device keeps the old name — harmless only because both paths are deliberately live (12.5). Verified immediately before: 7/7 online.
+  * **ROLLBACK WITHOUT TOUCHING A DEVICE, which is what makes this safe to attempt.** After the push the devices hold `omada.vpn.blueora.ng`, and that name's public A record is ours: scale the Envoy deployment to 0 (or flip `publicDns.enabled: false`) to stop the publisher re-asserting the peer address every 15s, then point the record at `10.96.0.20`. The controller Service still carries every device port (`8088 8043 8843 29811-29817 27001 29810 19810`) and the `10.96.0.20/32` static route is still live, so the fleet lands back on the working path under the NEW name. Without stopping the publisher first this fails silently — it simply overwrites the emergency value.
+  * *Dismissed alternative:* DHCP Option 138 (CAPWAP AC) also reaches every device at once, but it carries IP addresses, not hostnames — so it cannot express a mesh hostname, and it would have to be re-pushed on every peer-address change. Useful only as an emergency discovery lever.
+  * *Unrelated but worth not misreading during the cutover:* 7 `Disconnected : Inform timeout` events at 2026-10-07 07:19:18 followed by 7 `Adopt success` at 07:22-07:23 are the overnight host-sleep outage self-recovering, not a new fault. onto the mesh hostname
+- [ ] 12.8 Verify the migration from MongoDB, not the UI: 7/7 `last_seen > disconnect_time` with no fresh `Disconnected` events, soaked past the ~8-minute inform timeout, and surviving a device power-cycle
+- [ ] 12.9 **SUPERSEDES 7.12** — retire BOTH legacy names: drop the `external-dns` hostname annotation from `service-omada.yaml` entirely; verify `dig @1.1.1.1` is empty for `omada.blueora.ng` AND `omada.network.vgijssel.nl` while all 7 devices stay Connected
+- [ ] 12.10 Collect the simplification the change was for, and verify each piece is actually gone rather than merely unused: delete `nbresource-omada-devices.yaml`, delete `configmap-coredns-omada.yaml` (its split-horizon exists only to stop the `router` peer resolving the old device name), un-pin `clusterIP: 10.96.0.20`, remove the `omada-devices` NetBird Group and policy, and re-evaluate the operator's `allowAutomaticPolicyCreation: true` — 11.5 established that flag's ONLY remaining justification is this one `NBResource`, so it should now be able to go `false`
+- [x] 12.11 Prove the churn path under the new coupling: `kubectl rollout restart` the Omada mesh Envoy deployment and verify the public record follows the new peer address, that the devices reconnect without manual action, and that the total outage stays well inside the ~8-minute inform timeout; record the measured window, since this is the failure mode the design accepts
+- [ ] 12.12 Update `apps/network/network.md` (the static-route table and the PiKVM reservation note), `apps/network/SPEC.md` and the Omada bundle headers to describe the single-hostname model; verify no doc still presents a separate device hostname, a pinned ClusterIP or a device `NBResource` as current

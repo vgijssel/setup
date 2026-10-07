@@ -1,0 +1,50 @@
+{{- include "mesh-service.validate" . -}}
+{{- if .Values.publicDns.enabled }}
+{{/*
+RBAC for the `public-dns` publisher sidecar in envoyproxy-mesh-service.yaml, which writes this
+service's current overlay address into a DNSEndpoint for external-dns to publish.
+
+THE SUBJECT IS ENVOY GATEWAY'S GENERATED ServiceAccount, not one this chart creates. Envoy
+Gateway owns the data-plane Deployment and names its ServiceAccount after the Gateway, so the
+sidecar — which runs inside that Deployment's pod — authenticates as `<name>-mesh`. The
+EnvoyProxy pins that name explicitly rather than relying on the default (see
+`envoyServiceAccount` there), so this binding and that pod cannot drift apart silently: a wrong
+name here produces a Forbidden in the sidecar's log, which is at least loud.
+
+Scope is one namespace and one resource. The publisher needs `create` for the first write of a
+fresh pod, `get`/`patch`/`update` for the re-assert path when the mesh client re-enrols with a
+new address, and `delete` for the preStop that withdraws the record. It is deliberately NOT
+granted `list`/`watch` and holds no access to any other resource — a compromised data-plane pod
+gains the ability to publish one DNS name it already owns, and nothing else.
+
+No resourceNames restriction: `create` cannot be constrained by name in Kubernetes RBAC (the
+object does not exist yet, so the authorizer has no name to match), and allowing create while
+restricting the others to one name would be a false sense of narrowing. The Role is scoped by
+namespace and resource type instead, which is the honest boundary.
+*/}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "mesh-service.gatewayName" . }}-public-dns
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [externaldns.k8s.io]
+    resources: [dnsendpoints]
+    verbs: [get, create, patch, update, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "mesh-service.gatewayName" . }}-public-dns
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "mesh-service.gatewayName" . }}-public-dns
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "mesh-service.gatewayName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

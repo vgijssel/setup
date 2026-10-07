@@ -110,11 +110,27 @@ spec:
                     exit 0
                   fi
 
+                  # ── PICK A POD EXPLICITLY, NEWEST FIRST ─────────────────────────────────────
+                  # NOT `exec deploy/<x>`: that resolves to an arbitrary matching pod, and during
+                  # a Recreate rollout the TERMINATING pod still reports `status.phase=Running`.
+                  # Sampling a dying daemon and "recovering" it restarts the deployment again,
+                  # which is how a single spurious verdict turns into a loop. Newest wins, so the
+                  # replacement is preferred over anything on its way out.
+                  pods="$(kubectl -n "$ns" get pods \
+                    -l gateway.envoyproxy.io/owning-gateway-name="$gw" \
+                    --field-selector=status.phase=Running \
+                    --sort-by=.metadata.creationTimestamp -o name 2>/dev/null)"
+                  pod="$(printf '%s\n' "$pods" | tail -1)"
+                  if [ -z "$pod" ]; then
+                    echo "watchdog: no Running pod for $gw yet; skipping this cycle"
+                    exit 0
+                  fi
+
                   # `netbird status` EXITS 0 EVEN WHEN THE SESSION IS DEAD, so the decision is
                   # made on the output. A non-zero exec means the pod is rolling / not ready —
                   # skip rather than restart something already restarting.
-                  if ! status="$(kubectl -n "$ns" exec "$dep" -c netbird -- netbird status 2>&1)"; then
-                    echo "watchdog: cannot reach $dep netbird sidecar (rolling / not ready); skipping this cycle"
+                  if ! status="$(kubectl -n "$ns" exec "$pod" -c netbird -- netbird status 2>&1)"; then
+                    echo "watchdog: cannot reach $pod netbird sidecar (rolling / not ready); skipping this cycle"
                     printf '%s\n' "$status"
                     exit 0
                   fi
@@ -123,11 +139,59 @@ spec:
                   # Terminal states the daemon cannot leave without re-running `netbird up`,
                   # which only happens at pod start -> recycle the proxy. The new pod re-injects
                   # the client, re-enrols with the setup key and re-claims the DNS label.
-                  if printf '%s' "$status" | grep -qE 'Daemon status: (NeedsLogin|SessionExpired|LoginFailed)'; then
-                    echo "watchdog: $gw mesh client session is dead -> kubectl rollout restart $dep"
+                  dead='Daemon status: (NeedsLogin|SessionExpired|LoginFailed)'
+                  if ! printf '%s' "$status" | grep -qE "$dead"; then
+                    echo "watchdog: $gw mesh client session healthy"
+                    exit 0
+                  fi
+
+                  # ╔═══════════════════════════════════════════════════════════════════════════╗
+                  # ║ ONE BAD SAMPLE IS NOT A DEAD SESSION — CONFIRM BEFORE RESTARTING.         ║
+                  # ║                                                                           ║
+                  # ║ `NeedsLogin` is ALSO what a perfectly healthy daemon reports in the first  ║
+                  # ║ seconds of its life, before it finishes logging in with the setup key.     ║
+                  # ║ There is no field that distinguishes "never logged in yet" from "logged    ║
+                  # ║ in and lost it" — both print the same block, down to the same              ║
+                  # ║ "use a setup-key" hint. So a single sample cannot tell recovery from       ║
+                  # ║ sabotage, and acting on one restarts a pod that was about to be fine,      ║
+                  # ║ whose replacement is then also young at the next tick: a self-sustaining   ║
+                  # ║ loop that looks exactly like a service that cannot stay up.                ║
+                  # ║                                                                           ║
+                  # ║ Observed 2026-10-06 on `omada-mesh`: three consecutive cycles each         ║
+                  # ║ restarted a pod that `netbird status` showed as Management+Signal          ║
+                  # ║ Connected moments later. The two unchanged exposures beside it were        ║
+                  # ║ healthy throughout, which is what localised it to pod age rather than      ║
+                  # ║ anything about the account or the client.                                  ║
+                  # ║                                                                           ║
+                  # ║ A second sample costs one sleep on a path that should almost never run,    ║
+                  # ║ and the daemon logs in within seconds — so a session still reporting dead  ║
+                  # ║ after the delay really is wedged. This matters more than it used to: an    ║
+                  # ║ exposure that publishes its overlay address (publicDns) turns every        ║
+                  # ║ spurious restart into a public DNS change its devices have to chase.       ║
+                  # ╚═══════════════════════════════════════════════════════════════════════════╝
+                  echo "watchdog: $gw reports a dead session; re-checking in {{ .Values.watchdog.confirmSeconds }}s before restarting"
+                  sleep {{ .Values.watchdog.confirmSeconds }}
+
+                  # Re-select: if the pod changed under us, something is already rolling and this
+                  # cycle has nothing to recover.
+                  pod2="$(kubectl -n "$ns" get pods \
+                    -l gateway.envoyproxy.io/owning-gateway-name="$gw" \
+                    --field-selector=status.phase=Running \
+                    --sort-by=.metadata.creationTimestamp -o name 2>/dev/null | tail -1)"
+                  if [ "$pod2" != "$pod" ]; then
+                    echo "watchdog: pod changed ($pod -> ${pod2:-none}) during the re-check; skipping this cycle"
+                    exit 0
+                  fi
+                  if ! status2="$(kubectl -n "$ns" exec "$pod" -c netbird -- netbird status 2>&1)"; then
+                    echo "watchdog: cannot reach $pod on re-check; skipping this cycle"
+                    exit 0
+                  fi
+                  printf '%s\n' "$status2"
+                  if printf '%s' "$status2" | grep -qE "$dead"; then
+                    echo "watchdog: $gw mesh client session is dead on both samples -> kubectl rollout restart $dep"
                     kubectl -n "$ns" rollout restart "$dep"
                   else
-                    echo "watchdog: $gw mesh client session healthy"
+                    echo "watchdog: $gw was mid-login, not wedged; recovered on its own (no restart)"
                   fi
           volumes:
             - name: tmp

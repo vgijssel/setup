@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Publishing an in-cluster Kubernetes Service into the NetBird overlay as a dedicated mesh peer, reachable at a flat, cluster-agnostic hostname with a publicly-trusted certificate and its own complete TCP/UDP port space, without being resolvable or reachable from the public internet.
+Publishing an in-cluster Kubernetes Service into the NetBird overlay as a dedicated mesh peer, reachable at a flat, cluster-agnostic hostname with a publicly-trusted certificate and its own complete TCP/UDP port space. A mesh hostname is not publicly resolvable by default; a service whose consumers include devices that cannot run a mesh client MAY opt into publishing its overlay address publicly, which keeps those devices on the same hostname as every mesh peer rather than giving them a parallel one.
 
 ## ADDED Requirements
 
@@ -46,16 +46,16 @@ Each exposed service SHALL be published on its own overlay address, so that the 
 
 ### Requirement: Publicly-trusted certificate without public resolvability
 
-Each exposed service SHALL serve a certificate issued by a publicly-trusted authority for its mesh hostname, such that a standard client validates it with no name mismatch, no trust override, and no login interstitial. The mesh hostname SHALL NOT resolve from the public internet.
+Each exposed service SHALL serve a certificate issued by a publicly-trusted authority for its mesh hostname, such that a standard client validates it with no name mismatch, no trust override, and no login interstitial. A mesh hostname SHALL NOT resolve from the public internet unless the service explicitly opts in under "Non-peer devices reach the service at the mesh hostname" below, and opting in SHALL remain a per-service choice rather than a property of the domain.
 
 #### Scenario: Client validates the certificate with no override
 
 - **WHEN** a mesh peer requests `https://openbao.vpn.blueora.ng` with default trust settings
 - **THEN** the TLS handshake succeeds against the public root store, and no certificate warning or interstitial is presented
 
-#### Scenario: Hostname does not resolve publicly
+#### Scenario: Hostname does not resolve publicly by default
 
-- **WHEN** `openbao.vpn.blueora.ng` is queried against a public resolver
+- **WHEN** `openbao.vpn.blueora.ng` — a service that has not opted in — is queried against a public resolver
 - **THEN** no address record is returned
 
 #### Scenario: Certificate issuance does not publish the name
@@ -67,6 +67,7 @@ Each exposed service SHALL serve a certificate issued by a publicly-trusted auth
 
 - **WHEN** the public zone containing the peer DNS domain is inspected
 - **THEN** it contains no wildcard **address record**, because a wildcard answers at arbitrary label depth and would make every mesh hostname publicly resolvable and let public DNS override the mesh resolver
+- **AND** any address record that is present is an explicit per-service record created by that service's own opt-in, so the set of publicly resolvable mesh names is enumerable from the zone rather than implied by it
 - **NOTE** this constrains DNS records only, and says nothing about certificates. A wildcard *certificate* for the peer DNS domain publishes no address record and is therefore permitted — it is in fact what the implementation uses, because it keeps individual service names out of public Certificate Transparency logs as well
 
 ### Requirement: Access restricted to explicitly named peer groups
@@ -149,19 +150,34 @@ Where a consumer cannot itself become a mesh peer, the capability SHALL provide 
 - **WHEN** the hostname resolves to a different address inside the consumer's cluster than it does on the mesh
 - **THEN** both paths terminate at the same certificate for that hostname, so the local override does not require disabling verification
 
-### Requirement: Devices that cannot join the mesh keep a separate path
+### Requirement: Non-peer devices reach the service at the mesh hostname
 
-Where a physical device cannot run a mesh client, its access path SHALL be documented as an explicit exception with its own hostname, and SHALL NOT constrain the mesh hostname, port allocation, or certificate of the mesh-facing service.
+Where physical devices cannot run a mesh client, they SHALL reach the service at the SAME `<service>.<peer-dns-domain>` hostname that mesh peers use, rather than at a parallel hostname. The service SHALL opt in per-service to publishing its current overlay address as a public address record, and the devices SHALL reach that address by being routed to the overlay through a routing peer on their own network. No in-cluster address SHALL be pinned, advertised as a network resource, or split-horizoned to serve the device path.
 
-#### Scenario: Device path and mesh path coexist
+#### Scenario: Device and mesh peer use one hostname
 
-- **WHEN** a service must serve both mesh peers and non-peer physical devices
-- **THEN** mesh peers use the `<service>.<peer-dns-domain>` hostname while devices use a separately named, publicly resolvable hostname, and neither path changes the other's configuration
+- **WHEN** a service serves both mesh peers and non-peer physical devices
+- **THEN** both are configured with `<service>.<peer-dns-domain>`, and nothing in either consumer's configuration identifies which path it takes
 
-#### Scenario: Exception is recorded, not implied
+#### Scenario: Published address tracks the peer
 
-- **WHEN** such a device path exists
-- **THEN** it is declared as a named exception with its reason, rather than being left to look like a normal mesh exposure
+- **WHEN** the workload publishing an opted-in service is replaced and its peer is assigned a new overlay address
+- **THEN** the public address record is updated to the new address without manual action, and the update is driven by the replacement itself rather than discovered by a periodic scan
+
+#### Scenario: Published address is withdrawn with the peer
+
+- **WHEN** an opted-in service's publishing workload is torn down
+- **THEN** its public address record is removed, so the hostname does not resolve publicly to an address no peer holds
+
+#### Scenario: Public record does not shadow the mesh resolver
+
+- **WHEN** a mesh peer resolves an opted-in service's hostname while a public address record for that same name exists
+- **THEN** the peer receives the mesh resolver's answer, so publishing the record changes nothing for peers
+
+#### Scenario: Opt-in is recorded, not implied
+
+- **WHEN** a service publishes its overlay address publicly
+- **THEN** the opt-in is declared in that service's own exposure values with its reason, rather than being enabled by default or inferred from the presence of devices
 
 ### Requirement: Adding an exposure is a single declarative unit
 

@@ -30,6 +30,13 @@ metadata:
   labels:
     {{- include "mesh-service.labels" . | nindent 4 }}
 spec:
+  # ── BOUND THE DRAIN, AND SIZE THE GRACE PERIOD TO IT ──────────────────────────────────────
+  # See `rollout` in values.yaml for the measurement that motivated this: the default left this
+  # service unreachable for ~6-7 minutes per rollout, against an 8-minute budget on the device
+  # path. drainTimeout MUST stay below terminationGracePeriodSeconds below (the CRD says so too).
+  shutdown:
+    drainTimeout: {{ .Values.rollout.drainTimeout | quote }}
+    minDrainDuration: {{ .Values.rollout.minDrainDuration | quote }}
   provider:
     type: Kubernetes
     kubernetes:
@@ -54,11 +61,64 @@ spec:
         replicas: 1
         strategy:
           type: Recreate
+        # terminationGracePeriodSeconds has no first-class field on EnvoyProxy, so it goes through
+        # the Deployment patch escape hatch. This is the knob that actually shortened the rollout
+        # window: the pod was being killed at the 360s deadline rather than exiting when its work
+        # was done, so the deadline WAS the rollout duration (see `rollout` in values.yaml).
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  terminationGracePeriodSeconds: {{ .Values.rollout.terminationGracePeriodSeconds }}
         pod:
           labels:
             # Identifies every resource belonging to one exposure, so a service's pods are
             # greppable as a unit alongside its other resources.
             {{ include "mesh-service.podLabelKey" . }}: {{ .Values.name }}
+{{- if .Values.publicDns.enabled }}
+          # ── AN API-SERVER-SCOPED SA TOKEN, HAND-PROJECTED, FOR THE public-dns SIDECAR ONLY ──
+          # Envoy Gateway sets `automountServiceAccountToken: false` on BOTH the data-plane pod
+          # and its ServiceAccount — correct hardening, since Envoy itself needs no API access.
+          # So the publisher sidecar has no credential by default and kubectl silently falls back
+          # to `localhost:8080`, failing with an openapi download error that names the wrong
+          # problem entirely (measured 2026-10-06: "failed to download openapi ... dial tcp
+          # [::1]:8080" is what a MISSING TOKEN looks like, not a networking fault).
+          #
+          # THE POD'S EXISTING `sa-token` VOLUME CANNOT BE REUSED, which is the trap here: it is a
+          # projected token with audience `envoy-gateway.envoy-gateway.svc.cluster.local`, minted
+          # for Envoy's xDS connection. The API server rejects a token issued for another
+          # audience, so mounting it would fail authentication rather than fail to find a file —
+          # a harder error to read. This volume omits `audience`, which defaults to the API
+          # server's own.
+          #
+          # The three sources reproduce exactly what kubelet's automount would have provided, and
+          # all three are needed: client-go's in-cluster config reads `token`, verifies the API
+          # server against `ca.crt`, and resolves the default namespace from `namespace`.
+          # `kube-root-ca.crt` is published into every namespace by the cluster itself.
+          #
+          # Mounted ONLY into the publisher container (see its volumeMounts), so the Envoy
+          # container keeps having no API credential at all.
+          volumes:
+            - name: public-dns-token
+              projected:
+                defaultMode: 420
+                sources:
+                  - serviceAccountToken:
+                      path: token
+                      expirationSeconds: 3600
+                  - configMap:
+                      name: kube-root-ca.crt
+                      items:
+                        - key: ca.crt
+                          path: ca.crt
+                  - downwardAPI:
+                      items:
+                        - path: namespace
+                          fieldRef:
+                            fieldPath: metadata.namespace
+{{- end }}
         # ── THE MESH CLIENT, RUN BY US RATHER THAN INJECTED ───────────────────────────────
         # This is what makes the Envoy pod a first-class peer: the client's WireGuard interface
         # comes up inside THIS POD'S network namespace, so a peer connecting to
@@ -143,6 +203,106 @@ spec:
                   command:
                     - netbird
                     - deregister
+{{- if .Values.publicDns.enabled }}
+          # ── PUBLIC DNS PUBLISHER (opt-in; see `publicDns` in values.yaml) ─────────────────
+          # Writes this pod's CURRENT overlay address into a DNSEndpoint, which external-dns
+          # turns into the public A record for `<name>.<domain>` so non-peer devices can use the
+          # same hostname mesh peers use.
+          #
+          # IT READS THE ADDRESS FROM `wt0` IN THIS POD, which is the whole reason it lives here
+          # rather than in a controller or a CronJob. Containers in a pod share one network
+          # namespace, so the interface the mesh client creates is visible from this container
+          # with no exec, no API call and no token: the one process that knows the address
+          # first-hand is the one that publishes it. A CronJob would have to poll, and polling is
+          # what makes the device-facing record lag a rollout.
+          #
+          # PUSH, NOT POLL, in the case that matters. The overlay address changes exactly when a
+          # pod starts, and this container starts with the pod — so the normal path is "interface
+          # appears -> write -> external-dns `triggerLoopOnEvent` fires", which is seconds. The
+          # loop below is not the mechanism; it is the guard for ONE case the pod lifecycle does
+          # not cover: the mesh client is a `restartPolicy: Always` sidecar, so it can crash,
+          # re-enrol with a DIFFERENT address, and leave the pod Running with a stale record and
+          # nothing to notice. The loop re-reads a local interface and touches the API only on a
+          # real change.
+          #
+          # THE preStop DELETE IS THE SAME DISCIPLINE AS THE MESH CLIENT'S `deregister` ABOVE,
+          # and for the same reason: a record left pointing at a reaped peer's address is worse
+          # than no record, because a device would keep dialling an address nobody holds instead
+          # of failing and retrying. Native sidecars terminate after Envoy and the strategy is
+          # Recreate, so the withdraw lands before the replacement publishes.
+          - name: public-dns
+            image: {{ .Values.publicDns.image | quote }}
+            restartPolicy: Always
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+            env:
+              - name: POD_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+            volumeMounts:
+              # The hand-projected, API-server-audience token from `pod.volumes` above. Mounted at
+              # the conventional path because that is where client-go (and therefore kubectl)
+              # looks for in-cluster config — there is no flag that points it elsewhere.
+              - name: public-dns-token
+                mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+                readOnly: true
+            command:
+              - /bin/sh
+              - -c
+              - |
+                # No `set -e`: a transient API error must not kill the sidecar and strand the
+                # record. Failures are logged and retried on the next pass.
+                set -u
+                host={{ include "mesh-service.fqdn" . | quote }}
+                name={{ printf "%s-mesh" .Values.name | quote }}
+                ttl={{ .Values.publicDns.recordTTL }}
+                published=""
+                echo "public-dns: publishing $host (ttl ${ttl}s) from wt0 in this pod"
+                while true; do
+                  # `ip -4 -o addr show wt0` -> "N: wt0 inet 100.65.x.y/16 scope global ..."
+                  addr="$(ip -4 -o addr show wt0 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -1)"
+                  if [ -z "$addr" ]; then
+                    # Normal at startup: native sidecars start in order but the next one begins
+                    # as soon as the previous has STARTED, not once it is connected.
+                    sleep {{ .Values.publicDns.resyncSeconds }}
+                    continue
+                  fi
+                  if [ "$addr" != "$published" ]; then
+                    if kubectl apply -f - <<EOF
+                apiVersion: externaldns.k8s.io/v1alpha1
+                kind: DNSEndpoint
+                metadata:
+                  name: ${name}
+                  namespace: ${POD_NAMESPACE}
+                spec:
+                  endpoints:
+                    - dnsName: ${host}
+                      recordType: A
+                      recordTTL: ${ttl}
+                      targets:
+                        - ${addr}
+                EOF
+                    then
+                      echo "public-dns: $host -> $addr"
+                      published="$addr"
+                    else
+                      echo "public-dns: apply failed for $host -> $addr; retrying" >&2
+                    fi
+                  fi
+                  sleep {{ .Values.publicDns.resyncSeconds }}
+                done
+            lifecycle:
+              preStop:
+                exec:
+                  command:
+                    - /bin/sh
+                    - -c
+                    - kubectl delete dnsendpoint {{ printf "%s-mesh" .Values.name | quote }} -n "$POD_NAMESPACE" --ignore-not-found
+{{- end }}
         container:
           securityContext:
             allowPrivilegeEscalation: false
@@ -159,3 +319,10 @@ spec:
       # type rather than letting a LoadBalancer get provisioned for a path nobody uses.
       envoyService:
         type: ClusterIP
+      # Pinned to the same value Envoy Gateway would choose anyway (it names the data-plane
+      # ServiceAccount after the Gateway), stated explicitly because rbac-publicdns-mesh-service.yaml
+      # binds a Role to this exact name. Leaving it implicit would make that binding depend on an
+      # upstream default, and a silent rename there would show up only as a Forbidden inside a
+      # sidecar's log.
+      envoyServiceAccount:
+        name: {{ include "mesh-service.gatewayName" . }}

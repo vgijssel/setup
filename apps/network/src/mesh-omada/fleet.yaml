@@ -5,10 +5,15 @@
 # arbitrated against any other service. Gateway API v1.6 graduating TCPRoute + UDPRoute to
 # Standard is what makes that a single mechanism rather than two.
 #
-# Humans use this name. Physical APs and switches CANNOT — they run no mesh client — so they keep
-# their own path and their own name (`omada.blueora.ng`, pinned ClusterIP + public A record). That
-# split is a named exception recorded in ../omada/templates/service-omada.yaml; neither path
-# constrains the other's ports, hostname or certificate.
+# EVERYTHING USES THIS NAME, including the physical APs and switches that run no mesh client.
+# They cannot resolve it through NetBird, so this exposure opts into `publicDns` (below) and
+# publishes its current overlay address as a public A record; the devices resolve that publicly
+# and reach it because the LAN gateway routes `100.65.0.0/16` via the PiKVM routing peer.
+#
+# That replaced a separate device hostname backed by a pinned ClusterIP, a device `NBResource` and
+# an in-cluster CoreDNS split horizon — three mechanisms whose only job was to give one class of
+# consumer a second name. See `publicDns` in apps/platform/src/mesh-service/values.yaml for the
+# trade this accepts (the device path now depends on this Envoy pod).
 #
 # defaultNamespace `omada`: the Gateway's backendRefs resolve in the release namespace, so the
 # exposure must live where the backing Service does.
@@ -34,8 +39,25 @@ helm:
       domain: vpn.blueora.ng
       # Omada traffic is all trusted homelab traffic (the UI, and device protocols proxied for
       # on-mesh tooling). No cluster group is a source: nothing in Kubernetes consumes Omada.
+      #
+      # `homelab` is also what admits the PiKVM, which is what makes the device path work: the
+      # devices' packets are masqueraded to the PiKVM's own overlay address as they are forwarded
+      # into the mesh, so to this policy they ARE the PiKVM. Narrowing this group would cut off
+      # the whole physical fleet, not just interactive access.
       sourceGroups:
         - homelab
+      # ── The only exposure in the repo that opts into public DNS, and why ─────────────────────
+      # The TP-Link gateway, switches and APs run stock firmware with no way to install a mesh
+      # client, yet they must dial the controller BY NAME (their inform target). Publishing this
+      # peer's current overlay address is what lets them use the same `omada.vpn.blueora.ng` every
+      # mesh peer uses, instead of a parallel hostname with its own certificate and its own
+      # in-cluster plumbing.
+      #
+      # Safe for existing consumers, verified rather than assumed (openspec 12.1): a public record
+      # does not shadow NetBird's resolver — peers and in-cluster pods still get the overlay
+      # address while public resolvers get the published one.
+      publicDns:
+        enabled: true
       listeners:
         # Admin UI. Envoy terminates the publicly-trusted mesh certificate on :443, then
         # RE-ENCRYPTS to the controller's own HTTPS port :8043 and validates the certificate the
