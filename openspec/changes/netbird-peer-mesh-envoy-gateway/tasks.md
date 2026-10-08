@@ -1885,6 +1885,351 @@ Cross-cutting checks only; each group above landed its own tests and docs.
 
 - [x] 11.1 Run `moon run :fleet_build` and `moon run platform:fleet_build_gitrepo`; verify no stale umbrella pins and the GitRepo catch-all bundle stays under 3 MiB
 - [x] 11.2 Run `bin/fleet-lint-targets` and `trunk fmt && trunk check`; verify both pass with no findings
+## 11.3 FIX APPLIED + RE-DRILLED 2026-10-08 — blocker 1 is GONE, measured by a second cold boot
+
+Scoped the operator's pod-mutating webhook in `apps/platform/src/netbird-operator/values.yaml`:
+a **deny list** (`webhook.namespaceSelectors`, `kubernetes.io/metadata.name NotIn [...]`) covering
+the operator's own dependency closure — `kube-system`, `kube-flannel`, `local-path-storage`,
+`cattle-fleet-system`, `cert-manager`, `crossplane-system`, `vault-secrets-operator`, `secret`.
+`failurePolicy` deliberately left at `Fail`. A pure values change; the vendored chart already
+exposes the knob. Deny list chosen over an allow list **at the maintainer's call**, so injection
+stays ON by default and no future consumer can silently lose its sidecar by forgetting a label.
+`cert-manager` is in the list for a non-obvious reason: it issues this webhook's **own** serving
+cert, so gating it means the webhook can never become functional — it only escaped that in boot
+#1 by winning a race.
+
+**Second cold boot, same procedure, measured against the first:**
+
+| | boot #1 (unscoped) | boot #2 (scoped) |
+|---|---|---|
+| webhook rejections | **22**, six namespaces | **5**, only `envoy-gateway` + `reloader` |
+| `openbao-0` | never created (sts 1/0) | **1/1 Running, unsealed** |
+| crossplane + both providers | blocked | **all 1/1** |
+| VSO | blocked | **2/2 Running** |
+| self-init foothold | **failed** → PVC wipe needed | **atomic**, `auth/kubernetes` login OK |
+| Crossplane vault MRs | never reconciled | **4/4 policies + kv mount `synced=True`** |
+| `secret:get_openbao_auth` | failed until the PVC wipe | **WORKS** |
+| state at stall | 3/19 bundles, **permanent** | 6/19, blocked only on **empty kv** |
+| interventions to reach "restore is possible" | **4** | **0** |
+
+**That is the whole point of the fix: the cold start now walks itself all the way to "this
+secrets store needs its data restored", with nothing done by hand.** What remains is the
+legitimate blocker 11a predicted all along, and the restore answers it. The 5 remaining
+rejections are exactly the two namespaces left in scope on purpose — they stalled and self-healed
+once the operator came up, as intended.
+
+**Three corrections to the boot-#1 write-up, from evidence boot #2 produced:**
+
+- **Blocker 2 (unpublished plugin images) did NOT bite.** The node's containerd image store
+  **survives `vcluster delete`** — `openbao-0` started straight away on the very digests imported
+  that morning (`089f34e3…`, `ee142b56…`). So the honest statement is narrower than before: the
+  unpublished images break a cold start only when the image cache is *also* lost — a `docker
+  image prune` (which is what happened in boot #1), a new machine, or a fresh volume. Still worth
+  publishing, but it is not a per-cold-start blocker.
+- **Blocker 3 (non-atomic self-init) did NOT recur** — the foothold was created correctly this
+  time. So it is **intermittent, not deterministic**, which makes the Fix-2 assertion *more*
+  valuable rather than less: an intermittent brick is exactly the thing you want caught by a
+  check rather than by a later outage.
+- **Blocker 4 (orphaned NetBird groups) DID recur, deterministically.** `svc-openbao` and
+  `secret-k8s` wedged the operator again (`Group generation is 1, but latest observed generation
+  is -1`). Cleaned with a reusable dependency-ordered script (`policies → setup keys → group`),
+  after which both Groups and all four SetupKeys went Ready on an operator restart. **This is now
+  proven to need automating** — it will happen on every single rebuild.
+
+### NEW FINDING — sidecar injection has an informer-cache race, and it fails SILENTLY
+
+Worth recording because it is the exact silent-failure mode the allow-list debate was about, and
+it turns out to exist **independently of which selector style you pick**.
+
+`jwks-gateway` came up **1/1 with only its `socat` container and no peer at all** — no sidecar,
+no error, nothing degraded-looking. Cause: the pod was admitted within ~tens of seconds of its
+own `SidecarProfile` being created, before the operator's informer had it cached, so the webhook
+was consulted, found nothing to inject, and allowed the pod through un-mutated. The
+`setup-key-jwks-gateway` Secret already existed 27 s earlier, so the setup key was *not* the
+missing piece — the cache was.
+
+Two things make it nasty:
+- **Fleet will not repair it.** The pod matches its manifest, so re-deleting the BundleDeployment
+  is a no-op and the un-injected pod persists indefinitely. Deleting the *pod* doesn't help
+  either — it is a bare `Pod`, so nothing recreates it.
+- The consequence is a silent break of OpenBao's `jwt-network` JWKS path, i.e. the whole
+  cross-cluster auth leg, with every object still reporting Ready.
+
+Fixed by re-creating the pod from its own manifest once everything had settled (`kubectl get pod
+-o json` → strip runtime fields → delete → apply, keeping the `meta.helm.sh/*` annotations so
+Fleet still owns it); it came back **2/2** with the `netbird` native init container and the peer
+enrolled in `secret-k8s`. **A `SidecarProfile`-selected workload should not be a bare Pod** — as
+a Deployment, a missing sidecar would be self-correcting on the next roll. Recommended follow-up.
+
+### jwks-gateway FIXED 2026-10-08 — the client is declared, not injected, and it self-heals
+
+The silent-injection failure above is closed at the root rather than detected. `apps/secret/src/jwks-gateway`
+goes from a bare `Pod` + `SidecarProfile` to a `Deployment` whose netbird client is a **declared
+native sidecar** (`restartPolicy: Always`), mirroring what mesh-service already does for the same
+class of reason (group 5, defect B). The `SidecarProfile` is **deleted, not disabled** — keeping
+it would inject a *second* client beside the declared one.
+
+**First: the maintainer's question — why wasn't that pod blocked?** `netbird` is NOT in the new
+deny list, so with `failurePolicy: Fail` and the operator down it should have been refused.
+Answered by experiment rather than reasoning, and the expectation was right:
+
+| experiment | result |
+|---|---|
+| operator scaled to **0**, pod into `netbird` | **REJECTED** — `failed calling webhook … connection refused` |
+| operator scaled to **0**, pod into `secret` | **CREATED** — the deny list works |
+| operator **up**, non-matching pod into `netbird` | created, un-mutated |
+
+So the namespace genuinely is in scope and `Fail` does enforce. The pod slipped through because
+**the webhook was reachable and simply declined to patch** — `failurePolicy` guards against the
+webhook being DOWN, not against it being UP and unhelpful. A reachable webhook answering
+"allowed, no patch" is a success to the apiserver. The operator's handler treats "no matching
+SidecarProfile in my informer cache" as a no-op, not an error.
+
+**And why the cache was cold is structural, not bad luck:** this bundle ships the Pod, its
+`SidecarProfile` and its `SetupKey` *together*, so Helm applies them in one pass and the pod can
+be admitted before the operator has reconciled either. `dependsOn: netbird-operator` cannot fix
+it — it orders this bundle against the operator, not against its own contents. (The bundle's own
+header claimed the `dependsOn` was there "otherwise the webhook denies the Pod", which was the
+wrong model of the risk.)
+
+**What the fix buys, each verified live:**
+
+- **Cannot silently fail.** The container is in the pod spec, so there is no admission timing to
+  lose. No webhook is involved at all.
+- **Loud when the client dies.** A `readinessProbe` on the sidecar greps `Management: Connected`
+  — decided on OUTPUT, never exit status, since `netbird status` exits 0 with a dead session.
+  Proven by inducing a disconnect: pod went `2/2 → 1/2` and the Service endpoints **emptied**,
+  so the relay drops out instead of forwarding into a dead tunnel. Readiness, not liveness,
+  deliberately: `NeedsLogin` is also what a healthy daemon prints for its first seconds, and a
+  liveness probe on that ambiguity would restart-loop a pod that was about to be fine.
+- **Heals itself.** A watchdog CronJob (`*/5`) mirroring mesh-service's, including its
+  confirm-before-restart second sample. Verified in the real watchdog image that the detection
+  pattern classifies `NeedsLogin`/`SessionExpired`/`LoginFailed` as dead and healthy output as
+  healthy; verified the remedy end to end (`rollout restart` → `2/2`, endpoints restored,
+  `Management: Connected`). A Deployment is what makes that remedy *possible* — a bare Pod could
+  not be rolled, and Fleet would not recreate it.
+- **Stops leaking peers.** Added the `preStop: [netbird, deregister]` the injected client could
+  never have, because `SidecarProfile.containerOverride` has no `lifecycle` field. Task 1.3 had
+  measured five stale `jwks-gateway` peers accumulating since August (the setup key is
+  deliberately non-ephemeral, so NetBird never reaps them). **After a roll there is now exactly
+  ONE peer**, measured.
+- **No JWKS outage on a roll.** `RollingUpdate` with `maxUnavailable: 0`, a deliberate departure
+  from mesh-service's `Recreate`. `Recreate` is load-bearing there only because those pods claim
+  an extra DNS label and two peers holding one hostname splits resolution; this relay claims no
+  label — it is addressed by a pinned ClusterIP — so surging first is strictly better.
+
+**Side effect worth knowing: that was the last `SidecarProfile` in the repo, so the operator's
+mutating webhook now has zero consumers.** The deny list becomes belt-and-braces rather than
+load-bearing. Both are kept — the webhook because injection is still a supported mechanism, the
+deny list because if it is ever used again the deadlock returns — and that is recorded in
+`netbird-operator/values.yaml`. Disabling the webhook outright is the simpler end state if
+injection is never reintroduced.
+
+*One trap caught by the server-side dry-run and worth repeating: the probe command's `: ` makes
+an unquoted YAML scalar parse as a MAP. `yaml.safe_load` accepts it silently and only the
+apiserver rejects it (`cannot unmarshal object into … exec.command of type string`), so a local
+YAML check is not sufficient — always `kubectl apply --dry-run=server`.*
+
+Final: `secret` 19/19 bundles / 0 pods down, `network` 20/20 / 0 pods down, all 7 network
+`VaultStaticSecret`s `synced=True` (the cross-cluster leg this relay carries).
+
+### Final state after the re-drill — both clusters green, fleet never down
+
+`secret` 19/19 bundles / 0 pods down; `network` 20/20 bundles / 0 pods down, 7 static + 4 dynamic
+VSO objects all `synced=True`. `openbao.vpn.blueora.ng` → `100.65.216.216`, `http=200 tls=0` with
+no `-k`. **Omada fleet 7/7 LIVE at `health_score: 10` across the board** (fully settled, not the
+`-1` transient), Envoy `29814 downstream_cx_active: 7`. The network cluster again needed only the
+documented post-restore pair — CoreDNS restart to clear the stale negative cache, VSO restart +
+force-sync.
+
+**Remaining work, in value order:** publish the plugin images; add the self-init assertion to
+`start.sh`; land the account-cleanup script in the repo; make `jwks-gateway` a Deployment.
+
+## 11.3 EXECUTED 2026-10-08 (first boot) — THE COLD START FAILS, and the drill was worth more than a pass would have been
+
+`secret:stop` 07:09:39Z → both clusters fully green ~08:22Z: **~73 minutes and 9 interventions.**
+Phases 3, 4 and 6 ran; Phase 5 (network cold start) was NOT run — see the gate note at the end.
+**The physical Omada fleet stayed 7/7 LIVE throughout and never lost management**, which is the
+one thing that had to be true.
+
+**Verdict on the task as written — "no manual intervention beyond the existing seal-key and
+operator-PAT seeding" — is a decisive NO**, for four architectural reasons, none of which 11a
+anticipated. 11a predicted the blocker would be "kv values are human-seeded". That is real, but
+it is the *least* of it and the restore solves it cleanly. Full log in the session scratchpad
+under `dr-11.3/` (`phase0-baseline-2026-10-08.txt`, `phase3-failure-set.txt`,
+`phase6-result.txt`) — **copy it somewhere durable.**
+
+### BLOCKER 1 — the netbird webhook is a hard three-way deadlock on EVERY cold start
+
+`mpod-v1.netbird.io` is `failurePolicy: Fail` with `namespaceSelector: {}` (all namespaces).
+
+- `netbird-operator` needs Secret `netbird-mgmt-api-key` (`env NB_API_KEY`) → `CreateContainerConfigError`
+- that Secret is produced by VSO from `kv/netbird#service_account_token`
+- **VSO cannot be ADMITTED**, because the webhook's backend is the dead operator
+- `openbao` the same: StatefulSet sat at `spec.replicas=1 / status.replicas=0`
+
+So nothing can be created cluster-wide — 22 `FailedCreate` events across `crossplane-system`,
+`envoy-gateway`, `netbird`, `reloader`, `secret`, `vault-secrets-operator`. **This is not a race
+that resolves**: it was stable at 3/19 bundles across 8 consecutive 60 s polls. The cluster
+cannot self-recover. 9e recorded this deadlock in an eviction context; this proves it happens
+deterministically on a *clean* cold start with no disk pressure anywhere near it.
+Breaking it is safe *only because* defect B (group 5) moved the mesh client to a native init
+container, taking the webhook out of the data-plane path — a decision taken for a different
+reason that turns out to be what makes DR possible.
+
+### BLOCKER 2 — the first-party OpenBao plugin images were never published
+
+`openbao-0` then hit `Init:ErrImagePull`:
+
+| image git pins | what the registry actually has |
+|---|---|
+| `openbao-plugin-secrets-netbird:0.1.4` | tags `0.1.0 0.1.1 0.1.2 0.1.3` — **no 0.1.4** |
+| `openbao-plugin-secrets-cloudflare:0.1.0` | **no tags at all** |
+
+Checked *with* a `read:packages` token, so this is a real absence. **Do not misread the
+unauthenticated 404** — ghcr returns "not found" for private packages, which looks identical.
+The live cluster only ever worked because a locally-built `0.1.4` sat in the old node's
+containerd; this session's disk cleanup pruned it (docker images 12 → 4), so the drill destroyed
+the last copies. Root cause is the known one: no gh token has `write:packages`.
+**The redeeming detail: both builds are byte-reproducible.** Rebuilt arm64 binaries hashed to
+exactly the `plugin_sha256` values pinned in `openbao-config` — netbird `44afa3f5…244e`,
+cloudflare `f2517f1b…85ac`, both MATCH — so the catalog still registers and recovery needs no
+git change. Recipe: `docker buildx build --platform linux/arm64 --load -t <pinned ref> .` then
+`docker save <ref> | docker exec -i vcluster.cp.secret ctr -n k8s.io images import --platform linux/arm64 -`.
+The actual fix is to publish them, or to build-and-import inside `secret:start`.
+
+### BLOCKER 3 — self-init is NOT ATOMIC, and a partial run is unrecoverable. The scariest one.
+
+The first successful `openbao` boot **initialized the security barrier and revoked root but did
+not create the kubernetes auth foothold.** That leaves `initialized: true`, unsealed, and:
+
+- no `auth/kubernetes` mount → `provider-vault` login 403, so Crossplane can never take over
+- root revoked → no break-glass token
+- static seal ⇒ **no recovery keys** (`post-unseal upgrade seal keys failed: no recovery key found`), so `bao operator generate-root` is impossible
+
+i.e. a permanently unreachable OpenBao whose only exit is destroying its volume. Recovered by
+deleting PVC `data-openbao-0`; the clean re-init then logged everything the first run did not —
+`security barrier initialized`, `root token generated`, `auth_kubernetes_b7c984f5`, and
+provider-vault + VSO + provider-opentofu all logging in. The `initialize` stanza's own header
+calls itself the "irreducible minimal foothold"; what it does not say is that **it is not
+transactional**, so a failure part-way is fatal rather than retried.
+**A diagnostic trap that cost real time and belongs in every future session:** OpenBao returns
+`403 permission denied` for an **unknown path** as well as for an unauthorised one. So
+`auth/kubernetes/login` answering 403-not-404 does **not** prove the mount exists — verified by
+getting the identical 403 from `auth/bogus-mount-xyz/login`. I initially read that 403 as proof
+the backend was present, which pointed the investigation at RBAC and TokenReview for several
+steps. The decisive evidence was the *absence* of any auth-backend activity in debug logs.
+
+### BLOCKER 4 — NetBird account state is EXTERNAL and the operator cannot adopt it
+
+The account outlives the cluster, so on every cold start the operator tries to CREATE groups
+that still exist and fails forever:
+
+```
+Group    svc-openbao -> "group with name svc-openbao already exists"      (CR never goes Ready)
+SetupKey openbao     -> "group svc-openbao in groups list is not ready"   (waits on it forever)
+```
+
+→ no `setup-key-openbao` Secret → `openbao-mesh` pod `Init:CreateContainerConfigError`. Cleanup
+must follow **dependency order or the API refuses**: policies → setup keys → group (`group has
+been linked to policy: svc-openbao-tcp`, HTTP 400). Both policy Workspaces then recreate their
+policies unattended, resolving the NEW group ids **by name** — the `data "netbird_group"`
+choice from group 5 paying off exactly here.
+*Knock-on worth recording, because it masqueraded as something else:* deleting group
+`secret-k8s` dropped `jwks-gateway`'s membership, which broke OpenBao's `jwt-network` JWKS fetch
+as `TLS handshake timeout` on `https://jwks-network.vpn.blueora.ng/openid/v1/jwks`. That is a
+**policy denial presenting as a TLS fault**, and it is what kept all 7 network-cluster
+`VaultStaticSecret`s failing long after the restore. `jwks-gateway` is a bare Pod, so
+re-enrolment needed its **BundleDeployment** deleted, not just the pod (the recorded trap, hit
+for real).
+
+### BLOCKER 5 — Fleet does not self-heal a deleted resource
+
+Deleting the webhook left `platform-netbird-operator` permanently `Modified`, and
+`moon run secret:apply` did **not** restore it — SSA does not re-create what drifted away. Only
+deleting the BundleDeployment did. **Any DR step that deletes a Helm-managed object must end by
+deleting that bundle's BundleDeployment.**
+
+### What DID come up unattended — and it is not nothing
+
+vcluster + node Ready, flannel, coredns, kube-proxy, local-path-provisioner, the whole Fleet
+stack (crd/controller/agent/gitjob/helmops), cert-manager ×3 — and **the OpenBao seal key was
+re-seeded from 1Password automatically by `start.sh`**, so that half of the task's allowance
+costs no human action at all. 30 bundles applied into `fleet-local` in 1m45s. cert-manager
+issued `netbird-operator-tls` on its own.
+
+### Phase 4 — THE RESTORE ITSELF WAS FLAWLESS, which is the real good news
+
+- `raft snapshot restore -force` of the 62 248 918 B / `6dad7563…03ec0` snapshot: clean.
+- **Post-restore kv matched the Phase-0 inventory exactly** — same 7 paths, same 16 key names,
+  same auth backends (`jwt-network/ kubernetes/ token/`), same mounts.
+- **Re-auth worked through the RESTORED admin k8s role**, which proves the restored
+  `auth/kubernetes` config is valid in a *different* cluster — because self-init pins no CA.
+  (Confirms the DR note in the OpenBao backup memory rather than taking it on trust.)
+- **Phase 3.3 confirmed as written:** `get_openbao_auth` fails until Crossplane reconciles
+  `policy-admin`/`role-admin`, then works — exactly what `policy-admin.yaml`'s corrected header
+  says, so that 2026-10-06 fix earned its keep.
+- **Phase 4.6:** the backup pipeline survived the restore — `bao_2026-10-08-0812.snapshot`,
+  62 466 966 B to S3.
+- The hourly snapshot pipeline was healthy going in, which is why the stale 2026-10-06 local
+  snapshot was correctly discarded in favour of one taken minutes before Phase 3.
+
+### Phase 0.5 — my earlier 97% reading was the WRONG INSTRUMENT, and this is the durable lesson
+
+I blocked on "97% / 13 GiB free" on `/System/Volumes/Data`. That is the sparse image's backing
+store, **not** what kubelet evicts on. The authoritative number is the kubelet's own nodefs:
+**81.5 G capacity / 45.3 G used / 36.2 G avail = 56% on both clusters**, `DiskPressure=False`,
+no taints — comfortably clear of the 85% threshold, and `stop` frees the ~21 GB of cluster
+volumes before `start` re-consumes anything. Host volume after the user's cleanup was 91% /
+39 GiB. **Measure `/System/Volumes/Data` (never `/`, the sealed snapshot, which reads a
+misleading 48%) but DECIDE on the kubelet number.**
+
+### Recommended follow-ups (each its own change; none done here)
+
+1. **Publish the two plugin images**, or build+import them in `secret:start`. Highest value: it
+   is the difference between a cold start that needs a developer laptop with the source tree and
+   one that does not.
+2. **Narrow the netbird webhook** — a `namespaceSelector` excluding `secret`, `crossplane-system`
+   and `vault-secrets-operator`, or `failurePolicy: Ignore`. Its only remaining job is sidecar
+   injection, which no mesh-service pod uses any more.
+3. **Make the operator-PAT path not depend on the operator's own webhook** (seed
+   `netbird-mgmt-api-key` the way the seal key is seeded, from 1Password in `start.sh`).
+4. **Add an account-cleanup step** to `secret:start` or the runbook: delete orphaned
+   `svc-*`/`secret-k8s` groups in policies → setup keys → groups order.
+5. **Make self-init verifiable** — have `start.sh` assert `auth/kubernetes` exists after OpenBao
+   reports initialized, and fail loudly if not, so a partial self-init is caught in seconds
+   rather than becoming an unrecoverable OpenBao.
+
+### Phase 5 (network cold start) NOT RUN — deliberately, and this is the remaining gate
+
+Phases 1 and 2 are moot (group 12 superseded them). Phase 5 destroys the controller, MongoDB and
+the adoption state of all 7 devices, its `5.1` go/no-go is explicitly `[HUMAN]`, and its restore
+path (`mongorestore` of the Phase-0 dump) **has never been rehearsed** — 11a's own words:
+"needs building and rehearsing; it is new work". Two further reasons not to run it on today's
+evidence: the fleet has already re-adopted three times in 24 h (overnight sleep, the 12.9
+certificate rollout, and this drill's `omada-controller-tls` re-sync), and this drill just
+demonstrated that cold starts surface unpublished-artifact and external-state blockers that
+would apply to the Omada path too. Artifacts are staged and current
+(`omada-dump-2026-10-08.gz`, sha256 `eb961fe1…ae2b5`), so Phase 5 can run whenever the
+maintainer calls it.
+
+**11.3 therefore stands as: the secret-cluster half is PROVEN, by failing and being recovered;
+the network-cluster half is staged and gated.** Left unchecked for that reason.
+
+**11.3 STATUS 2026-10-07 (superseded by the run above): AI-side prep complete and the runbook corrected; execution still
+gated, now on TWO things rather than one.** Nothing destructive was run.
+
+1. **[HUMAN] the Phase 4.1 / 5.1 go/no-go gates**, which is the decision the maintainer already
+   reserved. Phase 5 destroys the controller, MongoDB and the adoption state of all 7 devices.
+2. **[NEW] host disk headroom — Phase 0.5 now FAILS at 97% / 13 GiB free** and cannot be fixed
+   by pruning Docker. Details in the Phase-0.5 block above. This one is not a judgement call:
+   starting Phase 3 under it reproduces the 9e cold-start deadlock on purpose.
+
+Done in preparation, all read-only: Phases 1 and 2 retired as moot (group 12 superseded them),
+the expired Phase-0 Omada dump replaced with a post-migration one, the stale OpenBao snapshot
+ruled out in favour of a fresh pre-Phase-3 one, and a current inventory captured. See the
+Phase-0 RE-RUN block for artifacts and checksums.
+
 - [ ] 11.3 Full cold-start proof: `moon run secret:stop && moon run secret:start`, then `moon run network:stop && moon run network:start`; verify every service comes up with no manual intervention beyond the existing seal-key and operator-PAT seeding — **BLOCKED ON A SCOPE DECISION, not on execution (see 11a). As phrased it cannot pass: OpenBao's kv values and the Omada controller's state are both in-cluster-only with human-driven restores, and the Omada restore runs through the same UI credential 7.11 waits on. Options (a)/(b)/(c) in 11a**
 - [x] 11.4 Re-run the complete spec verification matrix from the Mac across all three services (mesh resolution, public non-resolution, certificate validation, declared ports reachable, undeclared port refused); verify every scenario in `specs/mesh-service-exposure/spec.md` holds
 - [x] 11.5 Update `apps/network/SPEC.md`, `apps/network/PLAN.md` and `apps/secret/CLAUDE.md` to describe the single exposure model; verify no doc still describes the reverse-proxy or `NBResource` mesh path as current
@@ -2049,7 +2394,58 @@ outlive the session (S3 still holds the OpenBao snapshot either way, but not the
 
 **Remaining before Phase 1: 0.6 only, which is [HUMAN].**
 
-### Phase 1 — 7.11, the device migration (human-gated)
+### Phase 0 RE-RUN + runbook correction, 2026-10-07T18:25Z — Phases 1 and 2 are now MOOT, and the Phase-0 net had gone stale
+
+Re-checked before touching anything, because the runbook was authored a day and a whole group-12
+migration ago.
+
+- **Phases 1 and 2 no longer apply at all.** Phase 1 is 7.11 (push the fleet onto
+  `omada.blueora.ng` from the UI) and Phase 2 is 7.12 (retire the old name). Group 12 superseded
+  both: the fleet is on `omada.vpn.blueora.ng` (12.7) and **both** legacy names are already
+  retired (12.9). So the drill now starts at Phase 3, and the ordering constraint that forced
+  7.11 to come first — "the Omada restore path runs through the same UI the migration needs" — is
+  discharged for the migration half, though the restore half is why the fresh dump below matters.
+- **THE PHASE-0 SAFETY NET HAD SILENTLY EXPIRED, which is the finding worth having.** The
+  artifacts survived (the prior session's scratchpad still exists, and both checksums re-verify
+  unchanged: snapshot `af17207f…55676d`, dump `32b2535c…849d60`) — but the **Omada dump is from
+  2026-10-06 16:40, i.e. BEFORE the 12.7 migration legs** (16:28Z and 18:36 local on 10-07).
+  Restoring it in Phase 5.3 would rebuild a controller with no record of the migration while the
+  devices hold the *new* inform target in flash — a deliberate restore straight into a
+  mismatched state, in the one phase that takes the whole fleet down. A safety net that is a day
+  old is not a safety net here.
+  **Re-run (read-only, so done without a gate):** `omada-dump-post-migration.gz`, 558 495 bytes,
+  sha256 `d2f8c761…7e4f9b`, verified identical in-pod and on the Mac, in-pod temp removed. **That
+  is the Phase 5.3 `mongorestore` source.**
+- **The stale OpenBao snapshot is simply not needed, and should not be used.** The hourly
+  pipeline is healthy (`cronjob secret/openbao-snapshot`, job `openbao-snapshot-29856600`
+  Complete 23 min ago), so Phase 4.2 should restore a snapshot taken *immediately before* Phase
+  3 rather than a day-old one. Phase 0.2's whole purpose — an independent copy not depending on
+  S3 credentials surviving — is better served by taking it fresh at drill time.
+- **Fresh Phase-0.4 inventory captured** (7/7 devices with per-device `last_seen`/
+  `disconnect_time`/`health_score`, Envoy's per-listener session counts, and the device-event
+  tail), which doubles as 12.8's pre-reboot baseline.
+- Artifacts: `<session scratchpad>/dr-11.3/` — `baseline-2026-10-07T1824Z.txt` and
+  `omada-dump-post-migration.gz`. **Copy them somewhere durable before the drill.**
+
+### 🛑 Phase 0.5 FAILS, and it is not fixable from Docker — this gates Phase 3 independently of any go/no-go
+
+`/System/Volumes/Data`: 460 Gi size, **396 Gi used, 13 Gi available, 97% capacity.** The 9e
+threshold is 85%, and 9e's failure mode is not a slow degradation: DiskPressure hits **both**
+vind clusters at once, the eviction storm takes out the netbird webhook, and its
+`failurePolicy: Fail` then blocks all pod creation — a cold-start deadlock, which is exactly
+what Phase 3 is. Running `secret:stop` into this would be running the 9e incident deliberately.
+
+The difference from Phase 0.5 on 2026-10-06 is that the reclaim lever has gone. Then, pruning
+images + buildkit freed 5.1 GB. Now Docker holds only **~3.4 GB reclaimable** (2.99 GB images,
+0.37 GB build cache), which moves 97% → ~96%; and the 22.96 GB of Local Volumes **is** the two
+clusters, which `stop` reclaims by itself and which therefore cannot be pre-freed. Total Docker
+footprint is ~46 GB against 396 GB used, so the pressure is host files, not containers.
+
+**So this needs host disk freed by the maintainer before Phase 3.** Recommend ≥60 GB free
+(13 GiB ≈ 97%; 85% on this volume is ~69 GiB free) — flagged rather than acted on, because
+deleting the user's files is not a call to make unprompted.
+
+### Phase 1 — 7.11, the device migration (human-gated) — ⚠️ MOOT, superseded by group 12
 
 - [HUMAN] 1.1 Omada UI → Controller Settings → set Controller Hostname/IP to `omada.blueora.ng`
   and save, so the controller pushes the new inform target to all 7 devices.
@@ -2061,7 +2457,7 @@ outlive the session (S3 still holds the OpenBao snapshot either way, but not the
   power-cycle survival, which is what proves the new target is persisted device-side.
 - [AI] 1.5 Verify that device logs `Adopt success` and stays Connected through another soak.
 
-### Phase 2 — 7.12, retire the old name
+### Phase 2 — 7.12, retire the old name — ⚠️ MOOT, done by 12.9 (both names withdrawn 2026-10-07)
 
 - [AI] 2.1 Drop `omada.network.vgijssel.nl` from `service-omada.yaml`'s external-dns annotation
   (and collapse the TRANSITIONAL comment block), `moon run network:apply`.
@@ -2335,6 +2731,39 @@ watchdog to stop a loop is therefore sticky — remember to unsuspend.*
   * **ROLLBACK WITHOUT TOUCHING A DEVICE, which is what makes this safe to attempt.** After the push the devices hold `omada.vpn.blueora.ng`, and that name's public A record is ours: scale the Envoy deployment to 0 (or flip `publicDns.enabled: false`) to stop the publisher re-asserting the peer address every 15s, then point the record at `10.96.0.20`. The controller Service still carries every device port (`8088 8043 8843 29811-29817 27001 29810 19810`) and the `10.96.0.20/32` static route is still live, so the fleet lands back on the working path under the NEW name. Without stopping the publisher first this fails silently — it simply overwrites the emergency value.
   * *Dismissed alternative:* DHCP Option 138 (CAPWAP AC) also reaches every device at once, but it carries IP addresses, not hostnames — so it cannot express a mesh hostname, and it would have to be re-pushed on every peer-address change. Useful only as an emergency discovery lever.
   * *Unrelated but worth not misreading during the cutover:* 7 `Disconnected : Inform timeout` events at 2026-10-07 07:19:18 followed by 7 `Adopt success` at 07:22-07:23 are the overnight host-sleep outage self-recovering, not a new fault. onto the mesh hostname
+**12.8 RE-VERIFIED 2026-10-07T18:24Z — the first two halves now hold across an UNPLANNED
+restart, which is stronger evidence than 12.7's deliberate soak. Power-cycle half still open.**
+
+- **7/7 LIVE** by the `last_seen > disconnect_time` test, `disconnect_time: 0` and
+  `health_score: **10**` on every device (not the settling `-1 → 7 → 9` of 12.7 — fully
+  converged), and the `migrate` field `undefined` fleet-wide, so no device carries migration
+  residue.
+- **The path is the mesh, measured not assumed:** Envoy on `omada-mesh-cdb775d4d-f4p7f` reports
+  `listener.0.0.0.0_29814.downstream_cx_active: **7**` — one persistent management session per
+  device — plus `29817: 6`, with `443`/`19810`/`27001`/`29810`/`29811` idle at 0. Recall from
+  12.7 that mesh sessions are persistent and therefore *invisible* in the controller's
+  teardown-based log tally, so this counter is the right instrument.
+- **An unplanned restart test the fleet passed, better than any staged one.** The newest device
+  events are 7 `Adopt success` at 18:01:38–18:02:08Z with 4 interleaved `Disconnected` — caused
+  by 12.9's own certificate collapse re-applying the omada bundle (helm release `omada.v38` and
+  the `omada-controller-tls` Secret are both 29 min old), restarting the controller, followed by
+  a mesh-pod roll (`mesh-omada.v31`, 17 min old). The fleet disconnected, re-adopted **on the
+  mesh hostname with zero intervention**, and has logged **no further `Disconnected` events in
+  the 23 minutes since** — past the ~8-minute inform timeout. So the hostname survives both a
+  controller restart and a data-plane pod replacement.
+- *Method note for whoever runs the power-cycle:* `deviceevent_*` stores `time` as a split Long,
+  so it reads as `{high, low}` and a naive `new Date(e.time)` throws `RangeError: Invalid time
+  value`. Decode as `high * 2**32 + (low >>> 0)`. Sorting by `_id` descending gives newest-first
+  reliably; the collection is `deviceevent_<isoweek>`, currently `deviceevent_2026w41`.
+- **STILL OPEN — the power-cycle, and it needs the maintainer.** It is the one half that
+  distinguishes "the new inform target is in device flash" from "it is held in a live session",
+  and the above cannot substitute: a controller restart never reboots the device, so its RAM
+  state survives. Inference points the right way (12.7 proved a reboot re-reads the *stored*
+  value, and migration is the only mechanism that wrote it) but inference is precisely what this
+  half exists to replace. Requires the Omada UI, and 11a established there is no controller
+  credential in OpenBao's kv — so this is a human step. Pre-reboot baseline is captured for
+  immediate comparison (see the DR artifacts note under 11.3).
+
 - [ ] 12.8 Verify the migration from MongoDB, not the UI: 7/7 `last_seen > disconnect_time` with no fresh `Disconnected` events, soaked past the ~8-minute inform timeout, and surviving a device power-cycle — **FIRST TWO HALVES DONE under 12.7** (7/7 LIVE by the `last_seen > disconnect_time` test, zero fresh `Disconnected` events, 14-minute soak past the ~8-minute timeout, confirmed independently by Envoy's persistent session counts). **The POWER-CYCLE half is still open** and is the one that proves the new inform target is persisted in device flash rather than merely held in a live session — exactly the distinction a reboot settled for `attic-ap` this morning. Reboot one AP from the UI and re-check
 - [x] 12.9 **SUPERSEDES 7.12** — retire BOTH legacy names: drop the `external-dns` hostname annotation from `service-omada.yaml` entirely; verify `dig @1.1.1.1` is empty for `omada.blueora.ng` AND `omada.network.vgijssel.nl` while all 7 devices stay Connected
 - **DONE 2026-10-07 — BOTH names retired. `omada.network.vgijssel.nl` first, and the soak held.** Withdrawn at 17:15:48Z (external-dns `DELETE` of both the A and its ownership TXT, in the `vgijssel.nl` zone). This is the exact action that caused the 22-hour outage on 2026-10-05, so it was soaked deliberately: **10 minutes, past the ~8-minute inform timeout — 7/7 LIVE, health 9 on every device, `omada-mesh 29814 active: 7` steady, and ZERO new `Disconnected` events.** The fleet genuinely does not use that name any more. `dig @1.1.1.1` now returns nothing for it; `omada.blueora.ng` → `10.96.0.20` and `omada.vpn.blueora.ng` → the mesh peer, both as intended.
@@ -2365,4 +2794,87 @@ Everything the old device path needed is deleted, not merely unused. Verified ab
   * **Recommended chart fix (not done — it changes live behaviour for all exposures):** render the `DNSEndpoint` in the chart so Helm/Fleet owns it, and have the sidecar PATCH its target rather than create the object. That fixes BOTH defects at once — teardown would garbage-collect it, and a pod roll would leave the previous address in place until the replacement patches it instead of producing the ~60-second NXDOMAIN window that negative-caching resolvers hold onto. Until then, teardown of any `publicDns` exposure must delete its `DNSEndpoint` explicitly.
 - [x] 12.10 Collect the simplification the change was for, and verify each piece is actually gone rather than merely unused: delete `nbresource-omada-devices.yaml`, delete `configmap-coredns-omada.yaml` (its split-horizon exists only to stop the `router` peer resolving the old device name), un-pin `clusterIP: 10.96.0.20`, remove the `omada-devices` NetBird Group and policy, and re-evaluate the operator's `allowAutomaticPolicyCreation: true` — 11.5 established that flag's ONLY remaining justification is this one `NBResource`, so it should now be able to go `false`
 - [x] 12.11 Prove the churn path under the new coupling: `kubectl rollout restart` the Omada mesh Envoy deployment and verify the public record follows the new peer address, that the devices reconnect without manual action, and that the total outage stays well inside the ~8-minute inform timeout; record the measured window, since this is the failure mode the design accepts
-- [ ] 12.12 Update `apps/network/network.md` (the static-route table and the PiKVM reservation note), `apps/network/SPEC.md` and the Omada bundle headers to describe the single-hostname model; verify no doc still presents a separate device hostname, a pinned ClusterIP or a device `NBResource` as current
+- [x] 12.12 Update `apps/network/network.md` (the static-route table and the PiKVM reservation note), `apps/network/SPEC.md` and the Omada bundle headers to describe the single-hostname model; verify no doc still presents a separate device hostname, a pinned ClusterIP or a device `NBResource` as current
+
+**12.12 DONE 2026-10-07. The verification criterion earned its keep — it found four stale
+statements the task did not name, including one in a file nobody would have thought to open.**
+
+Checked live before writing anything, rather than describing the plan: `10.96.0.20` is
+allocated to **no** Service on the network cluster, `kubectl get nbresources -A` is empty, and
+there is no omada CoreDNS ConfigMap. So the claims below are about the cluster, not the commit.
+
+- **`apps/network/network.md`** — the named targets plus five more places the old path leaked:
+  * **Static-route table inverted.** `100.65.0.0/16 → PiKVM 192.168.10.2` is now the single
+    **required** route, with the reason a `/16` was chosen stated where the reader needs it (it
+    survives the mesh pod being replaced, which the `/32` could not). `10.96.0.20/32` moved into
+    a *Retired* block — and that block records a fact only a live check produces: **the dead
+    route is still present and enabled in the controller** (`staticrouting` entry
+    `omada_gateway`, verified today), because 12.5 deliberately kept both live to make the
+    migration reversible. So the doc now names an outstanding cleanup instead of implying the
+    route is gone. Also dropped the stale "the NetBird dashboard must designate the PiKVM as a
+    routing peer advertising `10.96.0.20/32`" — `100.65.0.0/16 dev wt0` is an ordinary kernel
+    route, so no NetBird-side route declaration exists at all; only the account policy does.
+  * **Topology diagram + its bullets** now show `omada.vpn.blueora.ng`, and spell out the three
+    resolution paths that one name has (devices: public A record → LAN route; mesh peers:
+    NetBird resolver → direct WireGuard; LAN clients: same as the devices).
+  * **PiKVM reservation note was wrong in a way that mattered**, and the trunk/access
+    contradiction below is why it was worth checking rather than just rewording: the note said
+    the *DHCP reservation* is what the static route's next hop needs. It is not — the next hop is
+    the **static** `192.168.10.2` on tagged VLAN 10. The reservation only buys stable console
+    access on the untagged VLAN. Stated plainly, because the old wording invites someone to
+    conclude the device path depends on a DHCP lease.
+  * **A DIRECT CONTRADICTION between two files, resolved in favour of the implementation.**
+    `network.md` asserted "**PiKVM is an access port, not a trunk** … No 802.1Q tagging on the
+    PiKVM", while `apps/pikvm/deploy.py` configures exactly that — untagged DHCP **plus** a
+    tagged VLAN 10 interface pinned to `192.168.10.2`. 12.5 settled it empirically (device
+    traffic ingresses on `vlan10`). The doc is now correct, carries the `rp_filter` loose-mode
+    requirement 12.5 found, and so does the switch-port table row and the status banner — all
+    three said "access port".
+  * **Addressing rules**: `100.65.0.0/16` added as a third range LAN subnets must never overlap,
+    since the gateway static-routes it; the "Service CIDR holds the Omada ClusterIP" parenthesis
+    and the `/32`-advertisement line are gone. **ACL table** row `any VLAN → 10.96.0.20` is now
+    `any VLAN → 100.65.0.0/16`. **Cutover steps 2 and 5** use the `/16` and the static next hop,
+    and step 2 now carries the hardest-won fact of group 12: *the inform target is fixed at
+    adoption* and no later setting, config push or reboot moves it — so adopting with the right
+    URL is what avoids a migration later.
+  * **DNS section**: both legacy names recorded as retired, with the 22-hour outage kept as the
+    reason the old one had to be republished first, and the certificate step that made
+    `omada.blueora.ng` deletable rather than merely unused.
+- **`apps/network/SPEC.md`** — its SUPERSEDED banner still granted `NBResource` a survival
+  clause ("survives for exactly one documented exception … `omada.blueora.ng` → pinned
+  ClusterIP"), i.e. the exact sentence 12.12 exists to kill. Replaced with "there is no
+  `NBResource` anywhere in this repo any more" plus what replaced it. The banner also claimed the
+  `NBRoutingPeer` survives *for two reasons*, one being the device path; corrected to the one
+  real reason 12.10 established — ordinary pods reach `openbao.vpn.blueora.ng` through it, which
+  is how VSO gets its secrets with no sidecar.
+- **`apps/network/PLAN.md`** — same clause, same fix ("gone, bar the documented Omada device
+  exception" → gone outright). Not named by the task; found by the sweep.
+- **Omada bundle headers.** `../omada/values.yaml`, `../mesh-omada/fleet.yaml` and
+  `../mesh-omada/Chart.yaml` were already correct from 12.9/12.10 — but **`../omada/fleet.yaml`
+  was not, and it was self-contradicting**: "This bundle owns the DEVICE path only — the
+  pinned-ClusterIP Service, its explicit NetBird resource, the CoreDNS override and the
+  `omada.blueora.ng` certificate" four lines above "there is no pinned ClusterIP any more".
+  Rewritten to "THIS BUNDLE OWNS NO EXPOSURE AT ALL", with the deleted path as dated history. Its
+  file inventory was stale too (it advertised an "LE Certificate" and a "mongodb-uri
+  ExternalSecret" — ESO is gone and the certificate was deleted); it now lists what `templates/`
+  actually holds.
+- **`apps/pikvm/deploy.py`** — the VLAN-10 block justified the static address by "the Omada
+  static route (10.96.0.20 -> pikvm)", i.e. presented the pinned ClusterIP as the live reason the
+  code does what it does. Now `100.65.0.0/16 -> pikvm`, with why a `/16` and when it changed.
+- **One more, outside the device path but the same defect:**
+  `apps/network/src/config/clusterrolebinding-oidc-discovery.yaml` claimed cross-cluster
+  reachability is gated by "the jwks-mirror `NBResource`" — present tense, for an object that no
+  longer exists; `service-jwks-mirror.yaml` three directories away correctly describes that path
+  as gone. Now names the real gate (`../mesh-jwks` admits `secret-k8s` on tcp/443).
+- **Verified by re-sweeping**, which is the only way to be sure in a repo this comment-heavy:
+  every remaining hit for `10.96.0.20`, `omada.blueora.ng`, `omada.network.vgijssel.nl` and
+  `NBResource` under `apps/` is now explicitly historical ("used to", "was", "deleted as of
+  2026-10-07") or is one of the new *Retired*/*Until 2026-10-07* notes. `trunk fmt` + `trunk
+  check` clean on all six files, `moon run :fleet_build` 30 bundles, `bin/fleet-lint-targets`
+  30/30.
+- *Unrelated leftover noticed and deliberately not touched:* `apps/network/src/omada-temp/` and
+  `mesh-omada-temp/` still exist on disk holding **only** gitignored build artifacts
+  (`charts/*.tgz`, `Chart.lock`) from the torn-down migration controller. Nothing is tracked,
+  `fleet_build` correctly ignores them (12 network bundles, not 14), so this is local cruft
+  rather than drift — but 12.10's teardown note reads as if the directories went too. Safe to
+  `rm -rf`.
