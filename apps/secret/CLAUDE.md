@@ -101,10 +101,17 @@ every `fleet.yaml` also needs a terminal `{name: none, doNotDeploy: true, cluste
   so it only reconciles when the network cluster is reachable (not in an isolated cluster). The
   tailnet is long gone. The path is deliberately indirect and worth understanding before touching
   it: `jwksUrl` is `https://jwks-network.vpn.blueora.ng/openid/v1/jwks`, a CoreDNS override maps
-  that name to a pinned in-cluster ClusterIP, and the Pod behind it is a **raw-TCP socat relay**
+  that name to a pinned in-cluster ClusterIP, and behind it is a **raw-TCP socat relay**
   (`src/jwks-gateway`) carrying its own mesh client. Because the relay never terminates TLS, both
   horizons end at the SAME certificate for the SAME name, which is why no `jwks_ca_pem` and no
   skip-verify are needed. Turning that relay into an HTTP proxy would break exactly that property.
+  The relay is a **Deployment whose netbird client is a declared container, not injected** — it
+  was a bare Pod with a `SidecarProfile` until 2026-10-08, when a cold-start drill caught it
+  running with no sidecar, no peer and no error because the pod was admitted before the operator
+  had reconciled that profile. A readinessProbe now makes a wedged client drop out of the Service
+  instead of relaying into a dead tunnel, and a watchdog CronJob restarts it. If this leg breaks,
+  the symptom to expect is the network cluster's `VaultStaticSecret`s failing while its
+  `VaultDynamicSecret`s stay green — they use different auth paths, and that asymmetry is the tell.
 - **OpenBao must never become a mesh client.** The NetBird operator's mutating webhook runs
   `failurePolicy: Fail` and the operator itself needs a PAT out of OpenBao, so injecting a sidecar
   into OpenBao is a cold-start deadlock. That is why the relay above exists, and why this
