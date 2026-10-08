@@ -10,8 +10,10 @@
 > Service exposure is no longer in scope for this cluster's plan at all: it is one shared
 > mechanism, `apps/platform/src/mesh-service` (one Envoy Gateway pod + its own NetBird client per
 > service, flat `<service>.vpn.blueora.ng` names, mesh-only resolution, publicly-trusted shared
-> wildcard). The reverse-proxy and `NBResource`/`netbird.io/expose` paths are gone, bar the
-> documented Omada device exception.
+> wildcard). The reverse-proxy and `NBResource`/`netbird.io/expose` paths are gone outright —
+> including the last exception, Omada's physical APs and switches, which since 2026-10-07 reach
+> the controller at the same `omada.vpn.blueora.ng` as everything else (publicly published A
+> record + the LAN gateway's `100.65.0.0/16` route, no `NBResource` and no second hostname).
 >
 > See `openspec/changes/netbird-peer-mesh-envoy-gateway/` for the live plan and its task log.
 

@@ -27,11 +27,17 @@
 > Both older mechanisms are **gone, not deprecated**: the NetBird BYOP **reverse proxy** (with its
 > proxy clusters, private services, registered domains and proxy tokens) and the
 > `NBRoutingPeer` + `NBResource` + `netbird.io/expose` annotation path for mesh clients.
-> `NBResource` survives for exactly one documented exception — Omada's physical APs and switches,
-> which run stock firmware and cannot be mesh peers; they use a separate, publicly resolvable name
-> (`omada.blueora.ng` → pinned ClusterIP). The network cluster's `NBRoutingPeer` also survives,
-> for two reasons stated in its own header: it forwards that device exception, and it gives every
-> ordinary pod on the cluster its route to the overlay.
+> **There is no `NBResource` anywhere in this repo any more** — the one surviving exception,
+> Omada's physical APs and switches, was closed on 2026-10-07. Those devices run stock firmware
+> and cannot be mesh peers, so instead of a second hostname they now resolve the *same*
+> `omada.vpn.blueora.ng` from **public** DNS: the exposure publishes its current overlay address
+> as an A record (`publicDns` in the `mesh-service` chart) and the devices reach it over the LAN
+> gateway's `100.65.0.0/16` static route via the PiKVM. That deleted the pinned
+> `clusterIP: 10.96.0.20`, the device `NBResource`, the CoreDNS split horizon, a dedicated
+> certificate and the operator's `allowAutomaticPolicyCreation` flag in one go.
+> The network cluster's `NBRoutingPeer` **does** survive, for the one reason stated in its own
+> header: it gives every ordinary pod on the cluster its route to the overlay, which is how Vault
+> Secrets Operator reaches `openbao.vpn.blueora.ng` with no sidecar of its own.
 >
 > **Current sources of truth:** `apps/network/network.md` (home network, VLANs, device path),
 > `apps/platform/src/mesh-service/values.yaml` (the exposure contract),
