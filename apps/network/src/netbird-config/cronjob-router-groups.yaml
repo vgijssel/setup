@@ -1,0 +1,163 @@
+# Keeps the routing peer in the `network-k8s` group — the group the mesh exposures name as an
+# allowed source.
+#
+# WHY THIS EXISTS AT ALL. Every ordinary pod on this cluster egresses to the overlay through the
+# NBRoutingPeer, so as far as a mesh access policy is concerned the routing peer IS the consumer.
+# `../../../secret/src/mesh-openbao` admits `homelab` + `network-k8s`, which is how Vault Secrets
+# Operator reaches `openbao.vpn.blueora.ng` without a mesh client of its own. But the operator
+# enrols the routing peer with a setup key IT creates, auto-joining only the group named after
+# `--cluster-name` (`network`) — so out of the box the peer is in `network` and the policy does
+# not cover it. It still worked, invisibly, because the account's built-in `Default` policy
+# (All <-> All) covered everything; the moment that is narrowed, the network cluster loses OpenBao
+# — which is where its certificates come from.
+#
+# WHY IT IS A JOB AND NOT A FIELD. Operator v0.7.0's `NBRoutingPeer` spec is pod-shape only
+# (replicas, labels, annotations, nodeSelector, privileged, resources, tolerations, volumes,
+# volumeMounts) — no `autoGroups`, no `setupKeyRef` — and the `Group` CR carries only `name`, not
+# membership. So there is no declarative way to say "this peer is also in network-k8s"; the only
+# route is patching the operator-created setup key through the management API.
+#
+# WHY IT IS A JOB AND NOT A `network:start` STEP. A start-time script cannot run at the right
+# moment: the routing peer (and therefore `.status.setupKeyID`) does not exist until well after
+# `apply`, and `start.sh` ends by exec'ing `apply.sh`. A reconciler that retries on a schedule
+# needs no ordering at all, and — the actual point — it makes the fix survive a cluster rebuild,
+# which recreates the key with `[network]` alone. A hand-patched account is the failure mode this
+# replaces: it was correct live and absent from git, so the next rebuild would have silently
+# regressed cross-cluster secret access with nothing checking.
+#
+# WHAT IT DOES, every 15 min:
+#   1. read `network-k8s`'s group id from the Group CR status, and the routing peer's setup key id
+#      from the NBRoutingPeer status (nothing hardcoded — a rebuild regenerates both);
+#   2. GET the setup key. If the group id is already in `auto_groups`, stop. Steady state is one
+#      GET and no writes;
+#   3. otherwise PUT the key with the group APPENDED to whatever it already had (never replacing
+#      — the operator's own `network` group must stay, or the operator recreates the key), then
+#   4. `rollout restart deploy/router`, because `auto_groups` apply at ENROLMENT only: without the
+#      restart the key is right and the running peer is still wrong.
+#
+# The operator does NOT fight this back: it reconciles the key's existence and validity, not its
+# `auto_groups` (measured — a patch persisted across many reconciles). If a future operator does
+# start reconciling that field, this job turns into a restart loop and that is the symptom to
+# look for.
+#
+# Note what this does NOT cover: it reconciles the KEY, not the peer's live group list. Removing
+# the peer from the group by hand in the dashboard is not detected until the peer re-enrols.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: netbird-router-groups
+  namespace: netbird
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          serviceAccountName: netbird-router-groups
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            fsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: reconcile
+              # alpine/kubectl (not registry.k8s.io/kubectl, which is distroless with no shell):
+              # this needs /bin/sh AND curl, both of which it has. Same image and pinned digest as
+              # the sibling router watchdog.
+              image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
+              env:
+                - name: HOME
+                  value: /tmp
+                - name: NB_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: netbird-mgmt-api-key
+                      key: NB_API_KEY
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -u
+                  ns=netbird
+                  dep=router
+                  api=https://api.netbird.io
+                  want_group_cr=network-k8s
+
+                  gid="$(kubectl -n "$ns" get group.netbird.io "$want_group_cr" \
+                    -o jsonpath='{.status.groupID}' 2>/dev/null)"
+                  kid="$(kubectl -n "$ns" get nbroutingpeer "$dep" \
+                    -o jsonpath='{.status.setupKeyID}' 2>/dev/null)"
+
+                  # Both ids come from a CR status the operator fills in asynchronously, so an
+                  # empty value means "not created yet", not "broken". Skip and retry next cycle.
+                  if [ -z "$gid" ] || [ -z "$kid" ]; then
+                    echo "router-groups: not ready yet (group.netbird.io/$want_group_cr id='$gid', nbroutingpeer/$dep setupKeyID='$kid'); skipping this cycle"
+                    exit 0
+                  fi
+
+                  key="$(curl -fsS -H "Authorization: Token $NB_API_KEY" "$api/api/setup-keys/$kid")" || {
+                    echo "router-groups: GET /api/setup-keys/$kid failed; skipping this cycle"
+                    exit 0
+                  }
+
+                  # No jq in this image. Group ids are opaque 20-char tokens that appear nowhere
+                  # else in this payload, so a substring test is unambiguous here even though it
+                  # would not be in general.
+                  if printf '%s' "$key" | grep -q "$gid"; then
+                    echo "router-groups: setup key $kid already auto-joins $want_group_cr ($gid); nothing to do"
+                    exit 0
+                  fi
+
+                  # APPEND, never replace: the operator's own `network` group must survive, or it
+                  # decides the key is wrong and mints a new one. Extract the existing ids from
+                  # the auto_groups array by shape (quoted tokens between the array brackets).
+                  existing="$(printf '%s' "$key" \
+                    | sed -n 's/.*"auto_groups":\[\([^]]*\)\].*/\1/p' \
+                    | tr -d ' ')"
+                  if [ -n "$existing" ]; then
+                    groups="$existing,\"$gid\""
+                  else
+                    groups="\"$gid\""
+                  fi
+
+                  echo "router-groups: adding $want_group_cr ($gid) to setup key $kid (was [$existing])"
+                  curl -fsS -X PUT \
+                    -H "Authorization: Token $NB_API_KEY" \
+                    -H 'Content-Type: application/json' \
+                    -d "{\"auto_groups\":[$groups],\"revoked\":false}" \
+                    "$api/api/setup-keys/$kid" >/dev/null || {
+                      echo "router-groups: PUT failed; leaving the peer alone and retrying next cycle"
+                      exit 1
+                    }
+
+                  # auto_groups apply at ENROLMENT only, so the running peer keeps its old groups
+                  # until it re-registers. Without this the key is right and the peer is not.
+                  echo "router-groups: rollout restart deploy/$dep so the peer re-enrols with the new groups"
+                  kubectl -n "$ns" rollout restart "deploy/$dep"
+          volumes:
+            - name: tmp
+              emptyDir: {}

@@ -567,8 +567,11 @@ if passwords_need_update:
 #   * vlan10.netdev    -> creates the 802.1Q tagged interface (Kind=vlan, Id=10).
 #   * vlan10.network   -> pins the tagged interface to the static Management address
 #     192.168.10.2/24 (no gateway -- untagged DHCP owns the default route). This is the
-#     stable, predictable address the Omada static route (10.96.0.20 -> pikvm) and the
-#     NetBird site-to-VPN path want as a next-hop, independent of the DHCP lease.
+#     stable, predictable address the Omada gateway's static route (100.65.0.0/16 -> pikvm)
+#     and the NetBird site-to-VPN path want as a next-hop, independent of the DHCP lease.
+#     That /16 covers the whole overlay, so it survives the Omada controller's mesh pod being
+#     replaced; it superseded a 10.96.0.20/32 route to a pinned ClusterIP on 2026-10-07, when
+#     the device fleet moved onto omada.vpn.blueora.ng like every other consumer.
 # Applying it uses `networkctl reload && reconfigure`, not a networkd restart, so the
 # eth0/LAN session used by `apply_local` is not bounced.
 #

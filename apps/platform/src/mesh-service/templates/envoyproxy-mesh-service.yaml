@@ -1,0 +1,328 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+Per-service Envoy data-plane settings, attached to THIS service's Gateway via
+Gateway.spec.infrastructure.parametersRef. Deliberately not attached to the GatewayClass: a
+class-level EnvoyProxy would apply one spec to every Gateway in the cluster, and each of these
+settings has to differ per service (the pod label especially).
+
+╔═══════════════════════════════════════════════════════════════════════════════════════════╗
+║ useListenerPortAsContainerPort: true IS LOAD-BEARING. DO NOT REMOVE IT.                   ║
+║                                                                                           ║
+║ Envoy Gateway defaults this to FALSE, which shifts privileged listener ports by +10000     ║
+║ (:80 -> :10080, :443 -> :10443) so the container needs no capability, and relies on a      ║
+║ Service `targetPort` to map the real port back onto the shifted one.                      ║
+║                                                                                           ║
+║ THERE IS NO SERVICE IN THIS PATH. Traffic arrives on the NetBird client's WireGuard        ║
+║ interface INSIDE THIS POD'S OWN NETWORK NAMESPACE and hits a local socket directly —       ║
+║ nothing in between to undo the shift. With the default, `<name>.<domain>:443` would be     ║
+║ CLOSED and the service would answer only on :10443: a port we cannot put this              ║
+║ certificate's name on and cannot ask a browser to use.                                    ║
+║                                                                                           ║
+║ Deleting this flag breaks EVERY service rendered by this chart, and breaks them silently:  ║
+║ the pod stays Running and the Gateway still reports Programmed. Hence NET_BIND_SERVICE     ║
+║ below, which is the capability the default exists to avoid needing.                        ║
+╚═══════════════════════════════════════════════════════════════════════════════════════════╝
+*/}}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: {{ .Values.name }}-mesh
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  # ── BOUND THE DRAIN, AND SIZE THE GRACE PERIOD TO IT ──────────────────────────────────────
+  # See `rollout` in values.yaml for the measurement that motivated this: the default left this
+  # service unreachable for ~6-7 minutes per rollout, against an 8-minute budget on the device
+  # path. drainTimeout MUST stay below terminationGracePeriodSeconds below (the CRD says so too).
+  shutdown:
+    drainTimeout: {{ .Values.rollout.drainTimeout | quote }}
+    minDrainDuration: {{ .Values.rollout.minDrainDuration | quote }}
+  provider:
+    type: Kubernetes
+    kubernetes:
+      # See the block comment above. This is the whole reason a service owns its real ports.
+      useListenerPortAsContainerPort: true
+      envoyDeployment:
+        # ── Exactly 1 replica, and Recreate, both for the same reason ──────────────────────
+        # This service's stable hostname is a NetBird *extra DNS label* pinned onto its peer,
+        # because a peer's default name derives from its (generated) pod name. Two peers
+        # carrying the same extra DNS label do not conflict — they ROUND-ROBIN. Verified live:
+        # three clusterproxy replicas sharing one label resolve to all three addresses.
+        #
+        # So a second replica, or a RollingUpdate that briefly runs old and new together, would
+        # load-balance consumers onto a pod that is terminating or not yet enrolled. HA is an
+        # explicit non-goal; buying it needs a different identity mechanism, not another replica.
+        #
+        # Recreate is also what makes the preStop deregister below SUFFICIENT rather than merely
+        # helpful: the outgoing pod is fully gone — and therefore deregistered — before the
+        # replacement starts enrolling, so the label is never held by two peers at once. Under
+        # RollingUpdate the new peer would enrol while the old one still held the label, and the
+        # deregister would come too late. The pair is load-bearing; neither half works alone.
+        replicas: 1
+        strategy:
+          type: Recreate
+        # terminationGracePeriodSeconds has no first-class field on EnvoyProxy, so it goes through
+        # the Deployment patch escape hatch. This is the knob that actually shortened the rollout
+        # window: the pod was being killed at the 360s deadline rather than exiting when its work
+        # was done, so the deadline WAS the rollout duration (see `rollout` in values.yaml).
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  terminationGracePeriodSeconds: {{ .Values.rollout.terminationGracePeriodSeconds }}
+        pod:
+          labels:
+            # Identifies every resource belonging to one exposure, so a service's pods are
+            # greppable as a unit alongside its other resources.
+            {{ include "mesh-service.podLabelKey" . }}: {{ .Values.name }}
+{{- if .Values.publicDns.enabled }}
+          # ── AN API-SERVER-SCOPED SA TOKEN, HAND-PROJECTED, FOR THE public-dns SIDECAR ONLY ──
+          # Envoy Gateway sets `automountServiceAccountToken: false` on BOTH the data-plane pod
+          # and its ServiceAccount — correct hardening, since Envoy itself needs no API access.
+          # So the publisher sidecar has no credential by default and kubectl silently falls back
+          # to `localhost:8080`, failing with an openapi download error that names the wrong
+          # problem entirely (measured 2026-10-06: "failed to download openapi ... dial tcp
+          # [::1]:8080" is what a MISSING TOKEN looks like, not a networking fault).
+          #
+          # THE POD'S EXISTING `sa-token` VOLUME CANNOT BE REUSED, which is the trap here: it is a
+          # projected token with audience `envoy-gateway.envoy-gateway.svc.cluster.local`, minted
+          # for Envoy's xDS connection. The API server rejects a token issued for another
+          # audience, so mounting it would fail authentication rather than fail to find a file —
+          # a harder error to read. This volume omits `audience`, which defaults to the API
+          # server's own.
+          #
+          # The three sources reproduce exactly what kubelet's automount would have provided, and
+          # all three are needed: client-go's in-cluster config reads `token`, verifies the API
+          # server against `ca.crt`, and resolves the default namespace from `namespace`.
+          # `kube-root-ca.crt` is published into every namespace by the cluster itself.
+          #
+          # Mounted ONLY into the publisher container (see its volumeMounts), so the Envoy
+          # container keeps having no API credential at all.
+          volumes:
+            - name: public-dns-token
+              projected:
+                defaultMode: 420
+                sources:
+                  - serviceAccountToken:
+                      path: token
+                      expirationSeconds: 3600
+                  - configMap:
+                      name: kube-root-ca.crt
+                      items:
+                        - key: ca.crt
+                          path: ca.crt
+                  - downwardAPI:
+                      items:
+                        - path: namespace
+                          fieldRef:
+                            fieldPath: metadata.namespace
+{{- end }}
+        # ── THE MESH CLIENT, RUN BY US RATHER THAN INJECTED ───────────────────────────────
+        # This is what makes the Envoy pod a first-class peer: the client's WireGuard interface
+        # comes up inside THIS POD'S network namespace, so a peer connecting to
+        # `<name>.<domain>:443` lands on Envoy's own :443 socket with no Service, no NAT and no
+        # port translation in between (see the port-shift block above).
+        #
+        # A native Kubernetes sidecar — an initContainer with restartPolicy: Always — so it
+        # starts before Envoy and, critically, terminates AFTER it.
+        #
+        # ╔═══════════════════════════════════════════════════════════════════════════════════╗
+        # ║ WHY NOT THE OPERATOR'S `SidecarProfile`, WHICH IS THE OBVIOUS WAY TO DO THIS.     ║
+        # ║                                                                                   ║
+        # ║ Because of `preStop` below, which a SidecarProfile cannot express: its             ║
+        # ║ `containerOverride` carries only env, image, probes and securityContext — there is  ║
+        # ║ no `lifecycle` field.                                                              ║
+        # ║                                                                                   ║
+        # ║ Without it, a replaced pod leaves its peer REGISTERED, and a stale registration    ║
+        # ║ keeps this service's extra DNS label. Two peers on one label do not conflict, they  ║
+        # ║ ROUND-ROBIN — so the hostname resolves to a dead address for as long as the stale   ║
+        # ║ peer survives. Measured on a plain `rollout restart`: two peers still present 7     ║
+        # ║ minutes later, `dig` serving the dead address stickily, and 0 of 12 requests        ║
+        # ║ succeeding while the new pod was perfectly healthy (it answered immediately when    ║
+        # ║ addressed directly). Ephemeral enrolment does reap it, but on NetBird's ~10 minute  ║
+        # ║ inactivity timer, not at pod teardown.                                             ║
+        # ║                                                                                   ║
+        # ║ Upstream has declined to fix this (netbirdio/kubernetes-operator#220: "a nice-to-   ║
+        # ║ have rather than a bug"), on the grounds that a stale ROUTING peer is harmless —    ║
+        # ║ which is true, because a routing peer holds no name. A stale peer holding an extra  ║
+        # ║ DNS label hijacks the service hostname, and that case is unreported.                ║
+        # ║                                                                                   ║
+        # ║ So the chart runs the client itself. Bonus, and the reason this is not purely a     ║
+        # ║ workaround: it takes the operator's mutating webhook — `failurePolicy: Fail` — out  ║
+        # ║ of the data plane's critical path, so a wedged webhook can no longer stop an        ║
+        # ║ exposure's pod from being created.                                                 ║
+        # ╚═══════════════════════════════════════════════════════════════════════════════════╝
+        initContainers:
+          - name: netbird
+            image: {{ .Values.netbirdImage | quote }}
+            restartPolicy: Always
+            securityContext:
+              capabilities:
+                add:
+                  # Required to create the WireGuard interface. Nothing else is granted.
+                  - NET_ADMIN
+            env:
+              # Minted by the operator from setupkey-mesh-service.yaml into Secret
+              # `setup-key-<name>` under key `setup-key`. The key is REUSABLE, which is what
+              # lets the pod re-enrol after a preStop deregister — verified live.
+              - name: NB_SETUP_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: setup-key-{{ .Values.name }}
+                    key: setup-key
+              - name: NB_MANAGEMENT_URL
+                value: {{ .Values.netbirdManagementUrl | quote }}
+              # ── The stable mesh hostname, and the mechanism the flat namespace rests on ──
+              # A peer's default DNS name derives from its hostname, which in Kubernetes is a
+              # GENERATED pod name — it changes on every rollout and is useless as an address.
+              # An extra DNS label is stable across replacement and resolves as
+              # `[label].[peer-dns-domain]`, which is exactly `<name>.<domain>`.
+              #
+              # Equals .Values.name by definition: the certificate SAN, the Gateway listener
+              # hostname and this label all derive from the same value, so the name a consumer
+              # dials, the name on the certificate and the name NetBird resolves are one string
+              # that cannot drift.
+              #
+              # Requires allowExtraDnsLabels on the enrolment key — without it the management
+              # API refuses the label and the peer silently keeps only its pod-name default.
+              - name: NB_EXTRA_DNS_LABELS
+                value: {{ .Values.name | quote }}
+            lifecycle:
+              preStop:
+                exec:
+                  # Deletes this peer from the management service, releasing the DNS label at
+                  # teardown instead of leaving it on a dead registration. Read the block above
+                  # before removing this — it is the whole reason the client is not injected.
+                  #
+                  # Ordering works out because a native sidecar terminates after the main
+                  # containers and the deployment strategy is Recreate: Envoy stops, the peer
+                  # deregisters, and only then does the replacement pod enrol. So the label is
+                  # never held by two peers at once.
+                  command:
+                    - netbird
+                    - deregister
+{{- if .Values.publicDns.enabled }}
+          # ── PUBLIC DNS PUBLISHER (opt-in; see `publicDns` in values.yaml) ─────────────────
+          # Writes this pod's CURRENT overlay address into a DNSEndpoint, which external-dns
+          # turns into the public A record for `<name>.<domain>` so non-peer devices can use the
+          # same hostname mesh peers use.
+          #
+          # IT READS THE ADDRESS FROM `wt0` IN THIS POD, which is the whole reason it lives here
+          # rather than in a controller or a CronJob. Containers in a pod share one network
+          # namespace, so the interface the mesh client creates is visible from this container
+          # with no exec, no API call and no token: the one process that knows the address
+          # first-hand is the one that publishes it. A CronJob would have to poll, and polling is
+          # what makes the device-facing record lag a rollout.
+          #
+          # PUSH, NOT POLL, in the case that matters. The overlay address changes exactly when a
+          # pod starts, and this container starts with the pod — so the normal path is "interface
+          # appears -> patch -> external-dns `triggerLoopOnEvent` fires", which is seconds. The
+          # loop below is not the mechanism; it is the guard for ONE case the pod lifecycle does
+          # not cover: the mesh client is a `restartPolicy: Always` sidecar, so it can crash,
+          # re-enrol with a DIFFERENT address, and leave the pod Running with a stale record and
+          # nothing to notice. The loop re-reads a local interface and touches the API only on a
+          # real change.
+          #
+          # IT PATCHES AN OBJECT IT DOES NOT OWN, AND HAS NO preStop. The DNSEndpoint is rendered
+          # by the chart (dnsendpoint-mesh-service.yaml) with an empty endpoint list; this only
+          # ever writes the address into it. That is a deliberate change from creating and
+          # deleting it here, and the reasoning — a teardown that leaked a dead record, and an
+          # NXDOMAIN window on every pod roll that negative-caching resolvers held far longer
+          # than the window itself — is written out in that template's header.
+          #
+          # So there is NO withdraw on teardown, and that is correct rather than an omission:
+          # Helm deletes the object with the release, which is what makes external-dns withdraw
+          # the record. Across a ROLL the record deliberately keeps the outgoing address until the
+          # replacement patches it — briefly stale beats briefly absent. (Contrast the mesh
+          # client's own `deregister` preStop above, which IS still required: a stale PEER
+          # holding this service's DNS label hijacks the name inside the mesh, where a stale
+          # public A record merely points at an address that stops answering.)
+          - name: public-dns
+            image: {{ .Values.publicDns.image | quote }}
+            restartPolicy: Always
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+            env:
+              - name: POD_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+            volumeMounts:
+              # The hand-projected, API-server-audience token from `pod.volumes` above. Mounted at
+              # the conventional path because that is where client-go (and therefore kubectl)
+              # looks for in-cluster config — there is no flag that points it elsewhere.
+              - name: public-dns-token
+                mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+                readOnly: true
+            command:
+              - /bin/sh
+              - -c
+              - |
+                # No `set -e`: a transient API error must not kill the sidecar and strand the
+                # record. Failures are logged and retried on the next pass.
+                set -u
+                host={{ include "mesh-service.fqdn" . | quote }}
+                name={{ include "mesh-service.gatewayName" . | quote }}
+                ttl={{ .Values.publicDns.recordTTL }}
+                echo "public-dns: publishing $host (ttl ${ttl}s) from wt0 in this pod"
+                while true; do
+                  # `ip -4 -o addr show wt0` -> "N: wt0 inet 100.65.x.y/16 scope global ..."
+                  addr="$(ip -4 -o addr show wt0 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -1)"
+                  if [ -z "$addr" ]; then
+                    # Normal at startup: native sidecars start in order but the next one begins
+                    # as soon as the previous has STARTED, not once it is connected.
+                    sleep {{ .Values.publicDns.resyncSeconds }}
+                    continue
+                  fi
+                  # COMPARE AGAINST THE LIVE OBJECT, not a variable this process remembers.
+                  # Caching the last-written value locally was wrong: anything that clobbers the
+                  # DNSEndpoint behind this process's back — a Helm upgrade, a hand edit, a
+                  # restore — would never be noticed, because from here nothing had "changed".
+                  # Reading it back makes the publisher genuinely self-healing, at the cost of
+                  # one GET per interval (which is why the Role grants `get` as well as `patch`).
+                  cur="$(kubectl get dnsendpoint "$name" -n "$POD_NAMESPACE" \
+                           -o jsonpath='{.spec.endpoints[0].targets[0]}' 2>/dev/null)"
+                  if [ "$addr" != "$cur" ]; then
+                    # A MERGE patch, not a create: the object is the chart's (rendered with an
+                    # empty endpoint list) and this only writes the address into it. `endpoints`
+                    # is a list, so a merge patch REPLACES it wholesale, which is exactly right —
+                    # one service publishes exactly one record and never accumulates stale ones.
+                    if kubectl patch dnsendpoint "$name" -n "$POD_NAMESPACE" --type=merge \
+                         -p "{\"spec\":{\"endpoints\":[{\"dnsName\":\"${host}\",\"recordType\":\"A\",\"recordTTL\":${ttl},\"targets\":[\"${addr}\"]}]}}"
+                    then
+                      echo "public-dns: $host -> $addr"
+                    else
+                      echo "public-dns: patch failed for $host -> $addr; retrying" >&2
+                    fi
+                  fi
+                  sleep {{ .Values.publicDns.resyncSeconds }}
+                done
+{{- end }}
+        container:
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              # Required BECAUSE the port shift is disabled — Envoy binds the real privileged
+              # ports itself. Nothing else is granted.
+              add:
+                - NET_BIND_SERVICE
+              drop:
+                - ALL
+      # Vestigial for inbound traffic and kept ClusterIP on purpose. Nothing reaches this
+      # service through a Service: mesh clients connect to the overlay address, which lands
+      # inside the pod. Envoy Gateway always creates one, so this pins it to the narrowest
+      # type rather than letting a LoadBalancer get provisioned for a path nobody uses.
+      envoyService:
+        type: ClusterIP
+      # Pinned to the same value Envoy Gateway would choose anyway (it names the data-plane
+      # ServiceAccount after the Gateway), stated explicitly because rbac-publicdns-mesh-service.yaml
+      # binds a Role to this exact name. Leaving it implicit would make that binding depend on an
+      # upstream default, and a silent rename there would show up only as a Forbidden inside a
+      # sidecar's log.
+      envoyServiceAccount:
+        name: {{ include "mesh-service.gatewayName" . }}

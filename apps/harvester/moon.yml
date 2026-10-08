@@ -1,0 +1,22 @@
+language: bash
+layer: application
+project:
+  description: harvester HCI cluster — operational runbooks as scripts
+tags:
+  - app
+  - kubernetes
+  - harvester
+
+# Operational entry points. These drive a live physical cluster over its API and
+# SSH, not file outputs, so nothing is cached and nothing runs in CI.
+tasks:
+  # Graceful full-cluster power-down: stop guests, detach volumes, then halt the
+  # nodes over SSH with the etcd leader last. Prompts before mutating anything;
+  # pass `-- --dry-run` to print the plan or `-- --yes` to run unattended.
+  # Restart is deliberately manual — see apps/network/harvester.md.
+  shutdown:
+    command: scripts/shutdown.sh
+    options:
+      runInCI: false
+      interactive: true
+      cache: false

@@ -3,6 +3,25 @@
 cert-manager:
   crds:
     enabled: true
+  # The Cloudflare DNS-01 token is MINTED PER READ by the OpenBao cloudflare secrets engine and
+  # rotated every 24h (../config/externalsecret-cloudflare-api-token.yaml), so cert-manager has
+  # to notice a changed Secret.
+  #
+  # It does NOT do so on its own for work already in flight. Measured: after the Secret was
+  # updated with a valid token, a pending challenge kept failing against the PREVIOUS token for
+  # over 10 minutes (`10502 Too many authentication failures`) while that same new token
+  # succeeded by hand — and a `rollout restart` issued the certificate within 105 seconds. The
+  # solver is built with the credential it read when the challenge started and keeps using it.
+  #
+  # So Reloader (apps/platform/src/reloader, watchGlobally) restarts this Deployment whenever the
+  # Secret's contents change. Safe to do on a schedule: cert-manager is stateless, resumes
+  # in-flight orders from their CRs after a restart, and the 24h overlap between successive
+  # tokens means the restart is never racing an expiry.
+  #
+  # MUST be deploymentAnnotations, not podAnnotations — Reloader reads the annotation from the
+  # Deployment, and one on the pod template is silently ignored.
+  deploymentAnnotations:
+    reloader.stakater.com/auto: "true"
   # DNS-01 self-check: verify _acme-challenge TXT propagation against public
   # resolvers instead of the in-cluster CoreDNS, which returns SERVFAIL for
   # external SOA lookups and otherwise stalls issuance forever.

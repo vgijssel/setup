@@ -16,6 +16,8 @@ type configSetupKey struct {
 	UsageLimit int           `json:"usage_limit"`
 	TTL        time.Duration `json:"ttl"`
 	MaxTTL     time.Duration `json:"max_ttl"`
+	// See lease.go: two independent expiries, lease + NetBird expires_in. Default TRUE.
+	ManageLease bool `json:"manage_lease"`
 }
 
 func pathConfigSetupKey(b *netbirdBackend) []*framework.Path {
@@ -62,6 +64,7 @@ func pathConfigSetupKey(b *netbirdBackend) []*framework.Path {
 					Description: "Maximum TTL for generated keys",
 					Default:     2592000, // 30 days
 				},
+				"manage_lease": manageLeaseField(),
 			},
 			Operations: map[logical.Operation]framework.OperationHandler{
 				logical.ReadOperation: &framework.PathOperation{
@@ -108,13 +111,14 @@ func (b *netbirdBackend) pathConfigSetupKeyRead(ctx context.Context, req *logica
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"name_prefix": config.NamePrefix,
-			"type":        config.Type,
-			"ephemeral":   config.Ephemeral,
-			"auto_groups": config.AutoGroups,
-			"usage_limit": config.UsageLimit,
-			"ttl":         int64(config.TTL.Seconds()),
-			"max_ttl":     int64(config.MaxTTL.Seconds()),
+			"name_prefix":  config.NamePrefix,
+			"type":         config.Type,
+			"ephemeral":    config.Ephemeral,
+			"auto_groups":  config.AutoGroups,
+			"usage_limit":  config.UsageLimit,
+			"ttl":          int64(config.TTL.Seconds()),
+			"max_ttl":      int64(config.MaxTTL.Seconds()),
+			"manage_lease": config.ManageLease,
 		},
 	}, nil
 }
@@ -132,6 +136,14 @@ func (b *netbirdBackend) pathConfigSetupKeyWrite(ctx context.Context, req *logic
 		if err := entry.DecodeJSON(&config); err != nil {
 			return nil, err
 		}
+	} else {
+		// A NEW role takes the schema defaults for anything not supplied. This has to be
+		// explicit: GetOk below reports only what the REQUEST carried and does NOT apply the
+		// Default declared in the field schema, so relying on it would leave ttl/max_ttl at zero
+		// and manage_lease at false — silently minting an unleased, unbounded credential.
+		config.TTL = time.Duration(data.Get("ttl").(int)) * time.Second
+		config.MaxTTL = time.Duration(data.Get("max_ttl").(int)) * time.Second
+		config.ManageLease = data.Get("manage_lease").(bool)
 	}
 
 	if prefix, ok := data.GetOk("name_prefix"); ok {
@@ -155,6 +167,15 @@ func (b *netbirdBackend) pathConfigSetupKeyWrite(ctx context.Context, req *logic
 	if maxTTL, ok := data.GetOk("max_ttl"); ok {
 		config.MaxTTL = time.Duration(maxTTL.(int)) * time.Second
 	}
+	if manageLease, ok := data.GetOk("manage_lease"); ok {
+		config.ManageLease = manageLease.(bool)
+	}
+
+	ttl, errResp := resolveLeaseTTLs(data, config.ManageLease, config.TTL, config.MaxTTL)
+	if errResp != nil {
+		return errResp, nil
+	}
+	config.TTL = ttl
 
 	storageEntry, err := logical.StorageEntryJSON("config/setup-key/"+name, config)
 	if err != nil {

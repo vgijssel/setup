@@ -1,0 +1,151 @@
+# Works around an operator bug that makes an edited SetupKey wedge its Fleet bundle NotReady
+# FOREVER. Lives beside the operator because it exists only for this operator version and should
+# be deleted the moment upstream is fixed.
+#
+# ╔═══════════════════════════════════════════════════════════════════════════════════════════╗
+# ║ THE BUG, read out of the source rather than inferred.                                     ║
+# ║ internal/controller/setupkey_controller.go, tag v0.7.0:                                   ║
+# ║                                                                                           ║
+# ║   ok, err := func() (bool, error) {                                                       ║
+# ║       ...                                                                                 ║
+# ║       _, err = r.Netbird.SetupKeys.Update(ctx, id, {AutoGroups: autoGroupIDs})   // <-- !  ║
+# ║       return true, nil                                                                    ║
+# ║   }()                                                                                     ║
+# ║   if ok { return ctrl.Result{RequeueAfter: 15 * time.Minute}, nil }             // <-- !!  ║
+# ║   ...                                                                                     ║
+# ║   sp.Patch(ctx, setupKey, patch.WithStatusObservedGeneration{})       // never reached     ║
+# ║                                                                                           ║
+# ║ The closure commented "check if setup key is up to date" PERFORMS the update itself and    ║
+# ║ returns true, and the early return then skips the only call that records the generation.   ║
+# ║ So `status.observedGeneration` is written on the CREATE path and nowhere else.             ║
+# ║                                                                                           ║
+# ║ Consequence: an edited SetupKey is applied to NetBird CORRECTLY while its status keeps     ║
+# ║ reporting the old generation, and Fleet's readiness summary says, permanently:             ║
+# ║     SetupKey generation is 3, but latest observed generation is 2                          ║
+# ║ Restarting the operator does not clear it, and Fleet has no knob to ignore it              ║
+# ║ (`diff.comparePatches` affects drift detection, not readiness). Under `dependsOn` one      ║
+# ║ stuck bundle blocks every bundle that depends on it — the same cascade that took seven     ║
+# ║ BundleDeployments down when mesh DNS failed.                                              ║
+# ╚═══════════════════════════════════════════════════════════════════════════════════════════╝
+#
+# WHY PATCHING THE STATUS IS A STATEMENT OF FACT AND NOT A FORGERY. The desired spec has already
+# been pushed to the management API by the time the operator returns early — that is literally the
+# line above the early return. So the generation HAS been observed and acted on; the only thing
+# missing is the record of it. The job therefore refuses to act unless the operator's own
+# `Ready=True` condition is present, so it never papers over a reconcile that actually failed. A
+# genuine failure sets `Ready=False`, which Fleet still surfaces regardless of this field.
+#
+# A cold start never needs this: a fresh CR is created at generation 1 and the create path records
+# `observedGeneration: 1`. The gap only ever opens on an in-place spec EDIT of a SetupKey whose
+# account-side key does not need recreating.
+#
+# Only `SetupKey` is affected. Surveyed the other netbird.io controllers: `group_controller.go` has
+# a single return path and always patches, which matches what was observed live — of every
+# netbird.io CR on both clusters, the only one ever seen lagging was the one SetupKey whose spec
+# had been edited since creation.
+#
+# SELF-DISABLING: when the operator is fixed, this job finds nothing and logs "nothing to do"
+# forever. That is the signal to delete it (and its RBAC) along with the version pin.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: netbird-setupkey-status
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          serviceAccountName: netbird-setupkey-status
+          restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            runAsGroup: 65532
+            fsGroup: 65532
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: reconcile
+              # alpine/kubectl, not registry.k8s.io/kubectl (distroless, no shell). Same image and
+              # pinned digest as the routing-peer watchdogs.
+              image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
+              env:
+                - name: HOME
+                  value: /tmp
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -u
+                  fixed=0
+                  checked=0
+
+                  # One line per SetupKey: namespace name generation observedGeneration readyStatus.
+                  # No jq in this image, so the projection is done by jsonpath. An absent
+                  # observedGeneration prints nothing, hence the `-` default handling below.
+                  keys="$(kubectl get setupkeys.netbird.io -A -o jsonpath='{range .items[*]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.generation}{" "}{.status.observedGeneration}{" "}{.status.conditions[?(@.type=="Ready")].status}{"\n"}{end}')" || {
+                    echo "setupkey-status: cannot list setupkeys.netbird.io (CRD not established yet?); skipping this cycle"
+                    exit 0
+                  }
+
+                  echo "$keys" | while read -r ns name gen obs ready; do
+                    [ -z "${name:-}" ] && continue
+                    checked=$((checked + 1))
+
+                    # The operator must have reported success. Without this gate the job would
+                    # mask a genuinely failed reconcile instead of only the known status bug.
+                    if [ "${ready:-}" != "True" ]; then
+                      echo "setupkey-status: $ns/$name Ready=${ready:-<none>} -> leaving alone (not the status bug; a real failure must stay visible)"
+                      continue
+                    fi
+
+                    # Default an absent/empty observedGeneration to the CRD's own -1 default.
+                    case "${obs:-}" in
+                      ''|'<none>') obs=-1 ;;
+                    esac
+
+                    if [ "$obs" -ge "$gen" ] 2>/dev/null; then
+                      continue
+                    fi
+
+                    echo "setupkey-status: $ns/$name generation=$gen observedGeneration=$obs with Ready=True -> recording the generation the operator already applied"
+                    if kubectl patch setupkeys.netbird.io "$name" -n "$ns" \
+                         --subresource=status --type=merge \
+                         -p "{\"status\":{\"observedGeneration\":$gen}}" >/dev/null; then
+                      fixed=$((fixed + 1))
+                    else
+                      echo "setupkey-status: $ns/$name PATCH FAILED -- check the setupkeys/status RBAC grant"
+                    fi
+                  done
+
+                  # NOTE the counters above are incremented inside a `while` fed by a pipe, which
+                  # runs in a SUBSHELL, so they are not visible here. Deliberately not worked
+                  # around: the per-key lines above are the real log, and a summary that silently
+                  # printed 0 would be worse than none.
+                  echo "setupkey-status: cycle complete (see per-key lines above; no lines means nothing to do)"
+          volumes:
+            - name: tmp
+              emptyDir: {}

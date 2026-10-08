@@ -8,8 +8,10 @@
 # EXACTLY two non-resource URLs — /openid/v1/jwks and /.well-known/openid-configuration
 # (public key material) — and nothing else. Binding it to the system:unauthenticated
 # group lets anonymous callers read only those two endpoints; every other API path stays
-# denied for system:anonymous. Cross-cluster reachability is gated by NetBird policy (the
-# jwks-mirror NBResource names group "secret" as its source), not the apiserver.
+# denied for system:anonymous. Cross-cluster reachability is gated by NetBird policy, not the
+# apiserver: the mirror's mesh exposure (../mesh-jwks) admits source group `secret-k8s` on
+# tcp/443 and nothing else. There is no NBResource in that path any more — it was replaced by
+# a per-service mesh peer on 2026-10-07.
 #
 # Paired with the jwks-mirror bundle (apps/network/src/jwks-mirror) and the jwt-network
 # backend's jwksUrl (http://jwks-gateway.netbird.svc.cluster.local/openid/v1/jwks,

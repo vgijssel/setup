@@ -1,6 +1,6 @@
 apiVersion: v2
 name: external-dns
-description: external-dns (Cloudflare) publishing the pinned omada ClusterIP as omada.network.vgijssel.nl
+description: external-dns (Cloudflare) publishing mesh exposures' overlay addresses from DNSEndpoint CRs
 version: 1.0.0
 appVersion: 0.19.0
 dependencies:

@@ -1,0 +1,72 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+BackendTLSPolicy per HTTPS listener that declares `backend.tls` — i.e. per backend that
+terminates TLS itself, so Envoy must RE-ENCRYPT to it instead of forwarding plain HTTP.
+
+Rendered only when asked for. The default HTTPS path is terminate-at-Envoy, forward-HTTP, which
+is right for a backend speaking plaintext inside the cluster (OpenBao's :8200). This exists for
+the other shape: a backend that only speaks TLS on the port worth talking to.
+
+THERE IS NO SKIP-VERIFY KNOB, deliberately. `validation.hostname` is required by the CRD and
+Envoy checks the backend's certificate against it, so the re-encrypted hop is authenticated
+rather than merely encrypted. Disabling that would make the mesh hostname's end-to-end claim
+false at the last leg, where nobody would look for it.
+
+NOTE the hostname is whatever name the BACKEND presents, which is not necessarily this service's
+mesh hostname. The mesh certificate is terminated at Envoy; what this validates is the
+certificate the backend serves on its own port.
+Those two MAY be the same name — Omada's backend mounts the same shared wildcard this chart
+serves, which deliberately collapses two certificates into one — but a backend holding its own
+private certificate will present something else, which is why this is a parameter.
+
+`targetRefs.sectionName` MUST BE THE SERVICE'S PORT **NAME**, not its number — Gateway API defines
+it as "Service: Port name". A number renders fine, attaches to nothing, and gets no status
+condition out of Envoy Gateway, so the symptom is that Envoy keeps talking PLAINTEXT to a
+TLS-only backend and every request hangs. Measured live 2026-10-05: with `sectionName: "8043"` the
+upstream cluster's `transport_socket` stayed absent in `/config_dump`. Hence the explicit
+`backend.tls.portName` knob below — this chart knows the port NUMBER from `backend.port` and
+cannot derive the name, because the name lives on a Service it does not own.
+
+Scoping by port is not optional either. Omitting `sectionName` targets the WHOLE Service, and for
+a Service like Omada's — one HTTPS port alongside ten raw TCP device ports fronted by TCPRoutes —
+that would try to wrap the raw device ports in TLS too and break them.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+{{- range $l := $listeners }}
+{{- if and (eq $l.protocol "HTTPS") $l.backend.tls }}
+{{- $tls := $l.backend.tls }}
+{{- if not $tls.hostname }}
+{{- fail (printf "mesh-service: listener %q sets backend.tls but no backend.tls.hostname; the CRD requires a name to validate the backend's certificate against" $l.name) }}
+{{- end }}
+{{- if not $tls.caCertificates }}
+{{- fail (printf "mesh-service: listener %q sets backend.tls but no backend.tls.caCertificates; use `System` for a publicly-trusted backend or a ConfigMap name holding ca.crt" $l.name) }}
+{{- end }}
+{{- if not $tls.portName }}
+{{- fail (printf "mesh-service: listener %q sets backend.tls but no backend.tls.portName; Gateway API scopes a BackendTLSPolicy by the Service's port NAME (not its number), and a wrong or missing one attaches to nothing SILENTLY — Envoy keeps talking plaintext to a TLS backend. Find it with: kubectl get svc %s -o jsonpath='{.spec.ports[?(@.port==%v)].name}'" $l.name $l.backend.name $l.backend.port) }}
+{{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ printf "%s-%s" $.Values.name $l.name }}
+  labels:
+    {{- include "mesh-service.labels" $ | nindent 4 }}
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: {{ $l.backend.name }}
+      sectionName: {{ $tls.portName | quote }}
+  validation:
+    hostname: {{ $tls.hostname | quote }}
+    {{- if eq $tls.caCertificates "System" }}
+    # Validate against the public root store — the backend holds a publicly-trusted certificate.
+    wellKnownCACertificates: System
+    {{- else }}
+    caCertificateRefs:
+      - group: ""
+        kind: ConfigMap
+        name: {{ $tls.caCertificates }}
+    {{- end }}
+{{- end }}
+{{- end }}

@@ -39,15 +39,18 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 		),
 		Secrets: []*framework.Secret{
 			{
-				Type: secretTypePAT,
+				Type:   secretTypePAT,
+				Renew:  b.renewFromRole("config/pat/"),
 				Revoke: b.revokePAT,
 			},
 			{
-				Type: secretTypeProxyToken,
+				Type:   secretTypeProxyToken,
+				Renew:  b.renewFromRole("config/proxy-token/"),
 				Revoke: b.revokeProxyToken,
 			},
 			{
-				Type: secretTypeSetupKey,
+				Type:   secretTypeSetupKey,
+				Renew:  b.renewFromRole("config/setup-key/"),
 				Revoke: b.revokeSetupKey,
 			},
 		},

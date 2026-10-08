@@ -1,0 +1,79 @@
+# Fleet bundle exposing the network cluster's JWKS mirror on the mesh at
+# `jwks-network.vpn.blueora.ng`.
+#
+# What this buys over the NBResource path it replaces: the old leg ran as plain HTTP
+# (socat -> jwks-mirror:80 over the overlay), so OpenBao fetched a JWKS it could not authenticate.
+# Here Envoy terminates a publicly-trusted certificate for the mesh name, and the secret cluster's
+# forwarder relays RAW TCP — so TLS is end-to-end from OpenBao to this peer, with correct SNI and
+# full validation against the public root store. Nothing in the path disables verification.
+#
+# defaultNamespace `netbird`: the Gateway's backendRefs resolve in the release namespace, so the
+# exposure must live where the jwks-mirror Service does (../jwks-mirror, defaultNamespace netbird).
+#
+# dependsOn:
+#   - netbird-operator    : owns the netbird.io CRDs for the Group and SetupKey.
+#   - envoy-gateway       : owns the Gateway API v1.6.1 CRDs and the `envoy` GatewayClass.
+#   - crossplane-provider : owns the opentofu.upbound.io Provider behind the access policy.
+#   - vault-secrets-operator : owns the secrets.hashicorp.com CRDs + the default
+#                           VaultConnection/VaultAuth the TLS VaultStaticSecret reads through.
+#   - jwks-mirror      : the backing Service + its Deployment.
+labels:
+  fleet.vgijssel.nl/bundle: mesh-jwks
+defaultNamespace: netbird
+helm:
+  releaseName: mesh-jwks
+  values:
+    # The entire per-service declaration, keyed under the subchart name. See
+    # apps/platform/src/mesh-service/values.yaml for the documented contract.
+    mesh-service:
+      name: jwks-network
+      domain: vpn.blueora.ng
+      # The secret cluster's durable per-cluster group — the one owned by a Group CR
+      # (apps/secret/src/netbird-config/group-secret-k8s.yaml) rather than auto-created by an
+      # NBRoutingPeer, so it survives that routing peer being deleted in the demolition phase.
+      #
+      # ⚠ The consuming peer (the jwks-gateway socat pod) currently enrols into the auto-created
+      # `secret` group only. Its SetupKey must also auto-join `secret-k8s` or this policy has no
+      # effective source — done in apps/secret/src/jwks-gateway/setupkey-jwks-gateway.yaml, and
+      # it only takes effect on that pod's next (re)enrolment, which task 8.1 performs.
+      sourceGroups:
+        - secret-k8s
+      # HTTPS only. The mirror serves plain HTTP in-cluster on :80; Envoy terminates the mesh
+      # certificate on :443 and forwards HTTP to it. :443 is the OBSERVED port — see the
+      # port-shift block in the shared chart's envoyproxy-mesh-service.yaml.
+      listeners:
+        - name: https
+          protocol: HTTPS
+          port: 443
+          backend:
+            name: jwks-mirror
+            port: 80
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: netbird-operator
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: envoy-gateway
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: crossplane-provider
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: jwks-mirror
+# network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
+# explicitly — the JWKS being mirrored is this cluster's own.
+targetCustomizations:
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

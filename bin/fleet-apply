@@ -54,6 +54,29 @@ while IFS= read -r manifest; do
   dir="$(dirname "${manifest}")"
   # apps/<group>/src/<component> -> <group>-<component> (leftover slashes -> '-').
   name="$(printf '%s' "${dir}" | sed -E 's#^apps/##; s#/src/#-#; s#/#-#g')"
+  # ── DROP ANY PREVIOUSLY-BUILT SUBCHART SO A `file://` DEP IS ALWAYS REBUILT ───────────────
+  # `fleet apply` resolves umbrella dependencies ONLY when charts/ is absent. With a tgz already
+  # there it ships that one verbatim, and Chart.lock's digest covers the dependency DECLARATION
+  # (name/version/repository), not the dependency's CONTENT — so editing a shared chart under
+  # apps/platform/src/ changes neither, and the stale tgz keeps winning. Fleet then correctly
+  # reports "unchanged (bundle)" and the edit silently never deploys.
+  #
+  # That cost a debug cycle on 2026-10-06: a new sidecar volume in the shared mesh-service chart
+  # rendered fine in `helm template`, PASSED `moon run :fleet_build`, and still did not reach the
+  # cluster. bin/fleet-build already deletes charts/ before building for exactly this reason
+  # (a stale tgz would hide the pin drift it exists to catch) — so the verify path was rebuilding
+  # while the apply path was not, which is the worst possible split: the check that is supposed to
+  # catch problems was the only one seeing the new code.
+  #
+  # Guarded by git check-ignore: these charts/ directories are gitignored build output. A TRACKED
+  # charts/ is a vendored dependency somebody committed on purpose, so leave it alone and say so.
+  if [[ -d "${dir}/charts" ]]; then
+    if git check-ignore -q "${dir}/charts" 2>/dev/null; then
+      rm -rf "${dir}/charts"
+    else
+      echo "    WARN ${dir}/charts is tracked; not rebuilding its dependencies" >&2
+    fi
+  fi
   echo "==> fleet apply -n ${FLEET_NS} ${name} ${dir}"
   fleet apply -n "${FLEET_NS}" "${name}" "${dir}"
   count=$((count + 1))

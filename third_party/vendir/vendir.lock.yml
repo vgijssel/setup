@@ -38,12 +38,6 @@ directories:
   path: charts/netbird-operator
 - contents:
   - helmChart:
-      appVersion: 0.72.4
-      version: 0.1.0
-    path: .
-  path: charts/netbird-reverse-proxy
-- contents:
-  - helmChart:
       appVersion: v1.4.22
       version: 2.2.17
     path: .
@@ -66,12 +60,6 @@ directories:
       version: v0.0.16
     path: .
   path: charts/coder-logstream-kube
-- contents:
-  - helmChart:
-      appVersion: v2.0.1
-      version: 2.0.1
-    path: .
-  path: charts/external-secrets
 - contents:
   - helmChart:
       appVersion: v0.8.5
@@ -150,6 +138,18 @@ directories:
       version: 0.15.4
     path: .
   path: charts/fleet
+- contents:
+  - helmChart:
+      appVersion: v1.9.2
+      version: 1.9.2
+    path: .
+  path: charts/envoy-gateway
+- contents:
+  - helmChart:
+      appVersion: 1.6.0
+      version: 1.6.0
+    path: .
+  path: charts/vault-secrets-operator
 - contents:
   - githubRelease:
       tag: v1.18.0

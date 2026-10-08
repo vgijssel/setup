@@ -8,9 +8,10 @@ lets LAN devices and the Omada hardware reach that controller.
 
 > Status (2026-09-17): **gateway installed.** It serves a default LAN on `192.168.0.0/24`.
 > **VLAN 20 (Servers) is created** and the Harvester nodes are being installed into it.
-> VLANs 10/30/40/50/60/70/80/90 are still pending. The PiKVM's `eth0` is **DHCP** so it
-> follows whichever VLAN its access port lives in — verify where it currently sits before
-> touching the static route. See "Migration / cutover" below.
+> VLANs 10/30/40/50/60/70/80/90 are still pending. The PiKVM's port is a **trunk**: untagged
+> DHCP plus a tagged VLAN 10 interface pinned to `192.168.10.2`, which is the static route's
+> next hop — so the route does not depend on where the untagged lease lands. See
+> "Migration / cutover" below.
 
 ## Topology
 
@@ -26,14 +27,24 @@ Internet ── ISP modem (bridge mode) ── Omada Gateway (router, DHCP, fire
                                              │
                                       NetBird mesh
                                              │
-                        Omada Controller @ 10.96.0.20 (network cluster)
+                 Omada Controller @ omada.vpn.blueora.ng (network cluster)
 ```
 
-- LAN clients use the **Omada gateway as their default gateway**. To reach the Omada
-  controller they send to `10.96.0.20`, the gateway's static route forwards to the PiKVM,
-  and the PiKVM routes it into the NetBird mesh (SNAT/masquerade on `wt0`).
-- The Omada **hardware** (gateway/switch/APs) is adopted by the remote controller the same
-  way — it needs the `10.96.0.20/32 → PiKVM` static route to be reachable.
+- **One hostname, every consumer.** LAN clients use the **Omada gateway as their default
+  gateway**. To reach the controller they resolve `omada.vpn.blueora.ng` from **public** DNS
+  to its current NetBird overlay address — published as an A record by the controller's own
+  mesh peer (`apps/network/src/mesh-omada/`) — send to that `100.65.x.y` address, the
+  gateway's `100.65.0.0/16` static route forwards to the PiKVM, and the PiKVM routes it into
+  the NetBird mesh (SNAT/masquerade on `wt0`).
+- The Omada **hardware** (gateway/switch/APs) uses that exact same name and path. It runs
+  stock firmware and cannot be a mesh peer, which is why the record is published publicly;
+  the devices hold `omada.vpn.blueora.ng` as their inform target in flash.
+- Mesh peers (the MacBook, on-mesh tooling, other clusters) resolve the same name through
+  NetBird's own resolver and take the direct WireGuard path, bypassing the PiKVM entirely.
+- **Nothing addresses the controller by IP.** The parallel device path — a hand-pinned
+  `10.96.0.20` ClusterIP, a `/32` NetBird resource, a CoreDNS split horizon and a second
+  public hostname — was deleted on 2026-10-07. See openspec
+  `netbird-peer-mesh-envoy-gateway` group 12.
 
 ## Design rules
 
@@ -73,10 +84,12 @@ here:
 | `.100`–`.199` | DHCP pool |
 | `.200`–`.250` | service / LoadBalancer IPs (MetalLB, kube-vip) |
 
-- **Never** use a LAN subnet inside the cluster CIDRs, or the controller path silently breaks:
-  - Service CIDR `10.96.0.0/16` (holds the Omada ClusterIP `10.96.0.20`)
+- **Never** use a LAN subnet inside the cluster CIDRs, or in-cluster routing silently breaks:
+  - Service CIDR `10.96.0.0/16`
   - Pod CIDR `10.244.0.0/16`
-- NetBird advertises only the host route `10.96.0.20/32` into the mesh (not whole subnets).
+- **Nor inside the NetBird overlay range `100.65.0.0/16`**, which the gateway static-routes to
+  the PiKVM (see "Static routes"). A LAN subnet overlapping it would shadow the mesh — and the
+  controller with it, since that is the only path to it.
 
 ## VLANs
 
@@ -111,7 +124,7 @@ bridged; never run two DHCP servers on one L2):
 
 | VLAN | DHCP pool | Reservations | Lease |
 |-----:|-----------|--------------|-------|
-| 10 | `.100`–`.199` | **PiKVM → reserved (by MAC)** so its LAN IP is stable | 24h |
+| 10 | `.100`–`.199` | **PiKVM → reserved (by MAC)** for stable console access; its route next-hop is the *static* `.2` | 24h |
 | 20 | `.100`–`.199` | Harvester nodes are **static** (`.10`/`.11`/`.12`), VIP `.9` | 24h |
 | 30 | `.100`–`.199` | HAOS is **static** `192.168.30.30` | 24h |
 | 40 | `.100`–`.199` | — | 24h |
@@ -121,8 +134,13 @@ bridged; never run two DHCP servers on one L2):
 | 80 | `.100`–`.199` | service IPs from `.200`–`.250` | 24h |
 | 90 | `.100`–`.199` | — | 4h |
 
-- **PiKVM reservation is required.** `eth0` is DHCP, but the Omada static route next-hop and
-  the NetBird site-to-VPN path need a predictable address.
+- **The PiKVM's route next-hop is its STATIC VLAN 10 address `192.168.10.2`, not a DHCP
+  lease.** Its switch port is a trunk: untagged DHCP (which owns the default route) plus
+  tagged 802.1Q VLAN 10 pinned statically by `apps/pikvm/deploy.py`. That static address is
+  what the `100.65.0.0/16` static route points at, so the mesh ingress — and therefore the
+  whole device path — does not move when the untagged lease does. The DHCP **reservation** is
+  still worth having, but only for stable console/local access on the untagged VLAN; it is
+  not what holds the device path up.
 - Reservations on VLANs 50/60/70 are for stable names in Home Assistant, not for policy —
   policy comes from the class. See "Design rules".
 - DNS advertised via DHCP: the Omada gateway (`.1`), which forwards upstream.
@@ -131,13 +149,58 @@ bridged; never run two DHCP servers on one L2):
 
 | Destination | Next hop | Purpose |
 |-------------|----------|---------|
-| `10.96.0.20/32` | PiKVM LAN IP (VLAN 10 reservation) | reach the Omada controller in the NetBird mesh |
-| `100.65.0.0/16` | PiKVM LAN IP | (optional) reach other NetBird mesh peers from the LAN |
+| `100.65.0.0/16` | PiKVM `192.168.10.2` (static, VLAN 10) | **required** — reach the Omada controller at `omada.vpn.blueora.ng`, and any other mesh peer, from the LAN |
+
+**A `/16`, deliberately.** The controller's overlay address changes whenever its mesh pod is
+replaced, and a prefix covering the entire overlay never has to be re-pointed for it. That is
+precisely what the retired `/32` below could not do.
 
 The PiKVM masquerades LAN→mesh traffic (`setup-netbird-routing.sh`, `LAN_CIDR=192.168.0.0/16`),
-so return traffic comes back through it. The NetBird dashboard must (a) designate the PiKVM
-as a routing peer advertising `10.96.0.20/32` with Masquerade, and (b) permit the LAN source
-group → the Omada resource.
+so return traffic comes back through it. `100.65.0.0/16 dev wt0` is an ordinary kernel route the
+NetBird client installs in the main table, so **no `NBResource` and no NetBird-side route
+declaration is involved** — on the account side all that is needed is a policy admitting the
+LAN source group to the service's group (`apps/secret/src/netbird-account/`).
+
+> **Retired: `10.96.0.20/32` → PiKVM.** This carried the old device path to a hand-pinned Omada
+> ClusterIP. That Service, its `NBResource` and its CoreDNS override were all deleted on
+> 2026-10-07, so the address is now allocated to nothing and the route is dead. It is
+> nevertheless **still present and enabled** in the controller (`staticrouting` entry
+> `omada_gateway`, verified 2026-10-07), because both routes were kept live through the device
+> migration to keep it reversible one device at a time. Delete it now that the fleet is home.
+
+## PiKVM web UI: the certificate warning is accepted, not a defect
+
+`https://pikvm.vpn.blueora.ng/` serves the box's **self-signed** certificate, so every browser
+shows a warning that has to be clicked through. This is a deliberate, recorded trade — not an
+oversight and not something to "fix" by reintroducing a proxy.
+
+**The reverse proxy that used to front it existed for this reason and no other.** PiKVM was
+published through a NetBird BYOP reverse-proxy service at `pikvm.network.vgijssel.nl`, which
+terminated TLS with a real Let's Encrypt wildcard and spoke to the box over the tunnel with
+verification disabled (`skip_tls_verify`, because the box's certificate is for its LAN IP, not
+its overlay address). So the proxy was not adding security — the tunnel was already encrypted —
+it was converting a self-signed certificate into a green padlock. Buying that cosmetic with a
+proxy fleet, a minted proxy token, a registered reverse-proxy domain, a wildcard certificate,
+a watchdog and two `moon` tasks is what the mesh migration deleted. Access itself is unchanged
+and still mesh-only: the name resolves solely inside the overlay, and reaching it needs the
+`homelab-devices` policy (`apps/secret/src/netbird-account/`).
+
+Two upgrade paths exist, both **open follow-ups**, neither blocking:
+
+1. **Put a real certificate on the box.** Issue `pikvm.vpn.blueora.ng` by DNS-01 — the same
+   mechanism the mesh wildcard already uses, so no inbound path is needed — and install it into
+   PiKVM's nginx (`/etc/kvmd/nginx/ssl/`) via `apps/pikvm`'s pyinfra deploy, with renewal driven
+   from the cluster. Cleanest outcome: the box serves a name it legitimately owns. Cost is a
+   certificate-distribution path onto a read-only-rootfs appliance that is not a Kubernetes
+   consumer, which is why it was not done inline.
+2. **Expose it as a mesh service like everything else** — a `mesh-service` exposure whose Envoy
+   terminates the shared `*.vpn.blueora.ng` wildcard and re-encrypts to the box with a
+   `BackendTLSPolicy`. The chart already supports exactly this (`listeners[].backend.tls`, added
+   for Omada's `:8043`). The blocker is that `BackendTLSPolicy` requires `validation.hostname`
+   and offers no skip-verify, and the box's self-signed certificate matches no name we could
+   validate — so it needs path 1 first, or a custom CA.
+
+Until then: click through the warning, or use `kvmd` over NetBird-SSH, which is unaffected.
 
 ## Firewall / ACL policy
 
@@ -160,7 +223,7 @@ Default **deny** between VLANs. Rules belong to the class, not the device:
 | 80 Shared Services | internet | yes — metadata + updates |
 | 80 Shared Services | 10 / 30 / 50 / 60 / 70 | deny |
 | 90 Guest | internet only | fully isolated |
-| any VLAN | `10.96.0.20` | as needed for Omada management |
+| any VLAN | `100.65.0.0/16` | as needed — Omada management, i.e. `omada.vpn.blueora.ng` |
 
 - **`50 IoT-Local → 30:1883` is a deliberate exception** to "IoT never initiates". ESPHome's
   native API is HA-initiated so it needs nothing, but WiCAN Pro *publishes* over MQTT.
@@ -196,8 +259,24 @@ internet policy) at the price of losing Sonos peering.
   pairwise relationships, so selecting these four also lets Trusted see IoT-Local.
 - VLANs 60, 80 and 90 are deliberately **excluded**: cloud appliances integrate via vendor
   clouds, and media-server clients use explicit URLs rather than discovery.
-- Public DNS resolution via the gateway; `omada.network.vgijssel.nl` resolves publicly
-  (Cloudflare) to `10.96.0.20` and is reached over the mesh route.
+- Public DNS resolution via the gateway. **Everything now reaches the Omada controller at one
+  name, `omada.vpn.blueora.ng`** — humans, on-mesh tooling AND the physical gateway/switches/APs.
+  It is served by the controller's own mesh peer (`apps/network/src/mesh-omada/`), which
+  publishes its current overlay address as a public A record so non-peer devices can resolve it;
+  they reach that address over the LAN gateway's `100.65.0.0/16 -> PiKVM` static route. See
+  openspec `netbird-peer-mesh-envoy-gateway` group 12.
+  **Both legacy names are retired** (2026-10-07) and `dig @1.1.1.1` returns nothing for either:
+  - `omada.network.vgijssel.nl` was the inform hostname the devices held from their original
+    adoption. Dropping it during the 2026-10-06 rename, *before* they had been re-homed, is what
+    took all 7 offline for 22 hours with `Inform timeout` — they were powered and on the LAN,
+    simply unable to resolve their controller. It was republished until the fleet had genuinely
+    migrated off it, soaked past the ~8-minute inform timeout, and only then withdrawn.
+  - `omada.blueora.ng` was the short-lived device name that replaced it, pointing at the pinned
+    `10.96.0.20` ClusterIP. It went when the devices did. Retiring it needed one extra step:
+    the name was on the controller's own `:8043` certificate, which the mesh listener validates
+    when it re-encrypts to that port. Pointing the controller at the shared `*.vpn.blueora.ng`
+    wildcard instead made one certificate cover both hops, so the dedicated certificate, its
+    Secret and the DNS record all became deletable together.
 
 ### Shared services (VLAN 80) — planned
 
@@ -232,12 +311,17 @@ Design decisions for that path:
 |-----------|-------------------|--------|---------|
 | Trunk (uplinks, APs) | Infra (10) | 20/30/40/50/60/70/80/90 | gateway↔switch, switch↔APs |
 | Harvester LAG | Servers (20) | 30/70/80 (VM networks) | one LACP LAG per node — see harvester.md |
-| PiKVM | (its access VLAN) | — | **access port**, not a trunk — see note |
+| PiKVM | (its untagged VLAN) | 10 | **trunk** — untagged DHCP + tagged VLAN 10 — see note |
 | Access | one VLAN | — | single-VLAN endpoints |
 
-> **PiKVM is an access port, not a trunk.** Because `eth0` is DHCP, the PiKVM takes the VLAN
-> of whatever access port it is plugged into. During migration that port is on the legacy
-> network; after cutover it is moved to Infra (VLAN 10). No 802.1Q tagging on the PiKVM.
+> **PiKVM is a trunk port.** `apps/pikvm/deploy.py` configures both halves: DHCP on the
+> untagged/native VLAN (which owns the default route, so the box keeps working wherever its
+> port sits) **plus** a tagged 802.1Q VLAN 10 interface pinned statically to
+> `192.168.10.2/24`. The static tagged address is the one that matters — it is the
+> `100.65.0.0/16` static route's next hop, so the device path ingresses on `vlan10` and is
+> immune to the untagged lease changing. (`rp_filter` on `vlan10` must stay **loose**: a
+> device packet arrives there with an untagged-VLAN source address, and strict reverse-path
+> filtering would drop it silently.)
 
 Harvester nodes are **LACP LAGs** with VLAN 20 untagged (PVID 20) and the VM networks
 tagged. Full detail, including why the installer's VLAN ID is left unset, in
@@ -248,14 +332,18 @@ tagged. Full detail, including why the installer's VLAN ID is left unset, in
 1. Bridge the ISP modem; bring up the Omada gateway with its **default LAN =
    `192.168.0.0/24`, gateway `.1`** so every existing device (incl. the PiKVM on DHCP) keeps
    working. Modem DHCP off. *(Done.)*
-2. Add static route `10.96.0.20/32 → PiKVM`; confirm the PiKVM NetBird routing peer + ACL
-   are up. Adopt gateway/switch/APs (Inform URL → controller).
+2. Add static route `100.65.0.0/16 → PiKVM`; confirm the PiKVM NetBird routing peer + the
+   account policy admitting the LAN source group are up. Adopt gateway/switch/APs with
+   Inform URL `omada.vpn.blueora.ng`. **The inform target is fixed at adoption** — no later
+   controller setting, config push or reboot can move it, so getting this right here is what
+   avoids a device migration afterwards (openspec group 12).
 3. Create VLANs 10/20/30/40/50/60/70/80/90 with the DHCP pools, reservations, isolation
    settings and SSIDs above. *(VLAN 20 done.)*
 4. Migrate clients onto their VLANs incrementally. Move the PiKVM's access port to VLAN 10;
    it re-leases into `192.168.10.x` (use its reservation). Confirm PiKVM reachable on VLAN 10.
-5. **Repoint before removing anything:** static route → `10.96.0.20/32 → <PiKVM VLAN 10 IP>`.
-   (`PIKVM_LAN_CIDR` is already `192.168.0.0/16`, so the masquerade needs no change.)
+5. **Repoint before removing anything:** static route → `100.65.0.0/16 → 192.168.10.2`
+   (the PiKVM's static VLAN 10 address). (`PIKVM_LAN_CIDR` is already `192.168.0.0/16`, so
+   the masquerade needs no change.)
 6. With nothing left on it, delete the default `192.168.0.0/24` LAN.
 
 The default LAN must survive until step 5 is verified — adoption (step 2) is **not** the

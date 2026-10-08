@@ -10,8 +10,9 @@
 # the autobackup dir out via `kubectl exec ... -- tar` into a shared emptyDir; then rclone
 # uploads it with `copy` (additive — never deletes) so S3 accumulates full history even after
 # Omada rotates the local copies. rclone's remote `s3:` is configured entirely from env
-# (RCLONE_CONFIG_S3_*), with the access/secret keys coming from the ESO-synced
-# omada-backup-s3 Secret (externalsecret-omada-backup-s3.yaml).
+# (RCLONE_CONFIG_S3_*), with the access/secret keys coming from the omada-backup-s3 Secret that
+# Vault Secrets Operator syncs out of kv/s3-backup (vaultstaticsecret-omada-backup-s3.yaml —
+# External Secrets Operator is gone, so this is no longer an ExternalSecret).
 #
 # PREREQUISITE (one-time, manual): enable Omada Auto Backup in the UI —
 #   Settings > Backup & Restore > Auto Backup: Daily, pick a retained-data range (NOT
@@ -30,7 +31,22 @@ spec:
   schedule: {{ .Values.backup.schedule | quote }}
   timeZone: {{ .Values.backup.timeZone | quote }}
   concurrencyPolicy: Forbid
-  startingDeadlineSeconds: 120
+  # ── NO startingDeadlineSeconds, DELIBERATELY ─────────────────────────────────────────────────
+  # It used to be 120, and that silently skipped most nightly runs. These clusters live in an
+  # OrbStack VM on a LAPTOP that sleeps overnight, so at 03:17 local there is usually no
+  # kube-controller-manager running at all. A CronJob whose schedule is missed by more than
+  # startingDeadlineSeconds is not started LATE — it is dropped, with no Job object and no event,
+  # and only lastScheduleTime stops advancing. Found live 2026-10-06: four consecutive nights
+  # missed, last success 2026-10-02, while the hourly OpenBao snapshot CronJob beside it (which
+  # sets no deadline) never missed — it also gets 24 attempts a day, several while the host is
+  # awake, whereas a daily job gets exactly one.
+  # With the field unset the controller starts the most recent missed schedule once it notices,
+  # i.e. shortly after the host wakes, which is the correct semantics for a backup: late is fine,
+  # skipped is not. The 5-minute watchdogs keep their 60s deadline on purpose — for them a skip is
+  # harmless because the next attempt is 5 minutes away.
+  # Caveat worth knowing: with no deadline, >100 consecutive missed schedules (100 days for a
+  # daily job) makes the controller refuse with "too many missed start times"; recover by
+  # re-applying the bundle.
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
   jobTemplate:
