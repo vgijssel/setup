@@ -1,8 +1,13 @@
 # The operator reads its NetBird management API PAT from a precreated Secret named
-# `netbird-mgmt-api-key` (key `NB_API_KEY`), populated by the per-cluster
-# ExternalSecret in apps/{network,secret}/src/config. Until that Secret exists the
-# operator stays not-Ready, which is expected during bootstrap — the same
-# chicken-and-egg the prior operator's operator-oauth Secret had.
+# `netbird-mgmt-api-key` (key `NB_API_KEY`). That Secret is a **VaultDynamicSecret**
+# (`netbird/pat/secret-operator`, minted by the first-party netbird plugin from
+# `kv/netbird#service_account_token`) — so the operator depends on OpenBao being up, unsealed,
+# kv-populated, its plugin catalog registered by Crossplane, AND Vault Secrets Operator running.
+# Until that Secret exists the operator stays not-Ready, which is expected during bootstrap.
+#
+# That dependency chain is why this operator necessarily starts LAST, and it is the whole reason
+# for the `webhook.namespaceSelectors` deny list below. (Historical note: this header used to say
+# "ExternalSecret in apps/{network,secret}/src/config" — ESO was removed in 88661d67.)
 #
 # Values are keyed under the subchart name (`netbird-operator`). `cluster.name` is set
 # per-cluster in fleet.yaml's targetCustomizations (it names the NetBird network +
@@ -34,6 +39,56 @@ netbird-operator:
   # resource-backed policy.
   ingress:
     allowAutomaticPolicyCreation: false
+  # Scope of the pod-mutating webhook (`mpod-v1.netbird.io`), which injects the mesh client into
+  # pods a `SidecarProfile` selects. Unscoped it is `failurePolicy: Fail` over EVERY namespace,
+  # and that is a guaranteed cold-start DEADLOCK rather than a slow start: the operator cannot
+  # run without the Secret described at the top of this file, that Secret needs VSO + OpenBao +
+  # Crossplane, and those are all pods whose CREATE this webhook then refuses. Measured
+  # 2026-10-08 (openspec netbird-peer-mesh-envoy-gateway, task 11.3): 22 `FailedCreate` events
+  # across six namespaces, stable at 3/19 bundles for eight consecutive minutes — it does not
+  # converge, and the only exit was deleting the webhook by hand.
+  #
+  # A DENY LIST on purpose, not an allow list. Injection therefore stays ON by default, so a
+  # future `SidecarProfile` consumer can never silently come up WITHOUT its sidecar by
+  # forgetting an opt-in label — a silent failure being strictly worse than a loud one here.
+  # `failurePolicy` is deliberately left at the chart default `Fail`: for a pod that genuinely
+  # needs injection, refusing to create it is the correct outcome.
+  #
+  # ┌─────────────────────────────────────────────────────────────────────────────────────────┐
+  # │ INVARIANT: this list is exactly the operator's OWN DEPENDENCY CLOSURE — every namespace │
+  # │ that must already be working before this operator can start. If anything NEW ever       │
+  # │ becomes a prerequisite of this operator, ITS NAMESPACE MUST BE ADDED HERE, or the        │
+  # │ deadlock returns — and it returns as a total cold-start failure discovered mid-outage.   │
+  # │ The only real regression test is actually running `secret:stop && secret:start`.         │
+  # └─────────────────────────────────────────────────────────────────────────────────────────┘
+  #
+  # `kubernetes.io/metadata.name` is applied automatically to every namespace by the apiserver,
+  # so nothing has to be labelled for this to work.
+  #
+  # FOOTNOTE 2026-10-08: as of the jwks-gateway change there are **zero `SidecarProfile`s left in
+  # the repo**, so this webhook currently mutates nothing and the deny list is belt-and-braces
+  # rather than load-bearing. Both are kept deliberately — the webhook because injection is a
+  # supported mechanism we may use again, the deny list because if we do, the deadlock returns.
+  # If injection is never reintroduced, disabling the webhook outright is the simpler end state.
+  #
+  # Deliberately NOT exempted: envoy-gateway, reloader, netdata. They were blocked too, but
+  # nothing the operator needs depends on them, so they merely stall and then self-heal once the
+  # operator is up. That is correct behaviour, not a deadlock.
+  webhook:
+    namespaceSelectors:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+          - kube-system # coredns + kube-proxy: without DNS/routing nothing works at all
+          - kube-flannel # pod networking itself
+          - local-path-storage # provisions OpenBao's data PVC
+          - cattle-fleet-system # Fleet: the reconciler that applies everything below
+          - cert-manager # issues this webhook's OWN serving cert (enableCertManager: true),
+            # so gating it means the webhook can never become functional.
+            # It only avoided this by winning a race during the drill.
+          - crossplane-system # configures OpenBao and registers the netbird plugin
+          - vault-secrets-operator # mints netbird-mgmt-api-key from that plugin
+          - secret # OpenBao itself
   operator:
     podAnnotations:
       reloader.stakater.com/auto: "true"
