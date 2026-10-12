@@ -2213,8 +2213,347 @@ would apply to the Omada path too. Artifacts are staged and current
 (`omada-dump-2026-10-08.gz`, sha256 `eb961fe1…ae2b5`), so Phase 5 can run whenever the
 maintainer calls it.
 
-**11.3 therefore stands as: the secret-cluster half is PROVEN, by failing and being recovered;
-the network-cluster half is staged and gated.** Left unchecked for that reason.
+## 11.3 PHASE 5 EXECUTED 2026-10-08 — the network cluster was destroyed and recovered; the restore was flawless and the DEVICE PATH found a new blocker
+
+Run on the maintainer's explicit go-ahead. The cluster came back, every bundle is green, and the
+Omada restore worked exactly as rehearsed — but the fleet did **not** reconnect, for a reason
+nothing in this change had measured. That reason is the result worth having.
+
+### Pre-flight — all gates passed, and the restore was rehearsed BEFORE anything was destroyed
+
+The one genuinely new idea in this run, and it de-risked the whole phase for free: 11a said the
+`mongorestore` path "needs building and rehearsing; it is new work". It was rehearsed **on the
+live cluster, with zero risk**, by restoring the fresh dump into a throwaway database
+(`--nsFrom='omada.*' --nsTo='omada_rehearse.*'`) and diffing it against live: **6032 documents,
+0 failed**, 203/203 collections, all 7 device MACs, both static routes, then dropped. So Phase
+5.3 was a repeat of a proven operation rather than a first attempt during an outage.
+
+- **Phase 0.5 disk PASSED at 75% / 104 GiB free** — the gate that blocked this drill on 10-07
+  (97% / 13 GiB). The maintainer had freed the host disk; nothing to reclaim.
+- **Fresh dump** taken immediately before the destroy: 568 469 B, sha256 `ef2d40ac…5bd943`, 203
+  collections. **It contains `user` (2) and `iam_user` (2)** — i.e. the restore brings back the
+  controller admin account, so it skips the setup wizard entirely. Worth stating plainly because
+  11a treated the missing Omada credential as a permanent gate on recovery: *the credential is
+  not needed for a `mongorestore` recovery, only for a `.cfg`/UI recovery.*
+- **A credential sweep that closes 11a's open question.** 11a checked OpenBao's kv. Also checked
+  now: the only 1Password vault the repo can reach (`enigma-prod`) holds 12 items and **no Omada
+  account**, and a repo sweep finds none. So there is no automatable controller credential —
+  which is exactly why the non-UI restore path matters.
+- **A credential scoping fact the rehearsal surfaced:** the `omada` app user is scoped to its own
+  database (`not authorized on omada_rehearse`), so namespace-remapped work needs the
+  `databaseAdmin` credential. The real restore runs fine as either.
+- Baseline: 20/20 deployed bundles 1/1 (plus 13 correctly `0/0` via the terminal `doNotDeploy`),
+  7 static + 4 dynamic VSO all synced.
+- **One baseline value recorded specifically so it would not be misread later:** the `omada-mesh`
+  Gateway already reported **`Programmed: False` / `NoResources` / "Envoy replicas unavailable"**
+  *before* the drill, while all 11 listeners were `Programmed/Accepted/ResolvedRefs=True` with
+  routes attached and the Deployment was 1/1 available. It is a stale top-level condition, not an
+  outage — and during a cold-start verification it looks exactly like a failure.
+
+### Timeline
+
+| | |
+|---|---|
+| `network:stop` | 15:04:46Z — cluster gone in **12 s** |
+| `network:start` returns | 15:06:55Z (**60 s**; it applies bundles and exits, reconciliation continues async) |
+| orphaned NetBird groups cleaned | 15:11:50Z |
+| jwks TLS seeded (deadlock break 1) | 15:18:33Z |
+| bootstrap policy created (deadlock break 2) | 15:21:05Z |
+| controller caught + scaled to 0 | 15:24:07Z |
+| `mongorestore` 6032 docs / 0 failed | 15:24:51Z → 15:25:46Z (**55 s**) |
+| all bundles green, `omada-mesh` 4/4 | ~15:35Z |
+| public record republished | 15:35:14Z |
+
+### What came up with NO intervention — and it is the majority
+
+Worth leading with, because the interventions below are all narrow: the vind cluster, Fleet, the
+whole platform layer, MongoDB (3-node PSMDB), the operator, the router peer, `clusterproxy`,
+`jwks-mirror`, cert-manager, Crossplane, external-dns, netdata, **all 11 VSO objects**, both
+mesh exposures and every per-service NetBird policy. Two self-heals are worth naming:
+
+- **`svc-openbao-tcp` was recreated by the SECRET cluster's Crossplane unprompted** after the
+  cleanup deleted it — the cross-cluster ownership model working exactly as designed.
+- **The `omada` namespace's `vault-secrets-operator` ServiceAccount resolved an ordering race on
+  its own.** `network-config` ships the SA but the `omada` bundle creates the namespace, so the
+  first pass had nowhere to put it; one re-reconcile fixed it.
+
+### The five interventions, named and counted
+
+1. **Orphaned NetBird groups — blocker 4, third consecutive rebuild, still deterministic.**
+   `network-k8s` and `svc-jwks-network` wedged the operator with `group with name X already
+   exists`. Cleared with the inherited dependency-ordered script (policies → setup keys → group).
+   **This is now 3/3 rebuilds and must be automated.**
+2. **STALE PEERS — a blocker not previously documented.** Six peers survived the cluster's
+   deletion (3 `clusterproxy`, `omada-mesh`, `jwks-network-mesh`, `router`), and two of them
+   **still held the `omada` and `jwks-network` DNS labels**. The design's answer to stale peers is
+   `preStop: netbird deregister`, which cannot run when the cluster is deleted from under it, and
+   the setup keys are ephemeral only for some exposures. Deleted by hand; without that the new
+   pods would have fought dead peers for their own hostnames.
+3. **A TWO-LAYER COLD-START DEADLOCK on the JWKS leg — the sharpest finding of the phase.**
+   The network cluster's VSO authenticates to OpenBao via `auth/jwt-network`; OpenBao verifies the
+   JWT against the network cluster's JWKS at `jwks-network.vpn.blueora.ng`; that name is served by
+   this cluster's own `mesh-jwks` exposure — **whose TLS certificate comes from `kv/mesh-tls` via
+   VSO**. So VSO needs OpenBao needs JWKS needs mesh-jwks needs VSO.
+   * *Layer 1* broken by seeding the `jwks-network-mesh-tls` Secret by hand from `kv/mesh-tls`
+     with a workstation admin token — the same shape as the existing, documented
+     `put_netbird_operator_auth.sh` seed. The Envoy pod went 3/3 instantly.
+   * *Layer 2*: the `svc-jwks-network-tcp` policy (deleted in step 1) is recreated by this
+     cluster's **own** Crossplane, which needs the NetBird PAT from VSO — still deadlocked.
+     Broken with a temporary policy deliberately named `zz-dr-bootstrap-jwks` rather than the real
+     name, so it could never collide with the Crossplane-managed object; **deleted again** once
+     Crossplane had recreated the real one.
+   * This deadlock is **specific to destroying the network cluster** and is why Phase 5 was worth
+     running: Phases 3/4 never exercised it, because the network cluster stayed up and kept
+     serving JWKS throughout.
+4. **The documented operator-PAT seed creates a Secret that VSO can NEVER adopt.**
+   `netbird-mgmt-api-key` sat `False` with `invalid owner label, key=app.kubernetes.io/managed-by,
+   present=false`. The script's own header claims "VSO adopts it later". It does not: that
+   `VaultDynamicSecret` has **`destination.overwrite: false`** and the hand-made Secret carries no
+   VSO labels. Fixed by deleting the Secret and letting VSO create it. *The contrast is the fix:*
+   `jwks-network-mesh-tls` has `overwrite: true`, which is precisely why the step-3 hand-seed was
+   adoptable. **`put_netbird_operator_auth.sh` should either set the labels or that VDS should set
+   `overwrite: true`** — and the header should stop claiming adoption works.
+5. **VSO's informer cache served a deleted/absent ServiceAccount for minutes.** After the `omada`
+   SA appeared, VSO kept failing with `ServiceAccount "vault-secrets-operator" not found`; a
+   restart fixed it immediately. Same class as the sidecar informer-cache race already recorded
+   above, in a different operator. CoreDNS was restarted in the same step per the documented
+   post-restore pair.
+
+### 🛑 THE RESULT THAT MATTERS — the devices did NOT come back, and it is a cached NXDOMAIN
+
+Every hop was healthy and the fleet still did not reconnect. Measured rather than assumed, and
+the `last_seen` trap nearly hid it:
+
+- **The restored `device` rows say `LIVE 7/7`, `disconnect_time: 0`, `health_score: 10` — and
+  that is MEANINGLESS.** Those values came out of the dump. `last_seen` is 14:32–14:41Z,
+  i.e. *before* the cluster was destroyed. This is 7b's trap in its most dangerous form yet: a
+  restore makes the database assert a healthy fleet. **After a restore, device liveness can only
+  be read from Envoy's session counters and from events newer than the restore.**
+- **The honest instruments said zero.** `29814`/`29817`/`443` `downstream_cx_total` were each
+  exactly **1** — my own probes — and UDP `rx_datagrams` was **0**. Not one device packet arrived.
+- **The path was provably fine.** From a peer: `https://omada.vpn.blueora.ng` → `http=200
+  ssl_verify_result=0` with no `-k`; `29814`/`29817` open. From the **PiKVM** (reached over the LAN
+  at `192.168.0.123`, since NetBird's SSH proxy needs interactive SSO): `netbird status`
+  Management+Signal Connected, the omada peer known, `ip route get 100.65.69.101` → `dev wt0`,
+  `29814` **OPEN**, `ip_forward=1`, `rp_filter=0`, and `-A POSTROUTING -s 192.168.0.0/16 -o wt0 -j
+  MASQUERADE` present. Yet `/proc/net/nf_conntrack` showed **0** flows from LAN hosts toward
+  `100.65.0.0/16`. So the devices were never even trying.
+- **ROOT CAUSE: the LAN resolver is serving a cached NXDOMAIN for the one name the fleet uses.**
+  `dig omada.vpn.blueora.ng @192.168.0.1` → **NXDOMAIN**, while `@1.1.1.1` → `NOERROR
+  100.65.69.101` (TTL 60). Same resolver answers `google.com` fine, so it is this name only.
+- **Why, exactly:** the Envoy pod's `publicDns` `preStop` withdrew the record when the cluster was
+  deleted (good hygiene — no dead address left published), and external-dns logged
+  **`action=CREATE`**, not `UPDATE`, at 15:35:14Z, confirming the record genuinely did not exist
+  in between. So the name was NXDOMAIN for the **~30 minutes** the cold start took to walk its
+  dependency chain to the mesh pod — and `blueora.ng`'s SOA negative TTL is **1800 s**, so the LAN
+  resolver then holds that answer for up to another 30 minutes.
+- **Net effect: a cold start costs the device fleet up to ~60 minutes of downtime** — time-to-mesh-pod
+  plus the negative-cache window — against the ~8-minute inform timeout this design budgets for.
+  It is self-healing, but far outside what 12.11 measured.
+- **This is 12.10's known defect, under-estimated.** 12.10 already recommended rendering the
+  `DNSEndpoint` in the chart so Helm/Fleet owns it and having the sidecar **PATCH** its target,
+  and predicted "the ~60-second NXDOMAIN window that negative-caching resolvers hold onto". On a
+  cold start that window is ~30 minutes, not ~60 seconds, and the fix is now clearly
+  load-bearing rather than cosmetic: a Fleet-owned `DNSEndpoint` would be recreated early in the
+  bring-up, so the name would never go NXDOMAIN at all.
+- **It was the GATEWAY's own resolver, not an upstream.** Checked rather than assumed, because the
+  remedy differs: `1.1.1.1`, `8.8.8.8`, `9.9.9.9` and `208.67.222.222` **all** returned `NOERROR
+  100.65.69.101` while `@192.168.0.1` still said `NXDOMAIN`. So nothing public was stale — the
+  negative entry lived on the Omada gateway, which is unreachable for a cache flush precisely
+  because the controller it would be flushed from is the thing that was down. No lever exists;
+  the only option is to wait it out.
+- **A consequence of 12.10 worth stating:** that cleanup deliberately removed the fallback device
+  path (the pinned `10.96.0.20` ClusterIP, its `NBResource` and the public `omada.blueora.ng`
+  record). So during this window the fleet had **no alternative name to fall back to**. That was
+  the right simplification, but it converts a DNS-publication defect into total device downtime.
+
+### ✅ IT SELF-HEALED, exactly as the diagnosis predicted — and the instant DNS cleared, so did the fleet
+
+- **15:56:21Z the gateway flipped to `NOERROR`**, and Envoy went from 0 to **6** active device
+  sessions *in the same 30-second sample*, then **7** in the next. The devices had been trying
+  all along and were blocked solely on resolution.
+- **7 fresh `Adopt success` events at 15:56:13–15:56:25Z**, every one newer than the 15:25
+  restore, one per device — so this is live re-adoption against the restored controller, not
+  restored data.
+- **Soaked to 16:06:06Z — past the ~8-minute inform timeout:** `LIVE 7/7`, `disconnect_time: 0`
+  on every device, Envoy `29814 downstream_cx_active: 7` steady across ~20 consecutive samples,
+  the newest `Disconnected` anywhere is 14:40:38Z (*from the dump*, pre-destruction), and the
+  newest event of any kind is still that 15:56:25 adopt — i.e. nothing has happened for 10
+  minutes.
+- *Being precise about one value, and then watching it resolve:* at 16:06 `health_score` was
+  **`-1`** fleet-wide, not `10` — the pre-convergence placeholder 12.7 documented
+  (`-1 → 7 → 9 → 10`), so liveness was rested on `last_seen > disconnect_time`, the fresh adopt
+  events and Envoy's session count instead. **By 16:36 it had converged to `9` on all seven**,
+  confirming the sequence rather than a fault.
+- **Longer soak, 16:36:20Z — 40 minutes after re-adoption and ~5× the inform timeout:**
+  `LIVE 7/7`, health `[9,9,9,9,9,9,9]`, Envoy `29814: 7` **and `29817: 6`** — numerically
+  identical to the pre-drill baseline — every other device port `0`, and the newest device event
+  of any kind still the 15:56:25 adopt. The recovery is stable, not a momentary reconnect.
+- **Measured total device downtime: 15:04:46Z → 15:56:13Z = 51 min 27 s.** Breakdown:
+  **~30 min** for the cold start to reach a running mesh pod (including the five interventions)
+  plus **~21 min** of cached NXDOMAIN *after* the record was already correct. The second half is
+  pure, avoidable loss and is what the 12.10 chart fix would remove.
+
+### Verified end state — both clusters green, cross-cluster leg proven
+
+- **network**: 20/20 deployed bundles 1/1 (11 correctly `0/0`), **zero** pods outside
+  Running/Completed, **7 static + 4 dynamic VSO all `True`** (identical to baseline).
+- **Both Gateways `Programmed: True`** — including `omada-mesh`, which was `False` in the
+  pre-drill baseline. The rebuild produced a *cleaner* state than it started from, which also
+  confirms that baseline reading was a stale condition rather than a fault.
+- **secret**: 19/19 bundles 1/1, zero unhealthy pods, all VSO `True`, untouched throughout.
+- **The cross-cluster edge 11.3 exists to prove works after a full network rebuild:**
+  `auth/jwt-network/config` still carries `https://jwks-network.vpn.blueora.ng/openid/v1/jwks`
+  with `jwks_ca_pem` correctly **absent**, and every network-cluster VSO object authenticated
+  through it — which can only happen if OpenBao fetched the *rebuilt* cluster's JWKS over the
+  mesh.
+- From a peer: `https://omada.vpn.blueora.ng` → `http=200 ssl_verify_result=0` with no `-k`;
+  `29814`/`29817` open; `omada.vpn.blueora.ng` → `100.65.69.101` publicly and on the mesh
+  resolver. Account state clean: no stale peers, all `svc-*` policies present, bootstrap policy
+  removed.
+
+### Post-restore audit, 2026-10-08T17:00Z — asked "what still needs fixing?" and checked rather than assumed
+
+**Nothing from the drill was left behind, verified rather than claimed:**
+
+- **Both hand-seeded Secrets are now fully VSO-owned** (`app.kubernetes.io/managed-by:
+  hashicorp-vso` + a `vso-ownerRefUID`), so the step-3 and step-4 interventions left no residue.
+  `netbird-mgmt-api-key` is in a *better* state than before the drill — it is VSO's, not the
+  unadoptable hand-seed.
+- The `zz-dr-bootstrap-jwks` policy is gone, no stale peers remain, `omada_rehearse` was dropped,
+  and the controller's replica count matches Fleet's desired state.
+- **All Crossplane Workspaces `Synced`+`Ready` on both clusters** — network:
+  `mesh-jwks-network-policy`, `mesh-omada-policy`; secret: all 7. *Correction to an earlier
+  reading in this session: `kubectl get workspaces -A` looked EMPTY because the group is
+  `opentofu.upbound.io`, not `tf.upbound.io`. Nothing was wrong.*
+- All CronJobs present and firing (three watchdogs on `*/5`, `netbird-router-groups` `*/15`,
+  `netbird-setupkey-status` `*/10`); the `omada-mesh` `DNSEndpoint` exists.
+- **12.9's invariants still hold after the rebuild:** `omada.blueora.ng`,
+  `omada.network.vgijssel.nl` and `*.blueora.ng` are all empty on `1.1.1.1`.
+- **The spec contract re-verified on the rebuilt exposure:** declared `443`/`29814`/`29817`
+  OPEN; undeclared `8043`/`8088`/`8843`/`10443`/`9999` all **refused**; `http=200
+  ssl_verify_result=0` with no `-k`. *(No clock skew either — host and in-pod `date` agree
+  exactly; the object AGEs that looked too old were my arithmetic.)*
+
+**🛑 ONE REAL GAP, and it is silent — the Omada `.cfg` backup chain is EMPTY after a restore.**
+
+Found by doing for Omada what Phase 4.6 does for OpenBao: prove the backup pipeline itself
+survived. Triggering `cronjob/omada-backup` by hand returned **`omada-backup: nothing to
+upload`**, and the init container said why: `no .cfg files under
+/opt/tplink/EAPController/data/autobackup yet`. Confirmed on the box — `data/` holds only
+`LAST_RAN_OMADA_VER.txt`, `db`, `html`, `keystore`, `pdf`; **the `autobackup` directory does not
+exist at all.**
+
+- **Cause:** `mongorestore` restores the *database*. The controller's autobackup `.cfg` files
+  live on its **data PVC**, which `network:stop` destroyed, and nothing restores them. So the
+  portable artifact 11a deliberately chose *because* it is portable is the one thing a
+  mongo-based recovery does not bring back.
+- **Why it is dangerous rather than merely missing:** the upload step `exit 0`s on the empty
+  case, so the nightly CronJob will report **Complete** every night while uploading nothing.
+  This is 9f's shape exactly — the casualty is the backup, i.e. the thing the next DR depends
+  on — and it would not have been noticed without being looked for.
+- **It does self-heal, and no human is needed.** The `autobackup` setting came back with the
+  restore and is enabled: `status: true`, cron `0 0 20 * * ?` **20:00 Europe/Amsterdam**,
+  `maxNumberOfFile: 7`, `retention: 30`, `path: /data/autobackup`, with `next_execute` reset to
+  0. So the first `.cfg` is generated tonight at 20:00 CEST and the S3 job at 03:17 CEST uploads
+  it — chain restored by tomorrow morning, unattended.
+- **✅ CONFIRMED 2026-10-09 — it self-healed on exactly the predicted schedule, unattended.**
+  The controller wrote `autobackup_6.2.14.11_30days_2026-10-08_20-00-00_*.cfg` (227 KB) plus its
+  `_data.zip` at 20:00 CEST, and job `omada-backup-29858477` uploaded both at 01:17 UTC /
+  03:17 CEST: *"uploading 1 .cfg file(s) to s3:enigma-s3-backup/omada … Copied (new) …
+  223.542 KiB / 223.542 KiB, 100% … upload complete"*. So the gap was real but
+  **self-closing within ~8 h**, and item 6 below is about making the window *visible*, not about
+  repairing it by hand.
+- *A detail that reinforces the version point below:* TP-Link stamps the controller version into
+  the `.cfg` filename (`autobackup_**6.2.14.11**_…`). The vendor treats version as part of the
+  artifact's identity, which is exactly what a bare `mongodump` lacks.
+- **Follow-up 6 below exists because of this.**
+
+**One pre-existing item the restore faithfully brought back:** `staticrouting` holds **both**
+routes, `omada_gateway` (`10.96.0.20/32`, dead since 12.10) and `omada_gateway_new`
+(`100.65.0.0/16`), both `enabled=true`. That is the cleanup 12.12 already recorded as
+outstanding — not drill-caused, and the restore is behaving correctly by preserving it.
+
+### Recommended follow-ups, in value order (none done here — each is its own change)
+
+1. **Render the `DNSEndpoint` in the mesh-service chart and have the sidecar PATCH it** (12.10's
+   own recommendation). This is the single highest-value fix in the list: it removes ~21 min of
+   the 51-min device outage and the NXDOMAIN window entirely.
+2. **Automate the orphaned-NetBird-group cleanup** — 3/3 rebuilds now, deterministic. The script
+   exists and works; it just is not in the repo.
+3. **Reap stale peers on cluster teardown** (or make every mesh setup key ephemeral) — `preStop`
+   cannot save a cluster that is deleted from under it.
+4. **Break the JWKS cold-start deadlock by design**, so `mesh-jwks` does not depend on VSO for
+   its own certificate — otherwise every network-cluster rebuild needs two hand seeds.
+5. **Fix the operator-PAT seed's adoptability** — set VSO labels or `destination.overwrite: true`,
+   and correct the header that claims adoption already works.
+6. **Make the empty-backup case LOUD, and restore the `.cfg` chain as part of recovery.** Two
+   parts: (a) `omada-backup`'s upload step should warn or fail rather than `exit 0` when there is
+   no `.cfg` — a backup job that reports success while uploading nothing is worse than one that
+   fails; (b) a mongo-based recovery should either trigger an immediate autobackup or the runbook
+   should state explicitly that the `.cfg` chain is empty until the next 20:00 CEST run, so the
+   gap is a known quantity instead of a surprise during the *next* DR.
+7. **SCHEDULE THE `mongodump` — the only proven recovery path has NO automation at all.** This
+   outranks 6 and is arguably second only to 1; it is listed here because it was found last.
+   Measured, not inferred: PSMDB `backup.enabled: **false**` with no `tasks` and no `storages`,
+   **no `mongodump` anywhere under `apps/`**, and **no CronJob referencing mongo**. So the
+   artifact that actually recovered this cluster exists only when a human runs it by hand, while
+   the one thing that *is* automated (`.cfg` → S3) is the path that needs a controller credential
+   11a proved is in neither OpenBao's kv nor 1Password. **The backup strategy and the proven
+   recovery path are mismatched.** Fix by enabling PSMDB backups to the existing
+   `s3://enigma-s3-backup` or adding a `mongodump` CronJob beside `omada-backup`.
+
+### Are the two Omada backups redundant? No — and the drill flips their priority (answered 2026-10-09)
+
+Asked directly, so recorded rather than left implicit. They are **not** interchangeable and both
+should stay, but their roles were the wrong way round:
+
+| | `mongodump` | Omada `.cfg` autobackup |
+|---|---|---|
+| restore path | direct into PSMDB, **no UI, no credential** | **through the controller UI** (Settings > Backup & Restore) |
+| automatable | yes — but **currently not automated at all** (item 7) | yes, and it **is** (nightly → S3) |
+| proven | **YES — rehearsed and then executed, 6032 docs, fleet re-adopted** | never exercised in a drill |
+| cross-version | **unsafe (see below)** | vendor-supported, migrates schema |
+
+- **`mongodump` is sufficient for same-version recovery, and that is now empirical rather than
+  hopeful:** this drill restored *only* mongo and the entire 7-device fleet re-adopted. It also
+  restores `user`/`iam_user`, so it recovers the admin account the `.cfg` path needs — the
+  dependency is **asymmetric**: a mongodump can bootstrap the UI path, the `.cfg` cannot
+  bootstrap itself.
+- **But it is NOT safe across controller versions, and there is a concrete mechanism.**
+  `LAST_RAN_OMADA_VER.txt` is the marker the controller compares to decide whether to run schema
+  migration. It is a **file on the PVC, not a collection**, so a `mongodump` can never contain
+  it — after a mongo-only restore the fresh container simply writes the *running* version. So
+  restoring a `6.2.14.11` dump into a future `6.3.x` controller would record `6.3.x` and
+  **skip the migration** over `6.2`-shaped data. The tag comes from the vendored chart's
+  `appVersion` and Renovate bumps it, so version skew is a matter of time, not hypothesis.
+  *Honest caveat: today's restore was same-version (`6.2.14.11` → `6.2.14.11`, marker matched),
+  so the cross-version failure is reasoned from that marker's purpose and has NOT been observed.*
+- **Conclusion.** `mongodump` = primary, automatable, same-version path (so: schedule it, and
+  pin/record the controller version the dump came from). `.cfg` = cross-version and
+  vendor-supported fallback, inherently human-driven. Keeping both also buys independent
+  corruption modes. **The runbook should add: restore a `mongodump` only into the version it was
+  taken from; if the image has moved on, use the `.cfg`.**
+
+**11.3 therefore stands as: BOTH halves have now been run and both recovered — the secret cluster
+in the 10-08 re-drill, the network cluster here. Everything came back, including all 7 devices,
+with the restore working exactly as rehearsed.** Left **unchecked** nonetheless, and deliberately:
+the task's criterion is "no manual intervention beyond the existing seal-key and operator-PAT
+seeding", and this run needed **five** interventions plus a 51-minute device outage. Marking it
+done would assert a property the system does not have. What the drill delivers instead is the
+thing 11a argued for — a *rehearsed, documented* recovery with every step counted and named, and
+a prioritised list of what to fix to make the original criterion achievable.
+
+**A PRECONDITION ON PHASE 5 added 2026-10-08, and it is one-way: run 12.8's power cycle FIRST —
+now SATISFIED, so Phase 5 is unblocked from this angle.** Phase 5 deletes the controller and all
+7 devices' adoption state, so the fleet re-adopts from scratch — and re-adoption writes the
+inform target afresh. 12.8 exists to prove that *12.7's controller push* reached device flash;
+once Phase 5 has run, a reboot can only show that a new adoption persisted, which was never in
+question. So the evidence was destroyable by Phase 5 and unrecoverable afterwards. **Collected
+2026-10-08 before any of it ran: `attic-ap` power-cycled and came back on the mesh hostname
+unattended (full evidence under 12.8).** That also retires one of Phase 5's unknowns — the fleet
+is now known to survive a power cut without a human, so the restore's remaining risk is the
+unrehearsed `mongorestore`, not the devices.
 
 **11.3 STATUS 2026-10-07 (superseded by the run above): AI-side prep complete and the runbook corrected; execution still
 gated, now on TWO things rather than one.** Nothing destructive was run.
@@ -2493,6 +2832,9 @@ deleting the user's files is not a call to make unprompted.
 
 ### Phase 5 — network cluster cold start
 
+- [HUMAN] 5.0 **Do 12.8's one-AP power cycle before this phase, not after.** Re-adoption rewrites
+  the inform target, so Phase 5 permanently destroys the only evidence 12.8 can collect. One-way;
+  see the precondition note under 11.3.
 - [HUMAN] 5.1 Go/no-go. This destroys the controller, MongoDB and the adoption state of all 7
   devices; the LAN keeps forwarding (devices forward independently of the controller) but nothing
   is manageable until the restore completes.
@@ -2665,6 +3007,8 @@ watchdog to stop a loop is therefore sticky — remember to unsuspend.*
   - **Public DNS is correct for a clean cutover, which is what the devices actually consume:** `omada.vpn.blueora.ng` → `100.65.154.81`, `omada.network.vgijssel.nl` → `10.96.0.20`, `omada.blueora.ng` → `10.96.0.20`, consistent on both `1.1.1.1` and `8.8.8.8`. All 7 devices healthy throughout; nothing has been cut over.
   - *Two probes that lie, recorded so they are not repeated:* `curl telnet://…` reported every port closed including the known-good old path, and `curl --interface <lan-ip>` does not produce a LAN-sourced packet when the route is via `wt0` — it silently falls back to the interface's own address. A locally-originated LAN-sourced packet would FAIL anyway and prove nothing, because `netbird-mangle-prerouting` only marks *forwarded* traffic, so there would be no SNAT. Use plain TCP connects from the forwarder instead: after masquerade a forwarded device packet is indistinguishable from PiKVM-originated traffic, which is what makes that the accurate simulation.
 - [x] 12.6 Verify the LAN path end to end from a NON-PEER host (not the Mac, which is a peer and would prove nothing): resolve `omada.vpn.blueora.ng` against the LAN's DNS, connect to 443 with no `-k`, and confirm a device port accepts a connection — **STILL OPEN, and deliberately not marked done: there is no non-peer LAN host this session can drive.** Every hop is validated under 12.5 and the LAN→forwarder leg is proven by the old route sharing the identical next hop and ingress interface, so the remaining gap is narrow — but it is exactly the leg only a real non-peer sender exercises, and the whole 22-hour outage came from assuming a path worked. Cheapest way to close it: open `https://omada.vpn.blueora.ng` on a phone on WiFi that is NOT a NetBird peer. Otherwise 12.8 closes it with the strongest possible evidence, since the devices themselves are non-peer LAN hosts
+  - **MOSTLY CLOSED 2026-10-08 by 12.8's power cycle, and the remainder is narrower than the task's wording suggests.** `attic-ap` (`192.168.0.108`) is a genuine non-peer LAN host, and after its reboot it resolved `omada.vpn.blueora.ng` from scratch and re-established a device-port session through the mesh Envoy (`publicIp: 10.244.0.177`, Envoy `29814` back to `7`). That discharges two of the three legs — **public resolution from a non-peer** and **a device port accepting a connection** — with a real sender rather than an inference.
+  - **What a device still cannot prove is the `443`-with-no-`-k` leg**, and this is worth being exact about rather than rounding up: the fleet talks to `29814`/`29817`, not `443`, and it does not perform browser-style certificate validation, so its success says nothing about the HTTPS listener or the wildcard chain as seen from off-mesh. 11.4 verified that leg, but from the Mac, which is a peer. The outstanding item is therefore exactly the original suggestion — open `https://omada.vpn.blueora.ng` on a phone on non-peer WiFi — and nothing else.
 - [x] 12.7 **DONE 2026-10-07 — the whole fleet is on `omada.vpn.blueora.ng`, via the paved road.** Both legs ran as ordinary supported migrations and the round trip worked.
   * **Leg 1, `omada → omada-temp` at 16:28:42Z.** `batchMigrateDevice` with `migrateUrl: omada-temp.vpn.blueora.ng`, dispatched per device class (`send Ap migrateUrl`, `send Osw migrateUrl`). All 7 arrived: the temp controller logged `got first inform` from **7 distinct MACs**, and its plaintext log names the whole fleet **including the ER605 gateway** (`58-04-4F-77-4B-93`, with `clean device … by device adopt` + `create new token`). Envoy on the temp peer showed real management sessions (`29814 active: 7`). An 8th session was the controller's OWN interface (`list local interface macs: [EE-9C-BD-CB-17-2A]`), not a device — worth knowing before counting sessions as devices.
   * **Leg 2, `omada-temp → omada` at 18:36:22 local.** `migrateUrl: omada.vpn.blueora.ng`. The real controller adopted them (`Init Osw`, `send mini setting`, `adopt success`, `got first inform`, all under `OmadacId(17b608ea…)`), and **every `migrate` flag cleared** (`migrate=undefined` on all 7, where leg 1 had set `migrate=true` fleet-wide). No half-state, which is exactly what the detour was for.
@@ -2764,7 +3108,113 @@ restart, which is stronger evidence than 12.7's deliberate soak. Power-cycle hal
   credential in OpenBao's kv — so this is a human step. Pre-reboot baseline is captured for
   immediate comparison (see the DR artifacts note under 11.3).
 
-- [ ] 12.8 Verify the migration from MongoDB, not the UI: 7/7 `last_seen > disconnect_time` with no fresh `Disconnected` events, soaked past the ~8-minute inform timeout, and surviving a device power-cycle — **FIRST TWO HALVES DONE under 12.7** (7/7 LIVE by the `last_seen > disconnect_time` test, zero fresh `Disconnected` events, 14-minute soak past the ~8-minute timeout, confirmed independently by Envoy's persistent session counts). **The POWER-CYCLE half is still open** and is the one that proves the new inform target is persisted in device flash rather than merely held in a live session — exactly the distinction a reboot settled for `attic-ap` this morning. Reboot one AP from the UI and re-check
+**12.8 RE-VERIFIED A THIRD TIME 2026-10-08T11:17Z, and the two gating questions are now CLOSED
+rather than merely restated.** The first two halves hold again, this time *downstream of the
+11.3 cold-start re-drill* — which is a better test than either previous one, because the drill
+replaced the controller pod rather than just restarting the process.
+
+- **7/7 LIVE**, `disconnect_time: 0` and `health_score: **10**` on every device (fully converged,
+  not the settling `-1 → 7 → 9`), `migrate` undefined fleet-wide.
+- **The path is still the mesh, same instrument, same numbers:** `omada-mesh-5567ccd87c-4sv5q`
+  reports `listener.0.0.0.0_29814.downstream_cx_active: **7**` and `29817: **6**`, with
+  `443`/`19810`/`27001`/`29810`/`29811`/`29812`/`29813`/`29815`/`29816` all **0**. Identical to
+  the 2026-10-07 reading, so the device sessions survived the drill on the mesh hostname.
+- **A fourth restart test, unplanned again.** The newest events are 7 `Adopt success` at
+  10:08:22–10:08:29Z — the drill's controller replacement (`omada-omada-controller-0` is 68 min
+  old) — with **zero `Disconnected` events in the 69 minutes since**, nearly 9× the ~8-minute
+  inform timeout. Re-adoption onto the mesh hostname needed no intervention.
+- *Admin-interface method note:* the Envoy container is distroless, so the stats come via
+  `kubectl port-forward` on `19000`; filter out the `worker_N.*` rows or the per-listener totals
+  are buried under ~14 workers each.
+
+**CLOSED QUESTION 1 — the controller credential is genuinely nowhere automatable.** 11a had only
+swept OpenBao's kv. Also swept now: the **1Password vault** the repo can actually reach
+(`enigma-prod`, the only vault the service-account token sees) holds 12 items — Cloudflare,
+`openbao-seal`, two OpenBao root/recovery entries, four PiKVM accounts, `rancher`, `harvester`,
+the service-account token itself — and **no Omada controller account**. A repo sweep for an
+omada admin/login/password reference outside the MongoDB credential finds nothing either. So
+there is no path to the controller API or UI that does not go through the maintainer.
+
+**CLOSED QUESTION 2 — the devices cannot be rebooted out-of-band either, so there is no
+AI-drivable substitute for the UI step.** Checked rather than assumed, since 7b's lesson is that
+a credential gate is sometimes not on the critical path:
+- `device.adopt_info` does hold `{username, password, sp_token}`, which looked like a way in.
+- But **SSH is closed on the devices**: `attic-ap` (`192.168.0.108`) answers on `80` and `443`
+  (the standalone web UI) and refuses `22`. The Mac is on the same `/24` (`192.168.0.104`), so
+  this is a real refusal, not a routing miss.
+- And even with a device-local login, a device-side reboot is still an outward-facing action on
+  the live home network. Left to the maintainer deliberately rather than reverse-engineered.
+
+**ORDERING FINDING — 12.8 MUST RUN BEFORE 11.3's Phase 5, and the reverse order destroys the
+evidence permanently.** Not obvious from either task, and it inverts the dependency 11a
+recorded (which had 7.11 gating 11.3). Phase 5 deletes the controller and with it all adoption
+state, so the fleet re-adopts from scratch — and re-adoption *writes* the inform target afresh.
+A reboot after that would prove only that a brand-new adoption persisted, which nobody doubts.
+The claim 12.8 exists to test is that **this** migration (12.7's controller push, not an
+adoption) reached device flash. That evidence is available only while the current adoption
+stands. Cheap, and it makes Phase 5 safer too: a fleet proven to survive a power cycle on the
+mesh hostname is a fleet whose restore has one less unknown.
+
+## 12.8 CLOSED 2026-10-08 — the maintainer rebooted `attic-ap` and it came back on the mesh. The inform target IS in device flash.
+
+The last open half of the task, and the discriminator landed cleanly on the PASS side. The
+maintainer power-cycled `attic-ap` from the Omada UI at 11:25:47Z; everything below was measured
+rather than inferred, and the 12.7 failure signature is positively absent rather than just
+unobserved.
+
+**It was a real power cycle, not a session reconnect** — which is the whole point, since a
+controller restart leaves device RAM intact. The controller's own status message at 11:27:31Z
+reports `"uptime":"1m 19s"` for `F0-09-0D-79-CA-D2`, so the box genuinely rebooted and re-read
+its *stored* inform target.
+
+**Timeline, from `deviceevent_2026w41` (attic-ap = `F0-09-0D-79-CA-D2`):**
+
+| event | time | gap |
+|---|---|---|
+| `Reboot` | 11:25:47.138Z | — |
+| `Adopt success` | 11:27:22.317Z | **1m 35s** |
+| `last_seen` settles | 11:27:32.462Z | +10 s |
+
+1m35s, against a ~8-minute inform timeout — about a minute faster than 12.7's reboot on the old
+routed path (2m19s). No `Disconnected` event was logged for the reboot **at all**; the newest one
+anywhere in the collection is 05:22:07Z on `living-room-switch`, six hours earlier and unrelated.
+
+**THE DECISIVE EVIDENCE — the device's channel source IP is the mesh Envoy, not the router
+peer.** This is the exact instrument 12.7 used to *reject* the "a reboot re-homes a device"
+hypothesis, so it is directly comparable:
+- Today's mesh Envoy pod is `10.244.0.177` (`omada-mesh-5567ccd87c-4sv5q`); the `router`
+  NBRoutingPeer is `10.244.0.183`.
+- The pre-reboot session tore down as `/10.244.0.106:29814 -> /10.244.0.177:41362`, i.e. it was
+  already on the mesh.
+- After the reboot the controller reports the device's observed source as
+  **`"publicIp":"10.244.0.177"`** — the mesh Envoy pod.
+- **Zero** controller log lines reference `10.244.0.183` across a 30-minute window. In 12.7 the
+  old path showed up as 36 device channels every one of which came from the router peer, so the
+  absence here is a positive result, not a gap in the search.
+
+**Envoy's session counters agree, sampled every 15 s through the reboot:** `29814` went
+`7 → **6**` (11:26:25Z, attic-ap gone) `→ **7**` (11:27:25Z, 3 s after `Adopt success`) and then
+held **7** across 14 consecutive samples. `29817` restored to **6**. Every other declared port —
+`443`, `19810`, `27001`, `29810`, `29811`, `29812`, `29813`, `29815`, `29816` — stayed at **0**,
+so nothing fell back to an undeclared or legacy route.
+
+**Post-soak, 11:36:44Z — 9m 22s after the re-adopt, past the ~8-minute timeout:** **7/7 LIVE** by
+the `last_seen > disconnect_time` test, `disconnect_time: 0` and `health_score: 10` on every
+device, `29814: 7` / `29817: 6`, and the newest device event in the whole collection is still
+that 11:27:22Z `Adopt success` — nothing has happened since.
+
+**What this establishes, stated narrowly:** 12.7's controller-side hostname push wrote
+`omada.vpn.blueora.ng` to non-volatile storage on the device, not merely into a live session. The
+fleet therefore survives a power cut without a human, which is the property the single-hostname
+model needs and the one thing none of the three earlier restart tests could show.
+
+*Method note for the next person: the controller logs channel **teardown** at INFO but not
+channel **open**, so the post-reboot proof is the `publicIp` field in the cloud-stomp status
+message plus the Envoy counter — not a matching "channel established" line. Do not read its
+absence as a failure. Controller log timestamps are local (CEST, UTC+2); MongoDB event times are
+UTC.*
+
+- [x] 12.8 Verify the migration from MongoDB, not the UI: 7/7 `last_seen > disconnect_time` with no fresh `Disconnected` events, soaked past the ~8-minute inform timeout, and surviving a device power-cycle — **FIRST TWO HALVES DONE under 12.7** (7/7 LIVE by the `last_seen > disconnect_time` test, zero fresh `Disconnected` events, 14-minute soak past the ~8-minute timeout, confirmed independently by Envoy's persistent session counts). **ALL THREE HALVES NOW DONE — the POWER-CYCLE closed 2026-10-08** by the maintainer rebooting `attic-ap`: real reboot (`uptime 1m 19s`), `Adopt success` 1m35s later, controller-observed source `10.244.0.177` = the mesh Envoy with zero router-peer channels, Envoy `29814` dipping `7→6→7`, and 7/7 LIVE across a 9m22s soak. The inform target is persisted in device flash, not held in a live session
 - [x] 12.9 **SUPERSEDES 7.12** — retire BOTH legacy names: drop the `external-dns` hostname annotation from `service-omada.yaml` entirely; verify `dig @1.1.1.1` is empty for `omada.blueora.ng` AND `omada.network.vgijssel.nl` while all 7 devices stay Connected
 - **DONE 2026-10-07 — BOTH names retired. `omada.network.vgijssel.nl` first, and the soak held.** Withdrawn at 17:15:48Z (external-dns `DELETE` of both the A and its ownership TXT, in the `vgijssel.nl` zone). This is the exact action that caused the 22-hour outage on 2026-10-05, so it was soaked deliberately: **10 minutes, past the ~8-minute inform timeout — 7/7 LIVE, health 9 on every device, `omada-mesh 29814 active: 7` steady, and ZERO new `Disconnected` events.** The fleet genuinely does not use that name any more. `dig @1.1.1.1` now returns nothing for it; `omada.blueora.ng` → `10.96.0.20` and `omada.vpn.blueora.ng` → the mesh peer, both as intended.
   * **`omada.blueora.ng` retired too, by taking the option sketched here.** The blocker was that the name was on the controller's own cert-manager certificate, which the mesh listener validates when it re-encrypts to `:8043`. Resolved by pointing the controller at the SHARED MESH WILDCARD (as `omada-temp` had proven), so `backend.tls.hostname` became `omada.vpn.blueora.ng` and one certificate now covers both hops — which made the dedicated `Certificate`, its Secret and the DNS record all deletable together. `dig @1.1.1.1` is empty for both legacy names.
