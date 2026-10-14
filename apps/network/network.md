@@ -99,7 +99,7 @@ here:
 | 20 | Servers | `192.168.20.0/24` | egress only | yes | Trusted only | Harvester nodes + cluster VIP |
 | 30 | Automation | `192.168.30.0/24` | yes | n/a | Trusted only | **Home Assistant (HAOS)** `.30` |
 | 40 | Trusted | `192.168.40.0/24` | yes | yes | — | MacBook, iPhone |
-| 50 | IoT-Local | `192.168.50.0/24` | **no** | **isolated** | no | esphome, WiCAN Pro |
+| 50 | IoT-Local | `192.168.50.0/24` | **no** | **isolated** | no | esphome (incl. **toilet-presence** `.2`), WiCAN Pro |
 | 60 | IoT-Cloud | `192.168.60.0/24` | yes | **isolated** | no | dishwasher, washing machine, car charger |
 | 70 | Media | `192.168.70.0/24` | yes | **yes** | Trusted + Automation | TV, Sonos |
 | 80 | Shared Services (DMZ) | `192.168.80.0/24` | yes | yes | Trusted + Media + mesh ingress | Plex / Jellyfin media cluster |
@@ -128,7 +128,7 @@ bridged; never run two DHCP servers on one L2):
 | 20 | `.100`–`.199` | Harvester nodes are **static** (`.10`/`.11`/`.12`), VIP `.9` | 24h |
 | 30 | `.100`–`.199` | HAOS is **static** `192.168.30.30` | 24h |
 | 40 | `.100`–`.199` | — | 24h |
-| 50 | `.100`–`.199` | all devices reserved by MAC | 24h |
+| 50 | `.100`–`.199` | **toilet-presence → static `192.168.50.2`**; all other devices reserved by MAC | 24h |
 | 60 | `.100`–`.199` | all devices reserved by MAC | 24h |
 | 70 | `.100`–`.199` | Sonos reserved by MAC | 24h |
 | 80 | `.100`–`.199` | service IPs from `.200`–`.250` | 24h |
@@ -143,6 +143,11 @@ bridged; never run two DHCP servers on one L2):
   not what holds the device path up.
 - Reservations on VLANs 50/60/70 are for stable names in Home Assistant, not for policy —
   policy comes from the class. See "Design rules".
+- **`toilet-presence` is pinned at `192.168.50.2`** — the first address in VLAN 50's static
+  range (`.2`–`.99`), so the next static IoT-Local allocation is `.3`. Like every other
+  reservation here it buys a stable name in Home Assistant and nothing else; the device is
+  still subject to the full IoT-Local policy (no egress, client isolation on, inbound only
+  from Automation).
 - DNS advertised via DHCP: the Omada gateway (`.1`), which forwards upstream.
 
 ## Static routes (Omada gateway)
