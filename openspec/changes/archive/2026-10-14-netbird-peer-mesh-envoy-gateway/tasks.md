@@ -2502,6 +2502,39 @@ outstanding — not drill-caused, and the restore is behaving correctly by prese
    11a proved is in neither OpenBao's kv nor 1Password. **The backup strategy and the proven
    recovery path are mismatched.** Fix by enabling PSMDB backups to the existing
    `s3://enigma-s3-backup` or adding a `mongodump` CronJob beside `omada-backup`.
+   * **Velero was researched as the general-purpose option and REJECTED for this job
+     (2026-10-09).** Not on taste — on three measured facts about this cluster. **All PVs are
+     `hostPath`** (verified: every one of the 8 PVs, including all three `mongod-data-*` and the
+     Omada controller's), and Velero's File System Backup states verbatim *"`hostPath` volumes
+     are not supported. Local persistent volumes are supported."* There are also **no CSI
+     drivers** and **no `volumesnapshotclasses` resource type at all**, and no cloud provider —
+     so *all three* of Velero's data-capture paths (native snapshot, CSI snapshot, FSB) are
+     closed. Velero would install, run, back up API objects, and **silently skip every volume**.
+     Its API-object half is redundant here anyway: this drill proved git+Fleet rebuilds the
+     cluster.
+   * *arm64 is NOT the blocker, which is worth recording because it usually is in this repo:*
+     `velero/velero:v1.17.0` and `velero/velero-plugin-for-aws:v1.13.0` both publish
+     `linux/arm64` (checked with `imagetools`, the method from task 1.2).
+   * *What would make it possible:* `defaultVolumeType: local` on the StorageClass
+     (local-path-provisioner supports it, overridable per-PVC) — but that is flagged
+     **experimental** upstream, has a known `spec.nodeAffinity: Required value` failure mode,
+     needs existing PVCs converted, and a Velero maintainer has disputed local-volume support
+     outright. Even after all that, FSB is explicitly *"not captured at the same point in time,
+     so is less consistent than the snapshot approaches"* — a maintainer attributed a real
+     MongoDB restore failure to exactly this. A replica set would still need `fsyncLock` hooks
+     (per-`mongod`, so not cluster-wide consistent) or a `mongodump` hook, i.e. Velero wrapping
+     the dump we already have.
+   * **So: PBM or a `mongodump` CronJob, not Velero.** PBM is the smaller change — its image
+     `percona/percona-backup-mongodb:2.15.0` is **already pinned in the CR** at
+     `apps/network/src/mongodb/perconaservermongodb.yaml:66` with `enabled: false`, it publishes
+     arm64, and the `mongodb` namespace already has the VSO ServiceAccount plus a working
+     `VaultStaticSecret`, so the S3 credential has a proven path. A `mongodump` CronJob is the
+     alternative and mirrors the already-proven `omada-backup` shape (fetch init container +
+     rclone upload + `vaultstaticsecret-omada-backup-s3.yaml`).
+   * **Where Velero WOULD earn its place, if ever:** not mongo, but the **Omada controller's data
+     PVC** — the one piece of state this drill proved `mongorestore` does *not* recover (the
+     `autobackup` directory and `keystore`). That is a genuine gap a volume-level tool fits. It
+     still needs the `local` volumeType change first, and it is a separate, larger decision.
 
 ### Are the two Omada backups redundant? No — and the drill flips their priority (answered 2026-10-09)
 
@@ -2569,7 +2602,29 @@ the expired Phase-0 Omada dump replaced with a post-migration one, the stale Ope
 ruled out in favour of a fresh pre-Phase-3 one, and a current inventory captured. See the
 Phase-0 RE-RUN block for artifacts and checksums.
 
-- [ ] 11.3 Full cold-start proof: `moon run secret:stop && moon run secret:start`, then `moon run network:stop && moon run network:start`; verify every service comes up with no manual intervention beyond the existing seal-key and operator-PAT seeding — **BLOCKED ON A SCOPE DECISION, not on execution (see 11a). As phrased it cannot pass: OpenBao's kv values and the Omada controller's state are both in-cluster-only with human-driven restores, and the Omada restore runs through the same UI credential 7.11 waits on. Options (a)/(b)/(c) in 11a**
+### 11.3 CLOSED 2026-10-09 — the verdict, consolidated
+
+Closed against the criterion the maintainer **decided on 2026-10-06** (11a option (b)): *"cold start
++ a documented, rehearsed restore", with the restore steps counted and named rather than discovered
+mid-outage.* That criterion is met, and the evidence is the four runs written up above:
+
+| run | what it proved | interventions |
+|---|---|---|
+| secret boot #1, 10-08 07:09Z | the cold start is **deterministically deadlocked**; 5 blockers named | **9** |
+| secret boot #2, after the webhook deny list | walks unattended all the way to "kv needs restoring" | **0** to reach a restorable OpenBao |
+| network Phase 5, 10-08 15:04Z | full destroy + `mongorestore` + cross-cluster leg re-proven | **5**; 51 min device outage, self-healed |
+| final re-drill | both clusters green, **fleet never down** | the documented post-restore pair only (CoreDNS + VSO) |
+
+**The literal original phrasing — "no manual intervention beyond the existing seal-key and
+operator-PAT seeding" — is a measured NO, and that stays recorded rather than being softened.** The
+distance between it and today's state is carried entirely by the named follow-ups (DNSEndpoint in
+the chart, orphaned-group cleanup, stale-peer reaping, the JWKS self-dependency, PAT-seed
+adoptability, loud empty-backup, scheduled `mongodump`), **none of which belong to this change** —
+each is its own, and none is a regression introduced here. What this change is accountable for, the
+Fleet/mesh bring-up and the cross-cluster auth edge, came back on both clusters with the restore
+behaving exactly as rehearsed.
+
+- [x] 11.3 Full cold-start proof: `moon run secret:stop && moon run secret:start`, then `moon run network:stop && moon run network:start` — **DONE, four times (see the table above and the per-run write-ups).** Closed on 11a option (b), the maintainer's 2026-10-06 decision: the drill *is* the deliverable. Not closed on the original zero-intervention wording, which the drill disproved; `design.md` step 10 is corrected to match
 - [x] 11.4 Re-run the complete spec verification matrix from the Mac across all three services (mesh resolution, public non-resolution, certificate validation, declared ports reachable, undeclared port refused); verify every scenario in `specs/mesh-service-exposure/spec.md` holds
 - [x] 11.5 Update `apps/network/SPEC.md`, `apps/network/PLAN.md` and `apps/secret/CLAUDE.md` to describe the single exposure model; verify no doc still describes the reverse-proxy or `NBResource` mesh path as current
 
