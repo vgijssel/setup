@@ -1,0 +1,39 @@
+# Envoy Gateway control plane bundle. Fleet detects the umbrella Chart.yaml here and deploys the
+# vendored gateway-helm subchart plus the `envoy` GatewayClass in templates/.
+#
+# This bundle OWNS the `envoy-gateway` namespace (Fleet defaultNamespace) — the control-plane
+# Deployment, its Service and its certgen Job. It does NOT own the data-plane pods: the control
+# plane runs in `GatewayNamespace` deploy mode, so each service's Envoy Deployment is created in
+# that service's own namespace by the per-service ../mesh-service releases.
+#
+# Installs the Gateway API v1.6.1 CRDs (crds.enabled defaults true upstream), which is what every
+# mesh-service bundle's Gateway/HTTPRoute/TLSRoute/TCPRoute/UDPRoute needs. Those bundles
+# therefore dependsOn this one.
+#
+# No dependsOn of its own: the control plane needs neither OpenBao nor the NetBird operator to
+# come up. The per-service bundles are where the operator (SidecarProfile CRDs, mutating webhook)
+# and cert-manager become prerequisites.
+labels:
+  fleet.vgijssel.nl/bundle: envoy-gateway
+defaultNamespace: envoy-gateway
+helm:
+  releaseName: envoy-gateway
+# Multi-cluster: one bundle serves both the `secret` and `network` clusters, selected on the
+# cluster.vgijssel.nl/name label their apply.sh sets. The selectors alone restrict nothing under a
+# Rancher GitRepo (it appends its own catch-all target) — the terminal doNotDeploy entry is what
+# restricts this bundle. Neither target overrides values: there is nothing cluster-specific here.
+targetCustomizations:
+  - name: secret
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: secret
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

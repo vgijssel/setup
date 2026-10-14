@@ -1,0 +1,53 @@
+# Values for the Envoy Gateway control plane. Upstream knobs are keyed under the subchart name
+# (`gateway-helm`); the GatewayClass this bundle adds on top is keyed at the top level.
+#
+# Identical on both clusters — there is nothing cluster-specific here, so fleet.yaml's
+# targetCustomizations select clusters without overriding values.
+
+# Name of the GatewayClass this bundle creates. Every Gateway rendered by ../mesh-service
+# references it by this name, so changing it silently detaches every exposed service.
+gatewayClassName: envoy
+
+gateway-helm:
+  # ── deploy.type: GatewayNamespace is load-bearing ────────────────────────────────────────
+  # Default (`ControllerNamespace`) puts EVERY service's Envoy pod in this chart's own
+  # namespace. Each exposed service needs a NetBird SidecarProfile injected into its Envoy pod,
+  # and a SidecarProfile only selects pods in its OWN namespace — so the default would split
+  # each mesh-service release across two namespaces (Gateway + Certificate + routes next to the
+  # backing Service, SetupKey + SidecarProfile over here) and force ReferenceGrants for the
+  # backend refs.
+  #
+  # `GatewayNamespace` puts the Envoy pod in its Gateway's namespace instead, so one
+  # mesh-service release is a single namespace: Gateway, Certificate, routes, EnvoyProxy,
+  # SetupKey, SidecarProfile and watchdog all sit beside the Service they publish. No
+  # ReferenceGrants, no cross-namespace pod selection.
+  #
+  # `watch` is deliberately left unset: with no watch config the chart grants the infra-manager
+  # a CLUSTER-wide Role (templates/infra-manager-rbac.yaml), so a new mesh-service namespace
+  # needs no change here. Enumerating `watch.namespaces` would switch it to per-namespace Roles
+  # and couple this platform bundle to every service's namespace.
+  config:
+    envoyGateway:
+      provider:
+        type: Kubernetes
+        kubernetes:
+          deploy:
+            type: GatewayNamespace
+
+  # The pod-topology injector is off: it exists to spread multi-replica Envoy deployments across
+  # zones, and every mesh service runs exactly 1 replica on a single-node vind cluster (the
+  # single replica is required, not incidental — two peers sharing one extra DNS label
+  # round-robin, which would load-balance consumers onto a terminating pod). Turning it off drops
+  # a MutatingWebhookConfiguration on pods/binding whose caBundle is patched at runtime by the
+  # certgen job; this repo has already been bitten by a runtime-patched webhook caBundle fighting
+  # Fleet's server-side apply (the OpenBao agent-injector, see apps/secret/src/openbao).
+  #
+  # certgen itself stays: the control plane needs its own serving certificates. Passing
+  # `--disable-topology-injector` is handled by the chart when this is false.
+  topologyInjector:
+    enabled: false
+
+  # Single-node arm64 vind clusters. Upstream defaults to 1 replica already; stated explicitly
+  # so a future HA change is a deliberate edit rather than an inherited default.
+  deployment:
+    replicas: 1

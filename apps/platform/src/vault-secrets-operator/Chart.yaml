@@ -1,0 +1,43 @@
+# Vault Secrets Operator — the LEASE-AWARE consumer for this repo's dynamic secrets engines
+# (libs/openbao-cloudflare-plugin, libs/openbao-netbird-plugin). Runs alongside External Secrets
+# Operator during the migration; ESO keeps serving every kv secret until each consumer moves.
+#
+# SHARED bundle, deployed to BOTH clusters, because how it reaches OpenBao differs per cluster and
+# that difference is expressible as per-target helm values:
+#   secret   kubernetes auth over the in-cluster ClusterIP (no mesh hop)
+#   network  JWT auth over the NetBird mesh, same path its ESO uses
+# Both targets therefore declare their own helm.values block in fleet.yaml — a target that
+# inherits only the base defaults does not get re-rendered by Fleet.
+#
+# WHY A SECOND SECRET-DELIVERY OPERATOR AT ALL: ESO cannot hold an OpenBao lease. A secret lease
+# is a CHILD of the auth token that created it, and ESO calls RevokeSelf after every read (its own
+# fix for leaking token leases, external-secrets#376), so the cascade destroys a leased credential
+# seconds after it lands in the Secret. Measured live: a successfully-synced Cloudflare token
+# answered 9109 twenty seconds later, with zero leases and zero tokens left upstream. ESO has no
+# lease management by design and the upstream issue (external-secrets#2198) was closed unfixed.
+#
+# VSO instead renews the lease (at ~67% of its duration), reissues on revoke/expire, revokes on
+# teardown, and restarts target workloads itself via `rolloutRestartTargets` — which also replaces
+# the Reloader annotations the ESO path needed.
+#
+# Rejected alternative, the OpenBao agent injector: it renders FILES into pods, so it cannot
+# produce the Kubernetes Secret that cert-manager's `apiTokenSecretRef` requires; env vars are
+# frozen at process start so they can never rotate (external-dns reads CF_API_TOKEN from env); and
+# it has no restart-on-change (vault-k8s#196). This repo also disables that injector already,
+# because its runtime-patched webhook caBundle makes Fleet's server-side apply conflict on every
+# re-apply (see ../openbao/values.yaml).
+#
+# LICENSING, stated plainly: VSO is HashiCorp-licensed (BUSL) while OpenBao is not. It is here
+# because no OSI-licensed operator manages leases today; re-evaluate if one appears. It speaks the
+# Vault API so it works against OpenBao, but its issue tracker has zero OpenBao mentions — treat
+# OpenBao-specific behaviour as unverified upstream and prove it here.
+apiVersion: v2
+name: vault-secrets-operator
+description: Vault Secrets Operator — lease-aware delivery of OpenBao dynamic secrets into Kubernetes Secrets
+type: application
+version: 1.0.0
+appVersion: 1.6.0
+dependencies:
+  - name: vault-secrets-operator
+    version: 1.6.0
+    repository: file://../../../../third_party/vendir/charts/vault-secrets-operator

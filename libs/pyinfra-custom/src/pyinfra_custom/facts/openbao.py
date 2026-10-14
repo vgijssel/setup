@@ -56,7 +56,8 @@ def _resolve_addr() -> str:
     if not addr:
         raise SecretsError(
             "VAULT_ADDR is not set. Point it at OpenBao, e.g. "
-            "https://openbao.secret.vgijssel.nl or http://127.0.0.1:8200 "
+            "https://openbao.vpn.blueora.ng (mesh-only -- requires a connected "
+            "NetBird peer; it does not resolve publicly) or http://127.0.0.1:8200 "
             "(via `moon run secret:forward`).",
         )
     return addr

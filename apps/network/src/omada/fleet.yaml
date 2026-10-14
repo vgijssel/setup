@@ -1,20 +1,33 @@
 # Portable Fleet bundle for the Omada controller. Fleet detects the umbrella
-# Chart.yaml here and deploys it with values.yaml, plus the sibling raw manifests
-# (the LE Certificate, the mongodb-uri ExternalSecret, and the mesh-exposed omada
-# Service in templates/). Owns the `omada` namespace.
+# Chart.yaml here and deploys it with values.yaml, plus the sibling manifests in templates/
+# (three VaultStaticSecrets — mongodb-uri, controller TLS, backup S3 — and the backup CronJob).
+# Owns the `omada` namespace.
 #
-# dependsOn the mongodb bundle so the database is up before Omada connects. The pod
-# also needs the mongodb-uri + TLS Secrets (ESO/cert-manager) before it is fully Ready;
-# Omada is exposed cross-cluster over the NetBird mesh via service-omada.yaml (a ClusterIP
-# annotated netbird.io/expose → an NBResource on the netbird-config `router` routing peer),
-# so there is no LoadBalancer/VIP dependency. Fleet error-and-retries during
+# dependsOn the mongodb bundle so the database is up before Omada connects. The pod also needs
+# the mongodb-uri + TLS Secrets (VSO) before it is fully Ready. Fleet error-and-retries during
 # bootstrap until the DB + secrets exist, which is expected.
+#
+# THIS BUNDLE OWNS NO EXPOSURE AT ALL — it runs the controller and the omada-controller chart's
+# ordinary dynamic ClusterIP Service, nothing more. Every consumer without exception (humans,
+# on-mesh tooling, and the physical gateway/switches/APs) reaches it at `omada.vpn.blueora.ng`
+# via ../mesh-omada, which owns its own NetBird peer, its own port space and the public A record
+# the non-peer devices resolve.
+#
+# Until 2026-10-07 this bundle also owned a SECOND, device-only path: a hand-written Service
+# pinning `clusterIP: 10.96.0.20`, a device `NBResource` advertising that /32, a CoreDNS split
+# horizon and an `omada.blueora.ng` certificate. All of it is deleted — the fleet was migrated
+# onto the mesh hostname (openspec `netbird-peer-mesh-envoy-gateway` group 12) and the machinery
+# that existed only to give one class of consumer a second name went with it. There is no
+# LoadBalancer/VIP dependency and no pinned ClusterIP.
 labels:
   fleet.vgijssel.nl/bundle: network-omada
 defaultNamespace: omada
 helm:
   releaseName: omada
 dependsOn:
+  - selector:
+      matchLabels:
+        fleet.vgijssel.nl/bundle: vault-secrets-operator
   - selector:
       matchLabels:
         fleet.vgijssel.nl/bundle: network-mongodb

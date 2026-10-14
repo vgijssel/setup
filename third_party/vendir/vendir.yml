@@ -63,22 +63,6 @@ directories:
           version: 0.7.0
           repository:
             url: oci://ghcr.io/netbirdio/helm-charts
-  # NetBird BYOP (Bring-Your-Own-Proxy) reverse proxy — a self-hosted `netbird proxy`
-  # peer that runs embedded in a WireGuard tunnel and so advertises the `Private`
-  # capability the shared NetBird Cloud cluster (eu1.netbird.services) does NOT
-  # (supports_private:false). Deploying it on the secret cluster unlocks NetBird-Only
-  # (private) reverse-proxy services — mesh-only, no login interstitial, straight through
-  # — for exposing OpenBao at openbao.secret.vgijssel.nl. Chart pinned 0.1.0,
-  # image netbirdio/reverse-proxy:0.72.4 (chart appVersion). See
-  # https://netbird.io/knowledge-hub/netbird-only-private-services
-  - path: charts/netbird-reverse-proxy
-    contents:
-      - path: .
-        helmChart:
-          name: netbird-reverse-proxy
-          version: 0.1.0
-          repository:
-            url: https://charts.christianhuth.de
   # Stakater Reloader — lightweight controller that watches Secrets/ConfigMaps and
   # triggers rolling restarts on Deployments/StatefulSets annotated with
   # reloader.stakater.com/auto: "true". Used for zero-downtime secret rotation: when
@@ -116,14 +100,6 @@ directories:
           version: v0.0.16
           repository:
             url: https://helm.coder.com/logstream-kube
-  - path: charts/external-secrets
-    contents:
-      - path: .
-        helmChart:
-          name: external-secrets
-          version: 2.0.1
-          repository:
-            url: https://charts.external-secrets.io
   - path: charts/kro
     contents:
       - path: .
@@ -242,6 +218,64 @@ directories:
           version: 0.15.4
           repository:
             url: https://rancher.github.io/fleet-helm-charts/
+  # Envoy Gateway — the data plane behind every mesh-exposed service
+  # (apps/platform/src/envoy-gateway + the apps/platform/src/mesh-service chart). One
+  # Envoy pod per exposed service, each carrying an injected NetBird client sidecar, so
+  # the service is its own mesh peer owning its full TCP/UDP port space.
+  #
+  # Pinned 1.9.2 for the CRDs it bundles: Gateway API v1.6.1, the first Standard-channel
+  # bundle with TCPRoute + UDPRoute (verify with
+  # `grep "bundle-version" charts/envoy-gateway/charts/crds/crds/gatewayapi-crds.yaml`).
+  # That is the whole reason this replaces both the BYOP reverse proxy (which cannot
+  # carry L4 at all — mode=tcp services silently never bind, netbirdio/netbird#6400) and
+  # the NBResource path: ONE mechanism terminates HTTPS with a real certificate and
+  # forwards raw TCP and UDP.
+  #
+  # arm64 (both vind clusters run on an arm64 Mac): control plane
+  # docker.io/envoyproxy/gateway:v1.9.2 and data plane
+  # docker.io/envoyproxy/envoy:distroless-v1.39.1 (resolved by the chart's _helpers.tpl,
+  # since values leave the proxy image empty) both publish linux/arm64.
+  - path: charts/envoy-gateway
+    contents:
+      - path: .
+        helmChart:
+          name: gateway-helm
+          version: 1.9.2
+          repository:
+            url: oci://docker.io/envoyproxy
+  # HashiCorp Vault Secrets Operator — the lease-aware consumer for the dynamic secrets
+  # engines in libs/openbao-{cloudflare,netbird}-plugin.
+  #
+  # WHY NOT External Secrets Operator: ESO cannot hold a Vault/OpenBao lease. A secret lease is
+  # a CHILD of the auth token that created it, and ESO calls RevokeSelf after every read (its own
+  # fix for leaking token leases, external-secrets#376) — so the cascade destroys a leased
+  # credential seconds after it lands in the Secret. Measured live: a successfully-synced token
+  # answered Cloudflare 9109 twenty seconds later, with zero leases and zero tokens upstream.
+  # ESO has no lease management at all and the upstream issue (external-secrets#2198) was closed
+  # unfixed. VSO renews leases (renewalPercent), reissues on revoke/expire, revokes on teardown,
+  # and restarts target workloads itself via rolloutRestartTargets.
+  #
+  # WHY NOT the OpenBao agent injector: it renders FILES into pods, so it cannot produce the
+  # Kubernetes Secret that cert-manager's `apiTokenSecretRef` requires; env vars are frozen at
+  # process start so they can never rotate; and it has no restart-on-change (vault-k8s#196).
+  # This repo also disables that injector already — its runtime-patched webhook caBundle makes
+  # Fleet's server-side apply conflict on every re-apply (see apps/secret/src/openbao/values.yaml).
+  #
+  # LICENSING, stated plainly: VSO is HashiCorp-licensed (BUSL), unlike OpenBao itself. It is
+  # here because no OSI-licensed operator manages leases today. Re-evaluate if one appears.
+  # It speaks the Vault API, so it works against OpenBao via VaultConnection.address — but its
+  # issue tracker has zero OpenBao mentions, so treat OpenBao specifics as unverified upstream.
+  #
+  # arm64 (both vind clusters run on an arm64 Mac): hashicorp/vault-secrets-operator:1.6.0
+  # publishes linux/arm64 (verified with `docker buildx imagetools inspect`).
+  - path: charts/vault-secrets-operator
+    contents:
+      - path: .
+        helmChart:
+          name: vault-secrets-operator
+          version: 1.6.0
+          repository:
+            url: https://helm.releases.hashicorp.com
   - path: shell/zimfw
     contents:
       - path: .

@@ -1,0 +1,28 @@
+# Cluster-AGNOSTIC values only. The VaultConnection address and the auth method differ per
+# cluster (kubernetes over the ClusterIP on secret, JWT over the mesh on network), so those live
+# in fleet.yaml under each target's own helm.values block.
+vault-secrets-operator:
+  controller:
+    manager:
+      # Pinned by the vendored chart (1.6.0). Verified linux/arm64 — both vind clusters are arm64.
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+    # kube-rbac-proxy fronts the metrics endpoint. This chart has NO switch to disable it — the
+    # container is rendered unconditionally — so it is sized down rather than removed. Verified
+    # linux/arm64/v8 (quay.io/brancz/kube-rbac-proxy:v0.18.1).
+    kubeRbacProxy:
+      resources:
+        requests:
+          cpu: 5m
+          memory: 32Mi
+        limits:
+          memory: 64Mi
+
+  # CSI provider: another delivery mechanism (secrets as mounted volumes) that nothing in this
+  # repo uses — every consumer wants a Kubernetes Secret. Off to keep the footprint small.
+  csi:
+    enabled: false

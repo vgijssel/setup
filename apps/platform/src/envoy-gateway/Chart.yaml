@@ -1,0 +1,26 @@
+# Envoy Gateway control plane — the data plane behind every mesh-exposed service.
+#
+# One control plane per cluster. It watches Gateway/HTTPRoute/TLSRoute/TCPRoute/UDPRoute and
+# provisions an Envoy Deployment per Gateway; the per-service Gateways themselves come from
+# ../mesh-service, pulled in as a `file://` dependency by the per-service bundles
+# (apps/secret/src/mesh-openbao, apps/network/src/mesh-{omada,jwks}).
+#
+# Pinned 1.9.2 for the CRDs it bundles: Gateway API v1.6.1, the first Standard-channel bundle
+# with TCPRoute + UDPRoute. That is what lets ONE mechanism terminate HTTPS with a real
+# certificate and forward raw TCP and UDP, replacing both the BYOP reverse proxy (no L4 at all —
+# mode=tcp services silently never bind, netbirdio/netbird#6400) and the NBResource path.
+#
+# The `envoy` GatewayClass is NOT shipped by the upstream chart, so templates/ adds it here.
+# It carries no `parametersRef`: per-service Envoy settings are attached per-Gateway instead
+# (Gateway.spec.infrastructure.parametersRef -> EnvoyProxy), because each service needs its own
+# pod labels and its own single-replica/Recreate proxy — see ../mesh-service.
+apiVersion: v2
+name: envoy-gateway
+description: Envoy Gateway control plane + the `envoy` GatewayClass (data plane for mesh-exposed services)
+type: application
+version: 1.0.0
+appVersion: v1.9.2
+dependencies:
+  - name: gateway-helm
+    version: 1.9.2
+    repository: file://../../../../third_party/vendir/charts/envoy-gateway

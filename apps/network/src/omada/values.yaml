@@ -1,18 +1,32 @@
 # TP-Link Omada controller, run rootless against EXTERNAL MongoDB, with a Let's
 # Encrypt cert mounted at /cert (no ingress-nginx on this cluster — the controller
-# terminates TLS itself on 8043). Exposure is over the NetBird mesh: a dedicated
-# ClusterIP Service (templates/service-omada.yaml) annotated netbird.io/expose, which the
-# operator turns into a domain NBResource on the `router` routing peer; the chart's own
-# Service stays ClusterIP-only here.
+# terminates TLS itself on 8043).
+#
+# ONE exposure path, and this bundle is not it. Everything — humans, on-mesh tooling and the
+# physical gateway/switches/APs — reaches the controller at `omada.vpn.blueora.ng` via
+# ../mesh-omada/, which runs its own NetBird peer and terminates the shared mesh wildcard. This
+# bundle just runs the controller and its ordinary ClusterIP Service, which that exposure dials
+# as a normal in-cluster backendRef.
+#
+# Until 2026-10-07 there was a SECOND path for the devices: `omada.blueora.ng` -> a pinned
+# ClusterIP, with its own cert-manager certificate, a device `NBResource`, a CoreDNS split
+# horizon and an external-dns annotation. All of it is deleted — the devices were migrated onto
+# the mesh hostname (openspec 12.7) and the machinery that existed only to give them a second
+# name went with it.
 omada-controller-helm:
   config:
     # Rootless mode is the chart's supported external-MongoDB path.
     rootless: true
 
-    # Mount the cert-manager-issued LE cert (certificate-omada.yaml) at /cert. The
-    # controller serves it on 8043, so mesh clients reaching the omada NBResource get a
-    # valid omada.network.vgijssel.nl cert with no proxy in the path (SPEC R3).
-    tlsSecretName: omada-network-vgijssel-nl-tls
+    # Mount the SHARED MESH WILDCARD at /cert (templates/vaultstaticsecret-controller-tls.yaml).
+    # The controller serves it on 8043, which is what lets the mesh exposure re-encrypt to this
+    # backend and still VALIDATE it: Gateway API requires a `validation.hostname`, and
+    # `*.vpn.blueora.ng` covers `omada.vpn.blueora.ng`, the one name anything uses now.
+    #
+    # It replaced a dedicated cert-manager certificate for `omada.blueora.ng`. Collapsing the two
+    # certificates into one is what allowed that name to be retired outright rather than left
+    # lying around, and it means adding or moving this controller needs no ACME interaction.
+    tlsSecretName: omada-controller-tls
 
     # External MongoDB connection string from the ESO-synced mongodb-uri Secret
     # (built in externalsecret-mongodb-uri.yaml). Mutually exclusive with
@@ -23,9 +37,11 @@ omada-controller-helm:
 
     timezone: Europe/Amsterdam
 
-  # The mesh-exposed Service is a dedicated Service in this umbrella chart's
-  # templates/ (service-omada.yaml, netbird.io/expose); keep the chart's built-in
-  # Service internal.
+  # ClusterIP, with a DYNAMIC address. This is now the only Service in front of the controller
+  # and the mesh exposure's sole backend, dialled by name. The hand-written pinned-ClusterIP
+  # Service that used to sit beside it (and the `10.96.0.20` literal that had to be duplicated
+  # into a NetBird resource, a CoreDNS override and the LAN gateway's static routing table) is
+  # deleted — nothing addresses this controller by IP any more.
   service:
     type: ClusterIP
 
@@ -67,3 +83,24 @@ backup:
     regionProperty: region
     bucketProperty: bucket
     endpointProperty: endpoint
+
+# MongoDB topology the connection string is assembled from
+# (templates/vaultstaticsecret-mongodb-uri.yaml). Only the PASSWORD is a secret and it comes from
+# OpenBao (kv/mongodb#omada_password); everything here is static and must match the
+# PerconaServerMongoDB CR in ../mongodb/perconaservermongodb.yaml -- change one without the other
+# and Omada points at hosts that do not exist.
+mongodb:
+  clusterName: mongodb
+  namespace: mongodb
+  replsetName: rs0
+  # Number of replica-set members, i.e. how many seed hosts to list. Must equal
+  # spec.replsets[0].size in the CR.
+  replicas: 3
+  user: omada
+  database: omada
+
+# Where the shared mesh wildcard is read from, matching apps/platform/src/mesh-service's own
+# `tls` contract so the controller and its mesh exposure read the same OpenBao entry.
+tls:
+  mount: kv
+  path: mesh-tls

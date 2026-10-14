@@ -1,14 +1,18 @@
-# ClusterIP Service fronting the JWKS mirror, exposed to the secret cluster over NetBird
-# by the operator's v1 stack: netbird.io/expose makes the operator create a domain-type
-# NBResource (jwks-mirror.netbird.svc.cluster.local) on the NBRoutingPeer's network, plus
-# an access policy from the source groups to it. Requires the routing peer
-# (../netbird-config/nbroutingpeer-router.yaml) and operator
-# ingress.allowAutomaticPolicyCreation=true.
+# Plain ClusterIP fronting the JWKS mirror. Nothing mesh-related lives here any more.
 #
-# policy-source-groups is `secret` — the secret cluster's NetBird group (created by its
-# own NBRoutingPeer in Phase 2), i.e. the OpenBao consumer. Until that group exists the
-# policy has no effective source (harmless: JWKS is public and unreachable to others).
-# The producer path itself was validated by fetching the JWKS over NetBird from a peer.
+# The mirror is published to the mesh by ../mesh-jwks/, which runs its own Envoy Gateway pod with
+# its own NetBird client and therefore its own overlay address and DNS label
+# (`jwks-network.vpn.blueora.ng`). That exposure dials this Service as an ordinary in-cluster
+# backendRef, by name, like any other Kubernetes consumer — so this Service needs no annotations,
+# no pinned address and no knowledge that it is reachable off-cluster.
+#
+# NO `netbird.io/*` ANNOTATIONS, on purpose. They used to make the operator infer a domain-type
+# NBResource (`jwks-mirror.netbird.svc.cluster.local`) plus an access policy, which the secret
+# cluster's socat forwarder dialled directly. That path is gone: the forwarder now relays RAW TCP
+# to the published mesh hostname instead, which is what let OpenBao's JWKS leg move from plain
+# HTTP to fully validated end-to-end TLS (apps/secret/src/jwks-gateway/). Removing the
+# annotations is also what frees the operator's `ingress.allowAutomaticPolicyCreation` flag from
+# being load-bearing on this cluster.
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,13 +20,6 @@ metadata:
   namespace: netbird
   labels:
     app: jwks-mirror
-  annotations:
-    netbird.io/expose: "true"
-    netbird.io/groups: jwks-mirror
-    netbird.io/policy: jwks-mirror
-    netbird.io/policy-protocol: tcp
-    netbird.io/policy-ports: "80"
-    netbird.io/policy-source-groups: secret
 spec:
   selector:
     app: jwks-mirror

@@ -1,0 +1,29 @@
+# Thin per-service bundle: publishes the network cluster's JWKS mirror into the NetBird mesh as
+# `jwks-network.vpn.blueora.ng`, so OpenBao's `jwt-network` auth backend can validate this
+# cluster's service-account tokens over a real HTTPS URL.
+#
+# The name is `jwks-network`, not `jwks`: the mesh namespace is flat and global, so the name has
+# to say WHOSE JWKS this is, not where it runs. (`jwks-mirror` is the in-cluster Service name and
+# stays as-is.)
+#
+# The consumer is unusual and worth knowing before editing: OpenBao must NOT become a mesh client
+# (the operator's webhook runs failurePolicy: Fail and the operator needs a PAT out of OpenBao —
+# injecting a sidecar is a cold-start deadlock). So the secret cluster reaches this name through a
+# raw-TCP socat forwarder plus a CoreDNS override. Because the relay is raw TCP, TLS is
+# end-to-end: OpenBao validates THIS certificate for THIS name. See apps/secret/src/jwks-gateway.
+#
+# ONE single-level `file://` dependency, never a nested umbrella: `.gitignore` ignores
+# `apps/**/charts/`, and `bin/fleet-apply` builds only the TOP-LEVEL bundle chart — helm does not
+# recurse into a subchart's own `file://` deps, so a wrapped subchart would silently vanish.
+#
+# Chart.lock + charts/*.tgz are gitignored under apps/network/src (Fleet builds the dep at apply
+# time); do not commit them.
+apiVersion: v2
+name: mesh-jwks
+description: Network cluster JWKS mirror exposed on the NetBird mesh at jwks-network.vpn.blueora.ng (mesh-service chart)
+type: application
+version: 1.0.0
+dependencies:
+  - name: mesh-service
+    version: 1.0.0
+    repository: file://../../../platform/src/mesh-service

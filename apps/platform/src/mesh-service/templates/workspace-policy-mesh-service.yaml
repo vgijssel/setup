@@ -1,0 +1,132 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+Access policy: only peers in the named source groups reach this service, and only on the ports it
+declared. Enrolment in the account grants nothing by itself.
+
+╔═══════════════════════════════════════════════════════════════════════════════════════════╗
+║ WHY THIS IS AN OpenTofu Workspace AND NOT AN `NBPolicy` CR.                               ║
+║                                                                                           ║
+║ It was an NBPolicy. On operator v0.7.0 that resource CREATES NOTHING ON ITS OWN, and says ║
+║ nothing about it: the CR reported `Ready=True` while the account had no such policy, and   ║
+║ the only trace was one line per reconcile in the operator log —                            ║
+║   `NBPolicy  0 ports found for protocol in policy  {"protocol": "tcp"}`                    ║
+║ — emitted even though the CR carried `ports: [443]` and `protocols: [tcp]`.                ║
+║                                                                                           ║
+║ The reason is in the CRDs: `NBResource` has `policyName`, `policySourceGroups`, `tcpPorts` ║
+║ and `udpPorts`. `NBPolicy` is an AGGREGATOR, not a declaration — it collects its ports     ║
+║ from the NBResources that name it and renders one account policy per protocol from those.  ║
+║ With no NBResource pointing at it there are no ports, nothing to create, and it calls that ║
+║ success. This chart deliberately has no NBResource (that is the exposure path it replaces),║
+║ so the CR can never do anything here.                                                      ║
+║                                                                                           ║
+║ Measured consequence while it was an NBPolicy: the only thing granting access was the      ║
+║ account's built-in `Default` policy — All <-> All, protocol `all`, bidirectional — so every ║
+║ peer in the account could reach every port of the exposure, including OpenBao's.            ║
+║                                                                                           ║
+║ Do NOT "simplify" this back to an NBPolicy without first checking that the operator has    ║
+║ gained standalone support. The failure is silent in both directions: the CR goes Ready and  ║
+║ the service stays reachable, because `Default` covers it.                                  ║
+╚═══════════════════════════════════════════════════════════════════════════════════════════╝
+
+The ports are DERIVED from `listeners`, never restated. That is what makes the spec's
+"undeclared port is not reachable" true by construction instead of true as long as someone
+remembers to keep two lists in sync when they add a listener.
+
+ONE POLICY PER PROTOCOL — and this is a provider constraint, not a style choice. A single rule
+carrying both protocols and all ports would open the CROSS PRODUCT: a service with HTTPS on 443
+plus UDP on 29810 would also admit UDP/443 and TCP/29810, neither of which was declared. The
+obvious fix is two `rule` blocks in one policy, and the provider REFUSES it:
+
+  Invalid Attribute Value ... Attribute rule list must contain at least 1 elements and at most
+  1 elements, got: 2
+
+(Hit live on `mesh-omada`, the first mixed-protocol service — `mesh-openbao` is HTTPS-only and
+passed, so a single-protocol service will never surface this.) So each protocol gets its own
+`netbird_policy` with its single rule, which is also exactly what the NBPolicy CR had to do.
+An HTTPS-only service therefore renders exactly one policy: tcp/443.
+
+bidirectional = false — this authorises sources to reach the service, not the service to reach
+back into them. The Envoy pod originates nothing on the overlay; it only answers.
+
+Groups are resolved by NAME through data sources because `netbird_policy` takes group IDs, and
+the ids are assigned by NetBird. The destination group is the `Group` CR this chart renders
+alongside (group-mesh-service.yaml), so on a first apply this Workspace may fail until the
+operator has created it — Crossplane retries, and that is the intended ordering, not a defect.
+
+State lives in the shared kubernetes backend, keyed per-workspace. Name is `mesh-<name>-policy`
+because Workspace is CLUSTER-scoped: it has to be unique across every bundle on the cluster, not
+just within this release.
+*/}}
+{{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}
+apiVersion: opentofu.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: mesh-{{ .Values.name }}-policy
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  forProvider:
+    source: Inline
+    env:
+      # Admin PAT for the management API. Delivered by Vault Secrets Operator into
+      # crossplane-system on both clusters (see each cluster's cloudflare-config bundle).
+      - name: NB_PAT
+        secretKeyRef:
+          namespace: crossplane-system
+          name: netbird-mgmt-api-token
+          key: token
+    module: |
+      terraform {
+        required_providers {
+          netbird = {
+            source  = "netbirdio/netbird"
+            version = "0.0.10"
+          }
+        }
+      }
+
+      # management_url defaults to https://api.netbird.io; the token comes from NB_PAT.
+      provider "netbird" {}
+
+      # The destination: this service's own group, created by the operator from the Group CR
+      # this chart renders. Looked up rather than hardcoded because the policy needs its ID.
+      data "netbird_group" "destination" {
+        name = {{ include "mesh-service.group" . | quote }}
+      }
+
+      {{- range $g := .Values.sourceGroups }}
+      data "netbird_group" {{ $g | quote }} {
+        name = {{ $g | quote }}
+      }
+      {{- end }}
+
+      {{- range $proto := list "tcp" "udp" }}
+      {{- $ports := include "mesh-service.portsFor" (dict "proto" $proto "listeners" $listeners) | fromJsonArray }}
+      {{- if $ports }}
+
+      resource "netbird_policy" {{ $proto | quote }} {
+        name        = {{ printf "svc-%s-%s" $.Values.name $proto | quote }}
+        description = {{ printf "%s access to %s over %s (managed by the mesh-service chart; do not edit in the dashboard)" (join ", " $.Values.sourceGroups) (include "mesh-service.fqdn" $) (upper $proto) | quote }}
+        enabled     = true
+
+        # Exactly one rule — the provider accepts no more (see the block comment above).
+        rule {
+          name          = {{ printf "svc-%s-%s" $.Values.name $proto | quote }}
+          action        = "accept"
+          enabled       = true
+          bidirectional = false
+          protocol      = {{ $proto | quote }}
+          # `ports` is a list of STRINGS in this provider, not integers.
+          ports         = [{{ range $i, $p := $ports }}{{ if $i }}, {{ end }}{{ printf "%v" $p | quote }}{{ end }}]
+          sources       = [{{ range $i, $g := $.Values.sourceGroups }}{{ if $i }}, {{ end }}data.netbird_group.{{ $g }}.id{{ end }}]
+          destinations  = [data.netbird_group.destination.id]
+        }
+      }
+
+      output {{ printf "policy_%s_id" $proto | quote }} {
+        value = netbird_policy.{{ $proto }}.id
+      }
+      {{- end }}
+      {{- end }}
+  providerConfigRef:
+    name: default
