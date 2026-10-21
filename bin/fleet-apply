@@ -58,7 +58,7 @@ while IFS= read -r manifest; do
   # `fleet apply` resolves umbrella dependencies ONLY when charts/ is absent. With a tgz already
   # there it ships that one verbatim, and Chart.lock's digest covers the dependency DECLARATION
   # (name/version/repository), not the dependency's CONTENT — so editing a shared chart under
-  # apps/platform/src/ changes neither, and the stale tgz keeps winning. Fleet then correctly
+  # libs/ changes neither, and the stale tgz keeps winning. Fleet then correctly
   # reports "unchanged (bundle)" and the edit silently never deploys.
   #
   # That cost a debug cycle on 2026-10-06: a new sidecar volume in the shared mesh-service chart
