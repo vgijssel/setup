@@ -7,7 +7,7 @@ NO parametersRef on purpose. A GatewayClass-level EnvoyProxy would apply one pro
 Gateway in the cluster, and each mesh-exposed service needs its own: distinct pod labels (for the
 NetBird SidecarProfile to select), 1 replica with the Recreate strategy, and the port shift
 disabled. Those are attached per-Gateway via Gateway.spec.infrastructure.parametersRef in
-../mesh-service, which Gateway API v1.6.1 supports and which overrides nothing here.
+libs/mesh-service, which Gateway API v1.6.1 supports and which overrides nothing here.
 */}}
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass

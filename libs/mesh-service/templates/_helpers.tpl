@@ -31,7 +31,7 @@ and the name consumers configure are all THIS, computed once so they cannot drif
 The Gateway's name — and therefore the name of every resource Envoy Gateway creates for it.
 
 `-mesh` suffixed rather than bare `<name>`, and that is LOAD-BEARING, not cosmetic. The control
-plane runs with `deploy.type: GatewayNamespace` (see ../../envoy-gateway/values.yaml for why),
+plane runs with `deploy.type: GatewayNamespace` (see apps/platform/src/envoy-gateway/values.yaml for why),
 which names the data-plane ServiceAccount, Deployment and Service after the GATEWAY, in the
 Gateway's own namespace. A mesh-service release deliberately sits in the namespace of the Service
 it publishes, so a Gateway named `<name>` collides head-on with the very workload it fronts: the

@@ -4,7 +4,7 @@
 # Identical on both clusters — there is nothing cluster-specific here, so fleet.yaml's
 # targetCustomizations select clusters without overriding values.
 
-# Name of the GatewayClass this bundle creates. Every Gateway rendered by ../mesh-service
+# Name of the GatewayClass this bundle creates. Every Gateway rendered by libs/mesh-service
 # references it by this name, so changing it silently detaches every exposed service.
 gatewayClassName: envoy
 

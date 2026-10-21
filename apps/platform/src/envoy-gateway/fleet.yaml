@@ -4,7 +4,7 @@
 # This bundle OWNS the `envoy-gateway` namespace (Fleet defaultNamespace) — the control-plane
 # Deployment, its Service and its certgen Job. It does NOT own the data-plane pods: the control
 # plane runs in `GatewayNamespace` deploy mode, so each service's Envoy Deployment is created in
-# that service's own namespace by the per-service ../mesh-service releases.
+# that service's own namespace by the per-service libs/mesh-service releases.
 #
 # Installs the Gateway API v1.6.1 CRDs (crds.enabled defaults true upstream), which is what every
 # mesh-service bundle's Gateway/HTTPRoute/TLSRoute/TCPRoute/UDPRoute needs. Those bundles

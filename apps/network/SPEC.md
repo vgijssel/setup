@@ -17,7 +17,7 @@
 > ### The exposure model, in one paragraph
 >
 > There is now exactly **one** mechanism for publishing an in-cluster Service to the mesh:
-> the shared `apps/platform/src/mesh-service` chart gives each service its **own Envoy Gateway
+> the shared `libs/mesh-service` chart gives each service its **own Envoy Gateway
 > pod with its own NetBird client**, hence its own overlay address, its own full TCP/UDP port
 > space, and a flat hostname `<service>.vpn.blueora.ng` that resolves only inside the mesh while
 > serving a publicly-trusted certificate (one shared `*.vpn.blueora.ng` wildcard, issued once on
@@ -40,7 +40,7 @@
 > Secrets Operator reaches `openbao.vpn.blueora.ng` with no sidecar of its own.
 >
 > **Current sources of truth:** `apps/network/network.md` (home network, VLANs, device path),
-> `apps/platform/src/mesh-service/values.yaml` (the exposure contract),
+> `libs/mesh-service/values.yaml` (the exposure contract),
 > `apps/secret/CLAUDE.md` (OpenBao), and
 > `openspec/changes/netbird-peer-mesh-envoy-gateway/` (the change that established all of this).
 

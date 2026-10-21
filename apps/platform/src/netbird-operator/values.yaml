@@ -28,7 +28,7 @@ netbird-operator:
   # `NBResource` left anywhere in this repo, and no `netbird.io/expose` annotation either.
   #
   # Every access policy is now an explicit OpenTofu Workspace: the per-service ones rendered by
-  # apps/platform/src/mesh-service, and the account-wide ones in
+  # libs/mesh-service, and the account-wide ones in
   # apps/secret/src/netbird-account. So policy creation is reviewable in git rather than
   # inferred by a controller from an annotation — which is the property this flag being `true`
   # gave up.

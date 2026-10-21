@@ -14,7 +14,7 @@
 # an in-cluster CoreDNS split horizon — three mechanisms whose only job was to give one class of
 # consumer a second name. All three are DELETED as of 2026-10-07, along with the `omada.blueora.ng`
 # record and its certificate: this is the only path to the controller now. See `publicDns` in
-# apps/platform/src/mesh-service/values.yaml for the trade that accepts (every consumer, including
+# libs/mesh-service/values.yaml for the trade that accepts (every consumer, including
 # the physical fleet, now depends on this Envoy pod).
 #
 # defaultNamespace `omada`: the Gateway's backendRefs resolve in the release namespace, so the
@@ -36,7 +36,7 @@ helm:
   releaseName: mesh-omada
   values:
     # The entire per-service declaration, keyed under the subchart name. See
-    # apps/platform/src/mesh-service/values.yaml for the documented contract.
+    # libs/mesh-service/values.yaml for the documented contract.
     mesh-service:
       name: omada
       domain: vpn.blueora.ng

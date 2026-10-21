@@ -219,7 +219,7 @@ directories:
           repository:
             url: https://rancher.github.io/fleet-helm-charts/
   # Envoy Gateway — the data plane behind every mesh-exposed service
-  # (apps/platform/src/envoy-gateway + the apps/platform/src/mesh-service chart). One
+  # (apps/platform/src/envoy-gateway + the libs/mesh-service chart). One
   # Envoy pod per exposed service, each carrying an injected NetBird client sidecar, so
   # the service is its own mesh peer owning its full TCP/UDP port space.
   #

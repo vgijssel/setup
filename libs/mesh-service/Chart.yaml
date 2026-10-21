@@ -23,11 +23,11 @@
 #   - cronjob-watchdog.yaml + serviceaccount-watchdog.yaml  self-heal for a wedged mesh client
 #
 # WHAT IT DELIBERATELY DOES NOT SHIP: the Envoy Gateway control plane and the `envoy`
-# GatewayClass. Those are one-per-cluster and live in ../envoy-gateway, which every bundle
+# GatewayClass. Those are one-per-cluster and live in apps/platform/src/envoy-gateway, which every bundle
 # consuming this chart must `dependsOn`.
 #
 # ── Cluster prerequisites every consuming bundle must `dependsOn` ─────────────────────────
-#   envoy-gateway       the control plane + `envoy` GatewayClass (../envoy-gateway)
+#   envoy-gateway       the control plane + `envoy` GatewayClass (apps/platform/src/envoy-gateway)
 #   netbird-operator    the netbird.io CRDs for Group and SetupKey
 #   crossplane-provider the opentofu.upbound.io Provider behind the access-policy Workspace,
 #                       plus its `default` ProviderConfig. Fleet applies a bundle as one atomic
@@ -48,7 +48,7 @@
 #   * `bin/fleet-apply` builds ONLY the top-level bundle chart — helm does not recurse into a
 #     subchart's own `file://` deps, so a wrapped subchart is absent from the built package and
 #     its resources silently vanish.
-# Same constraint, same shape as the chart this one replaces (../netbird-reverse-proxy-shared).
+# Same constraint, same shape as the chart this one replaces (apps/platform/src/netbird-reverse-proxy-shared).
 #
 # No `fleet.yaml` lives here → this chart is never deployed standalone and never becomes its own
 # Fleet bundle; it exists only as a `file://` dependency of the per-service bundles.

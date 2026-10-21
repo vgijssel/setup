@@ -24,7 +24,7 @@ helm:
   releaseName: mesh-jwks
   values:
     # The entire per-service declaration, keyed under the subchart name. See
-    # apps/platform/src/mesh-service/values.yaml for the documented contract.
+    # libs/mesh-service/values.yaml for the documented contract.
     mesh-service:
       name: jwks-network
       domain: vpn.blueora.ng

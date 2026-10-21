@@ -99,7 +99,7 @@ mongodb:
   user: omada
   database: omada
 
-# Where the shared mesh wildcard is read from, matching apps/platform/src/mesh-service's own
+# Where the shared mesh wildcard is read from, matching libs/mesh-service's own
 # `tls` contract so the controller and its mesh exposure read the same OpenBao entry.
 tls:
   mount: kv
