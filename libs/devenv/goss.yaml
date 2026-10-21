@@ -179,7 +179,13 @@ command:
   which starship:
     title: Starship is available in PATH via Hermit
     exit-status: 0
-    stdout: "{{.Env.SETUP_DIR}}/bin/starship\n"
+    # Hermit resolves starship either through the repo's bin/ shim or through its
+    # link farm under HERMIT_STATE_DIR, depending on whether the package is
+    # already installed (a warm hermit cache populates the link farm, which is
+    # prepended to PATH and therefore shadows bin/). Both are "via Hermit", so
+    # assert availability rather than a specific resolved path.
+    stdout:
+      - /\/starship$/
 
   starship_outside_repo:
     title: Starship is available outside of repo root
