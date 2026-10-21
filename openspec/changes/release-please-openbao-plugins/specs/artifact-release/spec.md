@@ -199,7 +199,67 @@ against already-correct pins SHALL change nothing.
 #### Scenario: Re-propagating correct pins is a no-op
 
 - **WHEN** pin propagation runs and the committed pins already match the published artifact
-- **THEN** no commit is produced
+- **THEN** no change is proposed
+
+### Requirement: Consumer pins reach the main branch as a reviewable, validated change
+
+Pin propagation SHALL NOT write directly to the main branch. It SHALL instead propose the
+updated pins as a change that is subject to the same validation as any other change to this
+repository, so that the question "does the newly published artifact actually work in the apps
+that deploy it?" is answered before the pins become the deployed state.
+
+Re-running propagation while an equivalent proposal is already outstanding SHALL update or
+leave that proposal rather than creating a second one.
+
+#### Scenario: New pins are proposed rather than pushed
+
+- **WHEN** publishing produces pins that differ from the committed ones
+- **THEN** a reviewable change carrying those pins is opened against the main branch, and the
+  main branch is not modified directly
+
+#### Scenario: Proposed pins are validated before they can be adopted
+
+- **WHEN** a pin-propagation change is open
+- **THEN** the repository's checks run against it, and it cannot be adopted while they fail
+
+#### Scenario: Repeated propagation does not accumulate proposals
+
+- **WHEN** propagation runs repeatedly and the pins it computes have not changed
+- **THEN** at most one outstanding proposal exists for them
+
+#### Scenario: Superseded proposals converge on the current artifact
+
+- **WHEN** a proposal is outstanding and a newer version is subsequently published
+- **THEN** the outstanding proposal is brought up to date with the newer version rather than
+  left describing the older one
+
+### Requirement: A consumer's pins are declared separately from the configuration that consumes them
+
+A pinned artifact reference and checksum SHALL be declared in a dedicated configuration value,
+not embedded inside a program, template, or other document that the consumer interprets.
+Updating a pin SHALL NOT require editing the logic that uses it.
+
+This exists because a checksum buried inside an embedded program is editable only by textual
+substitution, which neither a human nor an automated dependency updater can do safely, and
+because the surrounding document gives no indication that the value is machine-maintained.
+
+#### Scenario: A pin is updated without touching consuming logic
+
+- **WHEN** a consumer's pinned version and checksum are advanced
+- **THEN** only the declared configuration values change, and the logic that reads them is
+  untouched
+
+#### Scenario: Pins are discoverable as configuration
+
+- **WHEN** the pins for a consumer are located
+- **THEN** they are found as named configuration values rather than by searching the text of a
+  program
+
+#### Scenario: An automated updater can read and write the pins
+
+- **WHEN** an automated dependency updater is pointed at a consumer's pins
+- **THEN** it can identify the artifact reference and rewrite it without parsing an embedded
+  program
 
 ### Requirement: Pin propagation does not itself trigger a release
 
@@ -210,6 +270,37 @@ NOT be interpreted as a releasable change to any package.
 
 - **WHEN** a pin-propagation commit lands on the main branch
 - **THEN** no new version bump is proposed for any package as a result of it
+
+### Requirement: The commit convention that drives releases is enforced mechanically
+
+Because version decisions are derived from commit message types, a malformed or
+wrongly-typed message silently produces the wrong version decision — or none. The convention
+SHALL therefore be checked by tooling rather than by review, both before a change is authored
+into history and in the repository's automated checks.
+
+The check SHALL apply to whichever message actually becomes the released history. Where changes
+reach the main branch through a squash, that is the message the squash is titled with, not the
+individual messages on the contributing branch.
+
+#### Scenario: A malformed message is rejected locally
+
+- **WHEN** a contributor writes a commit message that does not follow the convention
+- **THEN** the commit is rejected at the point it is written, with the rule it broke reported
+
+#### Scenario: A malformed message fails automated checks
+
+- **WHEN** a proposed change would land a message that does not follow the convention
+- **THEN** the repository's automated checks fail
+
+#### Scenario: The checked message is the one that lands
+
+- **WHEN** a change lands as a squash of several commits
+- **THEN** the convention is enforced on the resulting squashed message
+
+#### Scenario: An unrecognised type is rejected
+
+- **WHEN** a message uses a type that the version-decision tooling does not recognise
+- **THEN** it is rejected, rather than silently producing no version decision
 
 ### Requirement: Dependency updates to a releasable package are releasable
 

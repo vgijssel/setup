@@ -3,6 +3,9 @@ layer: library
 stack: backend
 tags:
   - go
+  # Opts into the shared `release` task in .moon/tasks/tag-releasable.yml, and is what
+  # `moon run :release --query "tag=releasable"` in publish.yaml selects on.
+  - releasable
 tasks:
   build:
     command: bash -c "cd src && go build -o openbao-plugin-secrets-cloudflare ."
@@ -20,34 +23,9 @@ tasks:
       runFromWorkspaceRoot: false
       runInCI: false
 
-  # Publish the image at the version version.txt declares. Driven by
-  # .github/workflows/publish.yaml, which invokes this task explicitly.
-  #
-  # INPUTS ARE DELIBERATELY NARROW: version.txt and the probe, nothing from src/ or the
-  # Dockerfile. Adding those would mean a source change with no version bump re-publishes the
-  # SAME tag with different content — tag mutation, which silently invalidates every
-  # plugin_sha256 pinned against the old digest. "I changed the plugin and nothing happened"
-  # is the supported outcome; bumping the version is what ships a change.
-  #
-  # `cache: false` because the REGISTRY is the source of truth for what has shipped, not the
-  # task hash. A cache hit would return success without probing, so a tag that went missing
-  # from the registry while version.txt stood still would never be re-published, and the
-  # nightly convergence run would be a no-op for the wrong reason. The probe costs one HTTP
-  # HEAD. The inputs below still govern `--affected`.
-  release:
-    command: ./release.sh
-    options:
-      runFromWorkspaceRoot: false
-      runInCI: false
-      cache: false
-    inputs:
-      - file: ./version.txt
-      - file: /bin/registry-tag-exists
-      - "@group(regctl_bin)"
-
   # Print the per-architecture sha256 of the binary in the published image — the value
-  # apps/secret/src/openbao-config/plugin-cloudflare.yaml pins in the plugin catalog, and
-  # which OpenBao requires. Normally invoked via bin/openbao-plugin-pin from CI; pass
+  # apps/secret/src/openbao-config/values.yaml pins as plugins.cloudflare.sha256, and which
+  # OpenBao requires. Normally invoked via bin/openbao-plugin-pin from CI; pass
   # ARCH=amd64 only if the target cluster is amd64 (both vind clusters are arm64).
   plugin_sha:
     command: ./plugin-sha.sh

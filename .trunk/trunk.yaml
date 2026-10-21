@@ -53,6 +53,8 @@ lint:
     # Ignore yamllint syntax errors for Helm chart templates
     - linters: [yamllint]
       paths:
+        # apps/secret/src/openbao-config is a local Helm chart; its templates carry {{ }}
+        - apps/secret/src/openbao-config/templates/**
         - libs/internal-dns/templates/**
         - libs/1password-secrets/templates/**
         - libs/internal-networking/templates/**
@@ -113,6 +115,14 @@ lint:
     - markdownlint
 actions:
   enabled:
+    # Rejects a non-conventional commit message at the point it is written. Version decisions are
+    # DERIVED from these types (release-please-config.json), so a wrongly-typed subject does not
+    # merely look untidy — it silently ships nothing. Config: commitlint.config.js.
+    #
+    # This is the local half only. CI lints the PR TITLE instead, because this repo allows squash
+    # merges only and `squash_merge_commit_title` is PR_TITLE, so the branch commit messages this
+    # hook checks never reach main. See .github/workflows/test.yaml and design.md D12.
+    - commitlint
     - trunk-check-pre-push
     - trunk-fmt-pre-commit
     - trunk-upgrade-available

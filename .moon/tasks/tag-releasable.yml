@@ -1,0 +1,35 @@
+# Inherited by every project tagged `releasable` — the packages whose versions are decided by
+# release-please (release-please-config.json) and whose images are published by
+# .github/workflows/publish.yaml with `moon run :release --query "tag=releasable"`.
+#
+# The TAG is the opt-in. A workflow that lists its targets is a list that goes stale, and a bare
+# `moon run :release` would also fire the broken fleet-mcp / devcontainer release scripts and the
+# carved-out talos-image — those are the other three projects defining a `release` task. So a
+# project is releasable because it says it is.
+#
+# Each releasable project supplies two files beside its moon.yml:
+#   version.txt   the single source of version truth, maintained by release-please
+#   release.sh    builds and pushes, guarded by bin/registry-tag-exists
+#
+# See openspec/changes/release-please-openbao-plugins/design.md (D3, D6, D10).
+tasks:
+  release:
+    command: ./release.sh
+    options:
+      runFromWorkspaceRoot: false
+      # Publishing is driven explicitly by publish.yaml, never by `moon ci` on a pull request.
+      runInCI: false
+      # The REGISTRY is the source of truth for what has shipped, not the task hash. A cache hit
+      # would return success without probing, so a tag that went missing from the registry while
+      # version.txt stood still would never be re-published — and the nightly convergence run
+      # would be a no-op for the wrong reason. The probe costs one HTTP HEAD.
+      cache: false
+    # DELIBERATELY NARROW: version.txt and the probe, nothing from src/ or the Dockerfile. Adding
+    # those would mean a source change with no version bump re-publishes the SAME tag with
+    # different content — tag mutation, which silently invalidates every plugin_sha256 pinned
+    # against the old digest. "I changed the plugin and nothing happened" is the supported
+    # outcome; bumping the version is what ships a change.
+    inputs:
+      - file: ./version.txt
+      - file: /bin/registry-tag-exists
+      - "@group(regctl_bin)"

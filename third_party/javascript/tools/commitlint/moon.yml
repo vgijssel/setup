@@ -1,0 +1,15 @@
+layer: library
+tags:
+  - javascript
+  - npm
+  - pnpm-tool
+
+# The CLI behind the PR-title check in .github/workflows/test.yaml. Trunk's own `commitlint`
+# action covers the local commit-msg hook; this exists because a git hook cannot run in CI, and
+# the message CI must check is the PR title (squash-only merges, squash_merge_commit_title =
+# PR_TITLE). Both read the same commitlint.config.js, so they cannot drift.
+tasks:
+  build:
+    options:
+      # TODO: currently too large to cache with bazel-remote and Backblaze B2
+      runInCI: false

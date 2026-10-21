@@ -47,12 +47,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Full history: the pin commit below is pushed to main, and a shallow clone cannot
-          # rebase onto it.
+          # Full history: release:self_upgrade rebuilds its branch from origin/main, and a
+          # shallow clone has no base to build on.
           fetch-depth: 0
-          # vgijssel-bot, because the pin commit is pushed straight to the protected `main`.
-          # The `protected-main` ruleset requires a PR and signed commits, and its only
-          # bypass actor is the `bot` team, whose sole member is vgijssel-bot.
+          # vgijssel-bot, which pushes the pin branch and opens its PR. It no longer needs to
+          # bypass `protected-main` — the pins arrive as a PULL REQUEST, so the ruleset's
+          # pull_request and required_signatures rules are satisfied the ordinary way.
           token: ${{ secrets.RELEASES_TOKEN_GITHUB }}
 
       - uses: ./.github/actions/setup
@@ -67,37 +67,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Selected by TAG, not enumerated. A bare `moon run :release` would also fire the broken
+      # fleet-mcp / devcontainer release scripts and the carved-out talos-image; a hand-kept list
+      # here would go stale. A project is releasable because its moon.yml says
+      # `tags: [releasable]` — see .moon/tasks/tag-releasable.yml.
       - name: Publish plugin images
-        run: |
-          moon run \
-            openbao-netbird-plugin:release \
-            openbao-cloudflare-plugin:release
+        run: moon run :release --query "tag=releasable"
 
-      # Only after BOTH publishes succeed. The pin commit moves each init-container image tag
-      # and its matching plugin_sha256 together, because OpenBao rejects a registration whose
-      # checksum does not describe the binary it is handed and reports only "checksum
-      # mismatch". bin/openbao-plugin-pin commits nothing when the pins are already correct.
+      # Only after BOTH publishes succeed. This opens (or updates) ONE pull request carrying the
+      # init-container image tags and their matching catalog checksums in a single commit —
+      # OpenBao rejects a registration whose checksum does not describe the binary it is handed,
+      # and reports only "checksum mismatch", so the two halves can never be split.
       #
-      # Whether it committed is read from the SHA moving, not from a diff against a remote
-      # ref, so the "nothing changed" path cannot be confused by a stale origin/main.
-      #
-      # The rebase before pushing matters: a push-triggered run is detached at the commit that
-      # triggered it, and release-please may have landed its own commit since. A conflict here
-      # fails loudly rather than force-pushing, and the nightly run then converges.
-      - name: Propagate consumer pins
+      # It is a PR and not a push to main deliberately: this is the point at which the newly
+      # published plugin gets validated against the apps that deploy it. Merging the PR is what
+      # makes the pins the deployed state. The task is a no-op when the pins already describe
+      # what is published, so the nightly run is quiet when healthy.
+      - name: Propose consumer pins
         run: |
           git config user.name vgijssel-bot
           git config user.email 147037532+vgijssel-bot@users.noreply.github.com
-
-          before="$(git rev-parse HEAD)"
-          bin/openbao-plugin-pin
-          after="$(git rev-parse HEAD)"
-
-          if [ "${before}" = "${after}" ]; then
-            echo "Pins already describe the published images; nothing to push."
-            exit 0
-          fi
-
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          moon run release:self_upgrade
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}

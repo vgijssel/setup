@@ -2,8 +2,8 @@
 
 ## Context
 
-See `proposal.md` — Why. The constraints that shape the approach, all verified in `plan.md`
-(2026-10-21) or against this worktree:
+See `proposal.md` — Why. The constraints that shape the approach, each verified against the
+live systems or this worktree on 2026-10-21:
 
 - **release-please reads exactly one config file.** There is no per-directory discovery and no
   per-project config, so aggregation at the repo root is mandatory.
@@ -58,9 +58,9 @@ Demonstrated by existing state rather than a throwaway tag:
 `.github/workflows/release-openbao-netbird-plugin.yaml` authenticates with
 `secrets.GITHUB_TOKEN` and `permissions: packages: write`, and
 `ghcr.io/vgijssel/setup/openbao-plugin-secrets-netbird:0.1.3` resolves today. `PACKAGES_TOKEN_GITHUB`
-is not needed. `plan.md`'s "no credential carries `write:packages`" is about *local*
+is not needed. The "no credential carries `write:packages`" problem is about *local*
 credentials — which is why `release-local.sh` exists — not about the workflow token.
-`gh api /orgs/vgijssel/packages?package_type=container` also confirms the §1 drift directly:
+`gh api /orgs/vgijssel/packages?package_type=container` also confirms the drift directly:
 `setup/openbao-plugin-secrets-netbird` exists and is **public**, and
 `setup/openbao-plugin-secrets-cloudflare` is absent entirely.
 
@@ -95,13 +95,13 @@ Two refinements this forces on D6:
   and retry after a partial failure.
 - A consumer's image tag and its content checksum are never committed out of step with each
   other.
-- The first run reconciles the `plan.md` §1 drift without any version bump — by publishing the
+- The first run reconciles the ghcr drift without any version bump — by publishing the
   versions the cluster already pins.
 
 **Non-Goals:**
 
 - Writing a general release framework. Two packages are enumerated explicitly; generalising the
-  opt-in is deferred (`plan.md` §4b).
+  opt-in is deferred.
 - Reproducible builds. The design assumes the published binary's sha256 is discovered
   **after** the build, never predicted before it.
 - Changing how OpenBao registers plugins. The catalog keeps its binary-checksum pin; this change
@@ -141,7 +141,7 @@ packages with `release-type: "simple"`.
   `release-type: "simple"` maintains natively, and the consumer pins are deliberately not
   release-please's business.
 
-*Alternative — the moon-metadata generator (`plan.md` §4b):* a `libs/release` project reading
+*Alternative — a moon-metadata generator:* a `libs/release` project reading
 `moon query projects --json` and generating this file, guarded by a `--check` task. Rejected for
 now: for two packages the generator is larger than the file it generates. `project.metadata` is
 free-form in moon's schema and round-trips through `moon query`, so this stays available
@@ -199,20 +199,65 @@ registry what is missing and fixes it. Consequences:
 concurrent runs would race on the write-back commit in D5; cancelling mid-run could abort between
 a push and its pin commit.
 
-The two `release` tasks are invoked **explicitly** —
-`moon run openbao-netbird-plugin:release openbao-cloudflare-plugin:release` — not via
-`moon run :release`, which would also fire the broken `fleet-mcp` / `devcontainer` scripts and
-the carved-out `talos-image`. This enumeration is the one piece D1's deferred generator would
-replace.
+The `release` tasks are selected by **tag**, not enumerated:
+`moon run :release --query "tag=releasable"`. A bare `moon run :release` would also fire the
+broken `fleet-mcp` / `devcontainer` scripts and the carved-out `talos-image` — those five are
+the projects that currently define a `release` task — which is why the first draft listed the
+two plugins literally. A list in a workflow is a list that goes stale, so the opt-in moved into
+the projects themselves: a project is releasable because it says it is. Verified that the query
+restricts correctly (2026-10-21): `moon run :release --query "tag=go"` resolved to exactly
+`openbao-cloudflare-plugin:release` and `openbao-netbird-plugin:release`, with the other three
+excluded. `tag=releasable` replaces `tag=go` so the set is about release-ability rather than
+language. Onboarding a third package is one line in its `moon.yml`, and this is also what D1's
+deferred config generator would have been for.
 
-### D5 — Pins propagate in one post-publish commit, written by the publish job
+### D5 — Pins propagate as a PULL REQUEST, opened by `release:self_upgrade`
 
-After both publishes succeed, the job computes each plugin binary's arm64 sha256 from the
-published image and writes, in a **single commit** to `main`:
+> **Revised 2026-10-21.** This decision originally had the publish job commit the pins straight
+> to `main`. It no longer does, and the reason is one the original framing missed: a pin commit
+> pushed to `main` has, by construction, never been validated against the apps that deploy it.
+> It asserts "this checksum describes this image" — which `bin/openbao-plugin-pin` verifies —
+> but says nothing about whether the newly published plugin actually *works* once Fleet rolls
+> it out. Pushing it to `main` makes the deployed state the place that question gets answered.
+> Routing it through a PR instead puts CI between the publish and the cluster, which is the
+> whole point of having CI. The atomicity requirement is unchanged; only the delivery is.
+
+After both publishes succeed, `publish.yaml` runs `moon run release:self_upgrade`. That task
+computes each plugin binary's arm64 sha256 from the **published** image and writes, in a
+**single commit on a branch**, then opens a PR against `main`:
 
 - `apps/secret/src/openbao/values.yaml` → the two `extraInitContainers[*].image` tags
-- `apps/secret/src/openbao-config/plugin-netbird.yaml` → `plugin_sha256`
-- `apps/secret/src/openbao-config/plugin-cloudflare.yaml` → `plugin_sha256`
+- `apps/secret/src/openbao-config/values.yaml` → `plugins.<name>.version` and
+  `plugins.<name>.sha256` (see D11)
+
+A human merges it (chosen for the same reason as D2). The commit is still atomic — both halves
+of every pin move together or not at all — so no *committed* state ever mismatches, on the
+branch or on `main`.
+
+Consequences of the PR shape that the direct push did not have:
+
+- **It must converge, not accumulate.** Publishing runs on every push to `main` and nightly, so
+  a naive "open a PR" would open one per run. The task therefore reuses a single fixed branch
+  (`chore/openbao-plugin-pins`): if the computed pins match what that branch already carries, it
+  does nothing; if they differ, it force-updates the branch and lets the existing PR follow. One
+  outstanding proposal, always describing the newest publish.
+- **Branch protection stops mattering for the pins.** The write path is now "push a branch +
+  open a PR", which needs no bypass of `protected-main`. The bot identity is still used, but
+  the `required_signatures` / `pull_request` rules are satisfied the ordinary way.
+- **The nightly run becomes the retry.** If the PR is closed unmerged, the next run re-opens it.
+
+*Alternative — Renovate for the whole job:* rejected on a hard technical limit, not preference.
+Renovate can bump the image **tag** (a regex manager over D11's `values.yaml`, docker datasource
+against `ghcr.io/vgijssel/setup/openbao-plugin-secrets-*`), but it cannot compute
+`plugin_sha256`: that is the sha256 of a **file inside** the image, and Renovate knows registry
+manifest digests, not file checksums. Pointed at these pins it would move the tag and leave the
+checksum behind — exactly the half-updated state this decision exists to forbid. Renovate keeps
+the job it can do correctly: the plugins' own inputs (alpine, golang, go modules), typed `fix`
+per D7 so they produce version bumps. `release:self_upgrade` owns the pins, because computing
+the sha requires pulling the published image, and only something in this repo does that.
+
+*Alternative — keep the direct push and add a post-merge validation:* rejected. It inverts the
+order: the cluster finds the problem first and CI confirms it afterwards.
 
 **release-please must not touch `values.yaml`.** It is technically capable of it — `extra-files`
 with a `yaml` entry and a `jsonpath`, repo-root-relative via a leading `/` — but using it splits
@@ -221,8 +266,10 @@ pinning 0.1.4's checksum, Fleet deploys that state, and plugin registration fail
 "checksum mismatch". The atomicity requirement is the whole reason the image tag is written by
 the publish job rather than by release-please.
 
-Mechanism: a repo-level script, following the `bin/fleet-apply` / `bin/fleet-build` /
-`bin/fleet-lint-targets` convention, so the same logic is runnable by hand and the workflow stays
+Mechanism: `libs/release`, a moon project exposing `self_upgrade` (write + propose) and
+`self_upgrade_check` (assert the committed pins are internally consistent, for CI). The writing
+is done by `bin/openbao-plugin-pin`, following the `bin/fleet-apply` / `bin/fleet-build` /
+`bin/fleet-lint-targets` convention so the same logic is runnable by hand and the workflow stays
 thin. It edits with `yq` (already a declared `yq_bin` file group) and commits only if the
 resulting diff is non-empty — satisfying the spec's "re-propagating correct pins is a no-op".
 Commit as `vgijssel-bot` with a `chore(secret):` subject.
@@ -236,8 +283,12 @@ independent guard on the same property.
 the plugin binary). The netbird plugin has the same logic inlined in `release-local.sh`; it gets
 a matching `plugin-sha.sh` and `plugin_sha` task so both projects present the same interface.
 
-*Alternative — a second PR instead of a direct commit:* rejected per decision; it keeps `main`
-self-consistent too but costs a human merge per release.
+**The version is pinned in two bundles and that cannot be collapsed.** The init-container image
+tag lives in the `openbao` chart's values; the catalog checksum lives in the `openbao-config`
+bundle. Fleet has no mechanism for sharing values across bundles, and an image tag cannot come
+from a ConfigMap, so the version necessarily appears in both. `self_upgrade` writes both in one
+commit, and `self_upgrade_check` fails CI if they ever disagree — the duplication is accepted
+but not left unguarded.
 
 *Alternative — keep the sha out of git*, written by the publish job into a Secret or OpenBao kv
 and read by the catalog Workspace as a var: rejected. Git would stop describing what the cluster
@@ -332,7 +383,7 @@ add a second hand-merge in front of the one that already exists.
 `version.txt` is seeded to the **currently pinned** versions — netbird `0.1.4`, cloudflare
 `0.1.0` — not to the latest published ones. Because `publish.yaml` publishes whatever
 `version.txt` declares, independent of any version decision (D4), the first run on merge
-publishes exactly the two tags `values.yaml` already references. The `plan.md` §1 drift is
+publishes exactly the two tags `values.yaml` already references. The ghcr drift is
 reconciled with no release PR and no version bump. `.release-please-manifest.json` is seeded to
 the same two values so the next real change bumps from there.
 
@@ -342,6 +393,77 @@ the same two values so the next real change bumps from there.
 `VERSION: 0.1.3` re-pushes one fixed tag on every plugin change, which is precisely the
 tag-mutation D3 and D6 exist to prevent. The commented-out body of `.github/workflows/release.yaml`
 is removed along with its `# TODO: Need to replace release pipeline with something else`.
+
+### D10 — The shared `release` task shape lives in a tag file, not in each project
+
+`.moon/tasks/tag-releasable.yml` defines the `release` task once — command, the narrow
+`inputs` of D3, `cache: false`, `runInCI: false` — and each releasable project opts in with
+`tags: [releasable]`. This follows the repo's existing `.moon/tasks/tag-*.yml` convention
+(`tag-fleet.yml`, `tag-pnpm-tool.yml`, …).
+
+It matters more than tidiness: D3's narrow `inputs` are the mechanism that stops a source-only
+change re-pushing a tag, and D6's `cache: false` is what keeps the registry the arbiter. Both
+were duplicated per project, so onboarding a third package meant re-deriving two non-obvious
+properties from scratch — and getting either wrong is silent. Declared once, they are inherited.
+
+### D11 — `openbao-config` becomes a Helm chart so the pins are values, not text
+
+The catalog registration is a `provider-opentofu` `Workspace` carrying inline HCL, and
+`plugin_sha256` was a `vars` entry **inside** that embedded program. A checksum in that position
+can only be changed by textual substitution: there is no path for `yq`, for Renovate, or for a
+reviewer to see that the value is machine-maintained rather than hand-chosen.
+
+So `apps/secret/src/openbao-config` converts from flat manifests to a **local Helm chart** — the
+shape `apps/secret/src/openbao` already uses, and which Fleet auto-detects from `Chart.yaml`:
+
+```
+Chart.yaml                 # no dependencies; a plain local chart
+values.yaml                # plugins.<name>.{version,sha256}  <- the only file self_upgrade writes
+templates/*.yaml           # the 18 manifests, moved verbatim
+```
+
+Only the two plugin manifests reference the values; the other sixteen move unchanged. Verified
+safe before committing to it: `grep -rn '{{'` over the directory found **nothing**, so Helm has
+no sequence to misinterpret in the HCL, the policy documents, or the JWKS config.
+
+`version` is carried in `values.yaml` beside `sha256` even though only `sha256` is interpolated
+into the Workspace. It is what makes the file self-describing — "this checksum is of *that*
+version" — gives `self_upgrade_check` something to compare the init-container tag against, and
+gives a Renovate regex manager a tag to track with a docker datasource.
+
+*Alternative — a ConfigMap consumed via `Workspace.spec.forProvider.varFiles`:* genuinely
+viable, and confirmed supported (`kubectl explain workspace.spec.forProvider.varFiles` on the
+live CRD shows `configMapKeyRef` + `format`). Rejected on two counts: the pins would live as a
+tfvars blob *inside* YAML — better than inline HCL but still not a values file — and it adds a
+second resource the Workspace cannot reconcile without, which is the exact failure mode
+`plugin-cloudflare.yaml`'s own header warns about for this bundle, a `dependsOn` target whose
+stalling blocks everything downstream.
+
+*Alternative — one root-level file rendered into both bundles:* rejected. It removes the
+cross-bundle duplication D5 notes, but replaces a value with committed codegen, and a `--check`
+task is the cheaper way to get the same guarantee.
+
+### D12 — The commit convention is enforced on the PR title, because that is what lands
+
+`commitlint` is enabled two ways, and the split is not redundancy:
+
+| Where | What it checks | Why |
+|---|---|---|
+| Trunk's `commitlint` **action** (commit-msg hook) | each commit message as it is written | fast feedback; catches the mistake at the keyboard |
+| A `pull_request` CI job | the **PR title** | that is the message that reaches `main` |
+
+The repository allows **squash merges only** (`protected-main`'s `allowed_merge_methods:
+["squash"]`) and `squash_merge_commit_title` is `PR_TITLE` — both read from the API. So the
+individual commit messages on a branch never enter `main`'s history; the PR title becomes the
+conventional commit that release-please reads. Linting only the branch commits would enforce the
+convention on exactly the messages that do not matter, and a git hook cannot run in CI at all.
+Hence both, with the CI job on `pull_request: [opened, edited, synchronize, reopened]` so
+retitling a PR re-checks it.
+
+This was listed as out of scope in `proposal.md` ("a repo-wide convention change, independent of
+releasing these two plugins"). That was wrong in one direction: version decisions are *derived*
+from these messages, so a wrongly-typed subject does not merely look untidy, it silently ships
+nothing — which is the same class of bug as D7. It is now in scope.
 
 ## Risks / Trade-offs
 
@@ -363,7 +485,7 @@ is removed along with its `# TODO: Need to replace release pipeline with somethi
   `RELEASES_TOKEN_GITHUB` / `vgijssel-bot` already exists for exactly this. Verify before
   building; if `main` requires a PR, D5 falls back to opening one, which changes no specs.
 
-- **No token currently carries `write:packages`.** `plan.md` records this as why the cloudflare
+- **No *local* credential carries `write:packages`.** That is why the cloudflare
   repository has never existed; `release-local.sh` exists as the workaround. → This is the first
   thing that genuinely needs it. The publish job requests `packages: write`; confirm the job's
   `GITHUB_TOKEN` suffices for `ghcr.io/vgijssel/setup/*` before relying on

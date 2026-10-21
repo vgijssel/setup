@@ -12,6 +12,18 @@
       "matchStrings": [
         "$each(project.metadata.dependencies, function($v, $k) { { \"depName\": $k, \"currentValue\": $v.version, \"datasource\": $v.datasource, \"packageName\": $v.packageName } })"
       ]
+    },
+    {
+      "description": "Surface a published OpenBao plugin version that apps/secret has not pinned yet. Renovate manages the `version` ONLY \u2014 it cannot compute `sha256`, which is the checksum of the plugin BINARY inside the image rather than the image's manifest digest, and a tag moved without its checksum makes OpenBao reject the registration with a bare 'checksum mismatch'. `moon run release:self_upgrade` is what actually writes both together after a publish; this manager exists so a human can see when that has not happened.",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^apps/secret/src/openbao-config/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "(?<depName>[a-z]+):\\s*\\n\\s+version:\\s*(?<currentValue>\\S+)"
+      ],
+      "depNameTemplate": "ghcr.io/vgijssel/setup/openbao-plugin-secrets-{{{depName}}}",
+      "datasourceTemplate": "docker"
     }
   ],
   "pip-compile": {
@@ -40,7 +52,7 @@
       "platformAutomerge": true
     },
     {
-      "description": "Dependency updates to the released OpenBao plugins must be releasable. These two directories are release-please packages whose published versions are immutable, so a change typed with the repo-global `chore` would alter the shipped image (both run on `FROM alpine`) without producing a version bump — and the registry guard in release.sh would then correctly refuse to re-push the existing tag, leaving base-image CVE fixes permanently unpublished. `fix` makes them ship. Note the automerge rule above still does not apply to these 0.x packages, so their PRs land by hand.",
+      "description": "Dependency updates to the released OpenBao plugins must be releasable. These two directories are release-please packages whose published versions are immutable, so a change typed with the repo-global `chore` would alter the shipped image (both run on `FROM alpine`) without producing a version bump \u2014 and the registry guard in release.sh would then correctly refuse to re-push the existing tag, leaving base-image CVE fixes permanently unpublished. `fix` makes them ship. Note the automerge rule above still does not apply to these 0.x packages, so their PRs land by hand.",
       "matchFileNames": [
         "libs/openbao-netbird-plugin/**",
         "libs/openbao-cloudflare-plugin/**"
