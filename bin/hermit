@@ -17,10 +17,28 @@ if [ -z "${HERMIT_STATE_DIR}" ]; then
   esac
 fi
 
-export HERMIT_DIST_URL="${HERMIT_DIST_URL:-https://github.com/cashapp/hermit/releases/download/stable}"
-HERMIT_CHANNEL="$(basename "${HERMIT_DIST_URL}")"
-export HERMIT_CHANNEL
+# Pinned to an exact release instead of the moving "stable" tag. Hermit v0.54.x
+# introduced a "link farm" that it prepends to PATH, which shadows bin/ and makes
+# `uv python find` resolve to a symlink directory with no lib/python3.12 beside
+# it. uv records that directory as `home` in pyvenv.cfg, so CPython falls back to
+# its compiled-in /install prefix and dies with "No module named 'encodings'".
+#
+# HERMIT_CHANNEL stays "stable" even though the URL is version-pinned: hermit
+# resolves its own package as hermit@${HERMIT_CHANNEL} and only knows the
+# "stable"/"canary" channels, so a version-named channel is an unknown package.
+HERMIT_PINNED_VERSION="v0.52.1"
+export HERMIT_DIST_URL="${HERMIT_DIST_URL:-https://github.com/cashapp/hermit/releases/download/${HERMIT_PINNED_VERSION}}"
+export HERMIT_CHANNEL="${HERMIT_CHANNEL:-stable}"
 export HERMIT_EXE=${HERMIT_EXE:-${HERMIT_STATE_DIR}/pkg/hermit@${HERMIT_CHANNEL}/hermit}
+
+# The pinned binary is cached under the channel name, not the version, so a cache
+# restored from before the pin (or from a self-upgrade) keeps serving the wrong
+# version forever. Drop it so the bootstrap below re-downloads the pinned one.
+if [ -x "${HERMIT_EXE}" ] &&
+  ! "${HERMIT_EXE}" version 2>/dev/null | grep -q "^${HERMIT_PINNED_VERSION} "; then
+  echo "Replacing cached hermit ($("${HERMIT_EXE}" version 2>/dev/null | head -1)) with ${HERMIT_PINNED_VERSION}" 1>&2
+  rm -rf "$(dirname "${HERMIT_EXE}")"
+fi
 
 if [ ! -x "${HERMIT_EXE}" ]; then
   echo "Bootstrapping ${HERMIT_EXE} from ${HERMIT_DIST_URL}" 1>&2

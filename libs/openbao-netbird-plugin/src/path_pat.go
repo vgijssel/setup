@@ -50,28 +50,30 @@ func (b *netbirdBackend) pathPATRead(ctx context.Context, req *logical.Request, 
 	}
 
 	tokenName := fmt.Sprintf("%s-%s", config.TokenNamePrefix, name)
-	expiresInSeconds := int(config.TTL.Seconds())
-	if expiresInSeconds < 1 {
-		expiresInSeconds = 86400
-	}
+	// NetBird-side expiry: max_ttl when leased (renewal headroom), ttl when not. This is the
+	// second of the two independent expiries, and it bounds the PAT even if OpenBao loses the
+	// lease entirely.
+	//
+	// DAYS, not seconds — the PAT endpoint validates expires_in to 1..365 and rejects a seconds
+	// value with 422 "expiration has to be between 1 and 365". The setup-key endpoint takes the
+	// same field in SECONDS. See vendorExpiryDays.
+	expiresInDays := vendorExpiryDays(config.ManageLease, config.TTL, config.MaxTTL, 1)
 
 	patResp, err := client.CreatePAT(config.UserID, &CreatePATRequest{
 		Name:      tokenName,
-		ExpiresIn: expiresInSeconds,
+		ExpiresIn: expiresInDays,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating PAT in NetBird: %w", err)
 	}
 
-	resp := b.Secret(secretTypePAT).Response(map[string]interface{}{
-		"token_id":     patResp.PersonalAccessToken.ID,
-		"access_token": patResp.PlainToken,
-	}, map[string]interface{}{
-		"user_id":  config.UserID,
-		"token_id": patResp.PersonalAccessToken.ID,
-	})
-	resp.Secret.TTL = config.TTL
-	resp.Secret.MaxTTL = config.MaxTTL
-
-	return resp, nil
+	return b.leaseResponse(secretTypePAT, name, config.ManageLease, config.TTL, config.MaxTTL,
+		map[string]interface{}{
+			"token_id":     patResp.PersonalAccessToken.ID,
+			"access_token": patResp.PlainToken,
+		},
+		map[string]interface{}{
+			"user_id":  config.UserID,
+			"token_id": patResp.PersonalAccessToken.ID,
+		}), nil
 }

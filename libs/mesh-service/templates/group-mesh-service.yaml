@@ -1,0 +1,21 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+This service's own NetBird group, `svc-<name>` — its identity in the account's ACLs and the
+DESTINATION group of its access policies. The operator creates it via the management API and
+records the id in status.groupID.
+
+One group per service, not one per cluster. A per-cluster group would make every service on that
+cluster reachable by anything allowed to reach any of them, which is the opposite of the
+"reachable only by explicitly named groups" requirement. The `svc-` prefix keeps these
+mechanically distinguishable from the long-lived peer groups (homelab, roaming, secret-k8s,
+network-k8s) that appear as policy SOURCES and are owned by the per-cluster netbird-config
+bundles, not by this chart.
+*/}}
+apiVersion: netbird.io/v1alpha1
+kind: Group
+metadata:
+  name: {{ include "mesh-service.group" . }}
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  name: {{ include "mesh-service.group" . }}

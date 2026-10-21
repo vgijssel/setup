@@ -12,6 +12,7 @@ packages:
       - wget
       - fontconfig
     casks:
+      - bambu-studio
       - beeper
       - google-chrome
       - orbstack

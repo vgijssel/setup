@@ -50,10 +50,10 @@ func (b *netbirdBackend) pathSetupKeyRead(ctx context.Context, req *logical.Requ
 	}
 
 	keyName := fmt.Sprintf("%s-%s", config.NamePrefix, name)
-	expiresInSeconds := int(config.TTL.Seconds())
-	if expiresInSeconds < 1 {
-		expiresInSeconds = 604800
-	}
+	// NetBird-side expiry: max_ttl when leased (renewal headroom), ttl when not — see
+	// vendorExpirySeconds. This is the second of the two independent expiries, and it bounds the
+	// key even if OpenBao loses the lease entirely.
+	expiresInSeconds := vendorExpirySeconds(config.ManageLease, config.TTL, config.MaxTTL, 604800)
 
 	skResp, err := client.CreateSetupKey(&CreateSetupKeyRequest{
 		Name:       keyName,
@@ -67,15 +67,13 @@ func (b *netbirdBackend) pathSetupKeyRead(ctx context.Context, req *logical.Requ
 		return nil, fmt.Errorf("creating setup key in NetBird: %w", err)
 	}
 
-	resp := b.Secret(secretTypeSetupKey).Response(map[string]interface{}{
-		"key_id":     skResp.ID,
-		"setup_key":  skResp.Key,
-		"expires_at": skResp.ExpiresAt,
-	}, map[string]interface{}{
-		"key_id": skResp.ID,
-	})
-	resp.Secret.TTL = config.TTL
-	resp.Secret.MaxTTL = config.MaxTTL
-
-	return resp, nil
+	return b.leaseResponse(secretTypeSetupKey, name, config.ManageLease, config.TTL, config.MaxTTL,
+		map[string]interface{}{
+			"key_id":     skResp.ID,
+			"setup_key":  skResp.Key,
+			"expires_at": skResp.ExpiresAt,
+		},
+		map[string]interface{}{
+			"key_id": skResp.ID,
+		}), nil
 }

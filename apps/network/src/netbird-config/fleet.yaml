@@ -4,13 +4,21 @@
 #     touch shared policy or other peers like PiKVM).
 #   - setupkey-network-k8s.yaml: a reusable SetupKey auto-joining `network-k8s`, used to
 #     enroll this cluster's routing peer(s).
+#   - nbroutingpeer-router.yaml : this cluster's routing peer. UNLIKE the secret cluster's, which
+#     was deleted with the reverse-proxy stack, this one must NOT be removed — the Omada device
+#     exception forwards through it and every ordinary pod gets its overlay route through it. Its
+#     own header states both reasons.
 #   - serviceaccount-router-watchdog.yaml + cronjob-router-watchdog.yaml: a self-heal
 #     watchdog that recycles the NBRoutingPeer (deploy/router) when its netbird daemon
 #     wedges in NeedsLogin/SessionExpired (e.g. after a host VM suspend/resume), which the
 #     daemon cannot recover from on its own and the CR does not surface.
+#   - serviceaccount-router-groups.yaml + cronjob-router-groups.yaml: keeps the routing peer in
+#     `network-k8s`, the group the mesh exposures admit as a source. The operator enrols it into
+#     `network` only and exposes no field to change that, so this is reconciled through the
+#     management API rather than declared.
 # The ClusterProxy (clusterproxy-api-network.yaml) fronts the kube-apiserver over the mesh
 # with per-caller impersonation, consumed via `netbird kubernetes write-kubeconfig` — no
-# custom domain (NetBird ClusterProxy does not support api.network.vgijssel.nl yet).
+# custom domain (NetBird ClusterProxy does not support a custom endpoint for it yet).
 #
 # dependsOn the netbird-operator bundle (label selector, portable across the standalone
 # Fleet -> Rancher GitRepo move) so Fleet only deploys it once the operator's CRDs are

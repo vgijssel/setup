@@ -1,1 +1,6 @@
+# The plugin binary, under BOTH names it can be built as:
+#   openbao-plugin-secrets-netbird  what the Dockerfile and `moon run :build` produce
+#   openbao-netbird-plugin          what a bare `go build ./...` produces (named after the dir)
+# Only the first was listed, so the second ended up as a 21 MB compiled binary tracked in git.
 openbao-plugin-secrets-netbird
+openbao-netbird-plugin

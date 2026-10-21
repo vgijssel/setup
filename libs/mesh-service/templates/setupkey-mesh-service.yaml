@@ -1,0 +1,34 @@
+{{- include "mesh-service.validate" . -}}
+{{/*
+The enrolment key for this service's Envoy pod. Referenced by
+the mesh client in envoyproxy-mesh-service.yaml; the operator mints the key in NetBird and
+stores it in Secret `setup-key-<name>`, which the injected client consumes as NB_SETUP_KEY.
+
+allowExtraDnsLabels: true is REQUIRED, not optional hardening in reverse. Without it the
+management API refuses the extra DNS label the sidecar profile asks for, so the peer keeps only
+its pod-name-derived default name and `<name>.<domain>` resolves to nothing — while every other
+resource here still reports healthy.
+
+ephemeral: true so NetBird reaps the peer after the pod goes away instead of leaving a stale
+registration holding this service's label. Note reaping is on an inactivity grace period, not
+immediate at pod teardown (measured: still registered 20 s after deletion) — which is the second
+reason the EnvoyProxy uses Recreate: during a rollout the outgoing peer is briefly still
+registered, and two peers on one label round-robin.
+
+autoGroups uses localRef, not name: it points at the Group CR this chart renders alongside, so
+the operator resolves an object it can see rather than racing on a name that may not exist in the
+account yet.
+*/}}
+apiVersion: netbird.io/v1alpha1
+kind: SetupKey
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "mesh-service.labels" . | nindent 4 }}
+spec:
+  name: {{ .Values.name }}
+  ephemeral: true
+  allowExtraDnsLabels: true
+  autoGroups:
+    - localRef:
+        name: {{ include "mesh-service.group" . }}
