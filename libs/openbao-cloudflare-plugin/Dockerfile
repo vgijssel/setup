@@ -1,0 +1,15 @@
+FROM --platform=$BUILDPLATFORM golang:1.23.8-alpine3.21 AS builder
+
+ARG TARGETARCH
+
+WORKDIR /build
+
+COPY src/go.mod src/go.sum ./
+RUN go mod download
+
+COPY src/ ./
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o /openbao-plugin-secrets-cloudflare .
+
+FROM alpine:3.24.1
+COPY --from=builder /openbao-plugin-secrets-cloudflare /openbao-plugin-secrets-cloudflare
+ENTRYPOINT ["/openbao-plugin-secrets-cloudflare"]

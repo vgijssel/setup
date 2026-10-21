@@ -1,0 +1,126 @@
+# Fleet bundle for Vault Secrets Operator, deployed to BOTH clusters.
+#
+# It is the lease-aware replacement for External Secrets Operator, which is fully removed — VSO is
+# now the only secret consumer on either cluster. The reason ESO had to go, recorded because it
+# shaped every resource here: an OpenBao secret lease is a CHILD of the auth token that created
+# it, and ESO calls RevokeSelf after every read, so the cascade destroyed each leased credential
+# seconds after it landed in the Secret.
+#
+# ── WHY EACH TARGET CARRIES ITS OWN helm.values ─────────────────────────────────────────────
+# How VSO reaches OpenBao is the one genuinely cluster-specific thing:
+#
+#   secret    kubernetes auth over the in-cluster ClusterIP. OpenBao is local, no mesh hop, and
+#             the login identity is a ServiceAccount token this cluster's own API server signs.
+#   network   JWT auth over the NetBird mesh (jwt-network backend) — OpenBao cannot reach this
+#             cluster's API server, so it validates the token against its live JWKS instead.
+#
+# Both targets declare a full helm.values block rather than one inheriting defaults, because
+# Fleet does not re-render a target that only inherits the base values.
+#
+# ── TOKEN TTL IS LOAD-BEARING FOR BOTH ──────────────────────────────────────────────────────
+# A secret lease is a CHILD of the auth token that created it, so when VSO's login token dies
+# every lease it holds is revoked and the upstream credential deleted. Both OpenBao roles are
+# therefore PERIODIC (tokenPeriod, not tokenTtl) so VSO can renew indefinitely — see
+# ../../../secret/src/openbao-config/role-vault-secrets-operator.yaml and role-network-vso.yaml.
+# A plain tokenTtl would be fine only for a consumer that holds no leases, which is what ESO was.
+#
+# dependsOn: nothing. The operator comes up, fails to authenticate until OpenBao has its role,
+# and retries — whereas depending on `openbao-config` would make this undeployable on the network
+# cluster, where that bundle does not exist.
+labels:
+  fleet.vgijssel.nl/bundle: vault-secrets-operator
+defaultNamespace: vault-secrets-operator
+helm:
+  releaseName: vault-secrets-operator
+targetCustomizations:
+  - name: secret
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: secret
+    helm:
+      values:
+        vault-secrets-operator:
+          defaultVaultConnection:
+            enabled: true
+            # Plain HTTP to the in-cluster ClusterIP: OpenBao runs with tls_disable on this
+            # single-node vind cluster and the traffic never leaves the node. No mesh hop, which
+            # is what lets this cluster bootstrap with the overlay down.
+            address: http://openbao.secret.svc:8200
+          defaultAuthMethod:
+            enabled: true
+            method: kubernetes
+            mount: kubernetes
+            kubernetes:
+              role: vault-secrets-operator
+              # The ServiceAccount whose token is sent to OpenBao. Per the VaultAuth CRD it
+              # "must reside in the consuming secret's namespace" — NOT the operator's — so each
+              # consuming namespace gets its own SA and OpenBao's role binds them explicitly.
+              # A dedicated SA rather than `default`, because this role carries the
+              # lease-management grants (sys/leases/renew|revoke|lookup).
+              serviceAccount: vault-secrets-operator
+            # Explicit rather than a wildcard, so adding a consumer is a visible change. An empty
+            # list confines the default auth to the operator's own namespace, and a
+            # VaultDynamicSecret elsewhere then fails with a puzzling auth error.
+            #
+            # Must stay in step with boundServiceAccountNamespaces on the OpenBao role
+            # (../../../secret/src/openbao-config/role-vault-secrets-operator.yaml): this list
+            # gates which namespaces MAY use the auth, that one gates which can actually log in.
+            allowedNamespaces:
+              - cert-manager
+              - crossplane-system
+              - netbird
+              - netdata
+              - secret
+  - name: network
+    clusterSelector:
+      matchLabels:
+        cluster.vgijssel.nl/name: network
+    helm:
+      values:
+        vault-secrets-operator:
+          defaultVaultConnection:
+            enabled: true
+            # OpenBao lives on the SECRET cluster; this reaches it over the NetBird mesh with a
+            # publicly-trusted certificate and no reverse proxy in between — OpenBao's Envoy pod
+            # is itself a mesh peer (apps/secret/src/mesh-openbao).
+            #
+            # The hostname is FLAT on purpose: `openbao`, not `openbao.secret`. Nothing here names
+            # the cluster that serves it, so OpenBao could move clusters without this changing.
+            #
+            # No mesh client is needed on this pod. The cluster's CoreDNS already forwards to the
+            # NetBird resolver via the routing peer, so an ordinary pod here resolves the name to
+            # the peer's overlay address and routes to it — verified before the cutover: a plain
+            # curl pod reached https://openbao.vpn.blueora.ng/v1/sys/health with NO -k.
+            address: https://openbao.vpn.blueora.ng
+          defaultAuthMethod:
+            enabled: true
+            # JWT, not kubernetes: OpenBao cannot reach this cluster's API server to review a
+            # token, so it validates a projected SA token against the cluster's live JWKS
+            # instead.
+            method: jwt
+            mount: jwt-network
+            jwt:
+              role: network-vso
+              serviceAccount: vault-secrets-operator
+              # Must match boundAudiences on the OpenBao role.
+              tokenAudiences:
+                - openbao
+            # Must stay in step with boundClaims.sub on the OpenBao role
+            # (../../../secret/src/openbao-config/role-network-vso.yaml). boundSubject takes one
+            # value, so that role matches the `sub` claim against a comma-separated list instead —
+            # which is what lets ONE default VaultAuth serve every namespace here, as the secret
+            # cluster gets for free from boundServiceAccountNamespaces.
+            allowedNamespaces:
+              - cert-manager
+              - crossplane-system
+              - external-dns
+              - mongodb
+              - netbird
+              - netdata
+              - omada
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

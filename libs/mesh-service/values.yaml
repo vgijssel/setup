@@ -1,0 +1,272 @@
+# Parameter contract for the shared mesh-service chart. Each per-service bundle sets these via
+# its fleet.yaml `helm.values.mesh-service` block (or its own values.yaml); there are no other
+# knobs. Exposing a new service means writing THIS much and nothing else.
+#
+# `name` and `domain` are REQUIRED and validated in templates/_helpers.tpl — rendering fails
+# loudly if either is empty, so a misconfigured bundle can never emit a certificate for a bare
+# `.<domain>` or a NetBird DNS label built from an empty value.
+
+# ── Identity ───────────────────────────────────────────────────────────────────────────────
+# The service's mesh name. Becomes ALL of: the hostname's first label, the NetBird extra DNS
+# label pinned onto this service's peer, the `svc-<name>` NetBird group, the `<name>-mesh`
+# Gateway, and the Envoy pod label.
+#
+# MUST be globally unique across every cluster in the NetBird account. The namespace is flat on
+# purpose — the name must not encode which cluster runs the service, so a service can move
+# clusters without any consumer changing. A collision does not fail loudly: two peers sharing
+# one extra DNS label ROUND-ROBIN, so consumers would silently land on the wrong service half
+# the time (observed live against the three clusterproxy replicas sharing one label).
+name: ""
+
+# The NetBird account's peer DNS domain. Every exposed service resolves at `<name>.<domain>`
+# from inside the mesh and NOWHERE else. Set account-wide in NetBird (Settings > Networks >
+# DNS Domain) and repeated here because the certificate SAN must match it exactly.
+#
+# The public zone behind this domain MUST NOT contain a wildcard record. Cloudflare wildcards
+# answer at ARBITRARY label depth, so a single `*` would make every mesh hostname publicly
+# resolvable and let public DNS override NetBird's own resolver for those names. Certificates
+# are issued over DNS-01, which needs only a temporary TXT record — no address record for a
+# mesh hostname is ever published.
+domain: ""
+
+# ── Access ─────────────────────────────────────────────────────────────────────────────────
+# NetBird groups whose peers may reach this service. Nothing else should: being enrolled in the
+# account is not meant to grant access by itself. Rendered into one account policy with one rule
+# per protocol, restricted to the ports in `listeners` below, so a port this service did not
+# declare is not reachable even from an allowed group.
+#
+# Groups are referenced by NAME and must already exist in the account (the per-cluster
+# netbird-config bundles create the long-lived ones: homelab, roaming, secret-k8s, network-k8s).
+# This chart creates only its own `svc-<name>` destination group.
+#
+# ⚠️ These restrictions only BITE once the account's built-in `Default` policy is narrowed or
+# removed. `Default` is All <-> All on protocol `all`, bidirectional, so while it exists every
+# enrolled peer reaches every port here regardless of what this list says. See
+# templates/workspace-policy-mesh-service.yaml.
+sourceGroups: []
+
+# ── Listeners ──────────────────────────────────────────────────────────────────────────────
+# What this service answers on. Each entry becomes one Gateway listener per port plus a route of
+# the matching kind, and contributes its ports to the access policy.
+#
+# Because every service is its own peer with its own overlay address, ports need no arbitration
+# with any other service: two services can both own 443. Declared ports are the OBSERVED ports —
+# there is no translation (see the port-shift note in envoyproxy-mesh-service.yaml).
+#
+# Fields:
+#   name       short, unique within this service; becomes the Gateway listener sectionName.
+#   protocol   HTTPS | TLS | TCP | UDP
+#                HTTPS  terminate TLS with this service's certificate, then HTTP to the backend
+#                TLS    pass TLS through untouched (backend terminates, e.g. a device path)
+#                TCP    raw TCP
+#                UDP    raw UDP
+#   port       single port, OR
+#   ports      list of ports sharing one protocol + backend (for contiguous device port ranges;
+#              Gateway API has no port-range concept, so each port is its own listener)
+#   backend.name  in-cluster Service to forward to; must be in this release's namespace
+#   backend.port  backend port. OMIT to reuse the listener port — the common case for raw
+#                 TCP/UDP, where the mesh port and the Service port are the same number.
+#   backend.tls   OPTIONAL, HTTPS listeners only. Present = RE-ENCRYPT to the backend instead of
+#                 forwarding plain HTTP, because the backend terminates TLS itself. Renders a
+#                 BackendTLSPolicy; Envoy then validates the backend's certificate, so this is
+#                 not a "trust anything" switch and there is no skip-verify option on purpose.
+#       .hostname            SNI to send AND the name to validate in the backend's certificate.
+#                            This is whatever name the BACKEND presents. It MAY be the mesh
+#                            hostname — Omada's is, because that controller mounts the same
+#                            shared wildcard this chart serves, which collapses two certificates
+#                            into one — but it does not have to be, and for a backend with its
+#                            own private certificate it will not be.
+#       .caCertificates      `System` to validate against the public root store (the backend holds
+#                            a publicly-trusted certificate), or the name of a ConfigMap in this
+#                            namespace holding `ca.crt` for a private CA.
+#       .portName            The backend Service's port NAME for `backend.port`. Required, and it
+#                            cannot be derived: Gateway API scopes a BackendTLSPolicy by port NAME,
+#                            not number, and a wrong one attaches to NOTHING SILENTLY — Envoy keeps
+#                            sending plaintext to a TLS-only backend and requests hang with no
+#                            status condition anywhere (measured; see the template header).
+#                            Find it with:
+#                              kubectl get svc <backend.name> \
+#                                -o jsonpath='{.spec.ports[?(@.port==<backend.port>)].name}'
+#
+# Example — HTTPS only (the OpenBao shape):
+#   listeners:
+#     - name: https
+#       protocol: HTTPS
+#       port: 443
+#       backend: {name: openbao, port: 8200}
+#
+# Example — HTTPS plus raw TCP and UDP, with a TLS-terminating backend (the Omada shape):
+#   listeners:
+#     - name: https
+#       protocol: HTTPS
+#       port: 443
+#       backend:
+#         name: omada-omada-controller
+#         port: 8043
+#         tls: {hostname: omada.vpn.blueora.ng, caCertificates: System, portName: manage-https}
+#     - name: device-tcp
+#       protocol: TCP
+#       ports: [29811, 29812, 29813, 29814, 29815, 29816, 29817]
+#       backend: {name: omada-omada-controller}
+#     - name: device-udp
+#       protocol: UDP
+#       ports: [19810, 27001, 29810]
+#       backend: {name: omada-omada-controller}
+#
+# WHY THAT OMADA ENTRY TARGETS :8043 RATHER THAN THE CONTROLLER'S PLAIN-HTTP :8088 — a trap worth
+# knowing, because :8088 looks like the obvious choice and silently breaks the UI. Omada's HTTP
+# listener answers every request with an ABSOLUTE redirect to its own HTTPS port
+# (`302 Location: https://<host>:8043/`). Behind a mesh peer that becomes
+# `https://omada.vpn.blueora.ng:8043/`, a port the Gateway does not listen on, so the browser
+# dead-ends. Forwarding to the backend's HTTPS port instead means the controller sees HTTPS on
+# its HTTPS port and emits no redirect at all — one port, the mesh certificate, no interstitial.
+# A TLS *passthrough* listener on :8043 would also connect, but would serve the backend's own
+# certificate under the mesh hostname: a name mismatch, and a direct violation of the
+# capability's "client validates the certificate with no override".
+listeners: []
+
+# ── Certificate ────────────────────────────────────────────────────────────────────────────
+# Where to read the TLS keypair from. There is NO per-service issuance: one wildcard certificate
+# for `*.<domain>` is issued once on the secret cluster (apps/secret/src/mesh-tls) and published
+# to this OpenBao path, and every exposure on both clusters reads that same entry. Adding a
+# service involves no ACME interaction, no DNS-01 challenge and no issuer.
+#
+# The entry must hold `tls.crt` and `tls.key` under exactly those names. Vault Secrets Operator
+# mirrors it into a `kubernetes.io/tls` Secret named `<name>-mesh-tls`, which is what the Gateway
+# references.
+#
+# Parameterised so a cluster with a different store layout is a values change rather than a
+# template change. There is deliberately no `certIssuer` knob any more — nothing in this chart
+# talks to cert-manager.
+tls:
+  mount: kv
+  path: mesh-tls
+
+# ── Mesh client ────────────────────────────────────────────────────────────────────────────
+# The NetBird client that gives this service's Envoy pod its peer identity. Run by this chart as
+# a native sidecar rather than injected by the operator's SidecarProfile, so it can carry a
+# `preStop` that deregisters the peer at teardown — see the block comment in
+# templates/envoyproxy-mesh-service.yaml for why that is not optional.
+#
+# Pinned by digest. Keep in step with the operator's own client version
+# (third_party/vendir/charts/netbird-operator): the operator injects this same image elsewhere in
+# the repo, and a split between the two is the kind of difference that only shows up as a subtle
+# protocol incompatibility against management.
+netbirdImage: ghcr.io/netbirdio/netbird:0.72.4@sha256:6c6c20baffae4a3ec50f29ec9361608a420625185505e8cd6f0c44d71c5d4798
+
+# NetBird management API. Only change this for a self-hosted control plane.
+netbirdManagementUrl: https://api.netbird.io
+
+# ── Rollout window (how long this service is unreachable while its pod is replaced) ────────
+# The hostname is bound to EXACTLY ONE peer (1 replica + Recreate + preStop deregister — see
+# templates/envoyproxy-mesh-service.yaml), so a replacement is a full stop-then-start and the
+# service is simply down for its duration. That duration is dominated by how long the OUTGOING
+# pod takes to disappear, because Recreate will not start the replacement until it has.
+#
+# MEASURED 2026-10-06, BEFORE THESE KNOBS EXISTED: a `rollout restart` of the Omada exposure took
+# ~6-7 MINUTES end to end. Envoy's own drain was not the cause — the shutdown-manager reported
+# "drain sequence completed" 11 seconds in, with zero downstream connections — the pod then sat
+# Terminating for the WHOLE of Envoy Gateway's default 360s terminationGracePeriodSeconds and was
+# killed at the deadline. The hostname resolved to nothing for that entire window.
+#
+# That was invisible until a device fleet depended on it. It is now the binding constraint: the
+# Omada controller declares `Inform timeout` at ~8 minutes (measured in the 2026-10-05 outage), so
+# the default window left almost no margin — one slow rollout and all 7 devices drop.
+#
+# MEASURED AFTER, same test: old pod gone at t+54s, public record repointed AND serving `200` with
+# a valid certificate at **t+81s**. So the window went from ~6-7 minutes to ~81 seconds, which is
+# roughly 6x inside the device budget instead of grazing it.
+#
+# So the drain is bounded and the grace period is sized to it rather than left at a default
+# chosen for long-lived connection draining. The ordering requirement is the thing to preserve if
+# these are ever retuned: terminationGracePeriodSeconds MUST exceed drainTimeout, and must leave
+# room for the two preStop hooks after it — the mesh client's `netbird deregister` (measured ~1s)
+# and the publicDns record withdraw (one API call). Too short and the pod is SIGKILLed mid-hook,
+# which leaves a stale peer holding this service's DNS label — the exact failure the preStop
+# exists to prevent, and a far worse outcome than a slow rollout.
+rollout:
+  # Hard cap on Envoy's graceful drain. Without a cap Envoy waits for downstream connections to
+  # reach zero, and the device protocols on this mesh hold long-lived TCP sessions that may never
+  # close on their own. A device reconnects by itself, so failing over fast beats draining
+  # politely.
+  drainTimeout: 10s
+  # Minimum drain, allowing endpoint deprogramming to finish before the listeners go away.
+  minDrainDuration: 2s
+  # Must be > drainTimeout and leave room for the preStop hooks. 45s against a 10s drain and ~2s
+  # of hooks is generous; the previous effective value was 360s.
+  terminationGracePeriodSeconds: 45
+
+# ── Public DNS (OFF by default — opt in only for non-peer devices) ─────────────────────────
+# Publishes this service's CURRENT overlay address as a public A record for `<name>.<domain>`,
+# so consumers that CANNOT run a mesh client can use the same hostname every mesh peer uses.
+# Leave it `false` unless such consumers exist: a mesh hostname is not meant to resolve publicly,
+# and every service that does not need this keeps that property.
+#
+# WHAT THIS IS FOR, with the one real example: the TP-Link Omada gateway/switches/APs run stock
+# firmware with no way to install a mesh client, and they have to dial the controller by name.
+# Before this existed they used a SEPARATE publicly-resolvable hostname pointing at a pinned
+# ClusterIP, which needed a NetBird network resource, a pinned Service IP and an in-cluster
+# CoreDNS split horizon to hold together — three mechanisms that existed only to give one
+# consumer a second name. Publishing the peer address instead deletes all three.
+#
+# HOW THE DEVICES REACH AN OVERLAY ADDRESS: they do not route to it themselves. Their LAN gateway
+# carries a static route for the overlay range (`100.65.0.0/16`) via a routing peer on the LAN,
+# which forwards into the mesh. The range is routed as a whole ON PURPOSE — it covers every peer
+# address this or any other service will ever be assigned, so a new peer address never needs a
+# routing change, only a DNS one.
+#
+# WHY IT IS SAFE FOR PEERS, verified rather than assumed (openspec 12.1): a public record does
+# NOT shadow NetBird's resolver. With a deliberately wrong public A record live for a real peer
+# name, a peer's system resolver, an in-cluster peer and an ordinary in-cluster pod all still
+# returned the overlay address while public resolvers returned the synthetic one. NetBird's
+# match-domain wins, so opting in changes nothing for existing consumers.
+#
+# ⚠️ WHAT YOU ARE ACCEPTING BY ENABLING THIS. The devices' path now terminates at THIS pod. With
+# the old separate hostname they reached the backing workload's Service directly, so an outage of
+# this Envoy pod left them connected; now it takes them down too. That is the price of one
+# hostname, and it is why the record is rewritten on every pod start rather than left to a
+# periodic scan — the replacement must be reachable again before the consumer gives up. For the
+# Omada fleet the budget is the controller's ~8-minute inform timeout, against a measured
+# peer-address change rate of roughly one every few days.
+#
+# ⚠️ REQUIRES an external-dns in THIS cluster with `crd` in its sources and, for the push path,
+# `triggerLoopOnEvent: true`. Nothing here validates that: with no such external-dns the
+# DNSEndpoint is written and simply never published, which looks like a DNS failure rather than a
+# missing dependency. The secret cluster runs no external-dns at all, so this cannot be enabled
+# for an exposure there without deploying one first.
+publicDns:
+  enabled: false
+  # Cloudflare's floor for a DNS-only record is 60s; anything lower is silently raised. This is
+  # the tail on a peer-address change, so it is deliberately at that floor rather than default.
+  recordTTL: 60
+  # How often the publisher re-reads the local WireGuard address. This is NOT how the record gets
+  # written in the normal case — the write happens as soon as the interface appears at pod start,
+  # which is the only moment the address normally changes. The loop exists because the mesh client
+  # is a `restartPolicy: Always` sidecar: if it crashes and re-enrols, the pod KEEPS RUNNING with
+  # a brand-new overlay address and nothing else would notice. It costs one `ip addr` read per
+  # interval and touches the API only when the address actually differs.
+  resyncSeconds: 15
+  # Same image and digest as `watchdog.image` below, and for the same reason: the publisher is a
+  # /bin/sh script driving kubectl, and the distroless kubectl images have no shell. Kept as its
+  # own value so this feature does not inherit `watchdog.enabled`'s lifecycle; bump both together.
+  image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
+
+# ── Recovery ───────────────────────────────────────────────────────────────────────────────
+# Self-heal watchdog for a wedged mesh client. The client authenticates once at pod
+# start; if management later forces a re-auth (host suspend/resume, login expiry) it drops to a
+# terminal state and never recovers on its own, taking the service offline silently. Disabling
+# account-wide peer login expiration removes the dominant cause; this stays as defence in depth
+# because suspend/resume still triggers it.
+watchdog:
+  enabled: true
+  schedule: "*/5 * * * *"
+  # How long to wait before re-sampling a client that reported a dead session, and the single
+  # most important number here. `NeedsLogin` is what a HEALTHY daemon prints for the first few
+  # seconds of its life, identically to a wedged one, so a restart on one sample recycles pods
+  # that were about to be fine — and the replacement is young at the next tick too, which is a
+  # loop. Must comfortably exceed a normal login; measured at a few seconds, so this has a lot of
+  # headroom. The cost is one sleep on a path that should almost never run.
+  confirmSeconds: 45
+  # alpine/kubectl, NOT registry.k8s.io/kubectl or rancher/kubectl — those are distroless with no
+  # shell, and the detection logic runs in /bin/sh. Pinned to the multi-arch index digest.
+  image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883

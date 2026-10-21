@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -235,6 +236,49 @@ func TestClientErrorHandling(t *testing.T) {
 	_, err := client.CreatePAT("user-123", &CreatePATRequest{Name: "test", ExpiresIn: 3600})
 	if err == nil {
 		t.Fatal("expected error for 403 response")
+	}
+}
+
+// Path segments come from engine config and lease data as free-form strings, so a value
+// containing "/" or "?" must not be able to retarget the call at a different NetBird endpoint.
+func TestPathSegmentsAreEscaped(t *testing.T) {
+	var gotPath, gotQuery string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// EscapedPath, not Path: Path is already percent-decoded, so it cannot distinguish a
+		// literal "/" in a segment from a separator.
+		gotPath = r.URL.EscapedPath()
+		gotQuery = r.URL.RawQuery
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client := NewNetBirdClient(server.URL, "test-token", 5*time.Second)
+	if err := client.DeletePAT("../../setup-keys", "evil?admin=1"); err != nil {
+		t.Fatalf("DeletePAT: %v", err)
+	}
+
+	if gotPath != "/api/users/..%2F..%2Fsetup-keys/tokens/evil%3Fadmin=1" {
+		t.Errorf("path segments were not escaped, got: %s", gotPath)
+	}
+	if gotQuery != "" {
+		t.Errorf("a path segment leaked into the query string: %s", gotQuery)
+	}
+}
+
+func TestErrorBodyIsTruncated(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(strings.Repeat("x", 4096)))
+	}))
+	defer server.Close()
+
+	client := NewNetBirdClient(server.URL, "bad-token", 5*time.Second)
+	_, err := client.CreatePAT("user-123", &CreatePATRequest{Name: "test", ExpiresIn: 1})
+	if err == nil {
+		t.Fatal("expected error for 403 response")
+	}
+	if !strings.HasSuffix(err.Error(), "…") || len(err.Error()) > 512 {
+		t.Errorf("expected a truncated error body, got %d chars: %s", len(err.Error()), err.Error())
 	}
 }
 

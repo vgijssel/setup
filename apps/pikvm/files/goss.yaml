@@ -4,11 +4,26 @@
 # prometheus metric per assertion. See apps/pikvm/SPEC.md for the contract.
 #
 # The dns/addr resources below rely on goss seeing systemd-resolved's stub resolver
-# (127.0.0.53) -- goss-serve.service binds the stub resolv.conf into the unit so goss's
-# Go resolver sees the box-wide resolution: omada.network.vgijssel.nl is a public Cloudflare
-# A record pointing at Omada's pinned in-cluster ClusterIP (published by external-dns), and
-# that ClusterIP is routed over NetBird, so the checks exercise real mesh reachability. goss
-# manages its own per-check timeouts.
+# (127.0.0.53) -- goss-serve.service binds the stub resolv.conf into the unit so goss's Go
+# resolver sees the box-wide resolution. This box is a NetBird peer, so `omada.vpn.blueora.ng`
+# resolves through NetBird's own resolver to the exposure's current overlay address. goss manages
+# its own per-check timeouts.
+#
+# THE HOSTNAME IS `omada.vpn.blueora.ng`, the mesh exposure. Rewritten 2026-10-07 when the old
+# device path was deleted: these checks previously asserted `omada.blueora.ng` on the controller's
+# own web ports via a pinned ClusterIP (`10.96.0.20`), and every one of them would now fail --
+# that Service, its NBResource, its CoreDNS override, its certificate and its public record are
+# all gone. Two earlier renames, recorded for anyone reading old logs or metrics:
+# `omada.network.vgijssel.nl` -> `omada.blueora.ng` (2026-10-06) -> retired in favour of the mesh
+# name (2026-10-07).
+#
+# THIS CONTRACT IS LOAD-BEARING AGAIN, which it briefly was not. The physical fleet's packets are
+# forwarded by THIS box into the mesh, so a failure here genuinely does implicate the device path
+# -- unlike the intermediate state where the devices had already moved to the mesh while these
+# checks still probed the old ClusterIP. If it ever disagrees with reality, trust the devices
+# (`omada.device` in MongoDB) over either side, and re-read section 7b of the openspec change:
+# a health contract that contradicts a just-changed config has historically been the witness,
+# not the straggler.
 command:
   # 1. NetBird management plane is connected (the mesh is up).
   netbird-connected:
@@ -27,35 +42,40 @@ command:
     stdout:
       - "2147483648"
 
-# 2. Omada's public hostname resolves (Cloudflare A -> pinned ClusterIP, mesh-routed).
+# 2. Omada's mesh hostname resolves. This box is a NetBird peer, so it resolves this through
+#    NetBird's own resolver to the exposure's current overlay address -- NOT through public DNS,
+#    even though a public A record also exists for the benefit of the non-peer devices.
 dns:
-  omada.network.vgijssel.nl:
+  omada.vpn.blueora.ng:
     resolvable: true
 
-# 3. TCP reachability to the Omada controller on every documented TCP port, reached at its
-#    real hostname omada.network.vgijssel.nl over NetBird cross-cluster routing.
-#    Ports mirror apps/network/src/omada/templates/service-omada.yaml (TCP only -- the UDP
-#    27001/29810/19810 entries are L2-only discovery and cannot be connect-tested).
+# 3. TCP reachability to the Omada controller at its mesh hostname, which is THE path the
+#    physical devices depend on: their packets are forwarded by this box into the mesh and
+#    masqueraded to its overlay address, so these checks exercise the same hops they do.
+#
+#    THE PORT SET IS THE EXPOSURE'S, NOT THE CONTROLLER'S, and that is the point. The mesh peer
+#    binds only what apps/network/src/mesh-omada/fleet.yaml declares: 443 for the UI plus the raw
+#    device ports. It deliberately does NOT bind 8088/8043/8843 -- those are the controller's own
+#    web ports, which the exposure terminates on 443 and re-encrypts to internally, so asserting
+#    them here would fail by design. (The UDP 19810/27001/29810 listeners cannot be
+#    connect-tested; `nc -zu` reports success unconditionally, so they are verified from the
+#    receiving end via Envoy's downstream session counters instead.)
 addr:
-  tcp://omada.network.vgijssel.nl:8088:      # manage-http
+  tcp://omada.vpn.blueora.ng:443:      # admin UI (mesh wildcard terminated here)
     reachable: true
-  tcp://omada.network.vgijssel.nl:8043:      # manage-https
+  tcp://omada.vpn.blueora.ng:29811:    # manager-v1
     reachable: true
-  tcp://omada.network.vgijssel.nl:8843:      # portal-https
+  tcp://omada.vpn.blueora.ng:29812:    # adopt-v1
     reachable: true
-  tcp://omada.network.vgijssel.nl:29811:     # manager-v1
+  tcp://omada.vpn.blueora.ng:29813:    # upgrade-v1
     reachable: true
-  tcp://omada.network.vgijssel.nl:29812:     # adopt-v1
+  tcp://omada.vpn.blueora.ng:29814:    # manager-v2
     reachable: true
-  tcp://omada.network.vgijssel.nl:29813:     # upgrade-v1
+  tcp://omada.vpn.blueora.ng:29815:    # transfer-v2
     reachable: true
-  tcp://omada.network.vgijssel.nl:29814:     # manager-v2
+  tcp://omada.vpn.blueora.ng:29816:    # rtty
     reachable: true
-  tcp://omada.network.vgijssel.nl:29815:     # transfer-v2
-    reachable: true
-  tcp://omada.network.vgijssel.nl:29816:     # rtty
-    reachable: true
-  tcp://omada.network.vgijssel.nl:29817:     # device-monitor
+  tcp://omada.vpn.blueora.ng:29817:    # device-monitor
     reachable: true
 
 # 4. The NetBird systemd instance is enabled (survives reboot) and running.

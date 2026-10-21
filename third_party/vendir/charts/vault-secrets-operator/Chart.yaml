@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: 1.6.0
+description: Official Vault Secrets Operator Chart
+kubeVersion: '>=1.21.0-0'
+name: vault-secrets-operator
+sources:
+- https://github.com/hashicorp/vault-secrets-operator
+type: application
+version: 1.6.0
