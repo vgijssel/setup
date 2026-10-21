@@ -1,0 +1,11 @@
+.venv
+dist
+.pytest_cache
+.ruff_cache
+
+# Apollo's stock part, kept on disk as the reference the model was measured
+# against. It is 183 MB of R0.5 dimple tessellation (3 674 660 triangles) and
+# this repo has no git-lfs, so it stays untracked. Re-download from
+# https://www.printables.com/model/1349017 (R_PRO-1_Case.stl) if lost; every
+# dimension taken off it is recorded in src/apollo_r_pro_1_case/params.py.
+reference/*.stl

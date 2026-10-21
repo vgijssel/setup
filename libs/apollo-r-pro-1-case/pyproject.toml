@@ -1,0 +1,19 @@
+[project]
+name = "apollo-r-pro-1-case"
+version = "0.1.0"
+description = "Parametric CadQuery remodel of the Apollo R-PRO-1 case: ceiling mountable, taller, with a MeanWell IRM-10-5 bay"
+requires-python = ">=3.12"
+dependencies = ["cadquery==2.8.0"]
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.4", "ruff==0.14.14"]
+
+[project.scripts]
+build-case = "apollo_r_pro_1_case.cli:main"
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/apollo_r_pro_1_case"]

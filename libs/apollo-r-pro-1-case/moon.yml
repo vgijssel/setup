@@ -1,0 +1,38 @@
+language: python
+layer: library
+tags:
+  - python
+
+# `build` replaces the `uv build` wheel task inherited from the python tag: this
+# project's artifact is geometry, not a distribution. It writes the printable
+# files to dist/ -- open dist/apollo-r-pro-1-ceiling-case.3mf in Bambu Studio.
+tasks:
+  install:
+    command: uv sync --all-extras
+    inputs:
+      - pyproject.toml
+      - uv.lock
+    options:
+      cache: true
+
+  build:
+    command: uv run build-case --out dist
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_configs)"
+    outputs:
+      - dist
+    options:
+      cache: true
+      mergeArgs: replace
+      mergeInputs: replace
+      mergeOutputs: replace
+
+  lint:
+    command: uv run --all-extras ruff check .
+    inputs:
+      - "@files(python_sources)"
+      - "@files(python_tests)"
+      - "@files(python_configs)"
+    options:
+      cache: true
