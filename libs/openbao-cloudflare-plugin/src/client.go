@@ -15,6 +15,11 @@ import (
 // future enterprise/gateway endpoint) can point elsewhere.
 const DefaultAPIURL = "https://api.cloudflare.com/client/v4"
 
+// maxResponseBytes caps how much of an API response is read into memory, so a hostile or
+// malfunctioning endpoint cannot make the plugin allocate without bound. The headroom is for the
+// unpaginated permission-group listing, which returns every group in one response.
+const maxResponseBytes = 8 << 20
+
 // TokenScope names which of Cloudflare's two token APIs the parent credential may use. It is
 // configured EXPLICITLY (config/root.token_scope) rather than inferred from whether an account
 // id happens to be set: the two are not interchangeable, picking the wrong one fails with an
@@ -266,7 +271,7 @@ func (c *CloudflareClient) doRequest(method, url string, body interface{}) (json
 	}
 	defer resp.Body.Close()
 
-	respBody, err := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 	if err != nil {
 		return nil, fmt.Errorf("reading response body: %w", err)
 	}
