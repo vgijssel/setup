@@ -16,7 +16,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: coder-logstream-kube-role
+  name: {{ $.Values.rbac.roleName }}
   namespace: {{ . }}
 rules:
 {{ include "coder-logstream-kube.rules" . | nindent 2 }}
@@ -24,12 +24,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: coder-logstream-kube-rolebinding
+  name: {{ $.Values.rbac.roleBindingName }}
   namespace: {{ . }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: coder-logstream-kube-role
+  name: {{ $.Values.rbac.roleName }}
 subjects:
 - kind: ServiceAccount
   name: {{ $.Values.serviceAccount.name | quote }}
@@ -40,18 +40,18 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: coder-logstream-kube-role
+  name: {{ $.Values.rbac.roleName }}
 rules:
 {{ include "coder-logstream-kube.rules" . | nindent 2 }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: coder-logstream-kube-rolebinding
+  name: {{ $.Values.rbac.roleBindingName }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: coder-logstream-kube-role
+  name: {{ $.Values.rbac.roleName }}
 subjects:
 - kind: ServiceAccount
   name: {{ .Values.serviceAccount.name | quote }}
@@ -68,7 +68,7 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: coder-logstream-kube
+  name: {{ .Release.Name }}
 spec:
   # This must remain at 1 otherwise duplicate logs can occur!
   replicas: 1
@@ -82,6 +82,12 @@ spec:
         {{- with .Values.labels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+      {{- if .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.metrics.port | quote }}
+        prometheus.io/path: "/metrics"
+      {{- end }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name | quote }}
       restartPolicy: Always
@@ -111,13 +117,38 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - /coder-logstream-kube
+          {{- with .Values.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.metrics.enabled }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+          {{- end }}
           resources: {{ toYaml .Values.resources | nindent 12 }}
           env:
             - name: CODER_URL
               value: {{ .Values.url }}
+            {{- if .Values.metrics.enabled }}
+            - name: CODER_LOGSTREAM_METRICS_ADDR
+              value: ":{{ .Values.metrics.port }}"
+            {{- else }}
+            - name: CODER_LOGSTREAM_METRICS_ADDR
+              value: ""
+            {{- end }}
             {{- if .Values.namespaces }}
             - name: CODER_NAMESPACES
               value: {{ join "," .Values.namespaces }}
+            {{- end }}
+            {{- if .Values.fieldSelector }}
+            - name: CODER_FIELD_SELECTOR
+              value: {{ .Values.fieldSelector | quote }}
+            {{- end }}
+            {{- if .Values.labelSelector }}
+            - name: CODER_LABEL_SELECTOR
+              value: {{ .Values.labelSelector | quote }}
             {{- end }}
             {{- if .Values.image.sslCertFile }}
             - name: SSL_CERT_FILE
