@@ -17,9 +17,16 @@ if [ -z "${HERMIT_STATE_DIR}" ]; then
   esac
 fi
 
-export HERMIT_DIST_URL="${HERMIT_DIST_URL:-https://github.com/cashapp/hermit/releases/download/stable}"
-HERMIT_CHANNEL="$(basename "${HERMIT_DIST_URL}")"
-export HERMIT_CHANNEL
+# Pinned to an exact release instead of the moving "stable" tag. Hermit v0.54.x
+# prepends an ephemeral per-process env dir to PATH, which shadows bin/ and makes
+# `uv python find` return a path that no longer exists once the launcher exits,
+# producing broken venvs. See .devcontainer goss failures for starship/supervisord.
+#
+# HERMIT_CHANNEL stays "stable" even though the URL is version-pinned: hermit
+# resolves its own package as hermit@${HERMIT_CHANNEL} and only knows the
+# "stable"/"canary" channels, so a version-named channel is an unknown package.
+export HERMIT_DIST_URL="${HERMIT_DIST_URL:-https://github.com/cashapp/hermit/releases/download/v0.52.1}"
+export HERMIT_CHANNEL="${HERMIT_CHANNEL:-stable}"
 export HERMIT_EXE=${HERMIT_EXE:-${HERMIT_STATE_DIR}/pkg/hermit@${HERMIT_CHANNEL}/hermit}
 
 if [ ! -x "${HERMIT_EXE}" ]; then
