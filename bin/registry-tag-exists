@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# registry-tag-exists <ref> — ask the registry whether an image reference already exists,
+# and answer in three states rather than two.
+#
+#   exit 0   present              caller must SKIP and succeed
+#   exit 10  positively absent    caller may PUBLISH
+#   exit 1   ambiguous            caller must FAIL, having published nothing
+#
+# WHY THREE STATES. `regctl manifest head` cannot distinguish failure modes by exit code:
+# tag-404, unknown-repository and host-unreachable all exit 1, and only "exists" exits 0.
+# A two-state reading of that ("rc != 0 means it isn't there, go ahead and push") has a
+# specific and bad failure: a transient probe failure followed by a SUCCESSFUL push
+# re-pushes a tag that already exists, giving it a new digest — and every `plugin_sha256`
+# pinned against the old content (apps/secret/src/openbao-config/plugin-*.yaml) then fails
+# OpenBao's catalog registration with a bare "checksum mismatch". So only a positively
+# identified absence authorises a push; ambiguity is a failure.
+#
+# The distinction has to come from stderr. Measured against real references with regctl
+# 0.11.1 (see openspec/changes/release-please-openbao-plugins/design.md, task 1.4):
+#
+#   exists          -> rc 0, digest on stdout
+#   tag absent      -> "request failed: not found [http 404]:"
+#   repo absent     -> "request failed: not found [http 404]:"   (ghcr; see below)
+#   host unknown    -> "dial tcp: lookup ...: no such host"
+#
+# Two notes on ghcr specifically:
+#
+#   - It never emits NAME_UNKNOWN; an unknown repository is also `http 404`. The
+#     NAME_UNKNOWN branch below is for registries that are spec-compliant here, and is
+#     dead code on ghcr — the `http 404` match is what actually carries the contract.
+#   - It answers `http 404` for a repository that exists but is PRIVATE and probed
+#     without credentials: it does not distinguish "absent" from "not yours". So an
+#     unauthenticated probe of a private published tag reads as absent. That is
+#     survivable rather than correct — the push that follows is unauthenticated too and
+#     fails with `denied`, so no tag is mutated. The invariant this helper relies on is
+#     that the probe and the push use the SAME credentials; callers must authenticate
+#     before probing, which .github/workflows/publish.yaml does.
+set -euo pipefail
+
+if [[ "$#" -ne 1 ]] || [[ -z "${1:-}" ]]; then
+    printf 'usage: registry-tag-exists <image-ref>\n' >&2
+    exit 1
+fi
+
+REF="$1"
+
+# The probe's own stderr is the signal, so capture it and keep the digest off stdout.
+# `set +e` around the call only: a non-zero rc here is data, not an error.
+set +e
+err="$(regctl manifest head "${REF}" 2>&1 >/dev/null)"
+rc=$?
+set -e
+
+if [[ "${rc}" -eq 0 ]]; then
+    printf '==> %s is already published, skipping\n' "${REF}" >&2
+    exit 0
+fi
+
+if printf '%s' "${err}" | grep -qE 'http 404|NAME_UNKNOWN'; then
+    printf '==> %s is absent from the registry\n' "${REF}" >&2
+    exit 10
+fi
+
+printf 'registry probe for %s failed, and NOT with a 404 — refusing to treat this as\n' "${REF}" >&2
+printf 'permission to publish, because re-pushing an existing tag would change its digest\n' >&2
+printf 'and invalidate every plugin_sha256 pinned against it. The probe said:\n' >&2
+printf '  %s\n' "${err}" >&2
+exit 1

@@ -1,0 +1,103 @@
+# Publish whatever each package's version.txt declares and is missing from the registry, then
+# propagate the resulting pins to apps/secret.
+#
+# THIS WORKFLOW READS NONE OF RELEASE-PLEASE'S OUTPUTS, deliberately. release-please is a
+# label state machine, not a function of repo state: a merged release PR carries
+# `autorelease: pending`, tagging strips it, and on a re-run no candidate PR remains — so
+# `releases_created` is false and `paths_released` is empty. Anything gated on them is skipped
+# and the workflow GOES GREEN HAVING PUBLISHED NOTHING. Instead this asks the registry what is
+# missing and fixes it, which makes three things true:
+#
+#   - re-running the WHOLE workflow after a failure is correct, not just "re-run failed jobs";
+#   - GITHUB_TOKEN's push-event recursion guard stops being fatal — if a release-PR merge does
+#     not fire `push`, this converges on the next push or on the nightly run;
+#   - the nightly schedule is free, because the work is idempotent.
+#
+# The two release tasks are named EXPLICITLY rather than invoked as `moon run :release`, which
+# would also fire the broken fleet-mcp / devcontainer release scripts and the carved-out
+# talos-image.
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+  # Nightly convergence: anything declared but unpublished gets another attempt, and a healthy
+  # repo is a silent no-op. A version that is declared but unpublishable therefore alerts every
+  # night, which is the intended behaviour — publishing nothing must never read as success.
+  schedule:
+    - cron: 17 3 * * *
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+# Serialise: two runs would race on the pin commit below, and cancelling mid-run could abort
+# between a successful push and the commit that records its checksum.
+concurrency:
+  group: publish-main
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish plugin images and propagate pins
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history: the pin commit below is pushed to main, and a shallow clone cannot
+          # rebase onto it.
+          fetch-depth: 0
+          # vgijssel-bot, because the pin commit is pushed straight to the protected `main`.
+          # The `protected-main` ruleset requires a PR and signed commits, and its only
+          # bypass actor is the `bot` team, whose sole member is vgijssel-bot.
+          token: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+
+      - uses: ./.github/actions/setup
+
+      # Both the registry PROBE and the push must use the same credentials. ghcr answers
+      # `http 404` for a private repository probed anonymously — indistinguishable from
+      # absent — so an unauthenticated probe would misread a published private tag.
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish plugin images
+        run: |
+          moon run \
+            openbao-netbird-plugin:release \
+            openbao-cloudflare-plugin:release
+
+      # Only after BOTH publishes succeed. The pin commit moves each init-container image tag
+      # and its matching plugin_sha256 together, because OpenBao rejects a registration whose
+      # checksum does not describe the binary it is handed and reports only "checksum
+      # mismatch". bin/openbao-plugin-pin commits nothing when the pins are already correct.
+      #
+      # Whether it committed is read from the SHA moving, not from a diff against a remote
+      # ref, so the "nothing changed" path cannot be confused by a stale origin/main.
+      #
+      # The rebase before pushing matters: a push-triggered run is detached at the commit that
+      # triggered it, and release-please may have landed its own commit since. A conflict here
+      # fails loudly rather than force-pushing, and the nightly run then converges.
+      - name: Propagate consumer pins
+        run: |
+          git config user.name vgijssel-bot
+          git config user.email 147037532+vgijssel-bot@users.noreply.github.com
+
+          before="$(git rev-parse HEAD)"
+          bin/openbao-plugin-pin
+          after="$(git rev-parse HEAD)"
+
+          if [ "${before}" = "${after}" ]; then
+            echo "Pins already describe the published images; nothing to push."
+            exit 0
+          fi
+
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main

@@ -30,6 +30,62 @@ See `proposal.md` — Why. The constraints that shape the approach, all verified
   `release.yaml` is commented out; `renovate.json:5` sets `semanticCommitType: "chore"`
   globally.
 
+### Pre-flight results (tasks 1.1–1.4, measured 2026-10-21)
+
+All four checks were run before any code was written; none invalidated the design.
+
+**1.1 — `sha256` is required.** OpenBao v2.5.5 (`028992583c`, the running server) rejects a
+catalog registration without it:
+
+```
+PUT /v1/sys/plugins/catalog/secret/zz-preflight-nosha  →  400  * missing SHA-256 value
+```
+
+and the entry is not created. D5's write-back mechanism is therefore necessary, not optional.
+
+**1.2 — `main` is protected, but `vgijssel-bot` bypasses it.** The `protected-main` ruleset
+(id 8160790, `~DEFAULT_BRANCH`, `enforcement: active`) carries `deletion`, `non_fast_forward`,
+**`required_signatures`**, `pull_request` (squash-only, 0 approvals) and five
+`required_status_checks`. A plain CI push would be rejected twice over — no PR, and unsigned.
+But `bypass_actors` holds team `vgijssel/bot` (`actor_id: 14203826`) at
+`bypass_mode: always`, and that team's sole member is **`vgijssel-bot`** — the identity behind
+`RELEASES_TOKEN_GITHUB`. So D5's direct push to `main` stands as designed, and it must be made
+**as `vgijssel-bot`**: any other identity (including the repo owner, whose
+`current_user_can_bypass` reads `never`) cannot push to `main` at all.
+
+**1.3 — `GITHUB_TOKEN` with `packages: write` can push to `ghcr.io/vgijssel/setup/*`.**
+Demonstrated by existing state rather than a throwaway tag:
+`.github/workflows/release-openbao-netbird-plugin.yaml` authenticates with
+`secrets.GITHUB_TOKEN` and `permissions: packages: write`, and
+`ghcr.io/vgijssel/setup/openbao-plugin-secrets-netbird:0.1.3` resolves today. `PACKAGES_TOKEN_GITHUB`
+is not needed. `plan.md`'s "no credential carries `write:packages`" is about *local*
+credentials — which is why `release-local.sh` exists — not about the workflow token.
+`gh api /orgs/vgijssel/packages?package_type=container` also confirms the §1 drift directly:
+`setup/openbao-plugin-secrets-netbird` exists and is **public**, and
+`setup/openbao-plugin-secrets-cloudflare` is absent entirely.
+
+**1.4 — `regctl` 0.11.1 stderr, verified against real references.** `http 404` appears in both
+absent states; the ambiguous state carries neither string:
+
+| Reference | stderr | rc |
+|---|---|---|
+| `…-netbird:0.1.3` (exists) | *(digest on stdout)* | 0 |
+| `…-netbird:0.1.4` (tag absent) | `request failed: not found [http 404]:` | 1 |
+| `…-cloudflare:0.1.0` (repo absent) | `request failed: not found [http 404]:` | 1 |
+| `nonexistent-registry.invalid/foo/bar:1.0` | `dial tcp: lookup …: no such host` | 1 |
+
+Two refinements this forces on D6:
+
+- ghcr never emits `NAME_UNKNOWN` — it answers `http 404` for an unknown *repository* too. The
+  `NAME_UNKNOWN` branch is kept for registries that are spec-compliant here, but on ghcr it is
+  dead code, so the `http 404` match is what actually carries the contract.
+- ghcr also answers `http 404` for a repository that exists but is **private and
+  unauthenticated** — it does not distinguish "absent" from "not yours". So an unauthenticated
+  probe of a private published tag reads as absent. This is survivable rather than correct: the
+  push that follows is unauthenticated too and fails with `denied`, so no tag is mutated. The
+  invariant the helper actually relies on is that the probe and the push use the *same*
+  credentials, which `publish.yaml` guarantees by doing `docker/login-action` before either.
+
 ## Goals / Non-Goals
 
 **Goals:**
@@ -60,11 +116,27 @@ packages with `release-type: "simple"`.
 
 - `separate-pull-requests: false` — one release PR covering both packages, which is the
   "multiple packages from one monorepo" demonstration.
-- `include-component-in-tag: true`, `tag-separator: "@"` — tags read
-  `openbao-netbird-plugin@0.1.5`, matching the repo's legacy tag shape.
+- `include-component-in-tag: true`, `tag-separator: "@"`, **`include-v-in-tag: false`** — tags
+  read `openbao-netbird-plugin@0.1.5`, matching the repo's legacy tag shape. The third option
+  was missing from this decision and a dry run caught it: `include-v-in-tag` defaults to
+  **true**, so the first dry run proposed `openbao-netbird-plugin@v0.1.4`, while all 239
+  legacy `<component>@<version>` tags (`blueorange@0.2.0`, …) carry no `v`.
 - `component` set explicitly per package rather than derived from the path.
 - `bootstrap-sha` pinned to this change's merge commit. Without it release-please scans ~239
   legacy tags from the changesets/nx era and starts both packages at `1.0.0`.
+
+  In practice it is pinned to `0b2c307a` — the `main` HEAD this change is rebased onto, i.e.
+  the **parent** of its merge commit, which is knowable before the merge whereas a squash
+  commit's own SHA is not. The merge commit is therefore scanned; it proposes nothing because
+  it is typed `chore`, which is the second guard D5 relies on anyway. Verified by dry run
+  (2026-10-21): `commits: 2`, both packages resolving from the manifest at `0.1.4` / `0.1.0`
+  rather than `1.0.0`, and `Would open 0 pull requests` — D8's bootstrap exactly.
+
+  A `bootstrap-sha` that is **not an ancestor** of the branch being evaluated is silently
+  ignored, and the scan then runs to the beginning of history. The first dry run here hit that:
+  run against the pre-rebase branch, it walked back past `0b2c307a` and attributed `#1008` and
+  `#1012` to the netbird plugin. It looks like a broken config and is not one — it is a stale
+  branch. Rebase before reading a dry run.
 - `extra-files` is **empty**. See D3 and D5: the version lives in `version.txt`, which
   `release-type: "simple"` maintains natively, and the consumer pins are deliberately not
   release-please's business.
@@ -235,9 +307,25 @@ changes the shipped image but produces no version bump — and D6's guard then *
 to re-push the existing tag. Net effect without this rule: base-image CVE fixes silently never
 reach the cluster. The lever is in renovate, not release-please.
 
-Note the existing automerge rule (`matchUpdateTypes: [minor, patch]` with
-`matchCurrentVersion: "!/^0/"`) does not apply to these 0.x packages, so their dependency PRs
-still land by hand.
+**Correction (task 8.2, 2026-10-21): the note that followed here was wrong.** It read that the
+existing automerge rule (`matchUpdateTypes: [minor, patch]` with
+`matchCurrentVersion: "!/^0/"`) "does not apply to these 0.x packages, so their dependency PRs
+still land by hand". `matchCurrentVersion` matches the **dependency's** current version, not the
+version of the package containing it. `alpine:3.24.x` and `golang:1.25.x` do not start with `0`,
+so `!/^0/` matches them and the rule *does* apply.
+
+Verified against history rather than reasoning: PR #1060,
+`chore(deps): update alpine docker tag to v3.24.2`, which touches
+`libs/openbao-netbird-plugin/Dockerfile`, was merged **by `app/renovate` 16 minutes after it was
+opened**.
+
+This is accepted rather than fixed, and the reason is that it does not move the gate D2 cares
+about. The sequence becomes: dependency PR automerges → the commit is now typed `fix` and routes
+to the package → release-please proposes a bump → **a human merges the release PR** → publish.
+The human still sees the version decision before anything ships; what changed is that a CVE bump
+reaches that decision without a hand-merge first, which is the outcome this rule exists to
+produce. Suppressing automerge for these two directories would be the alternative, and would only
+add a second hand-merge in front of the one that already exists.
 
 ### D8 — Bootstrap by publishing what the cluster already pins
 

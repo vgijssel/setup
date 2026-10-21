@@ -21,7 +21,6 @@ VERSION="${VERSION:?set VERSION, e.g. VERSION=0.1.4}"
 ARCH="${ARCH:-arm64}"
 NODE="${NODE:-vcluster.cp.secret}"
 IMAGE_REF="${REGISTRY}/openbao-plugin-secrets-netbird:${VERSION}"
-BINARY="/openbao-plugin-secrets-netbird"
 
 echo "==> Building ${IMAGE_REF} for linux/${ARCH}"
 docker buildx build --platform "linux/${ARCH}" --load -t "${IMAGE_REF}" "${SCRIPT_DIR}" >/dev/null
@@ -29,5 +28,8 @@ docker buildx build --platform "linux/${ARCH}" --load -t "${IMAGE_REF}" "${SCRIP
 echo "==> Loading into ${NODE}'s containerd (k8s.io namespace)"
 docker save "${IMAGE_REF}" | docker exec -i "${NODE}" ctr -n k8s.io images import - >/dev/null
 
-echo "==> sha256 of ${BINARY} (pin this in apps/secret/src/openbao-config/plugin-netbird.yaml)"
-docker run --rm --platform "linux/${ARCH}" --entrypoint sha256sum "${IMAGE_REF}" "${BINARY}" | awk '{print $1}'
+# Delegated to plugin-sha.sh rather than inlined, so the local shortcut and the CI pin
+# (bin/openbao-plugin-pin) compute the checksum exactly one way. IMAGE_REF is passed through
+# because the image here is the locally-built one, not whatever version.txt declares.
+echo "==> pin this in apps/secret/src/openbao-config/plugin-netbird.yaml"
+IMAGE_REF="${IMAGE_REF}" ARCH="${ARCH}" "${SCRIPT_DIR}/plugin-sha.sh"

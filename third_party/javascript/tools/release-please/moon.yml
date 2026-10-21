@@ -1,0 +1,16 @@
+layer: library
+tags:
+  - javascript
+  - npm
+  - pnpm-tool
+
+# The release PR itself is opened by googleapis/release-please-action in
+# .github/workflows/release-please.yaml, pinned to the same major. This CLI exists so the
+# root release-please-config.json can be checked locally with `release-please ... --dry-run`
+# before it is trusted in CI — a config that resolves no packages, or starts them at 1.0.0 off
+# the repo's 239 legacy tags, fails silently otherwise.
+tasks:
+  build:
+    options:
+      # TODO: currently too large to cache with bazel-remote and Backblaze B2
+      runInCI: false

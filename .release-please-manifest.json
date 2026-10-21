@@ -1,0 +1,4 @@
+{
+  "libs/openbao-netbird-plugin": "0.1.4",
+  "libs/openbao-cloudflare-plugin": "0.1.0"
+}
