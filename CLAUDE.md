@@ -134,3 +134,51 @@ data "aws_instance" "example" {
 
 ### Releases
 Releases are managed via project-specific release tasks. Artifacts are automatically published to GitHub as part of the release process.
+
+**OpenBao plugins (`libs/openbao-netbird-plugin`, `libs/openbao-cloudflare-plugin`)** are the
+onboarded packages. Two independent workflows, and the separation is load-bearing:
+
+| Workflow | Trigger | Owns |
+|---|---|---|
+| `.github/workflows/release-please.yaml` | `push: main` | version decisions — `version.txt`, CHANGELOG, tag, GitHub Release |
+| `.github/workflows/publish.yaml` | `push: main` + nightly | building and pushing images, and the consumer pins |
+
+Merge-to-published, end to end:
+
+1. A `fix:` or `feat:` commit touching a plugin directory lands on `main`. release-please routes
+   it to a package by **file path**, not by the scope in the subject, and opens **one** release
+   PR covering both packages at independent versions.
+2. A human merges the release PR. That writes `libs/<plugin>/version.txt` and cuts a
+   `<component>@<version>` tag.
+3. `publish.yaml` runs `moon run openbao-netbird-plugin:release openbao-cloudflare-plugin:release`.
+   Each `release.sh` reads its `version.txt` — there is **no fallback version** — and probes the
+   registry via `bin/registry-tag-exists`, which answers in **three** states: present → skip;
+   an explicit `http 404` → publish; **anything else → fail**. A probe that fails for an
+   unrelated reason is never read as permission to push, because re-pushing a live tag changes
+   its digest and silently invalidates the checksums pinned downstream.
+4. `bin/openbao-plugin-pin` then commits the init-container image tags in
+   `apps/secret/src/openbao/values.yaml` **and** the matching `plugin_sha256` values in
+   `apps/secret/src/openbao-config/plugin-*.yaml` — in **one** commit, as `vgijssel-bot`. Those
+   values are **bot-written**; hand edits are overwritten.
+
+Things that look like bugs and are not:
+
+- **`publish.yaml` reads none of release-please's outputs.** release-please is a label state
+  machine, so on a re-run `releases_created` is false and `paths_released` empty; a workflow
+  gated on them goes green having published nothing. Publishing instead converges against the
+  registry, which is what makes re-running the whole workflow — and the nightly schedule —
+  correct.
+- **Changing a plugin's `src/` with no version bump publishes nothing.** Versions are
+  immutable; the conventional-commit type is what ships a change. `renovate.json` types
+  dependency updates in these two directories as `fix` for exactly this reason — otherwise an
+  alpine CVE bump would change the image but produce no version, and the guard would then
+  correctly refuse to re-push.
+
+To check a config change before trusting it in CI:
+
+```bash
+bin/release-please release-pr --repo-url=vgijssel/setup --target-branch=<branch> \
+  --token="$(gh auth token)" --dry-run
+moon run release-tooling:test      # bats over both bin/ scripts, no network needed
+bin/openbao-plugin-pin --no-commit # write the pins, leave the diff in the worktree
+```

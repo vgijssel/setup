@@ -1,0 +1,46 @@
+# Decide versions. This workflow NEVER publishes anything — see publish.yaml, which is
+# deliberately independent of it.
+#
+# release-please reads release-please-config.json at the repo root (one config for the whole
+# repo; there is no per-directory discovery) and routes each commit to a package by the FILES
+# it touched, not by the scope in its subject. So the repo's existing `feat(openbao):` /
+# `fix(network,secret):` conventions need no cleanup.
+#
+# Two things must not be changed here without reading design.md:
+#
+#   - Do NOT rename release-please's labels without also setting `label` / `release-label`.
+#     A merged release PR carries `autorelease: pending` until the tag is cut; a stuck label
+#     blocks every future release PR.
+#   - Do NOT set `skip-github-release`. It suppresses the git TAG as well as the release, and
+#     the tag is how release-please finds the last release on the next run.
+#
+# RELEASES_TOKEN_GITHUB (vgijssel-bot) rather than GITHUB_TOKEN: `main` is protected by the
+# `protected-main` ruleset, and vgijssel-bot is the sole member of the `bot` team, which is the
+# ruleset's only `bypass_actors` entry.
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+# Serialise version decisions. Two concurrent runs would race to open or update the same
+# release PR; cancelling mid-run can leave a release labelled but untagged.
+concurrency:
+  group: release-please-main
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Propose and tag releases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run release-please
+        uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

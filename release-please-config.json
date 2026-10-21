@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "separate-pull-requests": false,
+  "include-component-in-tag": true,
+  "tag-separator": "@",
+  "include-v-in-tag": false,
+  "bootstrap-sha": "0b2c307a28d256cef8ef219e32e5bbee70c33ceb",
+  "packages": {
+    "libs/openbao-netbird-plugin": {
+      "release-type": "simple",
+      "component": "openbao-netbird-plugin"
+    },
+    "libs/openbao-cloudflare-plugin": {
+      "release-type": "simple",
+      "component": "openbao-cloudflare-plugin"
+    }
+  }
+}

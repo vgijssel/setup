@@ -1,0 +1,10 @@
+{
+  "name": "release-please",
+  "private": true,
+  "files": [
+    "package.json"
+  ],
+  "dependencies": {
+    "release-please": "17.11.2"
+  }
+}
