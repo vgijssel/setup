@@ -13,9 +13,9 @@
 #     not fire `push`, this converges on the next push or on the nightly run;
 #   - the nightly schedule is free, because the work is idempotent.
 #
-# The two release tasks are named EXPLICITLY rather than invoked as `moon run :release`, which
-# would also fire the broken fleet-mcp / devcontainer release scripts and the carved-out
-# talos-image.
+# The release tasks are selected by TAG rather than listed here, because a list in a workflow is
+# a list that goes stale. A bare `moon run :release` would also fire the broken fleet-mcp /
+# devcontainer release scripts and the carved-out talos-image.
 name: Publish
 
 on:
@@ -44,6 +44,27 @@ jobs:
     name: Publish plugin images and propagate pins
     runs-on: ubuntu-latest
     steps:
+      # Fail with a sentence a human can act on. RELEASES_TOKEN_GITHUB is a PAT, PATs expire, and
+      # when this one did the runs died at `actions/checkout` with "could not read Username for
+      # 'https://github.com': terminal prompts disabled" — which reads like a missing username and
+      # is actually an auth rejection. That went unrecognised for months. `gh` is preinstalled on
+      # the runner, so this costs one API call and needs no checkout.
+      - name: Check the release credential is alive
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::RELEASES_TOKEN_GITHUB is empty or not exposed to this run."
+            exit 1
+          fi
+          if ! login="$(gh api user --jq .login 2>&1)"; then
+            echo "::error::RELEASES_TOKEN_GITHUB is set but the API rejected it — it has almost" \
+                 "certainly expired. Mint a fresh vgijssel-bot PAT with 'repo' scope and update" \
+                 "the secret. The API said: ${login}"
+            exit 1
+          fi
+          echo "Authenticated as ${login}"
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -53,6 +74,12 @@ jobs:
           # vgijssel-bot, which pushes the pin branch and opens its PR. It no longer needs to
           # bypass `protected-main` — the pins arrive as a PULL REQUEST, so the ruleset's
           # pull_request and required_signatures rules are satisfied the ordinary way.
+          #
+          # It cannot be GITHUB_TOKEN, and not because of permissions: events triggered by
+          # GITHUB_TOKEN do not start workflow runs, so a pin PR opened with it would get no CI.
+          # That loses both halves of the point — the five required status checks would never
+          # report, making the PR unmergeable, AND the "does this plugin actually work in the apps
+          # that deploy it?" question the PR exists to answer would go unasked. See design.md D13.
           token: ${{ secrets.RELEASES_TOKEN_GITHUB }}
 
       - uses: ./.github/actions/setup

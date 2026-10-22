@@ -14,9 +14,20 @@
 #   - Do NOT set `skip-github-release`. It suppresses the git TAG as well as the release, and
 #     the tag is how release-please finds the last release on the next run.
 #
-# RELEASES_TOKEN_GITHUB (vgijssel-bot) rather than GITHUB_TOKEN: `main` is protected by the
-# `protected-main` ruleset, and vgijssel-bot is the sole member of the `bot` team, which is the
-# ruleset's only `bypass_actors` entry.
+# RELEASES_TOKEN_GITHUB (vgijssel-bot) rather than GITHUB_TOKEN, and the reason is NOT branch
+# protection — nothing here pushes to `main`.
+#
+# Events triggered by GITHUB_TOKEN do not start workflow runs. A release PR opened with it would
+# therefore get no `pull_request` event and no CI, so the five required status checks on
+# `protected-main` (Trunk Check, Trunk Check Runner, Linux 1/2, Linux 2/2, macOS 1/1) would never
+# report and the PR could never be merged — by anyone, since `github-actions[bot]` is not a bypass
+# actor and `current_user_can_bypass` is `never` even for the repo owner. The action's own README
+# says the same thing: a PAT is needed "if you want GitHub Actions CI checks to run on Release
+# Please PRs". Flipping "Allow GitHub Actions to create and approve pull requests" fixes a
+# different problem (being allowed to open the PR at all), not this one.
+#
+# See design.md D13 for why this is a PAT rather than a GitHub App, and for the symptom to
+# recognise when it expires.
 name: Release Please
 
 on:
@@ -38,6 +49,27 @@ jobs:
     name: Propose and tag releases
     runs-on: ubuntu-latest
     steps:
+      # Fail with a sentence a human can act on. RELEASES_TOKEN_GITHUB is a PAT, PATs expire, and
+      # when this one did the runs died at `actions/checkout` with "could not read Username for
+      # 'https://github.com': terminal prompts disabled" — which reads like a missing username and
+      # is actually an auth rejection. That went unrecognised for months. `gh` is preinstalled on
+      # the runner, so this costs one API call and needs no checkout.
+      - name: Check the release credential is alive
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::RELEASES_TOKEN_GITHUB is empty or not exposed to this run."
+            exit 1
+          fi
+          if ! login="$(gh api user --jq .login 2>&1)"; then
+            echo "::error::RELEASES_TOKEN_GITHUB is set but the API rejected it — it has almost" \
+                 "certainly expired. Mint a fresh vgijssel-bot PAT with 'repo' scope and update" \
+                 "the secret. The API said: ${login}"
+            exit 1
+          fi
+          echo "Authenticated as ${login}"
+
       - name: Run release-please
         uses: googleapis/release-please-action@v5
         with:
