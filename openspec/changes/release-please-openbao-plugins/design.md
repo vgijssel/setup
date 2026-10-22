@@ -246,9 +246,22 @@ Consequences of the PR shape that the direct push did not have:
 
 - **It must converge, not accumulate.** Publishing runs on every push to `main` and nightly, so
   a naive "open a PR" would open one per run. The task therefore reuses a single fixed branch
-  (`chore/openbao-plugin-pins`): if the computed pins match what that branch already carries, it
-  does nothing; if they differ, it force-updates the branch and lets the existing PR follow. One
-  outstanding proposal, always describing the newest publish.
+  (`chore/openbao-plugin-pins`): if the computed pins match what that branch already carries *and*
+  its PR is open, it does nothing; if they differ, it force-updates the branch and lets the
+  existing PR follow. One outstanding proposal, always describing the newest publish.
+
+  **The outstanding proposal is two things — a branch AND an open PR — and they come apart.** The
+  first implementation compared only the branch's tree, which reads "the branch is correct" as "a
+  proposal exists". That is wrong, and it bit on the very first real run (2026-10-22): the push
+  succeeded and `gh pr create` was then rejected by a PAT lacking `Pull requests: write`, leaving
+  a branch carrying exactly the right pins with no PR. A re-run would have matched the tree,
+  skipped, and **reported success having proposed nothing** — the same fail-open-to-skipping shape
+  D6 rule 1 exists to forbid, reintroduced one layer up. It also silently falsified this decision's
+  own claim that a PR closed unmerged is re-opened by the next run: with a tree-only check it never
+  would be. Both conditions are now checked, with the three states separated — matching branch with
+  no open PR *proposes without re-pushing*, so identical content never churns the PR. Six bats
+  cases cover it, and a mutation check confirms reverting to the tree-only test fails two of
+  them.
 - **Branch protection stops mattering for the pins.** The write path is now "push a branch +
   open a PR", which needs no bypass of `protected-main`. The bot identity is still used, but
   the `required_signatures` / `pull_request` rules are satisfied the ordinary way.

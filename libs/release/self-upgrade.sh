@@ -55,29 +55,52 @@ if [[ "${BEFORE}" == "${AFTER}" ]]; then
     exit 0
 fi
 
-# Compare TREES, not commits: a re-run produces a fresh commit object (different timestamp) for
-# identical content, and force-pushing that would churn the PR and re-trigger CI for no reason.
-if git rev-parse --quiet --verify "${REMOTE}/${BRANCH}" >/dev/null 2>&1; then
-    NEW_TREE="$(git rev-parse "HEAD^{tree}")"
-    PROPOSED_TREE="$(git rev-parse "${REMOTE}/${BRANCH}^{tree}")"
-    if [[ "${NEW_TREE}" == "${PROPOSED_TREE}" ]]; then
-        echo "==> ${REMOTE}/${BRANCH} already proposes exactly these pins; leaving it alone." >&2
-        exit 0
-    fi
-fi
-
 if [[ "${DRY_RUN}" != "0" ]]; then
     echo "==> SELF_UPGRADE_DRY_RUN set; committed locally, not pushing." >&2
     git --no-pager log -1 --stat >&2
     exit 0
 fi
 
-# Force, because the branch is rebuilt from the base tip each run rather than appended to. It
-# carries exactly one bot commit and no human ever works on it.
-echo "==> Pushing ${BRANCH}" >&2
-git push --quiet --force "${REMOTE}" "HEAD:refs/heads/${BRANCH}"
-
+# The outstanding proposal is TWO things — a branch and an open PR — and they can come apart.
+# Both are checked, because either one alone is not a proposal:
+#
+#   - Branch matches AND the PR is open  -> genuinely nothing to do.
+#   - Branch matches, no open PR         -> the branch is stranded. Happens when `gh pr create`
+#                                           failed after the push (a PAT without
+#                                           `Pull requests: write` does exactly this), or when
+#                                           someone closed the PR unmerged. Do NOT re-push —
+#                                           the content is already right — but DO open the PR.
+#   - Branch differs                     -> push, then open or update.
+#
+# Checking only the tree is the bug this comment exists to prevent: it reads "branch is correct"
+# as "a proposal exists", so a stranded branch is skipped forever and the run reports success
+# having proposed nothing. That is the same fail-open-to-skipping shape as a registry probe
+# treating ambiguity as absence.
+#
+# Trees, not commits: a re-run produces a fresh commit object for identical content, and
+# force-pushing that would churn the PR and re-trigger CI for nothing.
+NEW_TREE="$(git rev-parse "HEAD^{tree}")"
+REMOTE_TREE=""
+if git rev-parse --quiet --verify "${REMOTE}/${BRANCH}" >/dev/null 2>&1; then
+    REMOTE_TREE="$(git rev-parse "${REMOTE}/${BRANCH}^{tree}")"
+fi
 PR_STATE="$(gh pr view "${BRANCH}" --json state --jq '.state' 2>/dev/null || true)"
+
+if [[ "${NEW_TREE}" == "${REMOTE_TREE}" && "${PR_STATE}" == "OPEN" ]]; then
+    echo "==> ${REMOTE}/${BRANCH} already proposes exactly these pins; leaving it alone." >&2
+    gh pr view "${BRANCH}" --json url --jq '.url' >&2
+    exit 0
+fi
+
+if [[ "${NEW_TREE}" == "${REMOTE_TREE}" ]]; then
+    echo "==> ${REMOTE}/${BRANCH} already carries these pins; not re-pushing." >&2
+else
+    # Force, because the branch is rebuilt from the base tip each run rather than appended to. It
+    # carries exactly one bot commit and no human ever works on it.
+    echo "==> Pushing ${BRANCH}" >&2
+    git push --quiet --force "${REMOTE}" "HEAD:refs/heads/${BRANCH}"
+fi
+
 if [[ "${PR_STATE}" == "OPEN" ]]; then
     echo "==> PR for ${BRANCH} is already open; the push updated it." >&2
     gh pr view "${BRANCH}" --json url --jq '.url' >&2

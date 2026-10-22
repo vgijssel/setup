@@ -7,19 +7,23 @@ layer: library
 #
 # See openspec/changes/release-please-openbao-plugins/design.md (D5, D6, D10).
 tasks:
-  # Two scripts, two silent failure modes. bin/registry-tag-exists reading an ambiguous probe as
+  # Three scripts, three silent failure modes. bin/registry-tag-exists reading an ambiguous probe as
   # "absent" re-pushes a live tag; bin/openbao-plugin-pin committing one half of a pin leaves
   # Fleet deploying a plugin that fails registration with a bare "checksum mismatch". Neither
-  # shows up until long after the commit, so both get tests. regctl and plugin-sha.sh are stubbed,
-  # so this needs neither a network nor docker.
+  # shows up until long after the commit; and self-upgrade.sh treating a stranded branch as
+  # proof that a proposal exists reports success having proposed nothing. regctl, plugin-sha.sh
+  # and gh are stubbed and the remote is a local bare repo, so this needs no network and no
+  # docker.
   test:
-    command: bats tests/registry-tag-exists.bats tests/openbao-plugin-pin.bats
+    command: bats tests/registry-tag-exists.bats tests/openbao-plugin-pin.bats tests/self-upgrade.bats
     options:
       runFromWorkspaceRoot: false
       cache: true
     inputs:
       - file: ./tests/registry-tag-exists.bats
       - file: ./tests/openbao-plugin-pin.bats
+      - file: ./tests/self-upgrade.bats
+      - file: ./self-upgrade.sh
       - file: /bin/registry-tag-exists
       - file: /bin/openbao-plugin-pin
       - "@group(yq_bin)"
