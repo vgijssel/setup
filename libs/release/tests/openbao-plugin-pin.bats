@@ -28,6 +28,7 @@ setup() {
 
     make_plugin netbird "0.1.4" "${SHA_OLD_NB}"
     make_plugin cloudflare "0.1.0" "${SHA_OLD_CF}"
+    write_pins
 
     cat >"${FIXTURE}/apps/secret/src/openbao/values.yaml" <<'YAML'
 openbao:
@@ -66,21 +67,21 @@ printf '%s' "\${STUB_SHA_${name}:-${sha}}"
 STUB
     chmod +x "${dir}/plugin-sha.sh"
 
-    cat >"${FIXTURE}/apps/secret/src/openbao-config/plugin-${name}.yaml" <<YAML
+}
+
+# openbao-config is a Helm chart now, so the pins are ONE values file shared by both plugins
+# rather than a sha buried in each plugin's inline Terraform. Written after make_plugin has set
+# up both, so it reflects whatever versions/shas they were given.
+write_pins() {
+    cat >"${FIXTURE}/apps/secret/src/openbao-config/values.yaml" <<YAML
 # A comment that must survive the rewrite.
-apiVersion: opentofu.upbound.io/v1beta1
-kind: Workspace
-metadata:
-  name: ${name}-plugin-config
-spec:
-  forProvider:
-    source: Inline
-    vars:
-      - key: plugin_sha256
-        value: ${sha}
-    module: |
-      # A heredoc block that must survive the rewrite.
-      resource "null_resource" "x" {}
+plugins:
+  netbird:
+    version: 0.1.4
+    sha256: ${SHA_OLD_NB}
+  cloudflare:
+    version: 0.1.0
+    sha256: ${SHA_OLD_CF}
 YAML
 }
 
@@ -91,8 +92,13 @@ pinned_tag() {
 }
 
 pinned_sha() {
-    yq -r '.spec.forProvider.vars[] | select(.key == "plugin_sha256") | .value' \
-        "${FIXTURE}/apps/secret/src/openbao-config/plugin-$1.yaml"
+    name="$1" yq -r '.plugins[strenv(name)].sha256' \
+        "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
+}
+
+pinned_version() {
+    name="$1" yq -r '.plugins[strenv(name)].version' \
+        "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
 }
 
 commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
@@ -135,12 +141,14 @@ commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
     # Both halves moved...
     [ "$(pinned_tag netbird)" = "ghcr.io/vgijssel/setup/openbao-plugin-secrets-netbird:0.1.5" ]
     [ "$(pinned_sha netbird)" = "${SHA_NEW_NB}" ]
+    # ...including the version beside the checksum, which is what --check compares the tag to.
+    [ "$(pinned_version netbird)" = "0.1.5" ]
 
     # ...and they moved in the SAME commit. This is the property the whole design exists for:
     # any commit that touches the tag must also touch the checksum beside it.
     files="$(git -C "${FIXTURE}" show --name-only --format= HEAD)"
     [[ "$files" == *"apps/secret/src/openbao/values.yaml"* ]]
-    [[ "$files" == *"apps/secret/src/openbao-config/plugin-netbird.yaml"* ]]
+    [[ "$files" == *"apps/secret/src/openbao-config/values.yaml"* ]]
 }
 
 @test "no commit ever changes a tag without the checksum beside it" {
@@ -155,8 +163,7 @@ commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
     for rev in $(git -C "${FIXTURE}" rev-list HEAD); do
         files="$(git -C "${FIXTURE}" show --name-only --format= "${rev}")"
         if [[ "$files" == *"apps/secret/src/openbao/values.yaml"* ]]; then
-            [[ "$files" == *"openbao-config/plugin-netbird.yaml"* ]]
-            [[ "$files" == *"openbao-config/plugin-cloudflare.yaml"* ]]
+            [[ "$files" == *"openbao-config/values.yaml"* ]]
         fi
     done
 }
@@ -209,13 +216,58 @@ commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
 
 # --- the rewrite must not damage the surrounding YAML ---------------------------------
 
-@test "comments and the inline module heredoc survive the rewrite" {
+@test "comments survive the rewrite of both values files" {
     STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" --no-commit
     [ "$status" -eq 0 ]
     grep -q "A comment that must survive the rewrite" \
-        "${FIXTURE}/apps/secret/src/openbao-config/plugin-netbird.yaml"
-    grep -q "A heredoc block that must survive the rewrite" \
-        "${FIXTURE}/apps/secret/src/openbao-config/plugin-netbird.yaml"
+        "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
     grep -q "A comment that must survive the rewrite" \
         "${FIXTURE}/apps/secret/src/openbao/values.yaml"
+}
+
+# --- --check: the cross-bundle guard --------------------------------------------------
+#
+# The VERSION is necessarily pinned twice — the init-container image tag delivers the binary
+# (openbao/values.yaml) and the catalog registers it (openbao-config/values.yaml) — because Fleet
+# cannot share values between bundles and an image tag cannot come from a ConfigMap. The
+# single-commit atomicity of a write therefore cannot by itself guarantee the two agree forever;
+# this is the check that can, and it is the whole of `moon run release:self_upgrade_check`.
+
+@test "--check passes on a self-consistent tree" {
+    run "${PIN}" --check
+    [ "$status" -eq 0 ]
+}
+
+@test "--check fails when the init-container tag and the catalog version disagree" {
+    yq -i '.plugins.netbird.version = "9.9.9"' \
+        "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
+    run "${PIN}" --check
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"9.9.9"* ]]
+}
+
+@test "--check fails when a checksum is not a sha256" {
+    yq -i '.plugins.cloudflare.sha256 = "nope"' \
+        "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
+    run "${PIN}" --check
+    [ "$status" -ne 0 ]
+}
+
+@test "--check neither writes nor commits" {
+    before="$(commit_count)"
+    sha_before="$(pinned_sha netbird)"
+    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" --check
+    [ "$status" -eq 0 ]
+    [ "$(commit_count)" -eq "${before}" ]
+    # Unchanged even though the stub would have reported a different checksum — --check must not
+    # consult plugin-sha.sh at all, since it has to run in CI with no docker and no network.
+    [ "$(pinned_sha netbird)" = "${sha_before}" ]
+}
+
+@test "--check tolerates a pin lagging version.txt, which is a real state" {
+    # A publish that has not propagated yet leaves version.txt ahead of the pins. That is the
+    # normal window between publishing and merging the self_upgrade PR, not a defect.
+    printf '0.1.9\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
+    run "${PIN}" --check
+    [ "$status" -eq 0 ]
 }

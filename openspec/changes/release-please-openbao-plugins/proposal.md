@@ -6,7 +6,7 @@ The two first-party OpenBao secrets-engine plugins have no release pipeline, and
 this caused is now a cold-start blocker: `apps/secret/src/openbao/values.yaml` pins
 `openbao-plugin-secrets-netbird:0.1.4` and `openbao-plugin-secrets-cloudflare:0.1.0`, and
 **neither image exists in ghcr** — the cloudflare repository has never been created at all
-(`plan.md` §1, verified 2026-10-21). A cluster that loses its containerd cache cannot start
+(verified against ghcr 2026-10-21). A cluster that loses its containerd cache cannot start
 OpenBao, because both plugin init containers fail to pull.
 
 Nothing in the repo would have caught this. `release.sh` hard-codes `VERSION="${VERSION:-0.1.3}"`
@@ -44,32 +44,44 @@ that is safe to re-run, schedule, and retry.
   invoking the moon `release` tasks. It is deliberately **not** gated on release-please's
   `releases_created` / `paths_released` outputs: release-please is a label state machine, so a
   re-run finds no candidate PR and would report success having published nothing.
-- **The publish job commits the consumer pins back to `main`** after a successful push: the
-  init-container image tag in `apps/secret/src/openbao/values.yaml` and the matching
-  `plugin_sha256` in `apps/secret/src/openbao-config/plugin-{netbird,cloudflare}.yaml`, in a
-  single commit. The two values **must** move together — a tag bump without its sha leaves
-  Fleet deploying an image whose binary fails catalog registration with a bare checksum
-  mismatch. release-please therefore does **not** touch `values.yaml`.
+- **The publish job opens a PR with the consumer pins** after a successful push, via
+  `moon run release:self_upgrade`: the init-container image tag in
+  `apps/secret/src/openbao/values.yaml` and the matching `version`/`sha256` in
+  `apps/secret/src/openbao-config/values.yaml`, in a single commit on a fixed branch. The two
+  values **must** move together — a tag bump without its sha leaves Fleet deploying an image
+  whose binary fails catalog registration with a bare checksum mismatch. release-please
+  therefore does **not** touch `values.yaml`. It is a PR rather than a push to `main` so that CI
+  answers "does the newly published plugin actually work in the apps that deploy it?" *before*
+  the pins become the deployed state.
+- **`apps/secret/src/openbao-config` becomes a local Helm chart** so the checksum is a values
+  entry rather than a `vars` line buried inside the Workspace's inline Terraform, where only
+  textual substitution could reach it. The other sixteen manifests move into `templates/`
+  verbatim.
+- **The conventional-commit convention is enforced mechanically** — Trunk's `commitlint` action
+  locally, and a CI job on the **PR title**, which under this repo's squash-only merges is the
+  message that actually reaches `main` and drives the version decision.
 - **Renovate dependency updates for these two directories become releasable** by overriding
   the repo-global `semanticCommitType: "chore"` to `"fix"`. Both plugins run on
   `FROM alpine:3.24.1`; under the current config an alpine CVE bump changes the shipped image
   but produces no version bump, and the new idempotence guard then correctly refuses to
   re-push the existing tag — so base-image CVE fixes would silently never reach the cluster.
 - **`release-openbao-netbird-plugin.yaml` is deleted**, superseded by `publish.yaml`.
-- The first release reconciles the drift in `plan.md` §1 by publishing the two tags the
+- The first release reconciles that drift by publishing the two tags the
   cluster already pins.
 
 ### Deliberately out of scope
 
-- `fleet-mcp` and `devcontainer` (the other two broken pipelines in `plan.md` §1) and the
+- `fleet-mcp` and `devcontainer` (the other two projects with a broken `release` task) and the
   `talos-image` carve-out. The release-please config is additive; onboarding them later is a
   few lines.
-- The moon-metadata-driven config generator and `.moon/tasks/tag-release.yml` (`plan.md` §4b).
+- A moon-metadata-driven generator for `release-please-config.json`.
   With two packages a hand-written root config is smaller than the generator that would write
   it.
-- `commitlint.config.js` and the commit-scope convention cleanup (`plan.md` §4a) — a repo-wide
-  convention change, independent of releasing these two plugins.
-- A custom `moon-workspace` release-please plugin (`plan.md` §6). Neither plugin depends on the
+- The commit-**scope** convention cleanup. Path-based routing means scopes never
+  needed to be cleaned up for this to work. (`commitlint.config.js` itself was also listed here
+  and has since been brought **in scope** — see design D12: version decisions are derived from
+  commit types, so an unenforced convention silently ships nothing.)
+- A custom `moon-workspace` release-please plugin. Neither plugin depends on the
   other, so it would have zero present effect.
 
 ## Capabilities
@@ -113,7 +125,7 @@ None. `mesh-service-exposure` is the only existing spec and is unrelated.
   `main` if it is protected, and pushes made with it do not trigger `push` workflows;
   `RELEASES_TOKEN_GITHUB` / `vgijssel-bot` already exists and is used by
   `.github/workflows/release.yaml`.
-- `packages: write` for the publish job. `plan.md` notes no current token carries
+- `packages: write` for the publish job. No *local* credential carries
   `write:packages` — this is the first thing that genuinely needs it, and is why the cloudflare
   repository does not exist.
 

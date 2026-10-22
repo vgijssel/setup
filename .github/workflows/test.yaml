@@ -1,5 +1,10 @@
 name: Pull Request
-on: [pull_request]
+on:
+  pull_request:
+    # `edited` and `reopened` matter: the PR TITLE is what the commit-convention job checks, and a
+    # retitled PR must be re-checked. Without `edited`, a title could be fixed to pass and then
+    # changed back, or vice versa, with the check never re-running.
+    types: [opened, edited, synchronize, reopened]
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -7,6 +12,34 @@ concurrency:
 permissions: read-all
 
 jobs:
+  # Lint the PULL REQUEST TITLE, not the branch's commit messages.
+  #
+  # This repo allows squash merges only (`protected-main`'s allowed_merge_methods) and
+  # `squash_merge_commit_title` is PR_TITLE, so the branch commits never reach main — the PR title
+  # becomes the conventional commit on main, and release-please derives each package's version
+  # bump from its type. A malformed or unrecognised type therefore silently ships nothing, which
+  # is why this is a required check and not a review habit.
+  #
+  # Trunk's `commitlint` action covers the local commit-msg hook. Both read the same
+  # commitlint.config.js, so the two halves cannot drift.
+  commit_convention:
+    name: Commit Convention
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: Lint the pull request title
+        run: printf '%s' "$PR_TITLE" | bin/commitlint
+        env:
+          # Via env, never interpolated into the script: a title is attacker-controlled text and
+          # `${{ }}` in a run block is a shell injection.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+
   trunk_check:
     name: Trunk Check Runner
     runs-on: ubuntu-latest

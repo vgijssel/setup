@@ -1,0 +1,10 @@
+{
+  "name": "commitlint",
+  "private": true,
+  "files": [
+    "package.json"
+  ],
+  "dependencies": {
+    "@commitlint/cli": "21.2.4"
+  }
+}

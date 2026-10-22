@@ -1,38 +1,43 @@
 #!/usr/bin/env bash
-# openbao-plugin-pin — make apps/secret's pins describe the published plugin images, in ONE
-# commit, or make no commit at all.
+# openbao-plugin-pin — make apps/secret's OpenBao plugin pins describe the published images, in
+# ONE commit, or make no commit at all.
 #
-# Each first-party OpenBao plugin is pinned twice in this repo:
+# Each first-party plugin is pinned in TWO Fleet bundles:
 #
-#   apps/secret/src/openbao/values.yaml                  the init-container IMAGE TAG
-#   apps/secret/src/openbao-config/plugin-<name>.yaml    the plugin_sha256 of the BINARY
+#   apps/secret/src/openbao/values.yaml         the init-container IMAGE TAG (delivers the binary)
+#   apps/secret/src/openbao-config/values.yaml  plugins.<name>.{version,sha256} (registers it)
 #
 # THE TWO MUST MOVE TOGETHER. OpenBao v2.5.5 requires `sha256` on `sys/plugins/catalog` (a
-# registration without it is rejected `400 missing SHA-256 value`) and hashes the binary it
-# finds on disk. So any committed state where the tag names one version and the checksum
-# describes another is a state in which Fleet deploys a pod whose plugin registration fails —
-# with nothing but a bare "checksum mismatch" to go on. That single atomicity requirement is
-# why this script exists at all, and why release-please is deliberately NOT configured to
-# touch values.yaml: an `extra-files` bump would split the tag and the sha across two commits
-# with exactly that broken state in between.
+# registration without it is rejected `400 missing SHA-256 value`) and hashes the binary it finds
+# on disk. So any committed state where the tag names one version and the checksum describes
+# another is a state in which Fleet deploys a pod whose plugin registration fails — with nothing
+# but a bare "checksum mismatch" to go on. That single atomicity requirement is why this script
+# exists, and why release-please is deliberately NOT configured to touch either file: an
+# `extra-files` bump would split them across two commits with exactly that broken state between.
 #
-# It is also why this runs AFTER release.sh rather than inside it. release.sh skips when its
-# tag is already in the registry; on the bootstrap run the versions published are the ones
-# values.yaml ALREADY pins, so a guard shared with the push would conclude "nothing to do"
-# and never write the checksums.
+# It is also why this runs AFTER release.sh rather than inside it. release.sh skips when its tag
+# is already in the registry; on the bootstrap run the versions published are the ones the
+# cluster ALREADY pins, so a guard shared with the push would conclude "nothing to do" and never
+# write the checksums.
 #
-# The checksum is per-ARCHITECTURE and taken from the published image, never predicted: the
-# design assumes nothing about reproducible builds. Both clusters are arm64.
+# The checksum is per-ARCHITECTURE and taken from the published image, never predicted — nothing
+# here assumes reproducible builds. Both clusters are arm64.
 #
-# Idempotent by construction — it writes the values, then commits only if `git diff` is
-# non-empty. Re-running against already-correct pins produces no commit.
+# Idempotent by construction: it writes the values, then commits only if `git diff` is non-empty.
 #
 # Usage:
 #   bin/openbao-plugin-pin              # write + commit if anything changed
 #   bin/openbao-plugin-pin --no-commit  # write only, leave the diff in the worktree
+#   bin/openbao-plugin-pin --check      # verify committed pins are self-consistent; no docker,
+#                                       # no writes. This is `moon run release:self_upgrade_check`
+#                                       # and exists because the VERSION is necessarily duplicated
+#                                       # across two bundles (Fleet cannot share values between
+#                                       # them, and an image tag cannot come from a ConfigMap), so
+#                                       # the single-commit property alone cannot guarantee they
+#                                       # agree.
 #
-# `pwd -P`, not `pwd`: ~/.local/setup/bin is a symlink to this repo's bin/ and is on PATH,
-# so a logical pwd resolves to the symlink and lands outside the repo.
+# `pwd -P`, not `pwd`: ~/.local/setup/bin is a symlink to this repo's bin/ and is on PATH, so a
+# logical pwd resolves to the symlink and lands outside the repo.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -40,92 +45,118 @@ REPO_ROOT="${OPENBAO_PIN_ROOT:-$(cd "${SCRIPT_DIR}/.." && pwd -P)}"
 REGISTRY="${REGISTRY:-ghcr.io/vgijssel/setup}"
 ARCH="${ARCH:-arm64}"
 
+MODE="write"
 COMMIT=1
 case "${1:-}" in
 --no-commit) COMMIT=0 ;;
+--check) MODE=check ;;
 "") ;;
 *)
-    printf 'usage: openbao-plugin-pin [--no-commit]\n' >&2
+    printf 'usage: openbao-plugin-pin [--no-commit|--check]\n' >&2
     exit 1
     ;;
 esac
 
 VALUES="${REPO_ROOT}/apps/secret/src/openbao/values.yaml"
+PINS="${REPO_ROOT}/apps/secret/src/openbao-config/values.yaml"
 
-# name:project — the moon project supplies version.txt and plugin-sha.sh; the name supplies
-# the image repository, the init-container name and the catalog manifest filename.
+# name:project — the moon project supplies version.txt and plugin-sha.sh; the name supplies the
+# image repository and the init-container name.
 PLUGINS=(
     "netbird:openbao-netbird-plugin"
     "cloudflare:openbao-cloudflare-plugin"
 )
 
-for entry in "${PLUGINS[@]}"; do
-    name="${entry%%:*}"
-    project="${entry##*:}"
-    plugin_dir="${REPO_ROOT}/libs/${project}"
-    catalog="${REPO_ROOT}/apps/secret/src/openbao-config/plugin-${name}.yaml"
-    image_repo="${REGISTRY}/openbao-plugin-secrets-${name}"
-
-    version="$(tr -d '[:space:]' <"${plugin_dir}/version.txt")"
-    if [[ -z "${version}" ]]; then
-        printf 'ERROR: %s/version.txt declares no version.\n' "${plugin_dir}" >&2
-        exit 1
-    fi
-    image_ref="${image_repo}:${version}"
-
-    printf '==> %s %s\n' "${name}" "${image_ref}" >&2
-
-    # plugin-sha.sh is called directly, not via `moon run`: moon decorates stdout with
-    # progress markers, which would land in the pinned value.
-    sha="$(IMAGE_REF="${image_ref}" ARCH="${ARCH}" "${plugin_dir}/plugin-sha.sh")"
-    if ! printf '%s' "${sha}" | grep -qE '^[0-9a-f]{64}$'; then
-        printf 'ERROR: %s produced %q, which is not a sha256.\n' "${plugin_dir}/plugin-sha.sh" "${sha}" >&2
-        exit 1
-    fi
-
-    # Select the init container by NAME, not by index: a new init container added above
-    # these would silently repoint the wrong one.
-    img="${image_ref}" name="${name}" yq -i \
-        '(.openbao.server.extraInitContainers[] | select(.name == "plugin-" + strenv(name)) | .image) = strenv(img)' \
-        "${VALUES}"
-
-    sha="${sha}" yq -i \
-        '(.spec.forProvider.vars[] | select(.key == "plugin_sha256") | .value) = strenv(sha)' \
-        "${catalog}"
-done
-
-# Verify the invariant rather than trusting the writes above: every pinned tag must have a
-# matching version.txt, and every catalog file must carry a 64-hex checksum. A yq selector
-# that matched nothing fails silently (exit 0, no edit), and that is precisely the mistake
-# that would commit a tag without its sha.
-for entry in "${PLUGINS[@]}"; do
-    name="${entry%%:*}"
-    project="${entry##*:}"
-    want_version="$(tr -d '[:space:]' <"${REPO_ROOT}/libs/${project}/version.txt")"
-    got_image="$(name="${name}" yq -r \
+pinned_tag() {
+    name="$1" yq -r \
         '.openbao.server.extraInitContainers[] | select(.name == "plugin-" + strenv(name)) | .image' \
-        "${VALUES}")"
-    got_sha="$(yq -r \
-        '.spec.forProvider.vars[] | select(.key == "plugin_sha256") | .value' \
-        "${REPO_ROOT}/apps/secret/src/openbao-config/plugin-${name}.yaml")"
+        "${VALUES}"
+}
 
-    if [[ "${got_image##*:}" != "${want_version}" ]]; then
-        printf 'ERROR: %s pins %s but version.txt declares %s.\n' \
-            "${VALUES}" "${got_image}" "${want_version}" >&2
-        exit 1
+if [[ "${MODE}" == "write" ]]; then
+    for entry in "${PLUGINS[@]}"; do
+        name="${entry%%:*}"
+        project="${entry##*:}"
+        plugin_dir="${REPO_ROOT}/libs/${project}"
+        image_repo="${REGISTRY}/openbao-plugin-secrets-${name}"
+
+        version="$(tr -d '[:space:]' <"${plugin_dir}/version.txt")"
+        if [[ -z "${version}" ]]; then
+            printf 'ERROR: %s/version.txt declares no version.\n' "${plugin_dir}" >&2
+            exit 1
+        fi
+        image_ref="${image_repo}:${version}"
+
+        printf '==> %s %s\n' "${name}" "${image_ref}" >&2
+
+        # plugin-sha.sh is called directly, not via `moon run`: moon decorates stdout with
+        # progress markers, which would land in the pinned value.
+        sha="$(IMAGE_REF="${image_ref}" ARCH="${ARCH}" "${plugin_dir}/plugin-sha.sh")"
+        if ! printf '%s' "${sha}" | grep -qE '^[0-9a-f]{64}$'; then
+            printf 'ERROR: %s produced %q, which is not a sha256.\n' "${plugin_dir}/plugin-sha.sh" "${sha}" >&2
+            exit 1
+        fi
+
+        # Select the init container by NAME, not by index: a new init container added above these
+        # would silently repoint the wrong one.
+        img="${image_ref}" name="${name}" yq -i \
+            '(.openbao.server.extraInitContainers[] | select(.name == "plugin-" + strenv(name)) | .image) = strenv(img)' \
+            "${VALUES}"
+
+        name="${name}" version="${version}" sha="${sha}" yq -i \
+            '.plugins[strenv(name)].version = strenv(version) | .plugins[strenv(name)].sha256 = strenv(sha)' \
+            "${PINS}"
+    done
+fi
+
+# Verify rather than trust — in BOTH modes. A yq assignment whose selector matched nothing exits 0
+# having edited nothing, and that is precisely the mistake that would commit one half of a pin.
+# In --check mode this same loop is the whole job.
+problems=0
+for entry in "${PLUGINS[@]}"; do
+    name="${entry%%:*}"
+    project="${entry##*:}"
+
+    want_version="$(tr -d '[:space:]' <"${REPO_ROOT}/libs/${project}/version.txt")"
+    got_image="$(pinned_tag "${name}")"
+    got_version="$(name="${name}" yq -r '.plugins[strenv(name)].version // ""' "${PINS}")"
+    got_sha="$(name="${name}" yq -r '.plugins[strenv(name)].sha256 // ""' "${PINS}")"
+
+    # The init-container tag and the catalog version must name the same release. This is the
+    # cross-bundle duplication, and the only check that can catch it drifting.
+    if [[ "${got_image##*:}" != "${got_version}" ]]; then
+        printf 'ERROR: %s pins %s but openbao-config/values.yaml declares version %s for %s.\n' \
+            "openbao/values.yaml" "${got_image}" "${got_version:-<empty>}" "${name}" >&2
+        problems=$((problems + 1))
     fi
     if ! printf '%s' "${got_sha}" | grep -qE '^[0-9a-f]{64}$'; then
-        printf 'ERROR: plugin-%s.yaml plugin_sha256 is %q, not a sha256.\n' "${name}" "${got_sha}" >&2
-        exit 1
+        printf 'ERROR: plugins.%s.sha256 is %q, not a sha256.\n' "${name}" "${got_sha}" >&2
+        problems=$((problems + 1))
+    fi
+    # In --check mode version.txt is the declared intent; a pin lagging it means a publish has not
+    # propagated yet, which is a real state and not an error, so only flag it while writing.
+    if [[ "${MODE}" == "write" && "${got_version}" != "${want_version}" ]]; then
+        printf 'ERROR: wrote version %s for %s but version.txt declares %s.\n' \
+            "${got_version}" "${name}" "${want_version}" >&2
+        problems=$((problems + 1))
     fi
 done
+
+if [[ "${problems}" -gt 0 ]]; then
+    printf '==> %d pin problem(s); refusing to proceed.\n' "${problems}" >&2
+    exit 1
+fi
+
+if [[ "${MODE}" == "check" ]]; then
+    echo "==> openbao plugin pins are self-consistent" >&2
+    exit 0
+fi
 
 cd "${REPO_ROOT}"
 
 PINNED_FILES=(
     apps/secret/src/openbao/values.yaml
-    apps/secret/src/openbao-config/plugin-netbird.yaml
-    apps/secret/src/openbao-config/plugin-cloudflare.yaml
+    apps/secret/src/openbao-config/values.yaml
 )
 
 if git diff --quiet -- "${PINNED_FILES[@]}"; then
@@ -141,16 +172,16 @@ if [[ "${COMMIT}" -eq 0 ]]; then
     exit 0
 fi
 
-# `chore(secret):` and a path confined to apps/secret/** are two independent guards on the
-# same property: this commit must not route to either release-please package and propose a
-# further bump. apps/secret is outside both package paths in release-please-config.json, and
-# `chore` is not a releasable type.
+# `chore(secret):` and a path confined to apps/secret/** are two independent guards on the same
+# property: this commit must not route to either release-please package and propose a further
+# bump. apps/secret is outside both package paths in release-please-config.json, and `chore` is
+# not a releasable type.
 git add -- "${PINNED_FILES[@]}"
 git commit -m "chore(secret): pin openbao plugin images and catalog checksums" \
-    -m "Written by bin/openbao-plugin-pin after a successful publish. The image tags in
-values.yaml and the plugin_sha256 values in openbao-config move in this one commit
-because OpenBao rejects a registration whose checksum does not describe the binary it
-is handed, and reports it as a bare \"checksum mismatch\"."
+    -m "Written by bin/openbao-plugin-pin after a successful publish. The init-container image
+tags and the plugins.<name>.{version,sha256} values move in this one commit because OpenBao
+rejects a registration whose checksum does not describe the binary it is handed, and reports
+it as a bare \"checksum mismatch\"."
 
 echo "==> committed" >&2
 git --no-pager log -1 --stat >&2

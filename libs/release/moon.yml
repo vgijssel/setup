@@ -1,0 +1,52 @@
+language: bash
+layer: library
+# Repo-level release tooling: the scripts that decide what to publish and that propagate a
+# published artifact's pins to the consumers in this repo. The scripts themselves live in bin/,
+# because bin/ holds the hermit link farm and so cannot itself be a moon project; this project
+# gives them moon targets and a home for their tests.
+#
+# See openspec/changes/release-please-openbao-plugins/design.md (D5, D6, D10).
+tasks:
+  # Two scripts, two silent failure modes. bin/registry-tag-exists reading an ambiguous probe as
+  # "absent" re-pushes a live tag; bin/openbao-plugin-pin committing one half of a pin leaves
+  # Fleet deploying a plugin that fails registration with a bare "checksum mismatch". Neither
+  # shows up until long after the commit, so both get tests. regctl and plugin-sha.sh are stubbed,
+  # so this needs neither a network nor docker.
+  test:
+    command: bats tests/registry-tag-exists.bats tests/openbao-plugin-pin.bats
+    options:
+      runFromWorkspaceRoot: false
+      cache: true
+    inputs:
+      - file: ./tests/registry-tag-exists.bats
+      - file: ./tests/openbao-plugin-pin.bats
+      - file: /bin/registry-tag-exists
+      - file: /bin/openbao-plugin-pin
+      - "@group(yq_bin)"
+
+  # Propose the pins for the currently published artifacts as a PR. Invoked by
+  # .github/workflows/publish.yaml after both publishes succeed. `cache: false` and
+  # `runInCI: false`: it reaches the registry and GitHub, so a cached success would mean "we did
+  # not look", and it must never fire from `moon ci` on a pull request.
+  self_upgrade:
+    command: ./self-upgrade.sh
+    options:
+      runFromWorkspaceRoot: false
+      runInCI: false
+      cache: false
+
+  # Assert the committed pins are self-consistent across the two bundles that carry them. The
+  # version is necessarily duplicated — Fleet cannot share values between bundles and an image tag
+  # cannot come from a ConfigMap — so the single-commit atomicity of self_upgrade cannot by itself
+  # guarantee the two agree. This is the check that can. No docker, no network.
+  self_upgrade_check:
+    command: openbao-plugin-pin --check
+    options:
+      cache: true
+    inputs:
+      - file: /bin/openbao-plugin-pin
+      - file: /apps/secret/src/openbao/values.yaml
+      - file: /apps/secret/src/openbao-config/values.yaml
+      - file: /libs/openbao-netbird-plugin/version.txt
+      - file: /libs/openbao-cloudflare-plugin/version.txt
+      - "@group(yq_bin)"

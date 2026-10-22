@@ -135,6 +135,20 @@ data "aws_instance" "example" {
 ### Releases
 Releases are managed via project-specific release tasks. Artifacts are automatically published to GitHub as part of the release process.
 
+#### Commit messages are load-bearing
+
+Version decisions are **derived** from conventional-commit types, so a wrongly-typed subject does
+not merely read badly — it silently ships nothing. `commitlint.config.js` is therefore enforced
+twice, and the split is not redundancy:
+
+- **locally**, by Trunk's `commitlint` action (a commit-msg hook), on each commit as it is written
+- **in CI**, by the `Commit Convention` job, on the **pull request title**
+
+The CI half is the one that matters. This repo allows **squash merges only** and
+`squash_merge_commit_title` is `PR_TITLE`, so a branch's individual commit messages never enter
+`main`'s history — the PR title becomes the conventional commit release-please reads. Retitling a
+PR re-runs the check.
+
 **OpenBao plugins (`libs/openbao-netbird-plugin`, `libs/openbao-cloudflare-plugin`)** are the
 onboarded packages. Two independent workflows, and the separation is load-bearing:
 
@@ -150,16 +164,22 @@ Merge-to-published, end to end:
    PR covering both packages at independent versions.
 2. A human merges the release PR. That writes `libs/<plugin>/version.txt` and cuts a
    `<component>@<version>` tag.
-3. `publish.yaml` runs `moon run openbao-netbird-plugin:release openbao-cloudflare-plugin:release`.
-   Each `release.sh` reads its `version.txt` — there is **no fallback version** — and probes the
-   registry via `bin/registry-tag-exists`, which answers in **three** states: present → skip;
-   an explicit `http 404` → publish; **anything else → fail**. A probe that fails for an
-   unrelated reason is never read as permission to push, because re-pushing a live tag changes
-   its digest and silently invalidates the checksums pinned downstream.
-4. `bin/openbao-plugin-pin` then commits the init-container image tags in
-   `apps/secret/src/openbao/values.yaml` **and** the matching `plugin_sha256` values in
-   `apps/secret/src/openbao-config/plugin-*.yaml` — in **one** commit, as `vgijssel-bot`. Those
-   values are **bot-written**; hand edits are overwritten.
+3. `publish.yaml` runs `moon run :release --query "tag=releasable"` — selected by **tag**, so
+   there is no list to maintain; a project opts in with `tags: [releasable]` and inherits the
+   task from `.moon/tasks/tag-releasable.yml`. Each `release.sh` reads its `version.txt` — there
+   is **no fallback version** — and probes the registry via `bin/registry-tag-exists`, which
+   answers in **three** states: present → skip; an explicit `http 404` → publish; **anything
+   else → fail**. A probe that fails for an unrelated reason is never read as permission to
+   push, because re-pushing a live tag changes its digest and silently invalidates the checksums
+   pinned downstream.
+4. `moon run release:self_upgrade` then **opens a pull request** carrying the init-container
+   image tags in `apps/secret/src/openbao/values.yaml` **and** the matching
+   `plugins.<name>.{version,sha256}` in `apps/secret/src/openbao-config/values.yaml` — in
+   **one** commit, as `vgijssel-bot`. Those values are **bot-written**; hand edits are
+   overwritten.
+5. **A human merges that PR**, and that is what makes the new plugin the deployed state. It is a
+   PR and not a push to `main` because this is the only point at which the newly published
+   plugin is validated against the apps that deploy it.
 
 Things that look like bugs and are not:
 
@@ -168,6 +188,17 @@ Things that look like bugs and are not:
   gated on them goes green having published nothing. Publishing instead converges against the
   registry, which is what makes re-running the whole workflow — and the nightly schedule —
   correct.
+- **`self_upgrade` reuses one fixed branch** (`chore/openbao-plugin-pins`) and compares *trees*,
+  not commits. Publishing runs on every push to `main` and nightly, so opening a fresh PR each
+  time would accumulate them; instead there is always at most one, always describing the newest
+  publish. Closing it unmerged is fine — the next run re-opens it.
+- **The checksum is a values entry, not a literal in the Workspace.** `openbao-config` is a local
+  Helm chart for exactly that reason: a `plugin_sha256` buried in the inline Terraform could only
+  be changed by textual substitution, which is unsafe for both a human and Renovate.
+- **Renovate tracks the plugin `version` but never the `sha256`.** It knows registry manifest
+  digests, not the checksum of a file *inside* an image, so pointed at both it would move the tag
+  and strand the checksum. Its manager here exists only to surface a published version that has
+  not been pinned yet.
 - **Changing a plugin's `src/` with no version bump publishes nothing.** Versions are
   immutable; the conventional-commit type is what ships a change. `renovate.json` types
   dependency updates in these two directories as `fix` for exactly this reason — otherwise an
@@ -179,6 +210,9 @@ To check a config change before trusting it in CI:
 ```bash
 bin/release-please release-pr --repo-url=vgijssel/setup --target-branch=<branch> \
   --token="$(gh auth token)" --dry-run
-moon run release-tooling:test      # bats over both bin/ scripts, no network needed
-bin/openbao-plugin-pin --no-commit # write the pins, leave the diff in the worktree
+moon run release:test                 # bats over both bin/ scripts; no network, no docker
+moon run release:self_upgrade_check   # assert the committed pins agree across both bundles
+bin/openbao-plugin-pin --no-commit    # write the pins, leave the diff in the worktree
+SELF_UPGRADE_DRY_RUN=1 moon run release:self_upgrade   # commit locally, never push or call gh
+printf 'feat(x): y' | bin/commitlint  # the same rules CI applies to a PR title
 ```
