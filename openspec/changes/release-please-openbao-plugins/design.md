@@ -49,9 +49,17 @@ and the entry is not created. D5's write-back mechanism is therefore necessary, 
 `required_status_checks`. A plain CI push would be rejected twice over — no PR, and unsigned.
 But `bypass_actors` holds team `vgijssel/bot` (`actor_id: 14203826`) at
 `bypass_mode: always`, and that team's sole member is **`vgijssel-bot`** — the identity behind
-`RELEASES_TOKEN_GITHUB`. So D5's direct push to `main` stands as designed, and it must be made
-**as `vgijssel-bot`**: any other identity (including the repo owner, whose
-`current_user_can_bypass` reads `never`) cannot push to `main` at all.
+`RELEASES_TOKEN_GITHUB`. Any other identity, including the repo owner (whose
+`current_user_can_bypass` reads `never`), cannot push to `main` at all.
+
+> **This finding was acted on and then superseded.** It said the direct push *could* work, and the
+> original D5 took that as permission to do it. D5 has since been revised to open a PR instead —
+> not because the push was blocked, but because a pin pushed to `main` is a pin nothing validated.
+> The bypass is therefore no longer used by anything. The identity is still `vgijssel-bot`, now for
+> the reason in **D13**: a PR opened with `GITHUB_TOKEN` triggers no CI, so the five
+> `required_status_checks` recorded above would never report and the PR could never be merged.
+> Note how the two halves of this ruleset changed roles — `bypass_actors` stopped mattering and
+> `required_status_checks` became the binding constraint.
 
 **1.3 — `GITHUB_TOKEN` with `packages: write` can push to `ghcr.io/vgijssel/setup/*`.**
 Demonstrated by existing state rather than a throwaway tag:
@@ -465,6 +473,65 @@ releasing these two plugins"). That was wrong in one direction: version decision
 from these messages, so a wrongly-typed subject does not merely look untidy, it silently ships
 nothing — which is the same class of bug as D7. It is now in scope.
 
+### D13 — A `vgijssel-bot` PAT, and why `GITHUB_TOKEN` cannot stand in
+
+Both workflows authenticate as `vgijssel-bot` via `RELEASES_TOKEN_GITHUB`. Once D5 moved the pins
+off a direct push to `main`, the original reason for that — being the only `bypass_actors` entry
+on `protected-main` — stopped applying. A different reason took its place.
+
+**Events triggered by `GITHUB_TOKEN` do not start workflow runs.** So a PR opened with it receives
+no `pull_request` event and therefore no CI. In most repositories that is an annoyance; here it is
+fatal twice over:
+
+1. `protected-main` has five **required** status checks (`Trunk Check`, `Trunk Check Runner`,
+   `Linux (1/2)`, `Linux (2/2)`, `macOS (1/1)`). A context that never reports leaves the PR at
+   "Expected — waiting for status to be reported", so **nobody can merge it** —
+   `github-actions[bot]` is not a bypass actor, and `current_user_can_bypass` reads `never` even
+   for the repo owner.
+2. The pin PR exists precisely so that CI answers "does the newly published plugin work in the
+   apps that deploy it?" A PR no CI ever looks at is a slower push to `main`.
+
+`release-please-action`'s own README states it plainly: a PAT is needed "if you want GitHub Actions
+CI checks to run on Release Please PRs".
+
+A near-miss worth naming, because it looks like the fix and is not: the repository setting **"Allow
+GitHub Actions to create and approve pull requests"** (`can_approve_pull_request_reviews`, read as
+`false` on 2026-10-22). Flipping it resolves `GitHub Actions is not permitted to create or approve
+pull requests` — permission to *open* the PR. It does nothing about whether workflows then trigger
+on it. Two separate mechanisms; only the first is a setting.
+
+The existing evidence in this repository is the cleanest statement of the rule: all 52 bot-authored
+PRs come from `app/renovate` — a GitHub **App**, not `GITHUB_TOKEN` — and they receive all five
+checks, which is why `#1060` could automerge.
+
+*Alternative — a GitHub App:* the better engineering answer, and rejected only on cost/benefit for
+a two-package pipeline. An App's installation token is minted per run with a 1-hour TTL, so there
+is nothing to rotate; its permissions scope to this repository and to exactly `contents: write` +
+`pull-requests: write`; the org already runs five Apps, so the pattern is established; and an App
+can create **signed** commits through the Contents API, which would settle the open question below
+about the pin branch. The PAT was chosen because it already exists, is already wired into three
+references across two workflows, and switching later is a few lines — this is not a one-way door.
+A bot user costs nothing here (the org is on the `free` plan), so seat cost did not enter into it.
+
+*The PAT's known weakness, accepted deliberately:* **it expires, and its death is quiet.** That is
+not hypothetical — it is what happened. The secret set on 2025-09-16 expired, and from then every
+push to `main` failed, unnoticed for months, because the workflow it gated
+(`.github/workflows/release.yaml`) had its entire body commented out: a red run and a green run did
+the same amount of work, so red on `main` *was* the normal state.
+
+Two mitigations, because "remember to rotate it" is not one:
+
+- Both workflows now do real work, so their failure is meaningful rather than ambient.
+- Each opens with a **credential pre-flight** (`gh api user`) that fails with the action to take.
+  Without it the symptom is `actions/checkout` reporting
+  `fatal: could not read Username for 'https://github.com': terminal prompts disabled`, which
+  reads like a missing username and is actually an auth rejection — the single most misleading
+  part of the whole incident.
+
+Set the replacement PAT to **no expiration**. A `classic` PAT with `repo` suffices; `workflow` is
+not needed, because release-please only writes `CHANGELOG.md`, `version.txt` and the manifest for
+these packages, none of which live under `.github/`.
+
 ## Risks / Trade-offs
 
 - **The first publish may change the checksum of an already-pinned version.** The currently
@@ -480,10 +547,12 @@ nothing — which is the same class of bug as D7. It is now in scope.
   containerd (or recreate the cluster) so the registry copy is pulled. Covered in the migration
   plan.
 
-- **Branch protection may reject the write-back push.** A direct commit to `main` from CI needs a
-  token permitted to push, and `GITHUB_TOKEN` cannot push to a protected branch. →
-  `RELEASES_TOKEN_GITHUB` / `vgijssel-bot` already exists for exactly this. Verify before
-  building; if `main` requires a PR, D5 falls back to opening one, which changes no specs.
+- **Branch protection may reject the write-back push.** → **This happened, and D5 now routes the
+  pins through a PR instead, so the risk is retired rather than mitigated.** `main` does require a
+  PR; the fallback the original note anticipated is what shipped, and it changed no specs — the
+  atomicity requirement was always about a single commit, not about where that commit landed. What
+  replaced it is D13's constraint: the PR must be opened by something other than `GITHUB_TOKEN`,
+  or no CI runs on it and the five required checks never report.
 
 - **No *local* credential carries `write:packages`.** That is why the cloudflare
   repository has never existed; `release-local.sh` exists as the workaround. → This is the first
