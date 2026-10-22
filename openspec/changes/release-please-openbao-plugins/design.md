@@ -610,6 +610,43 @@ these packages, none of which live under `.github/`.
 7. Exercise the real path: land a `fix:` touching both plugin directories, confirm one release PR
    covering both packages, merge it, and confirm two tags, two images, and one pin commit.
 
+### Rollout results (2026-10-22)
+
+Ran end to end. Four things the plan did not predict, each worth more than the step that worked:
+
+1. **`required_signatures` blocks the pin PR, and CI cannot sign.** Proved rather than assumed:
+   with all five checks green, the unsigned bot commit left the PR `BLOCKED`; re-pushing the
+   *identical tree* with a signature flipped it to `CLEAN`. So the earlier claim that squash merge
+   satisfies required signatures (because GitHub signs the squash) is **wrong for a ruleset** —
+   the ruleset form blocks the merge when any commit in the PR is unsigned. `#1081` was merged
+   only because it was hand-signed. **Every unattended `self_upgrade` PR is therefore unmergeable
+   as built.** Deferred by decision, but it makes D13's rejected GitHub App alternative — whose
+   Contents-API commits GitHub signs — the fix rather than a refinement.
+
+2. **The chart conversion needed a one-time re-annotation.** Fleet applied the flat manifests under
+   its generated release name; as a chart the release name becomes the chart name, so Helm refused
+   to adopt its own 17 objects (`invalid ownership metadata`). This blocked the whole bundle and,
+   via `dependsOn`, `secret-mesh-tls` too. Fixed with a metadata-only
+   `kubectl annotate … meta.helm.sh/release-name=openbao-config` per object. A from-scratch cluster
+   never hits it. Recorded in the bundle's `fleet.yaml`.
+
+   **Read the BundleDeployment, not the Bundle summary.** The bundle showed a green `1/1` column
+   while the BundleDeployment underneath carried the blocking error. That misread cost a cycle.
+
+3. **The transient mismatch window is real and self-clearing.** Between restarting the pod (new
+   binary on disk) and Crossplane re-registering the new checksum, OpenBao logged
+   `checksums did not match` — all of it inside one ~4-minute window at `09:21:10`, with zero
+   afterwards. Unavoidable given the pod and the catalog update independently; harmless because
+   the engines were already mounted.
+
+4. **Making the ghcr package public was unnecessary.** Both packages came out **public** and pull
+   anonymously, so the migration step the risks section anticipated does not exist. The assumption
+   that a new ghcr package is private by default did not hold here.
+
+Verified at the end: catalog `sha256` equals the binary on disk for both plugins
+(`46c6c0e8…` / `c042e51e…`), both engines answer, and `release:self_upgrade_check` passes on the
+merged `main`.
+
 **Rollback:** the pieces are separable. Disabling `publish.yaml` stops all publishing while
 leaving version decisions intact; deleting `release-please-config.json` stops version decisions
 while leaving publishing able to converge on whatever `version.txt` declares. Reverting the whole
