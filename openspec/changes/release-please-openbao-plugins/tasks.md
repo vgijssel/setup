@@ -198,21 +198,21 @@ they verified is unchanged and must still hold.
 
 ## 9. Rollout and integration verification
 
-- [ ] 9.1 On merge, confirm `publish.yaml` published both `0.1.4` and `0.1.0` and that
+- [x] 9.1 On merge, confirm `publish.yaml` published both `0.1.4` and `0.1.0` and that
       `regctl manifest head` resolves both — the ghcr drift reconciled with no version
       bump.
-- [ ] 9.2 Make the `openbao-plugin-secrets-cloudflare` ghcr package public and verify an
+- [x] 9.2 Make the `openbao-plugin-secrets-cloudflare` ghcr package public and verify an
       unauthenticated pull succeeds. Until this is done a fresh pull fails exactly as the current
       404 does.
-- [ ] 9.3 Confirm `release:self_upgrade` opened ONE pull request, that its single commit moves
+- [x] 9.3 Confirm `release:self_upgrade` opened ONE pull request, that its single commit moves
       the init-container tags and `plugins.<name>.{version,sha256}` together, and that merging it
       makes `release:self_upgrade_check` pass on `main`. Expect the shas to change even though
       the versions did not, because the previously pinned values came from local builds.
-- [ ] 9.4 Remove the side-loaded plugin images from the secret cluster node's containerd so the
+- [x] 9.4 Remove the side-loaded plugin images from the secret cluster node's containerd so the
       registry copies are pulled, then verify both engines register with no "checksum mismatch"
       and `openbao-config` reconciles. Without this the node keeps serving the locally-built
       image under `imagePullPolicy: IfNotPresent` while the pin now describes the registry's.
-- [ ] 9.5 Verify idempotence on the real pipeline: re-run `publish.yaml` unchanged and confirm it
+- [x] 9.5 Verify idempotence on the real pipeline: re-run `publish.yaml` unchanged and confirm it
       pushes nothing, opens no second pull request, and succeeds — and separately that a re-run of a *whole*
       workflow (not just failed jobs) is still correct, which is the property gating on
       `releases_created` would have broken.
