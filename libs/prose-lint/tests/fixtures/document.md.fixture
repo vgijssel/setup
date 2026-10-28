@@ -1,0 +1,20 @@
+# Prose checks
+
+## ADDED Requirements
+
+### Requirement: Safe updates
+
+The system SHALL preserve data. It MUST NOT remove files.
+
+#### Scenario: Safe update
+
+- **WHEN** the system starts
+- **THEN** the data remains
+
+This will work.
+
+`This will work.`
+
+```text
+This will work.
+```

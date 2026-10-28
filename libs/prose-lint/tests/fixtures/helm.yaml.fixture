@@ -1,0 +1,28 @@
+{{/* This will work. */}}
+{{- /*
+This will work.
+*/ -}}
+{{- if .Values.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "This will work. # }} is quoted" }}
+data:
+  quoted: "This will work. # This will work."
+  single: 'This will work. # This will work.'
+  literal: |
+    # This will work.
+    {{ printf "This will work." }}
+  folded: >-
+    # This will work.
+  expression: {{ printf `This will work. # }} is quoted` }}
+  value: {{ .Values.name }} # This will work.
+  # This will work.
+{{- end }}
+{{/*
+`This will work.`
+
+```text
+This will work.
+```
+*/}}
