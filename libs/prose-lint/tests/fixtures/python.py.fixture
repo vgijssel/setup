@@ -1,0 +1,16 @@
+"""This will work."""
+
+
+# This will work.
+MESSAGE = "This will work. # This will work."
+MULTILINE = """
+# This will work.
+"""
+
+
+class Example:
+    """This will work."""
+
+    def run(self):
+        """This will work."""
+        return "This will work."

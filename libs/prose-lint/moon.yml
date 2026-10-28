@@ -1,0 +1,21 @@
+language: bash
+layer: library
+tasks:
+  test:
+    command: bats tests/prose.bats
+    options:
+      runFromWorkspaceRoot: false
+      cache: true
+    inputs:
+      - glob: tests/**/*
+      - file: comments.py
+      - file: line.tmpl
+      - file: /.vale.ini
+      - file: /.vale/.gitignore
+      - file: /.trunk/trunk.yaml
+      - file: /bin/trunk
+      - file: /bin/.trunk@latest.pkg
+      - file: /bin/bats
+      - file: /bin/.bats-1.11.0.pkg
+      - file: /apps/pikvm/deploy.py
+      - file: /apps/platform/src/envoy-gateway/templates/gatewayclass-envoy.yaml

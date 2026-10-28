@@ -1,0 +1,29 @@
+# This will work.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example # This will work.
+data:
+  quoted: "This will work. # This will work."
+  single: 'This will work. # This will work.'
+  escaped: "A \"quoted # value\" will work."
+  doubled: 'A ''quoted # value'' will work.'
+  plain: This will work.
+  hash: value#will
+  literal: |
+    # This will work.
+    This will work.
+  folded: >-
+    # This will work.
+    This will work.
+  indented: |2+
+    # This will work.
+  multiline: "This will work.
+    # This will work."
+# This works.
+
+# `This will work.`
+
+# ```text
+# This will work.
+# ```

@@ -46,6 +46,62 @@ moon ci <base> <head>         # Run affected tasks in CI mode
 - **Environment Setup**: Use `direnv allow` to setup binary dependencies
 - **Platform Detection**: Use `IS_MACOS` and `IS_LINUX` environment variables
 
+### Prose linting
+
+Trunk runs Vale 3.13.0 with Google 0.6.3 at warning and error levels. The existing
+`trunk_check` pull request job and local hooks use the same configuration. Trunk
+installs Vale and the pinned comment parser; its `prepare_run` step runs `vale sync`
+before checking prose. No global Vale installation or populated style cache is needed.
+To initialize dependencies explicitly, or refresh styles after changing the package pin:
+
+```bash
+direnv allow
+bin/trunk tools install vale prose-parser
+bin/trunk exec -- vale --config .vale.ini --no-global sync
+moon run prose-lint:test
+trunk fmt
+trunk check
+trunk check --all --filter=vale --no-fix --show-existing
+```
+
+Coverage:
+
+- First-party `.md` and `.markdown` files, including `openspec/specs/`, active
+  `openspec/changes/`, and `openspec/changes/archive/`. Markdown code fences and inline
+  code stay excluded. OpenSpec requirement keywords and change-section headings have
+  narrow syntax exceptions; their prose still receives checks. These exact syntax
+  exceptions apply to Markdown by extension because Vale 3.13 matches ignore patterns
+  by extension, not by source path.
+- First-party `.py` comments and module, class, and function documentation strings,
+  through Vale's native Python parser. Ordinary strings are not prose.
+- Comments in `apps/**/*.yaml`, `apps/**/*.yml`, `libs/**/*.yaml`, and `libs/**/*.yml`,
+  including Kubernetes manifests and Helm values. A pinned YAML grammar selects comment
+  nodes, not scalar values. Quoted hashes and literal or folded block scalars are not prose.
+- Helm template comments and YAML comments in those YAML paths beneath `templates/`,
+  plus `apps/**/templates/*.{tpl,txt}` and `libs/**/templates/*.{tpl,txt}` at any depth.
+  The adapter recognizes trimmed comment delimiters and masks template expressions before
+  parsing YAML. It does not render charts or contact a cluster. Diagnostics retain source
+  paths, lines, and columns.
+
+The adapter checks static comments, not prose produced by template evaluation, embedded
+scripts, or scalar values. It parses masked templates without validating rendered YAML;
+unclosed template expressions or comments produce an error. Python parser support is
+limited to the grammar bundled with the pinned Vale version. Bats fixtures exercise all
+three comment formats through Trunk, including the PiKVM deployment and Envoy template.
+
+Existing all-linter exclusions remain in force. Vale also excludes `specs/`, `third_party/`,
+downloaded `.vale/` styles, regression fixtures, dependency directories (`node_modules/`,
+`vendor/`, `vendored/`, `charts/`, `.venv/`, `venv/`), build output (`dist/`, `build/`), and
+generated Python protobuf files. Generated assistant instructions in
+`.claude/commands/opsx/`, `.claude/commands/speckit.*.md`, and
+`.claude/skills/openspec-*/` are excluded; OpenSpec specifications are not.
+`openspec/config.yaml` is outside the YAML scope.
+Use Trunk rather than a recursive direct Vale invocation to retain these path exclusions.
+Existing findings remain a backlog; normal `trunk check` enforces new issues without a
+repository-wide cleanup. Google spelling is off; no dictionary is configured.
+The `Packages` and `BasedOnStyles` settings in `.vale.ini` support a later, separately
+pinned ai-tells rollout. ai-tells is not enabled now.
+
 ## File Creation Policy
 
 - **ALWAYS** prefer editing existing files over creating new ones
