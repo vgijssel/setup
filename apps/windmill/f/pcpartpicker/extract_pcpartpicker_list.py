@@ -36,7 +36,7 @@ def get_price(part):
     if td_node is None:
         return None
 
-    # Make sure we remove the text of the h6 so we get clean price data!
+    # Remove the text of the h6 to get clean price data.
     return td_node.get_text(strip=True).replace(
         td_node.find("h6").get_text(strip=True), ""
     )
@@ -74,7 +74,7 @@ def get_parts_data(url):
 
 
 # name = 'am5_7900'
-# url = 'https://nl.pcpartpicker.com/user/kerkshine/saved/md6DJx'
+# `url = 'https://nl.pcpartpicker.com/user/kerkshine/saved/md6DJx'`
 def main(s3: s3, name: str, url: str):
     parts_data = get_parts_data(url)
     df = pd.DataFrame(parts_data)

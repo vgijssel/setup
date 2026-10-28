@@ -1,16 +1,16 @@
-# Spec Delta
+# Spec delta
 
 ## Purpose
 
 How a versioned artifact produced by this monorepo gets its version decided, published exactly
 once, and propagated to the in-repo consumers that pin it. Several artifacts are released
 independently from one repository, so version decisions must be routed per artifact, and
-publishing must converge against the registry rather than against a diff window — a release
+publishing must converge against the registry rather than against a diff window—a release
 pipeline that cannot be safely re-run is a release pipeline that silently publishes nothing.
 
 ## ADDED Requirements
 
-### Requirement: Version decisions are derived from commit history and routed by file path
+### Requirement: Version decisions are derived from commit history and routed by path
 
 Each releasable package SHALL have its next version derived from the conventional-commit types
 of the commits that touched **its own files** since its last release. A commit SHALL affect only
@@ -108,7 +108,7 @@ action when it is already present.
 
 ### Requirement: An ambiguous registry probe fails rather than publishing
 
-Only an explicit, positively-identified "this version is absent" response SHALL authorize a
+Only an explicit, positively identified "this version is absent" response SHALL authorize a
 push. Any other probe outcome SHALL fail the step. The publish step SHALL NOT treat a probe
 failure as evidence that the artifact is unpublished.
 
@@ -274,7 +274,7 @@ NOT be interpreted as a releasable change to any package.
 ### Requirement: The commit convention that drives releases is enforced mechanically
 
 Because version decisions are derived from commit message types, a malformed or
-wrongly-typed message silently produces the wrong version decision — or none. The convention
+wrongly typed message silently produces the wrong version decision—or none. The convention
 SHALL therefore be checked by tooling rather than by review, both before a change is authored
 into history and in the repository's automated checks.
 

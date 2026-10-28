@@ -26,7 +26,7 @@ from apollo_r_pro_1_case.params import (
     STOCK_VENT_H,
 )
 
-#: Rear face of the board once its front-side component stack bottoms out on the
+#: rear face of the board once its front-side component stack bottoms out on the
 #: front skin. Nothing fastens the board, exactly as on the stock part.
 BOARD_REAR_Z = P.front_skin + BOARD_FRONT_STACK + BOARD_T
 
@@ -68,7 +68,7 @@ def test_parts_do_not_interfere(body, plate):
 
 def test_plate_tabs_have_a_fit_clearance(body, plate):
     """Not just non-interfering: there has to be a real gap, or the tabs are a
-    zero-clearance fit that no printer will produce."""
+    zero-clearance fit that no printer can produce."""
     assert P.tab_clearance > 0.0
     grown = plate.translate(cq.Vector(0.0, P.tab_clearance * 0.9, 0.0))
     overlap = body.intersect(grown)

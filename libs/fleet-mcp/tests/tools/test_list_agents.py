@@ -257,7 +257,7 @@ async def test_list_agents_metadata_count_shows_total_not_filtered(
     mock_agent_service,
 ):
     """Test that metadata_count shows total fields, not just filtered fields."""
-    # Arrange: Create agent with 3 total fields, but only 1 with include_in_list=true
+    # Arrange: create agent with 3 total fields, but only 1 with include_in_list=true
     agents_with_metadata = [
         Agent(
             name="test-agent",

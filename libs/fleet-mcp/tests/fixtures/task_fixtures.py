@@ -14,10 +14,10 @@ def mock_get_task_history_success(coder_base_url: str) -> dict:
     """Mock successful task history retrieval.
 
     Task history is extracted from workspace.latest_build.resources[].agents[].apps[]
-    where app.slug == "ccw". The app.statuses[] array contains task history items.
+    where `app.slug == "ccw"`. The app.statuses[] array contains task history items.
 
     Returns:
-        Workspace dict containing Claude Code app with task statuses
+        workspace dict containing Claude Code app with task statuses
     """
     # Load from get_workspace_success cassette which has task history
     status_code, workspace_data = load_cassette_response("get_workspace_success")
@@ -30,7 +30,7 @@ def mock_get_conversation_logs_success(coder_base_url: str) -> dict:
     """Mock successful conversation logs retrieval.
 
     Returns:
-        Response dict with logs array containing conversation entries
+        response dict with logs array containing conversation entries
     """
     # Load from get_task_logs cassette
     status_code, logs_data = load_cassette_response("get_task_logs_empty")
@@ -43,7 +43,7 @@ def mock_get_task_history_empty(coder_base_url: str) -> dict:
     """Mock workspace with no task history (empty statuses array).
 
     Returns:
-        Workspace dict with Claude Code app but empty statuses
+        workspace dict with Claude Code app but empty statuses
     """
     # Load workspace and remove task history
     status_code, workspace_data = load_cassette_response("get_workspace_success")

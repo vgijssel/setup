@@ -34,7 +34,7 @@ spec:
           - key: "{{"{{"}} starts_with(request.object.spec.ingressClassName || '', 'tenant-') {{"}}"}}"
             operator: Equals
             value: true
-          # CRITICAL: Skip already-processed resources (prevents infinite loops)
+          # CRITICAL: skip already-processed resources (prevents infinite loops)
           - key: '{{"{{ request.object.metadata.annotations.\"internal-networking/processed\" || '''' }}"}}'
             operator: NotEquals
             value: "true"

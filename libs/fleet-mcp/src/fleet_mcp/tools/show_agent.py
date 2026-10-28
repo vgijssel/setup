@@ -18,21 +18,22 @@ async def show_agent(
     """Show detailed information about a specific agent.
 
     Tool: show_agent
-    User Story: US1 (Agent Discovery and Inspection)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US1 (Agent Discovery and Inspection)
+    Architecture: layer 1 (Tool Layer)
 
     Args:
-        agent_service: Service instance for agent business logic
-        agent_name: Name of the agent to retrieve
+        agent_service: service instance for agent business logic
+        agent_name: name of the agent to retrieve
 
     Returns:
-        ShowAgentResponse with full agent details
+        `ShowAgentResponse` with full agent details
 
     Raises:
-        AgentNotFoundError: If agent doesn't exist
-        ValidationError: If agent_name is invalid
+        `AgentNotFoundError`: if agent doesn't exist
+        ValidationError: if agent_name is invalid
 
     Example:
+
         result = await show_agent(agent_service, agent_name="data-analyst")
     """
     agent = await agent_service.get_agent(agent_name)

@@ -1,6 +1,6 @@
 """Contract tests for /metadata endpoint response schema.
 
-TDD Approach: These tests verify the HTTP endpoint returns data matching
+TDD Approach: these tests verify the HTTP endpoint returns data matching
 the WorkspaceMetadata model schema. Written FIRST before endpoint implementation.
 """
 
@@ -14,8 +14,8 @@ async def test_metadata_endpoint_success_response_schema():
     """Test /metadata endpoint returns valid WorkspaceMetadata schema on success."""
     from fleet_mcp.models.metadata import WorkspaceMetadata
 
-    # This test assumes the /metadata endpoint will be available at a specific URL
-    # For now, we'll test the response parsing rather than the actual endpoint
+    # This test assumes the /metadata endpoint is available at a specific URL
+    # For now, test the response parsing rather than the actual endpoint
 
     mock_response_data = {
         "data": {

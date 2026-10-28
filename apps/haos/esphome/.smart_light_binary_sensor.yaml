@@ -11,7 +11,7 @@ on_state:
                   - wifi.connected:
                   - api.connected:
                   - switch.is_on: shelly_relay
-              # toggle smart light if wifi and api are connected and relay is on
+              # toggle smart light if Wi-Fi and api are connected and relay is on
               then:
                 - if:
                     condition:

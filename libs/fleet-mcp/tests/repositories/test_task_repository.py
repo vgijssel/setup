@@ -248,7 +248,7 @@ class TestTaskRepositoryCancelTask:
 
 
 # ============================================================================
-# User Story 4: Task History and Logs Tests (T178-T182)
+# User story 4: task history and logs tests (`T178-T182`)
 # ============================================================================
 
 
@@ -262,7 +262,7 @@ class TestTaskRepositoryGetTaskHistory:
         """Test task history extraction from workspace JSON.
 
         Task history is in workspace.latest_build.resources[].agents[].apps[]
-        where app.slug == "ccw". The app.statuses[] contains task history.
+        where `app.slug == "ccw"`. The app.statuses[] contains task history.
         """
         # Arrange
         workspace_data = {

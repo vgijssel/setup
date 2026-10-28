@@ -37,9 +37,9 @@ class TestProjectRepositoryListAll:
     ):
         """Test list_all() returns only templates with ai_prompt and system_prompt.
 
-        Arrange: Mock templates list with valid and invalid projects
-        Act: Call list_all()
-        Assert: Returns only projects with both required parameters
+        Arrange: mock templates list with valid and invalid projects
+        Act: call list_all()
+        Assert: returns only projects with both required parameters
         """
         # Arrange - Mock templates
         mock_templates = [
@@ -104,9 +104,9 @@ class TestProjectRepositoryListAll:
     ):
         """Test that templates without display_name are filtered out - T046.
 
-        Arrange: Mock templates with missing display_name
-        Act: Call list_all()
-        Assert: Templates without display_name are excluded
+        Arrange: mock templates with missing display_name
+        Act: call list_all()
+        Assert: templates without display_name are excluded
         """
         # Arrange
         mock_templates = [
@@ -143,9 +143,9 @@ class TestProjectRepositoryListAll:
     ):
         """Test templates without ai_prompt/system_prompt are filtered - T046.
 
-        Arrange: Mock templates with missing required parameters
-        Act: Call list_all()
-        Assert: Templates without both required parameters are excluded
+        Arrange: mock templates with missing required parameters
+        Act: call list_all()
+        Assert: templates without both required parameters are excluded
         """
         # Arrange
         mock_templates = [
@@ -204,9 +204,9 @@ class TestProjectRepositoryListRoles:
     ):
         """Test list_roles() returns workspace presets for a project.
 
-        Arrange: Mock template and workspace presets
-        Act: Call list_roles() with project name
-        Assert: Returns list of Role objects
+        Arrange: mock template and workspace presets
+        Act: call list_roles() with project name
+        Assert: returns list of Role objects
         """
         # Arrange
         project_name = "Setup"
@@ -251,13 +251,13 @@ class TestProjectRepositoryListRoles:
     ):
         """Test list_roles() with case insensitive project name - uppercase.
 
-        When a project is created with name "Setup", it should be
+        When a project is created with name `Setup`, it should be
         retrievable with "SETUP" (all uppercase).
         This is because the Coder API backend is case insensitive.
 
-        Arrange: Mock template with project name "Setup"
-        Act: Call list_roles() with "SETUP"
-        Assert: Returns roles for the project
+        Arrange: mock template with project name "Setup"
+        Act: call list_roles() with "SETUP"
+        Assert: returns roles for the project
         """
         # Arrange
         mock_templates = [
@@ -288,13 +288,13 @@ class TestProjectRepositoryListRoles:
     ):
         """Test list_roles() with case insensitive project name - lowercase.
 
-        When a project is created with name "Setup", it should be
+        When a project is created with name `Setup`, it should be
         retrievable with "setup" (all lowercase).
         This is because the Coder API backend is case insensitive.
 
-        Arrange: Mock template with project name "Setup"
-        Act: Call list_roles() with "setup"
-        Assert: Returns roles for the project
+        Arrange: mock template with project name "Setup"
+        Act: call list_roles() with "setup"
+        Assert: returns roles for the project
         """
         # Arrange
         mock_templates = [
@@ -325,9 +325,9 @@ class TestProjectRepositoryListRoles:
     ):
         """Test list_roles() for non-existent project raises CoderAPIError.
 
-        Arrange: Mock templates without the requested project
-        Act: Call list_roles() with non-existent project name
-        Assert: Raises CoderAPIError
+        Arrange: mock templates without the requested project
+        Act: call list_roles() with non-existent project name
+        Assert: raises CoderAPIError
         """
         # Arrange
         from fleet_mcp.models.errors import CoderAPIError

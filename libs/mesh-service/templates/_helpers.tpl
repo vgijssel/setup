@@ -28,7 +28,7 @@ and the name consumers configure are all THIS, computed once so they cannot drif
 {{- end -}}
 
 {{/*
-The Gateway's name — and therefore the name of every resource Envoy Gateway creates for it.
+The Gateway's name—and therefore the name of every resource Envoy Gateway creates for it.
 
 `-mesh` suffixed rather than bare `<name>`, and that is LOAD-BEARING, not cosmetic. The control
 plane runs with `deploy.type: GatewayNamespace` (see apps/platform/src/envoy-gateway/values.yaml for why),
@@ -40,7 +40,7 @@ already owns.
 
 The failure is quiet in the worst way. Envoy Gateway refuses to adopt a resource it does not own
 ("resource already exists and is not owned by this Gateway, skipping"), aborts infra creation, and
-never builds the data-plane Deployment at all — so the Gateway reports `Accepted=True` with every
+never builds the data-plane Deployment at all—so the Gateway reports `Accepted=True` with every
 listener `Programmed=True`, and only the top-level `Programmed=False / AddressNotAssigned` hints
 that nothing is serving. The Certificate goes Ready regardless, so the exposure looks almost
 healthy while answering on no port. Had it got as far as the Service, the name it wanted was the
@@ -54,9 +54,9 @@ carries the suffix.
 {{- end -}}
 
 {{/*
-This service's own NetBird group — the destination group of its access policies and the group its
+This service's own NetBird group—the destination group of its access policies and the group its
 peer is enrolled into by the setup key. Prefixed so a service group can never be confused with
-the long-lived peer groups (homelab, roaming, secret-k8s, network-k8s) that appear as SOURCES.
+the long-lived peer groups (homelab, roaming, `secret-k8s`, `network-k8s`) that appear as SOURCES.
 */}}
 {{- define "mesh-service.group" -}}
 {{- printf "svc-%s" .Values.name -}}
@@ -74,7 +74,7 @@ Each normalised entry has:
   backend   {name, port}, where an omitted backend.port defaults to the listener port
 
 Fails on a listener that declares neither `port` nor `ports`, on one that declares both, and on a
-missing backend name — all of which would otherwise render a listener that binds nothing.
+missing backend name—all of which would otherwise render a listener that binds nothing.
 */}}
 {{- define "mesh-service.listeners" -}}
 {{- range $l := .Values.listeners }}
@@ -118,7 +118,7 @@ The ports this service declares for one protocol, as seen from the mesh. `protoc
 policy terms are only tcp/udp, so HTTPS and TLS listeners both count as tcp.
 
 Used by workspace-policy-mesh-service.yaml to derive the access policy from the listeners instead
-of restating the ports — the spec's "undeclared port is not reachable" holds by construction
+of restating the ports—the spec's "undeclared port is not reachable" holds by construction
 rather than by remembering to keep two lists in sync.
 */}}
 {{- define "mesh-service.portsFor" -}}
@@ -140,7 +140,7 @@ Label stamped on every resource belonging to one exposure, including the Envoy d
 so a service's resources are greppable as a unit.
 
 It used to also be a pod SELECTOR, read by a SidecarProfile to decide which pod to inject the
-mesh client into. That injection is gone (the chart runs the client itself — see
+mesh client into. That injection is gone (the chart runs the client itself—see
 envoyproxy-mesh-service.yaml), so this is now identification only.
 */}}
 {{- define "mesh-service.podLabelKey" -}}

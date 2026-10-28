@@ -1,6 +1,6 @@
 {{/*
 Expand the name of the chart.
-Uses .Values.name if set, otherwise falls back to .Chart.Name
+Uses `.Values.name` if set, otherwise falls back to `.Chart.Name`
 */}}
 {{- define "aws-sigv4-proxy.name" -}}
 {{- default .Chart.Name .Values.name | trunc 63 | trimSuffix "-" }}
@@ -8,7 +8,7 @@ Uses .Values.name if set, otherwise falls back to .Chart.Name
 
 {{/*
 Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+Truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 Uses .Values.name for unique resource naming across multiple instances.
 */}}
 {{- define "aws-sigv4-proxy.fullname" -}}

@@ -1,4 +1,4 @@
-# ArgoCD Ingress Umbrella Chart
+# Ingress umbrella chart
 
 Unified Helm chart managing all 4 ArgoCD ingress resources using a reusable ingress library.
 
@@ -20,12 +20,12 @@ apps/argocd/ingress/              ← Umbrella chart
 libs/ingress/                     ← Reusable library (DRY)
 ```
 
-## Ingresses Managed
+## Ingresses managed
 
 | Name | Host | Service | Port | Purpose |
 |------|------|---------|------|---------|
 | argocd-http | argocd.enigma.vgijssel.nl | argocd-server | 80 | Main UI & API |
-| argocd-grpc | argocd-grpc.enigma.vgijssel.nl | argocd-server | 80 | CLI access |
+| argocd-grpc | argocd-grpc.enigma.vgijssel.nl | argocd-server | 80 | command-line tool access |
 | argocd-server-webhook | argocd-webhook-public.enigma.vgijssel.nl | argocd-server | 80 | GitHub webhooks |
 | argocd-applicationset-webhook | argocd-applicationset-webhook-public.enigma.vgijssel.nl | argocd-applicationset-controller | 7000 | ApplicationSet Git Generator |
 
@@ -33,7 +33,7 @@ libs/ingress/                     ← Reusable library (DRY)
 
 ### Prerequisites
 
-- Main ArgoCD chart deployed with ingresses disabled (see `apps/argocd/argocd/values-prod.yaml`)
+- Main ArgoCD chart deployed with ingresses turned off (see `apps/argocd/argocd/values-prod.yaml`)
 - cert-manager installed for TLS certificate management
 - Ingress controller with class `tenant-prod` available
 
@@ -66,7 +66,7 @@ curl -k https://argocd-grpc.enigma.vgijssel.nl
 
 ## Configuration
 
-### values-prod.yaml Structure
+### Values-prod.yaml structure
 
 Each subchart is configured under its name:
 
@@ -99,20 +99,20 @@ ingress-grpc:
 2. **Per-Ingress Annotations**: Each ingress has independent annotation control
 3. **Reusable Pattern**: Uses `libs/ingress` library for DRY principle
 4. **Atomic Updates**: Helm provides rollback capabilities
-5. **Clean Separation**: Networking concerns separated from ArgoCD application
+5. **Clean Separation**: Networking concerns separated from ArgoCD app
 
 ## Migration
 
 This chart replaces the following:
-- `apps/argocd/argocd/values-prod.yaml`: `server.ingress` (disabled)
-- `apps/argocd/argocd/values-prod.yaml`: `server.ingressGrpc` (disabled)
-- `apps/argocd/argocd/values-prod.yaml`: `applicationSet.ingress` (disabled)
+- `apps/argocd/argocd/values-prod.yaml`: `server.ingress` (turned off)
+- `apps/argocd/argocd/values-prod.yaml`: `server.ingressGrpc` (turned off)
+- `apps/argocd/argocd/values-prod.yaml`: `applicationSet.ingress` (turned off)
 - `apps/argocd/manifests/ingress-http.yaml` (removed after validation)
 - `apps/argocd/manifests/ingress-grpc.yaml` (removed after validation)
 - `apps/argocd/manifests/ingress-server-webhook.yaml` (removed after validation)
 - `apps/argocd/manifests/ingress-applicationset-webhook.yaml` (removed after validation)
 
-## ApplicationSet Discovery
+## `ApplicationSet` discovery
 
 This directory contains a `config.json` file to enable ArgoCD ApplicationSet discovery and automatic deployment.
 
@@ -125,7 +125,7 @@ This directory contains a `config.json` file to enable ArgoCD ApplicationSet dis
 
 ## Maintenance
 
-### Updating Dependencies
+### Updating dependencies
 
 When updating the `libs/ingress` library:
 
@@ -139,7 +139,7 @@ done
 helm dependency update .
 ```
 
-### Adding New Ingress
+### Adding new ingress
 
 1. Create new subchart under `charts/ingress-<name>/`
 2. Add dependency on `libs/ingress` in subchart's `Chart.yaml`
@@ -148,7 +148,7 @@ helm dependency update .
 5. Add configuration to `values-prod.yaml`
 6. Run `helm dependency update`
 
-## Related Documentation
+## Related documentation
 
 - [libs/ingress](../../../libs/ingress/README.md) - Reusable ingress library
 - [Migration Summary](/tmp/argocd-comparison/FINAL_INGRESS_MIGRATION.md) - Complete migration documentation

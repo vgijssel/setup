@@ -30,7 +30,7 @@ class MetadataSchema(BaseModel):
 class MetadataField(BaseModel):
     """A single metadata field with its value, error, and schema.
 
-    Represents one piece of workspace metadata (e.g., git branch, PR number).
+    Represents one piece of workspace metadata (for example, git branch, PR number).
     The value may be null if the metadata could not be collected.
     The error field is populated when collection fails.
 

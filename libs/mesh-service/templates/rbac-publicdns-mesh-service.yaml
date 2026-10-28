@@ -6,7 +6,7 @@ service's current overlay address into a DNSEndpoint for external-dns to publish
 
 THE SUBJECT IS ENVOY GATEWAY'S GENERATED ServiceAccount, not one this chart creates. Envoy
 Gateway owns the data-plane Deployment and names its ServiceAccount after the Gateway, so the
-sidecar — which runs inside that Deployment's pod — authenticates as `<name>-mesh`. The
+sidecar—which runs inside that Deployment's pod—authenticates as `<name>-mesh`. The
 EnvoyProxy pins that name explicitly rather than relying on the default (see
 `envoyServiceAccount` there), so this binding and that pod cannot drift apart silently: a wrong
 name here produces a Forbidden in the sidecar's log, which is at least loud.
@@ -16,14 +16,14 @@ patches the DNSEndpoint the chart renders for this service, so `get` + `patch` i
 requirement.
 
 That narrowing is a direct consequence of the chart owning the object rather than the sidecar
-creating it (see dnsendpoint-mesh-service.yaml). `create` is gone — and with it the reason this
+creating it (see dnsendpoint-mesh-service.yaml). `create` is gone—and with it the reason this
 Role could not use `resourceNames`, since `create` cannot be constrained by name in Kubernetes
 RBAC (the object does not exist yet, so the authorizer has nothing to match). `delete` is gone
 too, because teardown is Helm's job now; the sidecar deleting the record on the way out is what
 opened an NXDOMAIN window on every rollout.
 
 So a compromised data-plane pod can rewrite the address of the one DNS name it already serves,
-and nothing else — not create new names, not delete existing ones, not enumerate them
+and nothing else—not create new names, not delete existing ones, not enumerate them
 (`list`/`watch` are deliberately absent).
 */}}
 apiVersion: rbac.authorization.k8s.io/v1

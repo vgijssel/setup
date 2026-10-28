@@ -55,7 +55,7 @@ class MotionSensor(BinarySensorEntity):
             self.hass, self._timeout, self._reset_motion_presence
         )
         # The starting state of the timer should be idle, so
-        # we're able to differentiate between an event just happened or not.
+        # the test can differentiate between an event just happened or not.
         self._reset_motion_presence_timer.idle = True
 
         self.async_on_remove(

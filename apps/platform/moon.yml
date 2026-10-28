@@ -8,7 +8,7 @@ tags:
   - helm
   - fleet
   - platform
-# Linting is intentionally omitted here — reproducible Kubernetes/Helm linting
+# Linting is intentionally omitted here—reproducible Kubernetes/Helm linting
 # lands in a follow-up PR. The Fleet bundles are the deployable units.
 tasks:
   # Build the whole `apps` tree the way Rancher's GitRepo (paths: [apps]) does and hold
@@ -16,10 +16,10 @@ tasks:
   #
   # The inherited `fleet_build` (tag-fleet.yml) builds one bundle per fleet.yaml, which is
   # what bin/fleet-apply deploys. A GitRepo additionally renders a CATCH-ALL bundle for the
-  # path itself, holding every file under apps/ that no nested fleet.yaml claimed — images
+  # path itself, holding every file under apps/ that no nested fleet.yaml claimed—images
   # in apps/docs/images, apps/blueorange/src/assets, lockfiles, app sources. Left unchecked
   # that bundle reached 10.4 MiB and Rancher rejected it (and so the whole GitRepo) with
-  # "Request entity too large: limit is 3145728". apps/.fleetignore empties it; this task
+  # `Request entity too large: limit is 3145728`. apps/.fleetignore empties it; this task
   # is what keeps it empty.
   #
   # It lives on `platform` rather than in tag-fleet.yml because the catch-all spans ALL of
@@ -35,7 +35,7 @@ tasks:
       # lands in the catch-all, so anything under apps/ has to invalidate this check.
       - /apps/**/*
       - /apps/**/.*
-      # charts/ is helm's build output, rebuilt on every run — never an input.
+      # charts/ is helm's build output, rebuilt on every run—never an input.
       - "!/apps/**/charts/**/*"
       - /bin/fleet-build
       - /apps/platform/moon.yml

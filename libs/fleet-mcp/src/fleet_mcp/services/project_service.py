@@ -8,9 +8,9 @@ from ..repositories import ProjectRepository
 class ProjectService:
     """Service for project and role business logic.
 
-    Architecture: Layer 2 (Service Layer)
-    Dependencies: ProjectRepository (Layer 3)
-    Used by: MCP Tools (Layer 1)
+    Architecture: layer 2 (Service Layer)
+    Dependencies: the ProjectRepository (Layer 3)
+    Used by—MCP Tools (Layer 1)
 
     Responsibilities:
     - Business logic for project and role queries
@@ -22,7 +22,7 @@ class ProjectService:
         """Initialize service with project repository.
 
         Args:
-            project_repo: Repository for project data access
+            project_repo: the repository for project data access
         """
         self.project_repo = project_repo
 
@@ -30,10 +30,10 @@ class ProjectService:
         """List all available projects (templates).
 
         Returns:
-            List of Project domain models
+            list of Project domain models
 
         Raises:
-            CoderAPIError: If Coder API request fails
+            `CoderAPIError`: if Coder API request fails
         """
         return await self.project_repo.list_all()
 
@@ -41,14 +41,14 @@ class ProjectService:
         """List all roles (workspace presets) for a specific project.
 
         Args:
-            project_name: Project name to query roles for
+            project_name: project name to query roles for
 
         Returns:
-            List of Role domain models for the project
+            list of Role domain models for the project
 
         Raises:
-            ValidationError: If project_name is invalid
-            CoderAPIError: If project not found or API request fails
+            `ValidationError`: if project_name is invalid
+            CoderAPIError: if project not found or API request fails
         """
         if not project_name or not project_name.strip():
             raise ValidationError("project_name", "cannot be empty")
@@ -59,17 +59,17 @@ class ProjectService:
         """Get project by name (case-insensitive).
 
         Args:
-            project_name: Project name to find (case-insensitive)
+            project_name: project name to find (case-insensitive)
 
         Returns:
-            Project domain model or None if not found
+            project domain model or None if not found
 
         Raises:
-            ValidationError: If project_name is invalid
+            `ValidationError`: if project_name is invalid
 
         Note:
-            Project name comparison is case insensitive because the Coder API
-            backend is case insensitive. For example, "Setup", "SETUP", and
+            project name comparison is case insensitive because the Coder API
+            backend is case insensitive. For example, `Setup`, `SETUP`, and
             "setup" all refer to the same project.
         """
         if not project_name or not project_name.strip():

@@ -2,17 +2,17 @@
 #
 # A release of this chart turns an in-cluster Service into `<name>.<domain>` on the NetBird
 # overlay: its own Envoy pod, its own overlay address, its own full TCP/UDP port space, a
-# publicly-trusted certificate, and an access policy naming exactly which peer groups may reach
+# publicly trusted certificate, and an access policy naming exactly which peer groups may reach
 # it. One declaration (name + domain + sourceGroups + listeners) produces all of it.
 #
-# WHAT IT SHIPS (all parameterized — nothing cluster- or service-specific is hardcoded):
+# WHAT IT SHIPS (all parameterized—nothing cluster- or service-specific is hardcoded):
 #   - vaultstaticsecret-mesh-service.yaml  pulls the SHARED `*.<domain>` wildcard keypair
 #                                       out of OpenBao into a kubernetes.io/tls Secret.
-#                                       NOT a per-service cert-manager Certificate — see
+#                                       NOT a per-service cert-manager Certificate—see
 #                                       apps/secret/src/mesh-tls for why, and what it costs
 #   - envoyproxy-mesh-service.yaml      EnvoyProxy: port shift OFF, 1 replica, Recreate, and the
 #                                       mesh-client sidecar that gives the pod its peer identity
-#                                       (run here, NOT injected — see that file's comments)
+#                                       (run here, NOT injected—see that file's comments)
 #   - gateway-mesh-service.yaml         Gateway `<name>-mesh` with one listener per declared port
 #   - route-http.yaml / route-tls.yaml / route-tcp.yaml / route-udp.yaml
 #                                       one route per listener, matched to its protocol
@@ -37,7 +37,7 @@
 #
 # NOT a prerequisite any more: cert-manager. Nothing here issues a certificate.
 # NOT expressible as a dependsOn: `kv/mesh-tls` being populated. It is written on the secret
-# cluster (apps/secret/src/mesh-tls), which a network-cluster bundle cannot select on — so a
+# cluster (apps/secret/src/mesh-tls), which a network-cluster bundle cannot select on—so a
 # fresh exposure sits without a certificate until that has happened, and reconciles into health.
 #
 # ── Composition: single-level `file://` dependency, never a nested umbrella ───────────────
@@ -45,7 +45,7 @@
 # declares ONE `file://` dependency on this chart and sets its values from fleet.yaml. It must
 # not be wrapped in another umbrella, because:
 #   * `.gitignore` ignores `apps/**/charts/`, so a subchart cannot be committed under a bundle, and
-#   * `bin/fleet-apply` builds ONLY the top-level bundle chart — helm does not recurse into a
+#   * `bin/fleet-apply` builds ONLY the top-level bundle chart—helm does not recurse into a
 #     subchart's own `file://` deps, so a wrapped subchart is absent from the built package and
 #     its resources silently vanish.
 # Same constraint, same shape as the chart this one replaces (apps/platform/src/netbird-reverse-proxy-shared).

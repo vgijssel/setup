@@ -8,17 +8,17 @@ metadata:
   name: coredns-pr{{ .Values.prNumber }}-preview
   namespace: {{ .Release.Namespace }}
   {{- else }}
-  # Prod: take SSA ownership of kube-system/coredns data.Corefile. Talos's
+  # Prod: take SSA ownership of kube-system/coredns `data.Corefile`. Talos's
   # ManifestApplyController is Create-only (see v1.12.6
-  # internal/app/machined/pkg/controllers/k8s/manifest_apply.go — it skips
-  # existing resources) so our overlay is stable across reconciles.
+  # `internal/app/machined/pkg/controllers/k8s/manifest_apply.go`—it skips
+  # existing resources) so the overlay is stable across reconciles.
   name: coredns
   namespace: kube-system
   {{- end }}
 data:
-  # NOTE: this Corefile mirrors the Talos v1.12 default so we don't regress
-  # any baseline behavior when we take over ownership. If Talos upgrades the
-  # default, diff and update here. The only addition is the final zone block.
+  # NOTE: this Corefile mirrors the Talos v1.12 default to avoid regressing
+  # any baseline behavior when taking over ownership. If Talos upgrades the
+  # default, compare it with this configuration and update here. The only addition is the final zone block.
   Corefile: |
     .:53 {
         errors

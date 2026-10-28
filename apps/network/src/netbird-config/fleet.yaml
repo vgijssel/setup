@@ -1,28 +1,28 @@
 # Raw-manifest Fleet bundle carrying the network cluster's NetBird account config
-# (netbird.io CRs the operator reconciles into NetBird Cloud via the management API):
-#   - group-network-k8s.yaml   : the `network-k8s` Group (isolated new group; does not
-#     touch shared policy or other peers like PiKVM).
-#   - setupkey-network-k8s.yaml: a reusable SetupKey auto-joining `network-k8s`, used to
-#     enroll this cluster's routing peer(s).
+# (netbird.io CRs the operator reconciles into NetBird’s hosted service via the management API):
+#   - `group-network-k8s.yaml`   : the `network-k8s` Group (isolated new group; does not
+#     modify shared policy or other peers like PiKVM).
+#   - `setupkey-network-k8s.yaml`: a reusable SetupKey auto-joining `network-k8s`, used to
+#     enroll this cluster's routing peers.
 #   - nbroutingpeer-router.yaml : this cluster's routing peer. UNLIKE the secret cluster's, which
-#     was deleted with the reverse-proxy stack, this one must NOT be removed — the Omada device
+#     was deleted with the reverse-proxy stack, this one must NOT be removed—the Omada device
 #     exception forwards through it and every ordinary pod gets its overlay route through it. Its
 #     own header states both reasons.
 #   - serviceaccount-router-watchdog.yaml + cronjob-router-watchdog.yaml: a self-heal
 #     watchdog that recycles the NBRoutingPeer (deploy/router) when its netbird daemon
-#     wedges in NeedsLogin/SessionExpired (e.g. after a host VM suspend/resume), which the
+#     wedges in NeedsLogin/SessionExpired (for example after a host VM suspend/resume), which the
 #     daemon cannot recover from on its own and the CR does not surface.
 #   - serviceaccount-router-groups.yaml + cronjob-router-groups.yaml: keeps the routing peer in
 #     `network-k8s`, the group the mesh exposures admit as a source. The operator enrols it into
 #     `network` only and exposes no field to change that, so this is reconciled through the
 #     management API rather than declared.
 # The ClusterProxy (clusterproxy-api-network.yaml) fronts the kube-apiserver over the mesh
-# with per-caller impersonation, consumed via `netbird kubernetes write-kubeconfig` — no
+# with per-caller impersonation, consumed via `netbird kubernetes write-kubeconfig`—no
 # custom domain (NetBird ClusterProxy does not support a custom endpoint for it yet).
 #
 # dependsOn the netbird-operator bundle (label selector, portable across the standalone
 # Fleet -> Rancher GitRepo move) so Fleet only deploys it once the operator's CRDs are
-# established — otherwise a fresh-cluster install deadlocks (the CR's CRD isn't
+# established—otherwise a fresh-cluster install deadlocks (the CR's CRD isn't
 # registered yet).
 defaultNamespace: netbird
 dependsOn:
@@ -32,7 +32,7 @@ dependsOn:
 labels:
   fleet.vgijssel.nl/bundle: netbird-config
 # network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
-# cluster explicitly — this keeps the bundle off the secret cluster.
+# cluster explicitly—this keeps the bundle off the secret cluster.
 targetCustomizations:
   - name: network
     clusterSelector:
@@ -40,7 +40,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

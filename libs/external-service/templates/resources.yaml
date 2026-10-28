@@ -1,5 +1,5 @@
 {{/*
-External service resources: Endpoints, Service, and Ingress for each configured service.
+External service resources: endpoints, Service, and Ingress for each configured service.
 These resources enable exposing external (non-cluster) HTTPS endpoints via Ingress.
 */}}
 {{- range .Values.services }}
@@ -52,7 +52,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ $.Release.Service }}
     app.kubernetes.io/instance: {{ $.Release.Name }}
   annotations:
-    # Request Let's Encrypt certificate via cert-manager
+    # Request Let’s Encrypt certificate via cert-manager
     cert-manager.io/cluster-issuer: {{ $.Values.clusterIssuer | quote }}
     # Backend uses HTTPS with potentially self-signed certificate
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS

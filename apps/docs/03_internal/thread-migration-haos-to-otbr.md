@@ -1,4 +1,4 @@
-# Thread Network Migration: HAOS to Standalone OTBR
+# Migrating the mesh network to a standalone border router
 
 This guide describes how to migrate Thread network credentials from the Home Assistant OS (HAOS) OTBR add-on to the standalone OTBR container running on `peace-at-last` (pihole-prod).
 
@@ -8,7 +8,7 @@ This guide describes how to migrate Thread network credentials from the Home Ass
 - SSH access to peace-at-last (192.168.1.15)
 - OTBR container running on peace-at-last
 
-## Step 1: Export Thread Credentials from HAOS
+## Step 1—export credentials from the home automation system
 
 SSH into HAOS:
 
@@ -41,7 +41,7 @@ This outputs JSON containing your Thread network credentials. Look for the `tlv`
 
 Copy the hex string from the `tlv` field.
 
-## Step 2: Import Credentials to Standalone OTBR
+## Step 2—import credentials to the standalone border router
 
 SSH into peace-at-last:
 
@@ -67,7 +67,7 @@ Start Thread networking:
 docker exec otbr ot-ctl thread start
 ```
 
-## Step 3: Verify Thread Network
+## Step 3—verify the mesh network
 
 Check the Thread state (should become `leader`, `router`, or `child`):
 
@@ -83,12 +83,12 @@ docker exec otbr ot-ctl panid
 docker exec otbr ot-ctl channel
 ```
 
-## Step 4: Validate Matter Devices in Home Assistant
+## Step 4—validate devices in the home automation system
 
 1. Open Home Assistant
 2. Go to **Settings > Devices & Services > Matter**
 3. Verify your Matter-over-Thread devices are online and responsive
-4. Test device controls to confirm functionality
+4. Test device controls to confirm capability
 
 ## Troubleshooting
 

@@ -40,7 +40,7 @@ def get_item_path(path):
     op_env = os.environ.copy()
 
     # Set the service account only if the token is in the environment
-    # this means we can use local 1Password directly!
+    # this allows using local 1Password directly.
     if onepassword_service_account_token:
         op_env["OP_SERVICE_ACCOUNT_TOKEN"] = onepassword_service_account_token
 

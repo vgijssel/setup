@@ -1,4 +1,4 @@
-"""Tests for CLI module."""
+"""Tests for command-line tool module."""
 
 from unittest.mock import patch
 
@@ -31,7 +31,7 @@ def test_check_prerequisites_missing_tools(mock_flux, mock_kubectl, mock_kind):
 
 
 def test_cli_help():
-    """Test CLI help command."""
+    """Test command-line tool help command."""
     runner = CliRunner()
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0

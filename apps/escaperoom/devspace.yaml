@@ -19,7 +19,7 @@ pipelines:
       create_deployments --all                          # 4. Deploy Helm charts and manifests specfied as "deployments"
 
 # This is a list of `images` that DevSpace can build for this project
-# We recommend to skip image building during development (devspace dev) as much as possible
+# Prefer skipping image building during development (devspace dev) as much as possible
 images:
   app:
     image: ghcr.io/vgijssel/setup/escaperoom
@@ -30,18 +30,18 @@ deployments:
   tailscale:
     # This deployment uses `kubectl` but you can also define `helm` deployments or kustomizations
     kubectl:
-      # We are deploying this project with the following Kubernetes manifest
+      # Deploy this project with the following Kubernetes manifest
       manifests:
         - ./ingress.yaml
   app:
     # This deployment uses `helm` but you can also define `kubectl` deployments or kustomizations
     helm:
-      # We are deploying this project with the Helm chart you provided
+      # Deploy this project with the Helm chart you provided
       chart:
         name: component-chart
         repo: https://charts.devspace.sh
-      # Under `values` we can define the values for this Helm chart used during `helm install/upgrade`
-      # You may also use `valuesFiles` to load values from files, e.g. valuesFiles: ["values.yaml"]
+      # Under `values` you can define the values for this Helm chart used during `helm install/upgrade`
+      # You may also use `valuesFiles` to load values from files, for example valuesFiles: ["values.yaml"]
       values:
         containers:
           - image: ghcr.io/vgijssel/setup/escaperoom
@@ -65,18 +65,18 @@ deployments:
 #     # Inject a lightweight SSH server into the container (so your IDE can connect to the remote dev env)
 #     ssh:
 #       enabled: true
-#     # Make the following commands from my local machine available inside the dev container
+#     # Make the following commands from the local machine available inside the dev container
 #     proxyCommands:
 #       - command: devspace
 #       - command: kubectl
 #       - command: helm
 #       - gitCredentials: true
-#     # Forward the following ports to be able access your application via localhost
+#     # Forward the following ports to be able access your app via localhost
 #     ports:
 #       - port: "8501"
 #     # Open the following URLs once they return an HTTP status code other than 502 or 503
 #     open:
-#       - url: http://localhost:8501
+#       - URL: http://localhost:8501
 
 # Use the `commands` section to define repeatable dev workflows for this project
 # commands:
@@ -88,7 +88,7 @@ deployments:
 # Define dependencies to other projects with a devspace.yaml
 # dependencies:
 #   api:
-#     git: https://...  # Git-based dependencies
+#     git: `https://...`  # Git-based dependencies
 #     tag: v1.0.0
 #   ui:
 #     path: ./ui        # Path-based dependencies (for monorepos)

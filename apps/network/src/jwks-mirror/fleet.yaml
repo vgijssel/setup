@@ -1,7 +1,7 @@
-# JWKS HTTP mirror — serves the network apiserver's anonymous /openid/v1/jwks over plain
+# JWKS HTTP mirror—serves the network apiserver's anonymous /openid/v1/jwks over plain
 # HTTP so the secret cluster's OpenBao jwt-network backend can fetch it over NetBird
 # (WireGuard-encrypted) via a NetworkResource, WITHOUT the apiserver-cert-SAN problem a
-# raw NetworkResource->apiserver would hit: OpenBao's jwt backend verifies the TLS
+# raw NetworkResource->apiserver would hit—OpenBao's jwt backend verifies the TLS
 # hostname, and the apiserver's serving cert does not cover NetBird hostnames. The JWKS
 # is public, signed data and the NetBird overlay encrypts transport, so plain HTTP here
 # is acceptable. This carries the anonymous-JWKS role cross-cluster (the NetworkResource
@@ -24,7 +24,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

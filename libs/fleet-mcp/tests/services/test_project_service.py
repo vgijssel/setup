@@ -41,9 +41,9 @@ class TestProjectServiceListProjects:
     ):
         """Test list_projects() delegates to repository.
 
-        Arrange: Mock repository to return projects
-        Act: Call list_projects()
-        Assert: Returns all projects from repository
+        Arrange: mock repository to return projects
+        Act: call list_projects()
+        Assert: returns all projects from repository
         """
         # Arrange
         mock_projects = [
@@ -69,9 +69,9 @@ class TestProjectServiceListRoles:
     ):
         """Test list_roles() delegates to repository.
 
-        Arrange: Mock repository to return roles
-        Act: Call list_roles() with valid project name
-        Assert: Returns roles from repository
+        Arrange: mock repository to return roles
+        Act: call list_roles() with valid project name
+        Assert: returns roles from repository
         """
         # Arrange
         project_name = "Setup"
@@ -106,9 +106,9 @@ class TestProjectServiceListRoles:
     ):
         """Test list_roles() validates project name - T049.
 
-        Arrange: Prepare service with mocked repository
-        Act: Call list_roles() with empty project name
-        Assert: Raises ValidationError without calling repository
+        Arrange: prepare service with mocked repository
+        Act: call list_roles() with empty project name
+        Assert: raises ValidationError without calling repository
         """
         # Act & Assert - empty string
         with pytest.raises(ValidationError) as exc_info:
@@ -134,9 +134,9 @@ class TestProjectServiceGetProjectByName:
     ):
         """Test get_project_by_name() finds and returns project - T050.
 
-        Arrange: Mock repository to return list of projects
-        Act: Call get_project_by_name() with existing project name
-        Assert: Returns matching project
+        Arrange: mock repository to return list of projects
+        Act: call get_project_by_name() with existing project name
+        Assert: returns matching project
         """
         # Arrange
         mock_projects = [
@@ -160,9 +160,9 @@ class TestProjectServiceGetProjectByName:
     ):
         """Test get_project_by_name() returns None if not found - T052.
 
-        Arrange: Mock repository to return list without target project
-        Act: Call get_project_by_name() with non-existent project name
-        Assert: Returns None
+        Arrange: mock repository to return list without target project
+        Act: call get_project_by_name() with non-existent project name
+        Assert: returns None
         """
         # Arrange
         mock_projects = [
@@ -183,9 +183,9 @@ class TestProjectServiceGetProjectByName:
     ):
         """Test get_project_by_name() validates project name - T051.
 
-        Arrange: Prepare service with mocked repository
-        Act: Call get_project_by_name() with empty project name
-        Assert: Raises ValidationError without calling repository
+        Arrange: prepare service with mocked repository
+        Act: call get_project_by_name() with empty project name
+        Assert: raises ValidationError without calling repository
         """
         # Act & Assert - empty string
         with pytest.raises(ValidationError) as exc_info:

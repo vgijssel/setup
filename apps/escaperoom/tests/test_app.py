@@ -1,4 +1,4 @@
-"""Tests for the escaperoom Streamlit application."""
+"""Tests for the escaperoom Streamlit app."""
 
 
 def test_app_exists():

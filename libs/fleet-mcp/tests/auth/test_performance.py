@@ -38,7 +38,7 @@ def valid_token(token_manager):
 
 @pytest.fixture
 def test_app(token_manager):
-    """Create a test application with authentication."""
+    """Create a test app with authentication."""
 
     async def endpoint(request: Request):
         """Simulated endpoint."""
@@ -53,9 +53,9 @@ class TestPerformance:
     """Performance tests for authentication."""
 
     def test_token_validation_performance(self, test_app, valid_token):
-        """Test that token validation completes in <10ms per request.
+        """Test that token validation completes in <10 ms per request.
 
-        Requirement: SC-003 from plan.md
+        Requirement—SC-003 from plan.md
         """
         client = TestClient(test_app)
 
@@ -76,7 +76,7 @@ class TestPerformance:
         elapsed_ms = (end_time - start_time) * 1000
         avg_ms = elapsed_ms / num_requests
 
-        # Verify average is <10ms per request
+        # Verify average is <10 ms per request
         assert avg_ms < 10, f"Token validation took {avg_ms:.2f}ms (expected <10ms)"
 
         print(
@@ -86,7 +86,7 @@ class TestPerformance:
     def test_concurrent_requests_performance(self, test_app, valid_token):
         """Test that server can handle 1000 concurrent requests.
 
-        Requirement: SC-003 from plan.md - No performance degradation
+        Requirement—SC-003 from plan.md - No performance degradation
         """
         client = TestClient(test_app)
 

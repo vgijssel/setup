@@ -1,7 +1,7 @@
 # The zone that k8s_gateway is authoritative for.
 zone: enigma.vgijssel.nl
 
-# ClusterIP of the k8s-gateway Service in apps/cluster-networking/k8s-gateway/
+# ClusterIP of the `k8s-gateway` Service in `apps/cluster-networking/k8s-gateway/`
 # values-prod.yaml. Keep these two in sync; changing one without the other
 # silently breaks DNS forwarding from kube-dns.
 gatewayClusterIP: 10.96.53.53

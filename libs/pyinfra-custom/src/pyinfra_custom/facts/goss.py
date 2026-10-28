@@ -1,4 +1,4 @@
-"""goss (system-health) client state, read from the ``goss`` CLI as a pyinfra fact.
+"""goss (system-health) client state, read from the ``goss`` command-line tool as a pyinfra fact.
 
 Guarded by ``requires_command('goss')`` so a host without goss installed returns the
 fact's default silently (rather than erroring), letting the install gate run during the

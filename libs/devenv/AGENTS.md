@@ -1,4 +1,4 @@
-# libs/devenv
+# `libs/devenv`
 
 Development environment configuration using [chezmoi](https://www.chezmoi.io/) for dotfile management and [goss](https://github.com/goss-org/goss) for environment validation.
 
@@ -14,15 +14,15 @@ Manages developer workstation setup through templated configuration files, ensur
 - **Run Scripts**: `run_onchange_*.sh.tmpl` scripts execute on configuration changes
 - **Ignore Patterns**: `.chezmoiignore.tmpl` controls which files are managed
 
-### Environment Support
+### Environment support
 - **macOS**: Native development with Homebrew packages, VS Code extensions, system preferences
 - **Linux**: Devcontainer support with APT packages and container-specific configurations
 - **Cross-Platform**: Shared configurations for git, SSH, shell (zsh/zim), and developer tools
 
-## Key Components
+## Key components
 
-### Configuration Files (`files/`)
-- `dot_*`: Maps to home directory dotfiles (e.g., `dot_gitconfig` → `~/.gitconfig`)
+### Configuration files (`files/`)
+- `dot_*`: Maps to home directory dotfiles (for example, `dot_gitconfig` → `~/.gitconfig`)
 - `private_*`: Files with restricted permissions (600)
 - `run_onchange_*`: Scripts that execute when their hash changes
 - `.chezmoidata/`: Variables and configuration data for templates
@@ -34,7 +34,7 @@ Validates environment prerequisites:
 - Shell tools (zsh, curl, wget)
 - Developer tools (fzf ≥0.51.0 for zoxide)
 
-### Backup System (`chezmoi_backup.py`)
+### Backup system (`chezmoi_backup.py`)
 Three-tier backup strategy:
 1. **Managed Files Backup**: Timestamp-versioned backups in `~/.setup/backup/`
 2. **Untracked Files**: Preserved in `~/.setup/unmanaged/` before chezmoi manages them
@@ -50,20 +50,20 @@ Runs:
 1. `chezmoi apply` - Applies configuration to home directory
 2. `goss validate` - Verifies environment meets requirements
 
-## Common Workflows
+## Common workflows
 
-### Adding New Dotfiles
+### Adding new dotfiles
 1. Add template to `files/` with appropriate prefix (`dot_`, `private_`, etc.)
 2. Use `.tmpl` extension if templating is needed
 3. Add variables to `.chezmoidata/` if required
 4. Update `goss.yaml` if new prerequisites are introduced
 
-### Platform-Specific Configuration
+### Platform-specific configuration
 - Use environment variable conditionals: `{{ if eq (env "IS_MACOS") "true" }}` or `{{ if eq (env "IS_LINUX") "true" }}`
 - Separate run scripts: `run_onchange_darwin-*.sh.tmpl` vs `run_onchange_linux-*.sh.tmpl`
 - Configure ignore patterns in `.chezmoiignore.tmpl` using IS_MACOS and IS_LINUX environment variables
 
-### Environment Variables
+### Environment variables
 Available in templates:
 - `{{ env "IS_MACOS" }}`: "true" when running on macOS, "false" otherwise
 - `{{ env "IS_LINUX" }}`: "true" when running on Linux, "false" otherwise

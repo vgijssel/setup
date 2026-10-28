@@ -1,5 +1,5 @@
 # Goss tests for validating Coder workspace health
-# Run with: WORKSPACE_NAME=<name> goss -g goss-workspace.yaml validate --retry-timeout 10m --sleep 15s
+# Run with `WORKSPACE_NAME=<name> goss -g goss-workspace.yaml validate --retry-timeout 10m --sleep 15s`
 #
 # Note: coder list -o json returns workspace data with:
 #   - .latest_build.status for build status (running, pending, etc)

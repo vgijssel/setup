@@ -207,13 +207,13 @@ class Area(SelectEntity, RestoreEntity):
             timer for status, timer in self._timer_mapping.items() if status != option
         ]
 
-        # We are doing an optimisitc update of the internal state here
+        # Perform an optimistic update of the internal state here
         # to prevent any race condition inside the _calculate_state function.
-        # If we don't do this when cancelling/starting timers or updating the
+        # Without this, when cancelling/starting timers or updating the
         # select state the _calculate_state function might be called while some of the
         # other updates are still in progress resulting in the wrong state being calculated.
-        # Basically we want the update of the select and timers to be atomic or
-        # in a single transaction, but as those options don't exist we do this
+        # The update of the select and timers should be atomic or
+        # in a single transaction, but as those options do not exist, approximate this
         # by tracking internal state and doing an optimistic update.
         self._internal_state.set(self.entity_id, option)
 
@@ -324,7 +324,7 @@ class Area(SelectEntity, RestoreEntity):
                 await self.async_select_option(STATUS_ENTERING_CONFIRM)
 
             # If there is activity at the door then pause the timer
-            # until there is no longer activity in which case we resume the timer
+            # until there is no longer activity in which case the timer resumes
             elif doors_have_activity:
                 await self._pause_timer(self._entering_timer)
 

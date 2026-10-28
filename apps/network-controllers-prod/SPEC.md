@@ -1,11 +1,11 @@
-# SPEC: network-controllers-prod
+# Specification for `network-controllers-prod`
 
 Self-hosted **Omada Controller** and **UniFi OS Server** running as containers on a
-single **Flatcar Container Linux** VM in **Hetzner Cloud (Nuremberg / nbg1)**,
+single **Flatcar Container Linux** VM in **Hetzner’s cloud service (Nuremberg / nbg1)**,
 provisioned with **OpenTofu**, fronted by a reverse proxy with automatic TLS, and
 monitored with **Netdata**.
 
-> Status: DRAFT — awaiting confirmation before implementation.
+> Status: DRAFT—awaiting confirmation before implementation.
 > Location: `apps/network-controllers-prod/` (rename allowed; follows the repo's
 > `<name>-prod` convention). This file is the project root for this app.
 
@@ -13,37 +13,37 @@ monitored with **Netdata**.
 
 ## 1. Objective
 
-Replace two pieces of physical hardware that are being **sold** — the TP-Link Omada
-hardware controller and the Ubiquiti UniFi Cloud Key — with software controllers so
+Replace two pieces of physical hardware that are being **sold**—the TP-Link Omada
+hardware controller and the Ubiquiti UniFi `Cloud Key`: with software controllers so
 that all existing TP-Link/Omada and Ubiquiti/UniFi network gear keeps working.
 
-- **Target users:** the homelab/network operator (single admin). Not multi-tenant.
+- **Target users:** the homelab/network operator (single administrator). Not multi-tenant.
 - **Outcome:** both controllers reachable over HTTPS at stable URLs, devices adoptable,
   configuration durable across reboots and VM upgrades, and basic host/service
   monitoring in place.
-- **Migration:** **Fresh start** — controllers stand up empty and devices are
+- **Migration:** **Fresh start**—controllers stand up empty and devices are
   re-adopted from scratch. No data is migrated off the hardware being sold.
   (If a last-minute migration is wanted, capture an Omada autobackup and a UniFi
-  site export *before* the hardware is wiped — out of scope here.)
+  site export *before* the hardware is wiped—out of scope here.)
 
 ### Key research findings (decisions baked into this spec)
 
 | Question | Answer |
 |---|---|
-| Do I lose everything on **reboot** with Flatcar? | **No.** Ignition runs only on *first boot* (a `first_boot` flag is deleted afterward). Normal reboots preserve `/etc` and `/var`, including Docker volumes under `/var/lib/docker`. Data is only lost on VM destroy or an explicit `flatcar-reset`/reprovision. |
-| Do I need a **volume**? | **Recommended, included.** A dedicated Hetzner Cloud Volume mounted at `/var/lib/data` decouples app data from the VM lifecycle, so the node can be rebuilt/upgraded (or re-provisioned via Ignition) without losing controller state. Not strictly required for plain reboots. |
+| Is everything lost on **reboot** with Flatcar? | **No.** Ignition runs only on *first boot* (a `first_boot` flag is deleted afterward). Normal reboots preserve `/etc` and `/var`, including Docker volumes under `/var/lib/docker`. Data is only lost on VM destroy or an explicit `flatcar-reset`/reprovision. |
+| Is a **volume** needed? | **Recommended, included.** A dedicated Hetzner cloud volume mounted at `/var/lib/data` decouples app data from the VM lifecycle, so the node can be rebuilt/upgraded (or re-provisioned via Ignition) without losing controller state. Not strictly required for plain reboots. |
 | Architecture constraint | **UniFi OS Server is x86-64 only** → VM must be Intel/AMD (`cx`/`cpx`), **not** Arm (`cax`). Omada image is multi-arch but follows the same VM. |
-| Reverse proxy & TLS | **Caddy** issues **Let's Encrypt** certs via **Cloudflare DNS-01** for the **private admin hostnames**. DNS-01 is required (the private names resolve to a Tailscale IP, not publicly reachable). Caddy build/image must include the Cloudflare DNS module. The `*-public` names are raw device-protocol endpoints (not proxied) → no Caddy cert. |
-| DNS | Records created **inside the existing `vgijssel.nl` Cloudflare zone** as `*.hc.vgijssel.nl` names (no subdomain delegation — not available on this CF tier). API token is therefore scoped to the **`vgijssel.nl` zone** (Cloudflare tokens scope per-zone, not per-subdomain). Used by both the `cloudflare` OpenTofu provider and Caddy. Records DNS-only (`proxied = false`). |
-| Hostnames | Public (device inform, → VM public IP, **DNS pointer only**): `unifi-public.hc.vgijssel.nl`, `omada-public.hc.vgijssel.nl`. Private (admin UI via Caddy/Tailscale, → VM Tailscale IP): `unifi.hc.vgijssel.nl`, `omada.hc.vgijssel.nl`. |
-| Exposure model | **Public:** only Omada/UniFi device provisioning/adoption ports (L4 on the firewall — cannot be hostname-routed). **Private (Tailscale):** admin UIs, SSH, Netdata. |
-| Monitoring | **Netdata** installed via official kickstart, **claimed into Netdata Cloud** (claim token + room from 1Password). |
+| Reverse proxy & TLS | **Caddy** issues **Let’s Encrypt** certs via **Cloudflare DNS-01** for the **private administrator hostnames**. DNS-01 is required (the private names resolve to a Tailscale IP, not publicly reachable). Caddy build/image must include the Cloudflare DNS module. The `*-public` names are raw device-protocol endpoints (not proxied) → no Caddy cert. |
+| DNS | Records created **inside the existing `vgijssel.nl` Cloudflare zone** as `*.hc.vgijssel.nl` names (no subdomain delegation—not available on this CF tier). API token is therefore scoped to the **`vgijssel.nl` zone** (Cloudflare tokens scope per-zone, not per-subdomain). Used by both the `cloudflare` OpenTofu provider and Caddy. Records DNS-only (`proxied = false`). |
+| Hostnames | Public (device inform, → VM public IP, **DNS pointer only**): `unifi-public.hc.vgijssel.nl`, `omada-public.hc.vgijssel.nl`. Private (administrator UI via Caddy/Tailscale, → VM Tailscale IP): `unifi.hc.vgijssel.nl`, `omada.hc.vgijssel.nl`. |
+| Exposure model | **Public:** only Omada/UniFi device provisioning/adoption ports (L4 on the firewall—cannot be hostname-routed). **Private (Tailscale):** administrator UIs, SSH, Netdata. |
+| Monitoring | **Netdata** installed via official kickstart, **claimed into Netdata’s cloud service** (claim token + room from 1Password). |
 | Pinned images | Omada `mbentley/omada-controller:6.2.10.17` · UniFi `lemker/unifi-os-server:1.3.0` (x86-64). |
 | UniFi OS Server runtime | Requires a **privileged** container with cgroup access and systemd-in-container. Treated as a known constraint/risk. |
 
 ---
 
-## 2. Acceptance Criteria
+## 2. Acceptance criteria
 
 - [ ] `moon run network-controllers-prod:apply` provisions, from nothing, a Flatcar VM
       in `nbg1` with a data Volume attached and mounted at `/var/lib/data`.
@@ -53,15 +53,15 @@ that all existing TP-Link/Omada and Ubiquiti/UniFi network gear keeps working.
       Ignition): `omada-controller`, `unifi-os-server`, `caddy` (reverse proxy), and
       `tailscale`.
 - [ ] **Netdata** is installed via the official kickstart script and the host is
-      **claimed into Netdata Cloud** (claim token + room from 1Password); the node
-      appears in the Netdata Cloud space.
+      **claimed into Netdata’s cloud service** (claim token + room from 1Password); the node
+      appears in the Netdata’s cloud service space.
 - [ ] The host joins the **Tailscale** tailnet on boot (auth key from 1Password).
 - [ ] Cloudflare DNS records created in the `vgijssel.nl` zone (via OpenTofu, DNS-only):
       `unifi.hc`/`omada.hc` → Tailscale IP (private), `unifi-public.hc`/`omada-public.hc`
       → VM public IP. (No subdomain delegation.)
-- [ ] Caddy obtains valid **Let's Encrypt** certs for the two **private** admin
+- [ ] Caddy obtains valid **Let’s Encrypt** certs for the two **private** administrator
       hostnames via **Cloudflare DNS-01**.
-- [ ] `unifi.hc.vgijssel.nl` / `omada.hc.vgijssel.nl` serve the admin UIs over HTTPS
+- [ ] `unifi.hc.vgijssel.nl` / `omada.hc.vgijssel.nl` serve the administrator UIs over HTTPS
       **only over Tailscale** (not on the public IP).
 - [ ] Pinned images run: `mbentley/omada-controller:6.2.10.17` and
       `lemker/unifi-os-server:1.3.0`.
@@ -72,8 +72,8 @@ that all existing TP-Link/Omada and Ubiquiti/UniFi network gear keeps working.
 - [ ] **Rebuild test (documented, not necessarily automated):** destroying and
       recreating the *server* while keeping the *Volume* restores both controllers
       from the data on `/var/lib/data`.
-- [ ] Hetzner Cloud Firewall allows **only** the Omada/UniFi device provisioning ports
-      publicly; SSH, admin UIs, and Netdata are reachable **only over Tailscale**.
+- [ ] Hetzner’s cloud firewall allows **only** the Omada/UniFi device provisioning ports
+      publicly; SSH, administrator UIs, and Netdata are reachable **only over Tailscale**.
 
 ---
 
@@ -102,13 +102,13 @@ Conventions reused from `apps/gateway-prod`:
 - `HCLOUD_TOKEN` from env; provider block stays empty.
 - S3 backend with `skip_*` flags, `use_path_style`, `use_lockfile`, bucket injected at
   `init` via `-backend-config="bucket=$TF_VAR_s3_bucket"`. The `AWS_*` credentials are
-  **Hetzner Object Storage** access keys (created in the Hetzner console, nbg1) — not
-  AWS — with the nbg1 endpoint (`https://nbg1.your-objectstorage.com`).
+  **Hetzner Object Storage** access keys (created in the Hetzner console, nbg1)—not
+  AWS—with the nbg1 endpoint (`https://nbg1.your-objectstorage.com`).
 - Secrets via `op inject --force -i .env.tpl -o .env`.
 
 ---
 
-## 4. Project Structure
+## 4. Project structure
 
 ```
 apps/network-controllers-prod/
@@ -141,12 +141,12 @@ apps/network-controllers-prod/
     └── Caddyfile                  # DNS-01 (Cloudflare) for the 2 private admin names
 ```
 
-### Provisioning approach (Flatcar on Hetzner Cloud)
+### Provisioning approach for the cloud host
 
 Hetzner does not ship a stock Flatcar image. Use the documented snapshot method:
 
-1. Upload the official Flatcar Hetzner image as a Hetzner **snapshot** (e.g. via
-   `hcloud-upload-image`) — done once, recorded as a variable/snapshot id.
+1. Upload the official Flatcar Hetzner image as a Hetzner **snapshot** (for example via
+   `hcloud-upload-image`)—done once, recorded as a variable/snapshot id.
 2. `hcloud_server` uses `image = <flatcar snapshot id>` and passes the compiled
    **Ignition JSON** as `user_data` (Flatcar reads Ignition from cloud user-data).
 3. `lifecycle { ignore_changes = [user_data] }` so re-applies don't recreate the box.
@@ -166,10 +166,10 @@ config. Snapshot method preferred for reproducibility.)
 
 Two planes under base domain `hc.vgijssel.nl` (Cloudflare zone `vgijssel.nl`): a
 **public plane** limited to device adoption/provisioning, and a **private plane** over
-**Tailscale** for everything an admin touches.
+**Tailscale** for everything an administrator touches.
 
 **Cloudflare zone:** records live in the **existing `vgijssel.nl` zone** as
-`*.hc.vgijssel.nl` names — no subdomain delegation (that needs a higher CF tier). The
+`*.hc.vgijssel.nl` names—no subdomain delegation (that needs a higher CF tier). The
 Cloudflare API token is therefore **scoped to the `vgijssel.nl` zone** (Zone:Read +
 DNS:Edit); CF tokens can't be limited to just the `hc.` prefix. Reused by the
 `cloudflare` OpenTofu provider and by Caddy for DNS-01.
@@ -180,73 +180,73 @@ DNS:Edit); CF tokens can't be limited to just the `hc.` prefix. Reused by the
 |---|---|---|---|---|
 | `omada-public.hc.vgijssel.nl` | Public | VM public IP | Omada device inform (raw ports) | No (not proxied) |
 | `unifi-public.hc.vgijssel.nl` | Public | VM public IP | UniFi device inform (raw ports) | No (not proxied) |
-| `omada.hc.vgijssel.nl` | Private | VM Tailscale IP | Omada admin UI | Yes — LE cert |
-| `unifi.hc.vgijssel.nl` | Private | VM Tailscale IP | UniFi OS Server GUI | Yes — LE cert |
+| `omada.hc.vgijssel.nl` | Private | VM Tailscale IP | Omada administrator UI | Yes—LE cert |
+| `unifi.hc.vgijssel.nl` | Private | VM Tailscale IP | UniFi OS Server GUI | Yes—LE cert |
 
-The `*-public` names are **DNS pointers only** — devices are configured to inform to
+The `*-public` names are **DNS pointers only**—devices are configured to inform to
 them, but the traffic hits the firewall-opened device ports directly (Caddy can't
 hostname-route non-HTTP protocols). DNS-only records make the Tailscale (100.x) and
-public IPs resolve directly so Let's Encrypt DNS-01 can validate the private names.
+public IPs resolve directly so Let’s Encrypt DNS-01 can validate the private names.
 
-**Public (Hetzner firewall — device provisioning/adoption only):**
-- Omada: TCP/UDP `29810`–`29817`, UDP `27001`, TCP `8088` (device inform).
+**Public (Hetzner firewall—device provisioning/adoption only):**
+- Omada: TCP/UDP `29810` to `29817`, UDP `27001`, TCP `8088` (device inform).
 - UniFi: TCP `8080` (device inform), UDP `3478` (STUN), UDP `10001`/`10003` (discovery), as required.
 - Must be public so remote/off-site APs and switches can reach the controllers. These are
   raw device protocols and bypass Caddy; the `*-public` names are what devices point at.
 - (Outbound Tailscale uses UDP `41641`; no public inbound needed for the tunnel.)
 
-**Private (Tailscale tunnel — no public exposure):**
-- **Caddy** binds to the `tailscale0` interface only, terminating TLS for the admin UIs:
+**Private (Tailscale tunnel—no public exposure):**
+- **Caddy** binds to the `tailscale0` interface only, terminating TLS for the administrator UIs:
   - `omada.hc.vgijssel.nl` → Omada HTTPS (8043, skip-verify upstream)
   - `unifi.hc.vgijssel.nl` → UniFi OS Server GUI (11443, skip-verify upstream)
 - **SSH** reachable only over Tailscale (no public `22`).
 - **Netdata** dashboard bound to Tailscale only.
 
-**TLS — Let's Encrypt via Cloudflare DNS-01 for the two private admin names:**
+**TLS—Let’s Encrypt via Cloudflare DNS-01 for the two private administrator names:**
 - DNS-01 is required because the private names resolve to a Tailscale IP and are not
   publicly reachable (HTTP-01 / TLS-ALPN-01 can't validate them).
 - Caddy must run a build/image that includes the **Cloudflare DNS provider module**.
 - The zone-scoped **Cloudflare API token** (`hc.vgijssel.nl`, Zone:Read + DNS:Edit) is
-  supplied to Caddy via 1Password — the same token the `cloudflare` OpenTofu provider uses.
+  supplied to Caddy via 1Password—the same token the `cloudflare` OpenTofu provider uses.
 - The `*-public` names get **no Caddy cert** (raw device protocols don't use it).
 
 **Components:**
 - Tailscale runs as its own systemd-managed container on the host. A pre-existing
   **per-node auth key** is read from 1Password (assumed already created for this node);
   follow the existing `apps/tailscale-prod` pattern where applicable.
-- **Netdata** is installed via the official kickstart and **claimed into Netdata Cloud**
+- **Netdata** is installed via the official kickstart and **claimed into Netdata’s cloud service**
   using a claim token + room id from 1Password; its dashboard is bound to Tailscale only.
 - All controller containers use host networking (required for device discovery).
 
 ### Sizing (per request)
 
-- `server_type = "cx23"` (x86; as used elsewhere in this repo, e.g. `apps/gateway-prod`),
+- `server_type = "cx23"` (x86; as used elsewhere in this repo, for example `apps/gateway-prod`),
   `datacenter = "nbg1-dc3"`, data Volume `10 GB`.
 - Define `server_type` and `volume_size` as variables so they can be bumped without code
   changes if UniFi OS Server + Omada (MongoDB) + Netdata create memory/disk pressure.
 
 ---
 
-## 5. Code Style
+## 5. Code style
 
 - **OpenTofu/HCL:** one resource per concern; all tunables in `variables.tf` with
   descriptions and sensible defaults; pin `hcloud` provider to an exact version
-  (matching repo, currently `1.57.0`). No hardcoded secrets — token/keys come from env
+  (matching repo, currently `1.57.0`). No hardcoded secrets—token/keys come from env
   via 1Password-rendered `.env`.
-- **Pinning (per repo CLAUDE.md):** pin everything to exact versions — Flatcar release
+- **Pinning (per repo CLAUDE.md):** pin everything to exact versions—Flatcar release
   channel/version, container image tags (`mbentley/omada-controller:6.2.10.17`,
   `lemker/unifi-os-server:1.3.0`, a pinned Caddy-with-Cloudflare-DNS image),
   Netdata install pinned where the kickstart allows. No `latest`. No `npx`/`uvx`.
 - **Ignition:** author **Butane** YAML (readable) and compile to Ignition; never
   hand-edit raw Ignition JSON. Keep systemd units in `files/` and reference them.
-- **Kubernetes naming rule does not apply** (no k8s here); follow Flatcar/systemd unit
+- **Kubernetes naming rule does not apply** (no Kubernetes here); follow Flatcar/systemd unit
   naming (`<service>.service`, `<mountpoint>.mount`).
 - **Platform detection:** N/A at runtime (Linux VM only); host scripts target Flatcar.
 - Run `trunk fmt` / `trunk check` (and `tofu fmt`) before committing.
 
 ---
 
-## 6. Testing Strategy
+## 6. Testing strategy
 
 - **Static:** `tofu validate` + `tofu fmt -check`; `butane --strict` to compile/validate
   Ignition; `trunk check`.
@@ -270,7 +270,7 @@ public IPs resolve directly so Let's Encrypt DNS-01 can validate the private nam
 - Keep persistent data on the attached Volume (`/var/lib/data`), not the root disk.
 - Pin all versions (Flatcar, images, providers).
 - Place code under `apps/` per repo CLAUDE.md.
-- Keep admin UIs, SSH, and Netdata on **Tailscale only**; expose **only** device
+- Keep administrator UIs, SSH, and Netdata on **Tailscale only**; expose **only** device
   provisioning ports publicly.
 
 **Ask first**
@@ -282,19 +282,19 @@ public IPs resolve directly so Let's Encrypt DNS-01 can validate the private nam
 - Migrate or assume data from the hardware being sold (fresh start) without explicit ask.
 - Commit secrets, tokens, or rendered `.env` files.
 - Use `latest`/unpinned images or `npx`/`uvx`.
-- Expose SSH, admin UIs, or Netdata on the public IP — they live on Tailscale only.
+- Expose SSH, administrator UIs, or Netdata on the public IP—they live on Tailscale only.
 - Put data only on the root disk (would be lost on VM rebuild/reprovision).
 
 ---
 
-## Open Questions
+## Open questions
 
 _None blocking._ The 1Password references are written into `.env.tpl` (vault
 `enigma-prod`) and the items/fields have been created.
 
-_Resolved:_ Caddy proxy · LE via **Cloudflare DNS-01** for the 2 private admin names ·
+_Resolved:_ Caddy proxy · LE via **Cloudflare DNS-01** for the 2 private administrator names ·
 records in the existing `vgijssel.nl` zone (no delegation), token scoped to that zone ·
-public device ports + private admin (Tailscale) · `omada`/`unifi` (private → Tailscale
+public device ports + private administrator (Tailscale) · `omada`/`unifi` (private → Tailscale
 IP), `omada-public`/`unifi-public` (public → public IP) · Omada `6.2.10.17` ·
-UniFi `1.3.0` · Netdata Cloud · 10 GB volume · `cx23` · nbg1 · per-node TS authkey
+UniFi `1.3.0` · Netdata’s cloud service · 10 GB volume · `cx23` · nbg1 · per-node TS authkey
 in 1Password · fresh start.

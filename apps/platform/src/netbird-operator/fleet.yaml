@@ -19,7 +19,7 @@ helm:
 # selected on the cluster.vgijssel.nl/name label their apply.sh sets. The selectors alone
 # restrict nothing under a Rancher GitRepo (it appends its own catch-all target); the
 # terminal doNotDeploy entry below is what restricts this bundle. Each
-# target sets `cluster.name` EXPLICITLY — it names the NetBird network + resources this
+# target sets `cluster.name` EXPLICITLY—it names the NetBird network + resources this
 # operator manages, so neither cluster relies on a shared default (a per-cluster
 # identity inherited from a shared default is a drift/collision risk).
 targetCustomizations:
@@ -43,7 +43,7 @@ targetCustomizations:
             name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

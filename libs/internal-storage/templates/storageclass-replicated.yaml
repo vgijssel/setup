@@ -1,7 +1,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  # Somewhere "replicated" is hardcoded so we need to call this that
+  # Somewhere "replicated" is hardcoded so this needs the same name
   name: {{ .Values.storageClasses.replicated.name }}
   labels:
     {{- include "internal-storage.labels" . | nindent 4 }}
@@ -18,7 +18,7 @@ parameters:
   property.linstor.csi.linbit.com/DrbdOptions/Net/rr-conflict: retry-connect
   # DRBD resync tuning for 25Gbps point-to-point network with NVMe SSDs
   # Reference: https://cozystack.io/docs/storage/drbd-tuning/
-  # Note: StorageClass parameters are immutable - these apply to new PVCs only
+  # Note—StorageClass parameters are immutable - these apply to new PVCs only
   # c-max-rate: 2000 MB/s (~80% of 25Gbps, leaves headroom for app traffic)
   property.linstor.csi.linbit.com/DrbdOptions/PeerDevice/c-max-rate: {{ .Values.drbdOptions.cMaxRate | quote }}
   # c-min-rate: ~680 MB/s (1/3 of c-max-rate per LINBIT recommendation)

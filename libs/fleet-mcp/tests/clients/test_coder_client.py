@@ -25,9 +25,9 @@ class TestCoderClientListWorkspaces:
     async def test_list_workspaces_success(self, mock_list_workspaces_success):
         """Test successful workspace listing returns workspace data.
 
-        Arrange: Create CoderClient with mocked HTTP response
-        Act: Call list_workspaces()
-        Assert: Returns list of workspaces with correct structure
+        Arrange: create CoderClient with mocked HTTP response
+        Act: call list_workspaces()
+        Assert: returns list of workspaces with correct structure
         """
         # Arrange
         client = CoderClient(base_url="https://test.coder.com", token="test-token")
@@ -54,9 +54,9 @@ class TestCoderClientGetWorkspace:
     async def test_get_workspace_success(self, mock_get_workspace_success):
         """Test successful workspace retrieval returns detailed data.
 
-        Arrange: Create CoderClient with mocked workspace response
-        Act: Call get_workspace() with valid workspace ID
-        Assert: Returns workspace details including build information
+        Arrange: create CoderClient with mocked workspace response
+        Act: call get_workspace() with valid workspace ID
+        Assert: returns workspace details including build information
         """
         # Arrange
         client = CoderClient(base_url="https://test.coder.com", token="test-token")
@@ -80,9 +80,9 @@ class TestCoderClientListTemplates:
     async def test_list_templates_success(self, mock_list_templates_success):
         """Test successful template listing returns template data.
 
-        Arrange: Create CoderClient with mocked template response
-        Act: Call list_templates()
-        Assert: Returns list of templates with display_name field
+        Arrange: create CoderClient with mocked template response
+        Act: call list_templates()
+        Assert: returns list of templates with display_name field
         """
         # Arrange
         client = CoderClient(base_url="https://test.coder.com", token="test-token")
@@ -111,9 +111,9 @@ class TestCoderClientGetTemplateParameters:
     ):
         """Test successful template parameters retrieval.
 
-        Arrange: Create CoderClient with mocked parameters response
-        Act: Call get_template_parameters() with template ID
-        Assert: Returns list of rich parameters
+        Arrange: create CoderClient with mocked parameters response
+        Act: call get_template_parameters() with template ID
+        Assert: returns list of rich parameters
         """
         # Arrange
         client = CoderClient(base_url="https://test.coder.com", token="test-token")
@@ -141,9 +141,9 @@ class TestCoderClientListWorkspacePresets:
     ):
         """Test successful workspace presets listing.
 
-        Arrange: Create CoderClient with mocked presets response
-        Act: Call list_workspace_presets() with template ID
-        Assert: Returns list of workspace presets (roles)
+        Arrange: create CoderClient with mocked presets response
+        Act: call list_workspace_presets() with template ID
+        Assert: returns list of workspace presets (roles)
         """
         # Arrange
         client = CoderClient(base_url="https://test.coder.com", token="test-token")
@@ -172,9 +172,9 @@ class TestCoderClientRestartWorkspace:
         This test verifies the fix for the issue where restart was failing because
         it was trying to start a workspace before it had fully stopped.
 
-        Arrange: Mock stop, build status check, and start API calls
-        Act: Call restart_workspace()
-        Assert: Verify build status is polled and workspace stops before starting
+        Arrange: mock stop, build status check, and start API calls
+        Act: call restart_workspace()
+        Assert: verify build status is polled and workspace stops before starting
         """
         # Arrange
         workspace_id = "11111111-1111-1111-1111-111111111111"
@@ -240,9 +240,9 @@ class TestCoderClientErrorHandling:
     async def test_get_workspace_404_raises_not_found_error(self, respx_mock):
         """Test that 404 responses raise NotFoundError.
 
-        Arrange: Mock 404 response for workspace retrieval
-        Act: Call get_workspace() with non-existent ID
-        Assert: Raises NotFoundError with appropriate message
+        Arrange: mock 404 response for workspace retrieval
+        Act: call get_workspace() with non-existent ID
+        Assert: raises NotFoundError with appropriate message
         """
         # Arrange
         import json
