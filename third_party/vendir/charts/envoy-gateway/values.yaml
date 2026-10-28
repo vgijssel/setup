@@ -11,7 +11,7 @@ global:
   images:
     envoyGateway:
       # -- Full image for the Envoy Gateway control plane Deployment installed by this chart.
-      image: docker.io/envoyproxy/gateway:v1.9.2
+      image: docker.io/envoyproxy/gateway:v1.9.3
       # -- Image pull policy for the Envoy Gateway control plane Deployment.
       # Default behavior: latest images will be Always else IfNotPresent.
       pullPolicy: IfNotPresent
