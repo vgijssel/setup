@@ -49,6 +49,38 @@ correct() {
     [ -f .vale/styles/Google/Will.yml ]
 }
 
+@test "CI checks initialize styles when the base revision predates Vale" {
+    mkdir -p "${BATS_TEST_TMPDIR}/ci"
+    cd "${BATS_TEST_TMPDIR}/ci"
+    git init --initial-branch=main --quiet
+    mkdir -p apps/prose-ci
+    printf 'This will start.\n' > guide.md
+    printf '# This will start.\n' > apps/prose-ci/config.yaml
+    git add .
+    GIT_AUTHOR_NAME="Prose tests" GIT_AUTHOR_EMAIL="prose@example.invalid" \
+        GIT_COMMITTER_NAME="Prose tests" GIT_COMMITTER_EMAIL="prose@example.invalid" \
+        git -c core.hooksPath=/dev/null -c commit.gpgsign=false \
+        commit --quiet -m 'test: record prose before Vale configuration'
+    base_revision="$(git rev-parse HEAD)"
+    mkdir -p .trunk .vale libs/prose-lint
+    cp "${REPO_ROOT}/.trunk/trunk.yaml" .trunk/trunk.yaml
+    cp "${REPO_ROOT}/.vale.ini" .vale.ini
+    cp "${REPO_ROOT}/.vale/.gitignore" .vale/.gitignore
+    cp "${REPO_ROOT}/libs/prose-lint/comments.py" libs/prose-lint/comments.py
+    cp "${REPO_ROOT}/libs/prose-lint/line.tmpl" libs/prose-lint/line.tmpl
+    printf '\nThis will finish.\n' >> guide.md
+    printf '\n# This will finish.\n' >> apps/prose-ci/config.yaml
+    lint --ci --upstream="${base_revision}" guide.md apps/prose-ci/config.yaml
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"2 new lint issues"* ]]
+    [[ "$output" == *"2 existing issues"* ]]
+    printf 'This will start.\n\nThis finishes.\n' > guide.md
+    printf '# This will start.\n\n# This finishes.\n' > apps/prose-ci/config.yaml
+    lint --ci --upstream="${base_revision}" guide.md apps/prose-ci/config.yaml
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"2 existing issues"* ]]
+}
+
 @test "OpenSpec specs, active changes, and archives report original lines" {
     for path in openspec/specs/sample/spec.md openspec/changes/sample/specs/sample/spec.md openspec/changes/archive/2026-10-28-sample/specs/sample/spec.md; do
         fixture document.md "$path"

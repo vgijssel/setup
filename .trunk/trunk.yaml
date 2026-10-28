@@ -30,11 +30,14 @@ lint:
     - name: vale
       files: [markdown, python, prose-comments]
       tools: [vale, prose-parser]
+      environment:
+        - name: VALE_CONFIG_PATH
+          value: ${workspace}/.vale.ini
       commands:
         - name: lint
           files: [markdown, python]
-          prepare_run: vale --config .vale.ini --no-global sync
-          run: vale --config .vale.ini --no-global --output=libs/prose-lint/line.tmpl ${target}
+          prepare_run: vale --no-global sync
+          run: vale --no-global --output=libs/prose-lint/line.tmpl ${target}
           output: regex
           parse_regex: (?P<path>.*):(?P<line>\d+):(?P<col>\d+):(?P<severity>[^:]+):(?P<code>[^:]+):(?P<message>.+)
           success_codes: [0, 1]
@@ -42,7 +45,7 @@ lint:
           batch: true
         - name: comments
           files: [prose-comments]
-          prepare_run: vale --config .vale.ini --no-global sync
+          prepare_run: vale --no-global sync
           run: python3 libs/prose-lint/comments.py ${target}
           output: regex
           parse_regex: (?P<path>.*):(?P<line>\d+):(?P<col>\d+):(?P<severity>[^:]+):(?P<code>[^:]+):(?P<message>.+)

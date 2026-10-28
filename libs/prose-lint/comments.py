@@ -119,7 +119,6 @@ def check(path):
         result = subprocess.run(
             [
                 "vale",
-                "--config=.vale.ini",
                 "--no-global",
                 "--output=JSON",
                 directory,
