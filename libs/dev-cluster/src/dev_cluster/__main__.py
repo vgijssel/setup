@@ -1,4 +1,4 @@
-"""Main entry point for dev-cluster CLI."""
+"""Main entry point for dev-cluster command-line tool."""
 
 from .cli import cli
 

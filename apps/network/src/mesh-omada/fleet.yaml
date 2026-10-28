@@ -11,7 +11,7 @@
 # and reach it because the LAN gateway routes `100.65.0.0/16` via the PiKVM routing peer.
 #
 # That replaced a separate device hostname backed by a pinned ClusterIP, a device `NBResource` and
-# an in-cluster CoreDNS split horizon — three mechanisms whose only job was to give one class of
+# an in-cluster CoreDNS split horizon—three mechanisms whose only job was to give one class of
 # consumer a second name. All three are DELETED as of 2026-10-07, along with the `omada.blueora.ng`
 # record and its certificate: this is the only path to the controller now. See `publicDns` in
 # libs/mesh-service/values.yaml for the trade that accepts (every consumer, including
@@ -50,36 +50,36 @@ helm:
       sourceGroups:
         - homelab
       # ── The only exposure in the repo that opts into public DNS, and why ─────────────────────
-      # The TP-Link gateway, switches and APs run stock firmware with no way to install a mesh
+      # The TP-Link gateway, switches, and APs run stock firmware with no way to install a mesh
       # client, yet they must dial the controller BY NAME (their inform target). Publishing this
       # peer's current overlay address is what lets them use the same `omada.vpn.blueora.ng` every
       # mesh peer uses, instead of a parallel hostname with its own certificate and its own
       # in-cluster plumbing.
       #
       # Safe for existing consumers, verified rather than assumed (openspec 12.1): a public record
-      # does not shadow NetBird's resolver — peers and in-cluster pods still get the overlay
+      # does not shadow NetBird's resolver—peers and in-cluster pods still get the overlay
       # address while public resolvers get the published one.
       publicDns:
         enabled: true
       listeners:
-        # Admin UI. Envoy terminates the publicly-trusted mesh wildcard on :443, then
+        # Admin UI. Envoy terminates the publicly trusted mesh wildcard on :443, then
         # RE-ENCRYPTS to the controller's own HTTPS port :8043 and validates what the controller
         # presents there against the public root store.
         #
         # THE VALIDATED NAME IS NOW THE MESH NAME ITSELF. The controller serves that same
         # `*.vpn.blueora.ng` wildcard on :8043 (../omada/templates/vaultstaticsecret-controller-tls.yaml),
-        # so one certificate covers both hops. It used to validate `omada.blueora.ng` — a second,
-        # dedicated cert-manager certificate for the old device-facing name — and collapsing the
+        # so one certificate covers both hops. It used to validate `omada.blueora.ng`—a second,
+        # dedicated cert-manager certificate for the old device-facing name—and collapsing the
         # two is what let that name be retired outright rather than left lying around (openspec
         # 12.9/12.10). Nothing here knows any hostname but this service's own any more.
         #
-        # IT MUST NOT TARGET :8088 — measured 2026-10-05, this is the task-7.10 failure. :8088 is
+        # IT MUST NOT TARGET :8088—measured 2026-10-05, this is the task-7.10 failure. :8088 is
         # the controller's HTTP listener and it answers with an ABSOLUTE redirect to its own HTTPS
-        # port, which behind a mesh peer becomes `https://omada.vpn.blueora.ng:8043/` — a port the
+        # port, which behind a mesh peer becomes `https://omada.vpn.blueora.ng:8043/`—a port the
         # Gateway does not listen on, so the browser dead-ends. Talking HTTPS to its HTTPS port
         # means the controller never emits the redirect. The alternative considered and rejected
         # was a `protocol: TLS` passthrough on :8043: it connects, but with the controller now
-        # serving the wildcard that would also work — it is still rejected because passthrough
+        # serving the wildcard that would also work—it is still rejected because passthrough
         # gives Envoy no chance to validate the backend at all, where this re-encrypt does.
         - name: https
           protocol: HTTPS
@@ -91,11 +91,11 @@ helm:
               hostname: omada.vpn.blueora.ng
               caCertificates: System
               # The Service's port NAME for 8043, NOT the number. Gateway API scopes a
-              # BackendTLSPolicy by port name, and a number attaches to nothing SILENTLY —
+              # BackendTLSPolicy by port name, and a number attaches to nothing SILENTLY—
               # Envoy keeps sending plaintext to the TLS-only port and every request hangs,
               # with no status condition to show for it (measured 2026-10-05). It is the port
               # name on the omada-controller chart's OWN Service, which is now the only Service
-              # in the path — the hand-written pinned-ClusterIP one it used to target is gone.
+              # in the path—the hand-written pinned-ClusterIP one it used to target is gone.
               portName: manage-https
         # Device management/adoption/upgrade/rtty/monitor. A contiguous range is one listener per
         # port (Gateway API has no port-range concept), expanded by the shared chart. Each is the
@@ -130,7 +130,7 @@ dependsOn:
       matchLabels:
         fleet.vgijssel.nl/bundle: network-omada
 # network-ONLY. bin/fleet-apply applies every bundle globally, so target the network cluster
-# explicitly — the Omada controller only exists here.
+# explicitly—the Omada controller only exists here.
 targetCustomizations:
   - name: network
     clusterSelector:
@@ -138,7 +138,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

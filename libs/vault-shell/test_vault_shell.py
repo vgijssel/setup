@@ -1,10 +1,12 @@
 #!/usr/bin/env -S uv run --script
+# ```toml
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
 #     "pytest==8.3.4",
 # ]
 # ///
+# ```
 """Tests for the vault-shell CLI tool."""
 
 import sys
@@ -54,13 +56,13 @@ class TestPlatformChecks:
             assert exc_info.value.code == 1
 
     def test_check_op_available(self):
-        """Check op CLI availability detection."""
+        """Check op command-line tool availability detection."""
         with patch("shutil.which", return_value="/usr/bin/op"):
             # Should not raise
             vault_shell.check_op_available()
 
     def test_check_op_missing(self):
-        """Check op CLI missing error."""
+        """Check op command-line tool missing error."""
         with patch("shutil.which", return_value=None):
             with pytest.raises(SystemExit) as exc_info:
                 vault_shell.check_op_available()
@@ -425,11 +427,11 @@ class TestBwrapCommandBuilding:
 
 
 class TestMainCLI:
-    """Tests for the main CLI entry point."""
+    """Tests for the main command-line tool entry point."""
 
     @pytest.fixture
     def mock_environment(self, monkeypatch, tmp_path):
-        """Set up mock environment for CLI tests."""
+        """Set up mock environment for command-line tool tests."""
         secrets_dir = tmp_path / "secrets"
         secrets_dir.mkdir()
         setup_dir = tmp_path / "setup"
@@ -444,7 +446,7 @@ class TestMainCLI:
     def test_main_missing_service_account_name(
         self, monkeypatch, mock_environment, capsys
     ):
-        """Error when service account name is missing."""
+        """Error when service account’s name is missing."""
         monkeypatch.setattr("sys.argv", ["vault-shell"])
 
         with patch.object(vault_shell, "check_platform"):

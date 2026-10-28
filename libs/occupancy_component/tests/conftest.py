@@ -75,7 +75,7 @@ async def init_entities(hass):
         tracked_entities = entities
 
         await entity_platform.async_add_entities(entities)
-        # We have to wait here, because adding entities to hass will trigger a state change
+        # Wait here, because adding entities to hass triggers a state change
         await hass.async_block_till_done()
         return entities
 

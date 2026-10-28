@@ -3,7 +3,7 @@
 # resolving the file:// chart dependency against the vendored chart at build time.
 #
 # New on the network cluster (secret already had its own): core provides the
-# pkg.crossplane.io CRDs (Provider, DeploymentRuntimeConfig, ...) that the
+# pkg.crossplane.io CRDs (Provider, DeploymentRuntimeConfig, and others) that the
 # crossplane-provider bundle (netbird-crossplane-provider, and later Cloudflare)
 # dependsOn.
 labels:
@@ -12,7 +12,7 @@ defaultNamespace: crossplane-system
 helm:
   releaseName: crossplane
 # network-ONLY. Under bin/fleet-apply the selector alone is enough, but a Rancher GitRepo
-# appends its own catch-all target — so the terminal doNotDeploy entry below is what yields
+# appends its own catch-all target—so the terminal doNotDeploy entry below is what yields
 # no BundleDeployment on a cluster that is not labelled `network`.
 targetCustomizations:
   - name: network
@@ -21,7 +21,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

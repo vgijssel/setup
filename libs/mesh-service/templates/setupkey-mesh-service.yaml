@@ -6,12 +6,12 @@ stores it in Secret `setup-key-<name>`, which the injected client consumes as NB
 
 allowExtraDnsLabels: true is REQUIRED, not optional hardening in reverse. Without it the
 management API refuses the extra DNS label the sidecar profile asks for, so the peer keeps only
-its pod-name-derived default name and `<name>.<domain>` resolves to nothing — while every other
+its pod-name-derived default name and `<name>.<domain>` resolves to nothing—while every other
 resource here still reports healthy.
 
 ephemeral: true so NetBird reaps the peer after the pod goes away instead of leaving a stale
 registration holding this service's label. Note reaping is on an inactivity grace period, not
-immediate at pod teardown (measured: still registered 20 s after deletion) — which is the second
+immediate at pod teardown (measured: still registered 20 s after deletion)—which is the second
 reason the EnvoyProxy uses Recreate: during a rollout the outgoing peer is briefly still
 registered, and two peers on one label round-robin.
 

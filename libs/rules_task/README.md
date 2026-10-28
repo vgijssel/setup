@@ -1,4 +1,4 @@
-# rules_task
+# `rules_task`
 
 `rules_task` is a Bazel ruleset for creating and running programs called tasks. It aims to be a simpler alternative than writing `sh_binary` targets and look similar to scripts you would write for CI/CD systems like GitHub and GitLab. It achieves this by using a basic rule definition and by exposing AST nodes for more complex tasks.
 
@@ -6,7 +6,7 @@
 
 Follow instructions from the release you wish to use: [rules_task releases](https://github.com/vgijssel/setup/releases?q=%22name+%3D+%5C%22rules_task%5C%22%22&expanded=true).
 
-# Getting Started
+# Getting started
 
 1. Load the `task` rule in a `BUILD.bazel` file
 
@@ -59,7 +59,7 @@ task(
 )
 ```
 
-Note that these environment variables are persisted inside the task binary, as opposed to the args / env arguments of `py_binary` and `sh_binary` rules. This means if this task target is called by another target, the environments will still be present.
+Note that these environment variables are persisted inside the task binary, as opposed to the args / env arguments of `py_binary` and `sh_binary` rules. This means if this task target is called by another target, the environments are still present.
 
 ### Runnning a command at exit
 
@@ -77,7 +77,7 @@ task(
 )
 ```
 
-This will print
+This prints
 
 ```bash
 1
@@ -105,7 +105,7 @@ bazel run :cli_args -- "Hello, world"
 
 ### Setting a current working directory
 
-This will set the current working directory to the root of the Bazel workspace.
+This sets the current working directory to the root of the Bazel workspace.
 
 ```bazel
 task(
@@ -172,7 +172,7 @@ task(
 )
 ```
 
-This will print:
+This prints:
 
 ```bash
 FOO
@@ -197,7 +197,7 @@ task(
 )
 ```
 
-This will print:
+This prints:
 
 ```bash
 BAR
@@ -215,7 +215,7 @@ task(
 )
 ```
 
-This will print
+This prints
 
 ```bash
 parent_value
@@ -225,7 +225,7 @@ parent_value
 
 For more examples, see the [tests](tests/BUILD.bazel).
 
-# AST nodes
+# Abstract syntax tree nodes
 
 Using the AST nodes directly allows for more advanced use cases. The current AST visitor implementation does not allow for nested nodes of the same type because Starlark does not support recursion. This means that you cannot use `cmd.defer` inside a `cmd.defer` or `cmd.file` inside a `cmd.file`. This is a limitation of the current implementation and may be resolved in the future.
 
@@ -259,7 +259,7 @@ task(
 )
 ```
 
-This will print
+This prints
 
 ```bash
 foo
@@ -344,7 +344,7 @@ task(
 )
 ```
 
-This will print
+This prints
 
 ```bash
 export VOLATILE_SOME_VAR='BAR'

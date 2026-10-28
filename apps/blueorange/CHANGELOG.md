@@ -14,4 +14,4 @@
 
 ### 🚀 Features
 
-- Add new escape room web application with countdown timer and session management ([#780](https://github.com/vgijssel/setup/pull/780))
+- Add new escape room web app with countdown timer and session management ([#780](https://github.com/vgijssel/setup/pull/780))

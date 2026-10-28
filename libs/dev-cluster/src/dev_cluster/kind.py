@@ -47,9 +47,9 @@ def create_cluster(
     """Create a kind cluster.
 
     Args:
-        name: Name of the cluster to create
-        config: Optional path to kind config file
-        verbose: Enable verbose output
+        name: name of the cluster to create
+        config: optional path to kind config file
+        verbose: enable verbose output
     """
     cmd = ["kind", "create", "cluster", "--name", name]
 
@@ -101,8 +101,8 @@ def delete_cluster(name: str, verbose: bool = False) -> None:
     """Delete a kind cluster.
 
     Args:
-        name: Name of the cluster to delete
-        verbose: Enable verbose output
+        name: name of the cluster to delete
+        verbose: enable verbose output
     """
     result = subprocess.run(
         ["kind", "delete", "cluster", "--name", name],
@@ -125,12 +125,12 @@ def wait_for_cluster_ready(
     """Wait for cluster to be ready.
 
     Args:
-        name: Name of the cluster
-        timeout: Timeout in seconds
-        verbose: Enable verbose output
+        name: name of the cluster
+        timeout: timeout in seconds
+        verbose: enable verbose output
 
     Returns:
-        True if cluster is ready, False if timeout
+        `True` if cluster is ready, False if timeout
     """
     context = get_cluster_context(name)
     start_time = time.time()
@@ -189,9 +189,9 @@ def get_cluster_context(name: str) -> str:
     """Get the kubectl context name for a kind cluster.
 
     Args:
-        name: Name of the cluster
+        name: name of the cluster
 
     Returns:
-        Context name (kind-<name>)
+        context name (kind-<name>)
     """
     return f"kind-{name}"

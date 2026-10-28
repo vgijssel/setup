@@ -1,4 +1,4 @@
-"""netdata agent state, read from the ``netdata`` CLI as a pyinfra fact.
+"""netdata agent state, read from the ``netdata`` command-line tool as a pyinfra fact.
 
 Guarded by ``requires_command('netdata')`` so a host without netdata installed returns
 the fact's default silently (rather than erroring), letting the install gate run during
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pyinfra.api import FactBase
 
-#: Absolute path to the netdata binary from the pinned static build (NETDATA_PREFIX in
+#: absolute path to the netdata binary from the pinned static build (NETDATA_PREFIX in
 #: apps/pikvm/deploy.py). The static installer does NOT put ``netdata`` on PATH, so the
 #: fact must invoke it by absolute path -- otherwise it would silently return the empty
 #: default on an installed box and the version-gated install would re-run every apply.

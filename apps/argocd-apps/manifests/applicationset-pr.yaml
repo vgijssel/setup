@@ -13,21 +13,21 @@ spec:
     deletionOrder: Reverse
     rollingSync:
       steps:
-        # Step 1: Tenant namespace - created FIRST, deleted LAST
+        # Step 1: tenant namespace - created FIRST, deleted LAST
         - matchExpressions:
             - key: app-type
               operator: In
               values:
                 - tenant
 
-        # Step 2: Infrastructure (vCluster) - created SECOND, deleted SECOND
+        # Step 2: infrastructure (vCluster) - created SECOND, deleted SECOND
         - matchExpressions:
             - key: app-type
               operator: In
               values:
                 - infra
 
-        # Step 3: Apps inside vCluster - created LAST, deleted FIRST
+        # Step 3: apps inside vCluster - created LAST, deleted FIRST
         - matchExpressions:
             - key: app-type
               operator: In
@@ -128,9 +128,9 @@ spec:
           value: "https://github.com/vgijssel/setup/pull/{{.number}}"
         - name: Branch
           value: "{{.branch}}"
-  # templatePatch replaces arrays wholesale, so emit syncOptions in one block —
+  # templatePatch replaces arrays wholesale, so emit syncOptions in one block—
   # otherwise a second spec.syncPolicy.syncOptions patch overwrites the first
-  # (e.g. ServerSideApply=true would drop CreateNamespace=true and PruneLast=true).
+  # (for example ServerSideApply=true would drop CreateNamespace=true and PruneLast=true).
   templatePatch: |
     spec:
       syncPolicy:

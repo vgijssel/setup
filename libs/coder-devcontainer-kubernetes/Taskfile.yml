@@ -6,7 +6,7 @@ vars:
     sh: gh pr view --json number,url,state,title,statusCheckRollup,baseRefName 2>/dev/null || echo '{}'
 
 tasks:
-  # Metadata fields: Tasks with 'meta' key are collected as workspace metadata
+  # Metadata fields: tasks with 'meta' key are collected as workspace metadata
   # Meta key format: { include_in_list: boolean }
   # - include_in_list: true  -> shown in list_agents (summary view)
   # - include_in_list: false -> only shown in show_agent (detail view)

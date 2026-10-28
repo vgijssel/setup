@@ -4,7 +4,7 @@
 # opentofu.upbound.io CRDs (Workspace, ProviderConfig).
 #
 # The ProviderConfig + Workspace MRs deliberately live in the cloudflare-config bundle, NOT
-# here: Fleet deploys each bundle as one atomic Helm release, so a CR whose CRD this bundle
+# here—Fleet deploys each bundle as one atomic Helm release, so a CR whose CRD this bundle
 # installs would fail the whole release (CRD not yet registered). Splitting lets this bundle
 # apply cleanly; cloudflare-config then dependsOn it. (Same split as secret's
 # crossplane-provider / openbao-config.)
@@ -27,7 +27,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

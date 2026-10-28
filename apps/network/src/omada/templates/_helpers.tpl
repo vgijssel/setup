@@ -1,9 +1,9 @@
 {{/*
-Comma-separated MongoDB seed hosts for the replica set, e.g.
-  mongodb-rs0-0.mongodb-rs0.mongodb.svc.cluster.local:27017,mongodb-rs0-1...,mongodb-rs0-2...
+Comma-separated MongoDB seed hosts for the replica set, for example
+  `mongodb-rs0-0.mongodb-rs0.mongodb.svc.cluster.local:27017,mongodb-rs0-1...,mongodb-rs0-2...`
 
 Derived from .Values.mongodb so it cannot drift from the PerconaServerMongoDB CR
-(../../mongodb/perconaservermongodb.yaml) — change the replica count in one place without the
+(../../mongodb/perconaservermongodb.yaml)—change the replica count in one place without the
 other and Omada points at hosts that do not exist.
 
 All members are listed. One reachable seed is enough for the driver to discover the rest, but

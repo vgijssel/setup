@@ -1,4 +1,5 @@
 #!/usr/bin/env -S uv run --script
+# ```toml
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
@@ -6,6 +7,7 @@
 #     "pytimeparse2==1.7.1",
 # ]
 # ///
+# ```
 """Generate 1Password service account tokens for vaults with names starting with 'setup-'."""
 
 import json
@@ -22,7 +24,7 @@ MIN_EXPIRATION_SECONDS = 3600  # 1 hour
 
 
 def run_op_command(args: list[str]) -> subprocess.CompletedProcess:
-    """Run an op CLI command and return the result."""
+    """Run an `op` command and return the result."""
     try:
         return subprocess.run(
             ["op", *args],
@@ -39,7 +41,7 @@ def run_op_command(args: list[str]) -> subprocess.CompletedProcess:
 
 
 def check_op_authenticated() -> bool:
-    """Check if the user is authenticated with the 1Password CLI."""
+    """Check if the user is authenticated with the 1Password command-line tool."""
     result = run_op_command(["account", "list", "--format=json"])
     if result.returncode != 0:
         return False
@@ -79,7 +81,7 @@ def get_vault_id(vault_name: str, setup_vaults: list[dict]) -> str | None:
 
 
 def format_duration_for_op(seconds: int) -> str:
-    """Format duration in seconds to a format acceptable by op CLI (e.g., '1h', '2h30m')."""
+    """Format duration in seconds for the `op` command-line tool (for example, `1h`, `2h30m`)."""
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
 
@@ -134,12 +136,12 @@ def create_service_account(
     """Create a service account with access to multiple vaults and return the token.
 
     Args:
-        service_account_name: Name of the service account (e.g., 'gateway-prod')
-        vault_grants: List of (vault_name, vault_id) tuples to grant access to
-        expiration_seconds: Token expiration duration in seconds
+        service_account_name: name of the service account (for example, 'gateway-prod')
+        vault_grants: list of (vault_name, vault_id) tuples to grant access to
+        expiration_seconds: token expiration duration in seconds
 
     Returns:
-        The service account token
+        the service account token
     """
     expiration_str = format_duration_for_op(expiration_seconds)
     sa_name = f"vault-login-{service_account_name}"
@@ -202,15 +204,16 @@ def main(
 ) -> None:
     """Generate a 1Password service account token with access to multiple vaults.
 
-    SERVICE_ACCOUNT_NAME is the name of the service account (e.g., 'gateway-prod').
-    The service account will be created as 'vault-login-<service-account-name>'.
+    SERVICE_ACCOUNT_NAME is the name of the service account (for example, 'gateway-prod').
+    The service account is created as 'vault-login-<service-account-name>'.
 
     Use --vault to specify each vault to grant access to. At least one vault is required.
     All vault names must start with 'setup-' prefix.
 
-    The generated token will be saved to $VAULT_LOGIN_SECRETS_DIR/<service-account-name>
+    The generated token is saved to $VAULT_LOGIN_SECRETS_DIR/<service-account-name>
 
     Example:
+
         vault-login gateway-prod --vault setup-gateway-prod --vault setup-enigma-cozy
     """
     # Check authentication

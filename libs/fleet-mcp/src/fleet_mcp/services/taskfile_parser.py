@@ -25,15 +25,15 @@ class TaskfileParser:
         """Parse Taskfile and extract tasks with meta key.
 
         Args:
-            taskfile_path: Path to Taskfile.yml
+            taskfile_path: path to Taskfile.yml
 
         Returns:
-            Dictionary mapping task name to task definition (with desc, meta, cmds)
+            dictionary mapping task name to task definition (with desc, meta, cmds)
 
         Raises:
-            FileNotFoundError: If Taskfile doesn't exist
-            yaml.YAMLError: If Taskfile is malformed
-            ValueError: If meta key structure is invalid
+            `FileNotFoundError`: if Taskfile doesn't exist
+            `yaml.YAMLError`: if Taskfile is malformed
+            ValueError: if meta key structure is invalid
         """
         path = Path(taskfile_path)
         if not path.exists():
@@ -50,14 +50,14 @@ class TaskfileParser:
         """Parse Taskfile content string and extract tasks with meta key.
 
         Args:
-            content: YAML content of Taskfile
+            content: the YAML content of Taskfile
 
         Returns:
-            Dictionary mapping task name to task definition
+            dictionary mapping task name to task definition
 
         Raises:
-            yaml.YAMLError: If content is malformed
-            ValueError: If meta key structure is invalid
+            `yaml.YAMLError`: if content is malformed
+            ValueError: if meta key structure is invalid
         """
         try:
             data = yaml.safe_load(content)

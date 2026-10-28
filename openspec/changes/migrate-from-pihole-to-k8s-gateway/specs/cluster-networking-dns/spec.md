@@ -2,12 +2,12 @@
 
 ### Requirement: In-cluster authoritative DNS for `*.enigma.vgijssel.nl`
 
-The system SHALL run `k8s_gateway` on the root enigma cluster as an authoritative resolver for `enigma.vgijssel.nl`, serving records derived from in-cluster `Ingress` and `LoadBalancer Service` resources, so Kubernetes workloads (e.g. Keycloak OIDC validators) can resolve those names without depending on an external appliance.
+The system SHALL run `k8s_gateway` on the root enigma cluster as an authoritative resolver for `enigma.vgijssel.nl`, serving records derived from in-cluster `Ingress` and `LoadBalancer Service` resources, so Kubernetes workloads (for example Keycloak OIDC validators) can resolve those names without depending on an external appliance.
 
 #### Scenario: Pod resolves an ingress hostname
 
 - **WHEN** a pod on the enigma cluster looks up a hostname such as `keycloak.enigma.vgijssel.nl` that is backed by an Ingress resource
-- **THEN** the response SHALL contain the Ingress's `status.loadBalancer.ingress` IP (e.g. `192.168.50.100`)
+- **THEN** the response SHALL contain the Ingress's `status.loadBalancer.ingress` IP (for example `192.168.50.100`)
 
 #### Scenario: Non-existent hostname returns NXDOMAIN
 
@@ -37,7 +37,7 @@ The Corefile change SHALL be delivered by a dedicated Helm chart at `apps/cluste
 - **WHEN** `kubectl get --raw /api/v1/namespaces/kube-system/configmaps/coredns | jq '.metadata.managedFields'` is inspected after the prod sync
 - **THEN** the field `data.Corefile` SHALL be owned by `argocd-controller` (not `talos`)
 
-#### Scenario: PR envs do not modify the real Corefile
+#### Scenario: PR envs do not modify the real corefile
 
 - **WHEN** the `coredns-patch` PR Application (`cluster-networking-coredns-patch-pr<N>`) syncs
 - **THEN** `kube-system/coredns` SHALL remain unchanged, and a harmless `coredns-pr<N>-preview` ConfigMap SHALL exist in the PR namespace for inspection
@@ -69,7 +69,7 @@ The upstream `k8s-gateway` Helm chart SHALL be vendored into `third_party/vendir
 
 The Flux `HelmRelease` at `apps/enigma-cluster/helmrelease-external-dns-pihole.yaml` SHALL be removed, along with its entry in `apps/enigma-cluster/kustomization.yaml`, since no consumer remains (VLAN clients never depended on the synced records; in-cluster workloads now resolve via `kube-dns → k8s_gateway`). The Cloudflare-backed `external-dns` HelmRelease SHALL remain unchanged. The Pi-hole appliance SHALL NOT be decommissioned as part of this change, and no DHCP/router changes SHALL be required.
 
-#### Scenario: Pi-hole HelmRelease gone
+#### Scenario: `pi-hole` `HelmRelease` gone
 
 - **WHEN** `kubectl get helmrelease -n flux-system` is run after the change has been applied
 - **THEN** no `external-dns-pihole` HelmRelease SHALL exist, and Flux SHALL have pruned the matching `external-dns` Deployment in the `external-dns` namespace

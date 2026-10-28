@@ -3,7 +3,7 @@
 # The mirror is published to the mesh by ../mesh-jwks/, which runs its own Envoy Gateway pod with
 # its own NetBird client and therefore its own overlay address and DNS label
 # (`jwks-network.vpn.blueora.ng`). That exposure dials this Service as an ordinary in-cluster
-# backendRef, by name, like any other Kubernetes consumer — so this Service needs no annotations,
+# backendRef, by name, like any other Kubernetes consumer—so this Service needs no annotations,
 # no pinned address and no knowledge that it is reachable off-cluster.
 #
 # NO `netbird.io/*` ANNOTATIONS, on purpose. They used to make the operator infer a domain-type

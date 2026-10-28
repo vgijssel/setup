@@ -1,6 +1,6 @@
 {{/*
 Truncate a name to 63 characters (Kubernetes max) while preserving uniqueness.
-If the name exceeds 63 chars, truncate and append a hash suffix.
+Truncate names longer than 63 chars and append a hash suffix.
 */}}
 {{- define "argocd-cluster-registration.truncName" -}}
 {{- $name := . -}}
@@ -18,13 +18,13 @@ Helper template for vcluster registration policy spec.
 Used both for the actual spec and to generate a content-based hash for the name.
 When this content changes, the policy name changes, causing ArgoCD to prune the old and create new.
 
-IMPORTANT: This policy matches on the kubeconfig secret (vc-*) NOT the config secret (vc-config-*).
+IMPORTANT: this policy matches on the kubeconfig secret (vc-*) NOT the config secret (vc-config-*).
 This is because vCluster creates secrets in this order:
 1. vc-config-* (config secret with ingress host) - created first
 2. vc-* (kubeconfig secret with certificates) - created ~47 seconds later
 
-If we trigger on vc-config-*, the kubeconfig secret doesn't exist yet and we get empty certificates.
-By triggering on vc-* (kubeconfig), we ensure certificates are available, then fetch the config secret.
+If the trigger matches vc-config-*, the kubeconfig secret doesn't exist yet and certificates are empty.
+By triggering on vc-* (kubeconfig), ensure certificates are available, then fetch the config secret.
 */}}
 {{- define "argocd-cluster-registration.vclusterPolicySpec" -}}
 generateExisting: true

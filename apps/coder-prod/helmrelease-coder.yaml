@@ -142,10 +142,10 @@ spec:
               name: onepassword-connect-token-setup-devenv
               key: credential
       # Use LoadBalancer to expose via KubeVirt CCM forwarding
-      # KubeVirt CCM will create a corresponding service in the enigma cluster
+      # KubeVirt CCM creates a corresponding service in the enigma cluster
       service:
         type: LoadBalancer
-      # Ingress disabled - using KubeVirt CCM LoadBalancer forwarding instead
+      # Ingress turned off - using KubeVirt CCM LoadBalancer forwarding instead
       # Traffic path: enigma ingress → CCM-forwarded service → Coder
       ingress:
         enable: false

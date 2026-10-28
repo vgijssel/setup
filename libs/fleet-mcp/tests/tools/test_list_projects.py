@@ -32,9 +32,9 @@ class TestListAgentProjects:
     ):
         """Test list_agent_projects() returns ListProjectsResponse - T053.
 
-        Arrange: Mock service to return projects
-        Act: Call list_agent_projects()
-        Assert: Returns ListProjectsResponse with correct structure
+        Arrange: mock service to return projects
+        Act: call list_agent_projects()
+        Assert: returns ListProjectsResponse with correct structure
         """
         # Arrange
         mock_projects = [
@@ -55,9 +55,9 @@ class TestListAgentProjects:
     async def test_list_agent_projects_delegates_to_service(self, mock_project_service):
         """Test list_agent_projects() calls service.list_projects() - T054.
 
-        Arrange: Mock service to return projects
-        Act: Call list_agent_projects()
-        Assert: Service method was called once
+        Arrange: mock service to return projects
+        Act: call list_agent_projects()
+        Assert: service method was called once
         """
         # Arrange
         mock_projects = [Project(id="proj-1", name="Setup", description="Dev setup")]
@@ -76,8 +76,8 @@ class TestListAgentProjects:
     ):
         """Test list_agent_projects() correctly counts projects - T055.
 
-        Arrange: Mock service to return varying numbers of projects
-        Act: Call list_agent_projects()
+        Arrange: mock service to return varying numbers of projects
+        Act: call list_agent_projects()
         Assert: total_count matches number of projects
         """
         # Arrange - empty list

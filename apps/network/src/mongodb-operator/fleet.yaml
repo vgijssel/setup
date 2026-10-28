@@ -7,7 +7,7 @@
 # dir (Helm crds/ is install-only and un-annotated); the psmdb-operator-crds subchart ships
 # the same CRDs as templates (with resource-policy: keep). takeOwnership lets the template
 # apply ADOPT the crds/-preinstalled CRDs rather than fail the release on the ownership
-# check. The two charts are pinned independently (operator 1.23.1, CRDs 1.23.0 — see
+# check. The two charts are pinned independently (operator 1.23.1, CRDs 1.23.0—see
 # third_party/vendir/vendir.yml), but operator 1.23.1 shipped no crds/ changes, so adoption
 # is still a content no-op.
 labels:
@@ -17,7 +17,7 @@ helm:
   releaseName: mongodb-operator
   takeOwnership: true
 # network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
-# cluster explicitly — the Percona operator must not deploy on the secret cluster.
+# cluster explicitly—the Percona operator must not deploy on the secret cluster.
 targetCustomizations:
   - name: network
     clusterSelector:
@@ -25,7 +25,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

@@ -29,7 +29,7 @@ class MetadataService:
         """Initialize MetadataService.
 
         Args:
-            taskfile_path: Absolute path to Taskfile.yml (defaults to FLEET_MCP_TASKFILE env var or ./Taskfile.yml)
+            taskfile_path: absolute path to Taskfile.yml (defaults to FLEET_MCP_TASKFILE env var or ./Taskfile.yml)
         """
         import os
 
@@ -49,10 +49,10 @@ class MetadataService:
         """Collect all metadata from Taskfile execution.
 
         Returns:
-            WorkspaceMetadata with all collected fields
+            `WorkspaceMetadata` with all collected fields
 
         Note:
-            Returns empty metadata if Taskfile missing or all tasks fail
+            returns empty metadata if Taskfile missing or all tasks fail
         """
         # Check if Taskfile exists
         if not self.taskfile_path.exists():
@@ -83,11 +83,11 @@ class MetadataService:
         """Execute a single metadata task.
 
         Args:
-            task_name: Name of the task
-            task_def: Task definition from Taskfile
+            task_name: name of the task
+            task_def: task definition from Taskfile
 
         Returns:
-            MetadataField with value or error
+            `MetadataField` with value or error
         """
         # Extract schema from task definition
         description = task_def.get("desc", "No description")
@@ -97,7 +97,7 @@ class MetadataService:
         )
 
         try:
-            # Execute task using Task CLI
+            # Execute task using Task command-line tool
             # Use the directory containing the Taskfile as the working directory
             taskfile_dir = self.taskfile_path.parent
             result = await asyncio.create_subprocess_exec(

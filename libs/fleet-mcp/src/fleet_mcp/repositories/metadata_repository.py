@@ -25,7 +25,7 @@ class MetadataRepository:
     4. Return WorkspaceMetadata
 
     Architecture:
-    Main fleet-mcp server → MetadataRepository → MetadataClient → Agent's /metadata endpoint
+    main fleet-mcp server → MetadataRepository → MetadataClient → Agent's /metadata endpoint
     """
 
     def __init__(
@@ -37,10 +37,10 @@ class MetadataRepository:
         """Initialize MetadataRepository.
 
         Args:
-            coder_client: CoderClient for workspace API calls
-            coder_session_token: Coder session token for authenticated metadata requests.
+            coder_client: the CoderClient for workspace API calls
+            coder_session_token: the Coder session token for authenticated metadata requests.
                 Required for fetching metadata from Coder proxy URLs.
-            metadata_client: Optional MetadataClient (creates new if not provided)
+            metadata_client: optional MetadataClient (creates new if not provided)
         """
         self.coder_client = coder_client
         self.metadata_client = metadata_client or MetadataClient(
@@ -51,13 +51,13 @@ class MetadataRepository:
         """Collect metadata from agent's /metadata endpoint.
 
         Args:
-            workspace_id: Coder workspace UUID
+            workspace_id: the Coder workspace UUID
 
         Returns:
-            WorkspaceMetadata (empty on failure)
+            `WorkspaceMetadata` (empty on failure)
 
         Note:
-            Never raises exceptions - returns empty metadata on errors
+            never raises exceptions - returns empty metadata on errors
             for graceful degradation (FR-007 requirement)
         """
         try:

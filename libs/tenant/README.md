@@ -1,4 +1,4 @@
-# CozyStack Tenant Helm Chart
+# Tenant chart
 
 A Helm chart for generating CozyStack Tenant custom resources.
 
@@ -15,14 +15,14 @@ The following table lists the configurable parameters and their default values:
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `name` | Name of the tenant | `argocd` |
-| `namespace` | Namespace where the tenant will be created | `tenant-prod` |
+| `namespace` | Namespace where the tenant is created | `tenant-prod` |
 | `spec.etcd` | Enable etcd for the tenant | `false` |
 | `spec.host` | Host configuration for the tenant | `""` |
 | `spec.ingress` | Enable ingress for the tenant | `false` |
 | `spec.monitoring` | Enable monitoring for the tenant | `false` |
 | `spec.seaweedfs` | Enable seaweedfs for the tenant | `false` |
 
-## Example Usage
+## Example usage
 
 ### Using default values
 
@@ -64,7 +64,7 @@ Then apply:
 helm template my-tenant libs/tenant -f custom-values.yaml
 ```
 
-## Generated Resource
+## Generated resource
 
 The chart generates a CozyStack Tenant custom resource:
 

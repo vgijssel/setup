@@ -21,7 +21,7 @@ ingress-http:
     cert-manager.io/cluster-issuer: letsencrypt-stage
     nginx.ingress.kubernetes.io/backend-protocol: HTTP
 
-# Values for ingress-grpc (CLI access)
+# Values for ingress-grpc (command-line tool access)
 ingress-grpc:
   name: argocd-grpc
   namespace: argocd

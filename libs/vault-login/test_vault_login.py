@@ -1,4 +1,5 @@
 #!/usr/bin/env -S uv run --script
+# ```toml
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
@@ -7,6 +8,7 @@
 #     "pytest==8.3.4",
 # ]
 # ///
+# ```
 """Tests for the vault-login CLI tool."""
 
 import json
@@ -28,10 +30,10 @@ spec.loader.exec_module(vault_login)
 
 
 class TestDurationParsing:
-    """Tests for duration parsing functionality."""
+    """Tests for duration parsing capability."""
 
     def test_parse_1h(self):
-        """Parse '1h' duration."""
+        """Parse `1h` duration."""
         result = vault_login.parse_expiration("1h")
         assert result == 3600
 
@@ -51,12 +53,12 @@ class TestDurationParsing:
         assert result == 5400
 
     def test_parse_90min(self):
-        """Parse '90min' duration."""
+        """Parse `90min` duration."""
         result = vault_login.parse_expiration("90min")
         assert result == 5400
 
     def test_parse_1h30m(self):
-        """Parse '1h30m' duration."""
+        """Parse `1h30m` duration."""
         result = vault_login.parse_expiration("1h30m")
         assert result == 5400
 
@@ -85,25 +87,25 @@ class TestDurationParsing:
 
 
 class TestDurationFormatting:
-    """Tests for duration formatting for op CLI."""
+    """Tests for duration formatting for the `op` command-line tool."""
 
     def test_format_1_hour(self):
-        """Format 3600 seconds as '1h'."""
+        """Format 3600 seconds as `1h`."""
         result = vault_login.format_duration_for_op(3600)
         assert result == "1h"
 
     def test_format_2_hours(self):
-        """Format 7200 seconds as '2h'."""
+        """Format 7200 seconds as `2h`."""
         result = vault_login.format_duration_for_op(7200)
         assert result == "2h"
 
     def test_format_90_minutes(self):
-        """Format 5400 seconds as '1h30m'."""
+        """Format 5400 seconds as `1h30m`."""
         result = vault_login.format_duration_for_op(5400)
         assert result == "1h30m"
 
     def test_format_2h15m(self):
-        """Format 8100 seconds as '2h15m'."""
+        """Format 8100 seconds as `2h15m`."""
         result = vault_login.format_duration_for_op(8100)
         assert result == "2h15m"
 
@@ -154,7 +156,7 @@ class TestSecretsDir:
 
 
 class TestCLI:
-    """Tests for CLI behavior using click's test runner."""
+    """Tests for command-line tool behavior using click's test runner."""
 
     @pytest.fixture
     def runner(self):
@@ -172,7 +174,7 @@ class TestCLI:
         ]
 
     def test_help(self, runner):
-        """CLI --help works."""
+        """The command-line tool's `--help` option works."""
         result = runner.invoke(vault_login.main, ["--help"])
         assert result.exit_code == 0
         assert "Generate a 1Password service account token" in result.output
@@ -268,7 +270,7 @@ class TestCLI:
                 assert "vault-id-prod" in result.output
 
     def test_not_authenticated(self, runner):
-        """Error when not authenticated with op CLI."""
+        """Error when not authenticated with op command-line tool."""
         with patch.object(vault_login, "check_op_authenticated", return_value=False):
             result = runner.invoke(vault_login.main, ["my-sa", "--vault", "setup-ci"])
             assert result.exit_code == 1
@@ -289,7 +291,7 @@ class TestCLI:
 
 
 class TestOpAuthentication:
-    """Tests for 1Password CLI authentication checks."""
+    """Tests for 1Password command-line tool authentication checks."""
 
     def test_check_authenticated_success(self):
         """Authentication check succeeds with valid accounts."""
@@ -403,7 +405,7 @@ class TestServiceAccountCreation:
                     )
                     assert result.exit_code == 0
 
-        # Verify the token file contains exactly the token (new path: service account name)
+        # Verify the token file contains exactly the token (new path: service account’s name)
         token_file = tmp_path / "my-sa"
         assert token_file.exists()
         file_contents = token_file.read_text()

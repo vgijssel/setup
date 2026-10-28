@@ -1,4 +1,4 @@
-# dev-cluster
+# Dev-cluster
 
 Local development cluster orchestration tool for creating Kubernetes clusters with kind and Flux GitOps bootstrap.
 
@@ -6,7 +6,7 @@ Local development cluster orchestration tool for creating Kubernetes clusters wi
 
 - Create idempotent kind clusters with native snapshotter
 - Flux GitOps bootstrap with suspended reconciliation
-- Simple, familiar CLI interface (similar to kind)
+- Simple, familiar command-line tool interface (similar to kind)
 - Progress feedback for each operation
 
 ## Prerequisites
@@ -14,8 +14,8 @@ Local development cluster orchestration tool for creating Kubernetes clusters wi
 The following tools must be installed:
 
 - **kind**: Kubernetes in Docker ([installation](https://kind.sigs.k8s.io/))
-- **kubectl**: Kubernetes CLI ([installation](https://kubernetes.io/docs/tasks/tools/))
-- **flux**: Flux CLI ([installation](https://fluxcd.io/flux/installation/))
+- **kubectl**: Kubernetes command-line tool ([installation](https://kubernetes.io/docs/tasks/tools/))
+- **flux**: Flux command-line tool ([installation](https://fluxcd.io/flux/installation/))
 
 ## Installation
 
@@ -33,7 +33,7 @@ pip install -e libs/dev-cluster
 
 ## Usage
 
-### Create a Cluster
+### Create a cluster
 
 Create a new development cluster (idempotent):
 
@@ -41,13 +41,13 @@ Create a new development cluster (idempotent):
 dev-cluster create my-cluster
 ```
 
-The create command will:
+The create command performs these steps:
 1. Create a kind cluster (if it doesn't exist)
 2. Wait for the cluster to be ready
 3. Bootstrap Flux GitOps
 4. Suspend Flux reconciliation
 
-### Create with Custom Config
+### Create with custom config
 
 Use a custom kind configuration file:
 
@@ -55,7 +55,7 @@ Use a custom kind configuration file:
 dev-cluster create my-cluster --config path/to/kind-config.yaml
 ```
 
-### Create with Custom Flux Settings
+### Create with custom Flux settings
 
 Specify custom Flux repository and path:
 
@@ -65,7 +65,7 @@ dev-cluster create my-cluster \
   --flux-path clusters/dev/my-cluster
 ```
 
-### Delete a Cluster
+### Delete a cluster
 
 Delete an existing cluster:
 
@@ -73,7 +73,7 @@ Delete an existing cluster:
 dev-cluster delete my-cluster
 ```
 
-### Verbose Output
+### Verbose output
 
 Enable verbose output for debugging:
 
@@ -84,7 +84,7 @@ dev-cluster --verbose create my-cluster
 
 ## Configuration
 
-### Environment Variables
+### Environment variables
 
 The tool supports the following environment variables:
 
@@ -100,7 +100,7 @@ export FLUX_PATH="clusters/my-cluster"
 dev-cluster create my-cluster
 ```
 
-### Kind Configuration
+### Kind configuration
 
 If no custom configuration is provided, the tool uses the following default configuration with native snapshotter:
 
@@ -117,9 +117,9 @@ nodes:
 
 The native snapshotter is used instead of overlayfs to avoid overlay filesystem mount errors.
 
-## CLI Reference
+## Command-line tool reference
 
-### Global Options
+### Global options
 
 - `-v, --verbose`: Enable verbose output
 
@@ -156,7 +156,7 @@ dev-cluster delete NAME
 
 ## Examples
 
-### Basic Usage
+### Basic usage
 
 ```bash
 # Create a cluster
@@ -166,7 +166,7 @@ dev-cluster create dev
 dev-cluster delete dev
 ```
 
-### Custom Configuration
+### Custom configuration
 
 ```bash
 # Create with custom kind config
@@ -182,7 +182,7 @@ EOF
 dev-cluster create multi-node --config kind-config.yaml
 ```
 
-### Multiple Clusters
+### Multiple clusters
 
 ```bash
 # Create multiple clusters for different purposes
@@ -191,7 +191,7 @@ dev-cluster create dev-backend
 dev-cluster create staging
 ```
 
-### Custom Wait Time
+### Custom wait time
 
 ```bash
 # Wait up to 10 minutes for cluster to be ready
@@ -200,7 +200,7 @@ dev-cluster create slow-cluster --wait 10m
 
 ## Troubleshooting
 
-### Missing Prerequisites
+### Missing prerequisites
 
 If you see an error about missing tools, install them:
 
@@ -209,7 +209,7 @@ Error: Missing required tools:
   - kind: Install from https://kind.sigs.k8s.io/
 ```
 
-### Cluster Creation Fails
+### Cluster creation fails
 
 Enable verbose mode to see detailed error messages:
 
@@ -219,7 +219,7 @@ dev-cluster -v create my-cluster
 
 ## Development
 
-### Running Tests
+### Running tests
 
 ```bash
 # Run unit tests
@@ -229,7 +229,7 @@ pytest
 pytest tests/integration
 ```
 
-### Code Quality
+### Code quality
 
 ```bash
 # Format code

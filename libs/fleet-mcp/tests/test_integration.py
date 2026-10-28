@@ -25,7 +25,7 @@ def coder_base_url():
 
 @pytest.mark.asyncio
 class TestUserStory1AgentDiscoveryVCR:
-    """Test User Story 1: Agent Discovery using VCR."""
+    """Test User Story 1: agent Discovery using VCR."""
 
     @vcr_instance.use_cassette("list_workspaces_success.yaml")
     async def test_list_agents(self, coder_base_url):
@@ -76,7 +76,7 @@ class TestUserStory1AgentDiscoveryVCR:
 
 @pytest.mark.asyncio
 class TestUserStory2AgentLifecycleVCR:
-    """Test User Story 2: Agent Lifecycle using VCR."""
+    """Test User Story 2: agent Lifecycle using VCR."""
 
     @vcr_instance.use_cassette("create_workspace_success.yaml")
     async def test_create_agent_recorded(self, coder_base_url):
@@ -88,9 +88,9 @@ class TestUserStory2AgentLifecycleVCR:
         metadata_repo.collect_metadata.return_value.model_dump.return_value = {}
         AgentService(agent_repo, project_repo, metadata_repo)
 
-        # This will replay the recorded workspace creation
-        # Note: In the cassette, the workspace name and template are fixed
-        # We can only verify the flow works, not test arbitrary inputs
+        # This replays the recorded workspace creation
+        # Note: in the cassette, the workspace name and template are fixed
+        # This can only verify the flow works, not test arbitrary inputs
 
         await client.close()
 
@@ -125,7 +125,7 @@ class TestBugReproduction:
         The test should fail initially, demonstrating the bug.
         After implementing the fix, this test should pass.
         """
-        # Arrange: Initialize services
+        # Arrange: initialize services
         client = CoderClient(base_url=coder_base_url, token="test-token")
         agent_repo = AgentRepository(client)
         project_repo = ProjectRepository(client)
@@ -133,31 +133,31 @@ class TestBugReproduction:
         metadata_repo.collect_metadata.return_value.model_dump.return_value = {}
         agent_service = AgentService(agent_repo, project_repo, metadata_repo)
 
-        # NOTE: This test uses VCR cassettes, so we need to record the sequence:
+        # NOTE: this test uses VCR cassettes, so record the sequence:
         # 1. list_templates (to validate project exists)
         # 2. list_workspace_presets (to get role)
         # 3. create_workspace (create Henk)
         # 4. list_workspaces (should include Henk)
 
-        # For now, we'll use a simpler approach with existing cassettes
+        # For now, use a simpler approach with existing cassettes
         # to demonstrate the concept
 
         try:
-            # Act 1: Create an agent
+            # Act 1: create an agent
             with vcr_instance.use_cassette("create_workspace_success.yaml"):
-                # In a real scenario, we'd create "Henk" with task "search for typos in Setup"
-                # For now, we're limited by the cassette content
+                # In a real scenario, the test would create "Henk" with task "search for typos in Setup"
+                # For now, the test is limited by the cassette content
                 pass  # The cassette contains a create operation
 
-            # Act 2: Immediately try to list agents
+            # Act 2: immediately try to list agents
             with vcr_instance.use_cassette("list_workspaces_success.yaml"):
                 agents = await agent_service.list_agents()
 
-            # Assert: The newly created agent should be in the list
+            # Assert: the newly created agent should be in the list
             # This is where the bug manifests - the list might not include the new agent
             # or the list operation might fail
 
-            # For demonstration, we'll check if we can list agents at all
+            # For demonstration, check whether listing agents works at all
             assert isinstance(agents, list), "list_agents should return a list"
 
             # The bug might be that:

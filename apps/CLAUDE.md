@@ -1,20 +1,20 @@
-# ArgoCD Apps Directory - AI Assistant Guide
+# App directory guide for assistants
 
-## Architecture Overview
+## Architecture overview
 
-This directory uses ArgoCD ApplicationSets to automatically discover and deploy applications. Each subdirectory can contain either **umbrella Helm charts**, **Kustomize directories**, or **plain Kubernetes manifests**, and all are treated identically by the ApplicationSet generators. All application types use a `config.json` file for routing metadata.
+This directory uses ArgoCD ApplicationSets to automatically discover and deploy applications. Each subdirectory can contain either **umbrella Helm charts**, **Kustomize directories**, or **plain Kubernetes manifests**, and all are treated identically by the ApplicationSet generators. All app types use a `config.json` file for routing metadata.
 
-## Directory Structure Convention
+## Directory structure convention
 
-### Top-level Groupings
+### Top-level groupings
 
-Every top-level directory under `apps/` is a **logical grouping** (e.g., `secrets-proxy`, `docs-sync`, `argocd`). Each grouping contains one or more subdirectories representing individual applications or components.
+Every top-level directory under `apps/` is a **logical grouping** (for example, `secrets-proxy`, `docs-sync`, `argocd`). Each grouping contains one or more subdirectories representing individual applications or components.
 
-### Application Types
+### Application types
 
 Each subdirectory is one of three types, all containing a `config.json` file:
 
-#### 1. Umbrella Helm Chart
+#### 1. Umbrella chart
 Contains a `Chart.yaml` declaring an external chart as a dependency, plus values overrides.
 
 ```
@@ -26,9 +26,9 @@ apps/<grouping>/<app-name>/
 └── config.json     # Routing metadata
 ```
 
-**ArgoCD auto-detection**: Presence of `Chart.yaml` → Helm source
+**ArgoCD auto-detection**: presence of `Chart.yaml` → Helm source
 
-#### 2. Kustomize Directory
+#### 2. Kustomize directory
 Contains a `kustomization.yaml` file for declarative Kubernetes resource management.
 
 ```
@@ -39,9 +39,9 @@ apps/<grouping>/<app-name>/
 └── config.json          # Routing metadata
 ```
 
-**ArgoCD auto-detection**: Presence of `kustomization.yaml` → Kustomize source
+**ArgoCD auto-detection**: presence of `kustomization.yaml` → Kustomize source
 
-#### 3. Plain Kubernetes Manifests
+#### 3. Plain Kubernetes manifests
 Contains raw YAML files. No `Chart.yaml` or `kustomization.yaml` present.
 
 ```
@@ -51,14 +51,14 @@ apps/<grouping>/manifests/
 └── config.json     # Routing metadata
 ```
 
-**ArgoCD auto-detection**: No `Chart.yaml` or `kustomization.yaml` → Directory source
-**Convention**: These directories are named `manifests/` for clarity
+**ArgoCD auto-detection**: no `Chart.yaml` or `kustomization.yaml` → Directory source
+**Convention**: these directories are named `manifests/` for clarity
 
-## Application Discovery: config.json
+## App discovery with `config.json`
 
-Every application subdirectory (except `argocd*` groupings) **must** contain a `config.json` file for ApplicationSet discovery.
+Every app subdirectory (except `argocd*` groupings) **must** contain a `config.json` file for ApplicationSet discovery.
 
-### config.json Format
+### Config.json format
 
 ```json
 {
@@ -77,13 +77,13 @@ For vCluster targets, use the registered cluster name:
 
 ### Why config.json?
 
-- **Decouples routing from application code**: Cluster and namespace are deployment concerns, not application concerns
+- **Decouples routing from app code**: Cluster and namespace are deployment concerns, not app concerns
 - **Enables ApplicationSet discovery**: The Git generator scans for `apps/*/*/config.json`
 - **Supports multi-environment deployment**: Same app code, different `config.json` values
 
-## Separation of Concerns
+## Separation of concerns
 
-### ArgoCD Layer (Control Plane)
+### Deployment layer (control plane)
 
 Located in `apps/argocd-apps/manifests/`:
 - `apps-appset.yaml` - Production ApplicationSet
@@ -95,7 +95,7 @@ Located in `apps/argocd-apps/manifests/`:
 - Manage sync policies, health checks, prune behavior
 - Handle routing (cluster, namespace) from `config.json`
 
-### Application Layer (Data Plane)
+### Application layer (data plane)
 
 Located in `apps/<grouping>/<app-name>/`:
 - Umbrella Helm charts or plain manifests
@@ -104,11 +104,11 @@ Located in `apps/<grouping>/<app-name>/`:
 
 **Responsibilities**:
 - Define what to deploy (container images, resources, replicas)
-- Configure application behavior (env vars, feature flags)
+- Configure app behavior (env vars, feature flags)
 - Specify resource requirements and limits
 - No knowledge of target cluster or namespace
 
-### Example Separation
+### Example separation
 
 ```
 apps/
@@ -129,7 +129,7 @@ apps/
         └── config.json               # Routing: "Deploy to vcluster-secrets-proxy/ingress"
 ```
 
-## Bootstrap Chain
+## Bootstrap chain
 
 ArgoCD itself runs inside a vCluster and is bootstrapped in phases. The entire process can be automated using the Moon bootstrap target:
 
@@ -139,14 +139,14 @@ moon run apps/argocd-infra:bootstrap
 
 This executes the following phases:
 
-### Phase 1: Deploy ArgoCD Infrastructure (Parent Cluster)
+### Phase 1—deploy infrastructure in the parent cluster
 ```bash
 helm upgrade --install argocd-vcluster ./apps/argocd-infra/vcluster \
   --namespace argocd-infra --create-namespace
 kubectl apply -f apps/argocd-infra/manifests/
 ```
 
-### Phase 2: Deploy ArgoCD (ArgoCD vCluster)
+### Phase 2—deploy the controller in its virtual cluster
 ```bash
 vcluster connect argocd -n argocd-infra
 kubectl apply -f apps/argocd/manifests/
@@ -155,18 +155,18 @@ helm upgrade --install argocd ./apps/argocd/argocd \
 vcluster disconnect
 ```
 
-### Phase 3: ApplicationSets Deploy Everything Else
+### Phase 3: ApplicationSets deploy everything else
 Once ArgoCD is running, the ApplicationSets in `apps/argocd-apps/manifests/` automatically discover and deploy all other applications.
 
-**Critical Constraint**: The `argocd*` groupings do **not** contain `config.json` files because they are managed by the bootstrap chain, not by ApplicationSets.
+**Critical Constraint**: the `argocd*` groupings do **not** contain `config.json` files because they are managed by the bootstrap chain, not by ApplicationSets.
 
-### vCluster Connectivity
+### Virtual cluster connectivity
 
 All exposed vClusters deployed by ArgoCD are reachable via Ingress from the ArgoCD instance itself. This allows ArgoCD to manage applications across multiple vClusters using standard HTTPS endpoints rather than requiring direct Kubernetes API access to each vCluster.
 
-## ApplicationSet Generators
+## `ApplicationSet` generators
 
-### Production ApplicationSet
+### Production `ApplicationSet`
 
 Scans for `apps/*/*/config.json`, excluding ArgoCD groupings:
 
@@ -184,7 +184,7 @@ generators:
 **Application naming**: `{{index .path.segments 1}}-{{index .path.segments 2}}`
 - Example: `apps/secrets-proxy/onepassword-operator/` → `secrets-proxy-onepassword-operator`
 
-### PR ApplicationSet
+### Pull request `ApplicationSet`
 
 Uses a **matrix generator** to cross-product open PRs with app directories:
 
@@ -214,9 +214,9 @@ generators:
 **Application naming**: `pr-{{.number}}-{{index .path.segments 1}}-{{index .path.segments 2}}`
 - Example: PR #42 → `pr-42-secrets-proxy-onepassword-operator`
 
-## Working with This Structure
+## Working with this structure
 
-### Adding a New Application
+### Adding a new app
 
 1. Choose the logical grouping (or create a new one)
 2. Create a subdirectory with one of:
@@ -226,25 +226,25 @@ generators:
 3. Ensure `config.json` specifies the target cluster and namespace
 4. Commit and push - ApplicationSet automatically creates the Application
 
-### Modifying an Application
+### Modifying an app
 
-- **Change application behavior**: Edit `values.yaml` or manifest files
+- **Change app behavior**: Edit `values.yaml` or manifest files
 - **Change deployment target**: Edit `config.json`
 - **Add PR support**: Create `values-pr.yaml` with overrides
 
-### PR Environment Support
+### Pull request environment support
 
 To enable PR deployments for an app:
 1. Create `values-pr.yaml` with lightweight overrides (fewer replicas, smaller storage)
 2. Add the app's grouping to the PR ApplicationSet's `git.files` list
 3. Open a PR with the `deploy-preview` label
 
-**Helm parameter injection**: Use `{{ .Values.prNumber }}` in templates for unique resources:
+**Helm parameter injection**: use `{{ .Values.prNumber }}` in templates for unique resources:
 ```yaml
 host: api-pr-{{ .Values.prNumber }}.secrets-proxy.example.com
 ```
 
-## Important Constraints
+## Important constraints
 
 | Constraint | Reason |
 |------------|--------|
@@ -253,17 +253,17 @@ host: api-pr-{{ .Values.prNumber }}.secrets-proxy.example.com
 | Plain manifest directories named `manifests/` | Convention for clarity (not enforced) |
 | Every PR-enabled app needs `values-pr.yaml` | ArgoCD errors on missing value files (use empty `{}` if no overrides) |
 
-## File Placement Guidelines
+## File placement guidelines
 
-- **New application**: `apps/<existing-or-new-grouping>/<app-name>/`
+- **New app**: `apps/<existing-or-new-grouping>/<app-name>/`
 - **Shared manifests for a grouping**: `apps/<grouping>/manifests/`
 - **ArgoCD ApplicationSets**: `apps/argocd-apps/manifests/`
 - **ArgoCD infrastructure**: `apps/argocd-infra/` (vCluster, Tenant, NetworkPolicy)
 - **ArgoCD itself**: `apps/argocd/` (Helm chart, Ingress)
 
-## Common Patterns
+## Common patterns
 
-### Umbrella Helm Chart Example
+### Umbrella chart example
 ```
 apps/secrets-proxy/onepassword-operator/
 ├── Chart.yaml
@@ -284,7 +284,7 @@ apps/secrets-proxy/onepassword-operator/
     }
 ```
 
-### Kustomize Directory Example
+### Kustomize directory example
 ```
 apps/secrets-proxy/external-secrets/
 ├── kustomization.yaml
@@ -309,7 +309,7 @@ apps/secrets-proxy/external-secrets/
     }
 ```
 
-### Plain Manifests Example
+### Plain manifests example
 ```
 apps/argocd/manifests/
 ├── ingress.yaml
@@ -338,11 +338,11 @@ apps/argocd/manifests/
 - Check dependency versions: `helm dependency list ./apps/<grouping>/<app>/`
 - Review ArgoCD Application logs: `kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller`
 
-### PR environment not deploying
+### Pull request environment not deploying
 - Confirm PR has the `deploy-preview` label
 - Check that app grouping is in PR ApplicationSet's `git.files` list
 - Verify `values-pr.yaml` exists (can be empty `{}`)
 
 ---
 
-**Summary**: This directory uses a simple, declarative pattern where ApplicationSets discover applications via `config.json` files and generate Application resources. The applications themselves (umbrella Helm charts, Kustomize directories, or plain manifests) remain unaware of deployment details, enabling easy multi-environment and multi-cluster deployments. ArgoCD can be bootstrapped using `moon run apps/argocd-infra:bootstrap`, and all vClusters are accessible via Ingress for centralized management.
+**Summary**: this directory uses a simple, declarative pattern where ApplicationSets discover applications via `config.json` files and generate Application resources. The applications themselves (umbrella Helm charts, Kustomize directories, or plain manifests) remain unaware of deployment details, enabling easy multi-environment and multi-cluster deployments. ArgoCD can be bootstrapped using `moon run apps/argocd-infra:bootstrap`, and all vClusters are accessible via Ingress for centralized management.

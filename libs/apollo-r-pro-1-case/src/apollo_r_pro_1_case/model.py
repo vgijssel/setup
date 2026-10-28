@@ -36,7 +36,7 @@ __all__ = ["case_body", "mount_plate", "assembly", "print_layout"]
 
 
 # ---------------------------------------------------------------------------
-# primitives
+# Primitives
 # ---------------------------------------------------------------------------
 
 
@@ -80,7 +80,7 @@ def _overlaps(shape: cq.Workplane | cq.Shape, boxes: list[Box]) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# body features
+# Body features
 # ---------------------------------------------------------------------------
 
 
@@ -102,7 +102,7 @@ def _bay_vent_centres_x(p: CaseParams) -> tuple[float, float]:
 
 
 def _keepouts(p: CaseParams) -> list[Box]:
-    """Regions no vent slot may touch, so changing a parameter cannot merge a
+    """Regions no vent slot may intersect, so changing a parameter cannot merge a
     vent into the mains gland or into a mount screw."""
     boxes: list[Box] = []
 
@@ -245,7 +245,7 @@ def case_body(p: CaseParams = DEFAULTS) -> cq.Workplane:
 
 
 # ---------------------------------------------------------------------------
-# mount plate
+# Mount plate
 # ---------------------------------------------------------------------------
 
 
@@ -304,7 +304,7 @@ def mount_plate(p: CaseParams = DEFAULTS) -> cq.Workplane:
 
 
 # ---------------------------------------------------------------------------
-# arrangements
+# Arrangements
 # ---------------------------------------------------------------------------
 
 

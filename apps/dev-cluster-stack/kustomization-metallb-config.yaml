@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  # Necessary because we have to wait on MetalLB CRDS to become ready
+  # Necessary because the deployment has to wait on MetalLB CRDS to become ready
   retryInterval: 5s
   path: ./apps/dev-cluster-stack/metallb-config
   prune: true

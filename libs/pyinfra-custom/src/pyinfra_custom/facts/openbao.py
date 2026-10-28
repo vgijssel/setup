@@ -1,12 +1,14 @@
 r"""OpenBao KV secrets exposed as a pyinfra fact.
 
 ``OpenBaoSecret`` reads one field of a KV v2 secret from OpenBao (``apps/secret``) via
-the Vault/``hvac`` SDK and returns it like any other pyinfra fact::
+the Vault/``hvac`` SDK and returns it like any other pyinfra fact:
 
+```python
     from pyinfra import host
     from pyinfra_custom.facts import OpenBaoSecret
 
     admin_pw = host.get_fact(OpenBaoSecret, mount="kv", path="pikvm", field="admin_password")
+```
 
 Where the fetch happens (and why it is secret-safe)
 ---------------------------------------------------
@@ -14,7 +16,7 @@ pyinfra resolves a fact by evaluating the fact's ``command`` callable **on the c
 machine**, running the returned command **on the target host**, then feeding that host
 output to ``process`` (also on the control machine). ``OpenBaoSecret`` fetches the value
 with ``hvac`` inside ``command`` (control machine) and returns a *constant* remote
-command (``echo``); ``process`` ignores the host output and returns the locally-fetched
+command (``echo``); ``process`` ignores the host output and returns the locally fetched
 value. Consequences:
 
 * Secret material is **never transmitted to, executed on, or logged on the target host**
@@ -116,9 +118,9 @@ class OpenBaoSecret(FactBase[str]):
     """One field of an OpenBao KV v2 secret, fetched via ``hvac`` on the control machine.
 
     Args (fact kwargs):
-        mount: KV v2 mount point (e.g. ``"kv"``).
-        path: secret path within the mount (e.g. ``"pikvm"``).
-        field: field name to return (e.g. ``"admin_password"``).
+        mount: KV v2 mount point (for example ``"kv"``).
+        path: secret path within the mount (for example ``"pikvm"``).
+        field: field name to return (for example ``"admin_password"``).
 
     Raises :class:`SecretsError` (secret-free) if OpenBao is unreachable, the token is
     rejected, the path is absent, or the field is missing/empty.

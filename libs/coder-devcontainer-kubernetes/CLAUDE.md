@@ -1,6 +1,6 @@
-# Coder Devcontainer Kubernetes
+# Coder devcontainer Kubernetes
 
-## Development Workflow
+## Development workflow
 
 1. Make changes to Terraform template
 2. Run `terraform validate` to check syntax
@@ -15,6 +15,6 @@
 
 Use `coder ssh` and check files in `/tmp` directory.
 
-## Envbuilder Symlink Caveat
+## Envbuilder symlink caveat
 
 Envbuilder images handle symlinks differently than Docker images. Always copy directories with symlinks to a location outside the workspace, then copy them into place using a `RUN` statement.

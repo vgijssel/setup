@@ -1,12 +1,12 @@
-# Coder Workspace Creation Performance Tuning
+# Coder workspace creation performance tuning
 
 ## Summary
 
 Investigation into Coder workspace creation performance in the `coder-prod` Kubernetes cluster revealed DRBD synchronization throttling as the primary bottleneck. After tuning storage class parameters for the 2.5Gbps network, workspace creation time was reduced from ~3 minutes to ~1 minute 40 seconds.
 
-## Investigation Findings
+## Investigation findings
 
-### Timeline Analysis
+### Timeline analysis
 
 Before optimization, workspace creation took approximately 3 minutes with the following breakdown:
 
@@ -17,7 +17,7 @@ Before optimization, workspace creation took approximately 3 minutes with the fo
 | **Volume Mount/Format** | **~120 seconds** | mkfs and DRBD sync - **MAIN BOTTLENECK** |
 | Container Start | ~2 seconds | Starting workspace container |
 
-### Root Cause
+### Root cause
 
 The DRBD resync controller was throttling disk synchronization:
 
@@ -27,7 +27,7 @@ The DRBD resync controller was throttling disk synchronization:
 
 The default DRBD `c-max-rate` of 100 MB/s was designed for slower networks/disks and severely limited the NVMe SSDs.
 
-### DRBD Quorum Behavior
+### Replication quorum behavior
 
 During investigation, "DRBD quorum lost" messages were observed. This is **normal behavior** during new volume provisioning - quorum is established once replicas sync across nodes. Not an indication of I/O issues.
 
@@ -54,7 +54,7 @@ property.linstor.csi.linbit.com/DrbdOptions/Net/sndbuf-size: "10485760"
 property.linstor.csi.linbit.com/DrbdOptions/Net/rcvbuf-size: "10485760"
 ```
 
-### Parameter Explanation
+### Parameter explanation
 
 | Parameter | Value | Purpose |
 |-----------|-------|---------|
@@ -74,11 +74,11 @@ property.linstor.csi.linbit.com/DrbdOptions/Net/rcvbuf-size: "10485760"
 | Total creation time | ~3 minutes | ~1 minute 40 seconds | **44% faster** |
 | Volume attach/format | ~120 seconds | ~60 seconds | **50% faster** |
 
-## 25Gbps Storage Network Implementation (Completed)
+## Storage network implementation at 25 gigabits per second (completed)
 
 The 25Gbps DAC (Direct Attach Copper) storage network has been implemented using a point-to-point mesh topology. This section documents the architecture and configuration.
 
-### Network Topology
+### Network topology
 
 The cluster uses three /31 subnets for direct point-to-point links between nodes, providing 50Gbps aggregate bandwidth per node (both ports active simultaneously):
 
@@ -99,7 +99,7 @@ The cluster uses three /31 subnets for direct point-to-point links between nodes
 
 All interfaces use MTU 9000 (jumbo frames) for optimal throughput.
 
-### LINSTOR Configuration
+### LINSTOR configuration
 
 LINSTOR is configured with per-node interfaces and node-connection paths to route DRBD replication over the dedicated storage network:
 
@@ -113,7 +113,7 @@ LINSTOR is configured with per-node interfaces and node-connection paths to rout
 
 This configuration is managed by the `internal-storage` Helm chart at `libs/internal-storage/`.
 
-### DRBD Parameters for 25Gbps
+### Replication parameters for 25 gigabits per second
 
 The following parameters are configured in the `replicated` StorageClass, scaled from the CozyStack 10Gbps reference:
 
@@ -128,17 +128,17 @@ The following parameters are configured in the `replicated` StorageClass, scaled
 | sndbuf-size | 10 MiB | 10 MiB | TCP send buffer (LINSTOR max) |
 | rcvbuf-size | 10 MiB | 10 MiB | TCP receive buffer (LINSTOR max) |
 
-### Why Point-to-Point vs Bridge
+### Why point-to-point vs bridge
 
 The bridge-with-STP approach was rejected because:
 - STP blocks one link to break the triangle loop, wasting 33% bandwidth
 - Linux bridge only supports classic STP with 30-50 second convergence times
 - Point-to-point provides deterministic routing and full bandwidth utilization
 
-### Operational Notes
+### Operational notes
 
 **Link Failure Behavior:**
-If a direct link fails (e.g., illusion-dome), those nodes cannot communicate directly. DRBD marks the peer as offline and operates in degraded mode. The remaining two links continue functioning normally.
+If a direct link fails (for example, illusion-dome), those nodes cannot communicate directly. DRBD marks the peer as offline and operates in degraded mode. The remaining two links continue functioning normally.
 
 **Configuration Files:**
 - Node patch files: `apps/enigma-cozy/*.patch.yaml`

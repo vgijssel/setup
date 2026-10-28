@@ -20,16 +20,16 @@ def load_cassette_response(
     """Load response data from a VCR cassette file.
 
     Args:
-        cassette_name: Name of the cassette file (without .yaml extension)
-        interaction_index: Index of the interaction to load (default: 0 for first interaction)
+        cassette_name: name of the cassette file (without .yaml extension)
+        interaction_index: index of the interaction to load (default: 0 for first interaction)
 
     Returns:
-        Tuple of (status_code, response_body)
+        tuple of (status_code, response_body)
 
     Raises:
-        FileNotFoundError: If cassette file doesn't exist
-        IndexError: If interaction_index is out of range
-        KeyError: If cassette structure is invalid
+        `FileNotFoundError`: if cassette file doesn't exist
+        IndexError: if interaction_index is out of range
+        KeyError: if cassette structure is invalid
     """
     cassette_path = CASSETTE_DIR / f"{cassette_name}.yaml"
 
@@ -71,15 +71,15 @@ def load_cassette_request(
     Useful for verifying request parameters in tests.
 
     Args:
-        cassette_name: Name of the cassette file (without .yaml extension)
-        interaction_index: Index of the interaction to load (default: 0)
+        cassette_name: name of the cassette file (without .yaml extension)
+        interaction_index: index of the interaction to load (default: 0)
 
     Returns:
-        Dictionary containing request data (method, uri, headers, body)
+        dictionary containing request data (method, uri, headers, body)
 
     Raises:
-        FileNotFoundError: If cassette file doesn't exist
-        IndexError: If interaction_index is out of range
+        `FileNotFoundError`: if cassette file doesn't exist
+        IndexError: if interaction_index is out of range
     """
     cassette_path = CASSETTE_DIR / f"{cassette_name}.yaml"
 
@@ -103,13 +103,13 @@ def get_cassette_interaction_count(cassette_name: str) -> int:
     """Get the number of interactions in a cassette.
 
     Args:
-        cassette_name: Name of the cassette file (without .yaml extension)
+        cassette_name: name of the cassette file (without .yaml extension)
 
     Returns:
-        Number of interactions in the cassette
+        number of interactions in the cassette
 
     Raises:
-        FileNotFoundError: If cassette file doesn't exist
+        `FileNotFoundError`: if cassette file doesn't exist
     """
     cassette_path = CASSETTE_DIR / f"{cassette_name}.yaml"
 

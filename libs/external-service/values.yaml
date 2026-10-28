@@ -12,5 +12,5 @@ services: []
 # Ingress class to use (integrates with internal-networking Kyverno policy)
 ingressClassName: tenant-root
 
-# Cert-manager cluster issuer for Let's Encrypt certificates
+# Cert-manager cluster issuer for Let’s Encrypt certificates
 clusterIssuer: letsencrypt-prod

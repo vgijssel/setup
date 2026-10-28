@@ -1,4 +1,4 @@
-# Fleet MCP
+# `fleet-mcp`
 
 Fleet management using MCP for AI agents in [Coder](https://coder.com) workspaces.
 
@@ -38,11 +38,11 @@ cp .env.example .env
 # Edit .env with your Coder instance URL and session token
 ```
 
-### Authentication (Optional)
+### Authentication (optional)
 
-Fleet MCP supports header-based Bearer token authentication for secure deployment. Authentication is disabled by default and can be enabled via environment variables.
+Fleet MCP supports header-based Bearer token authentication for secure deployment. Authentication is turned off by default and can be enabled via environment variables.
 
-#### Enable Authentication
+#### Enable authentication
 
 ```bash
 # In your .env file
@@ -52,16 +52,16 @@ FLEET_MCP_AUTH_ENABLED=true
 FLEET_MCP_AUTH_TOKEN_FILE=/custom/path/auth_token
 ```
 
-#### Token Generation
+#### Token generation
 
-On first startup with authentication enabled, the server will:
+On first startup with authentication enabled, the server performs these steps:
 1. Generate a cryptographically secure access token (256-bit entropy)
 2. Store it in `~/.fleet-mcp/auth_token` (file permissions: 0600)
 3. Log the token to stdout for distribution
 
 The token persists across server restarts - it won't be regenerated unless the file is deleted.
 
-#### Using the Token
+#### Using the token
 
 Configure your MCP client with the Authorization header:
 
@@ -78,7 +78,7 @@ Configure your MCP client with the Authorization header:
 }
 ```
 
-#### Retrieve the Token
+#### Retrieve the token
 
 ```bash
 # From the token file
@@ -87,7 +87,7 @@ cat ~/.fleet-mcp/auth_token | jq -r '.value'
 # Or from server logs (shown on first startup)
 ```
 
-#### Rotate the Token
+#### Rotate the token
 
 To generate a new token:
 
@@ -98,7 +98,7 @@ rm ~/.fleet-mcp/auth_token
 # Restart the server (generates new token)
 ```
 
-## Running the Server
+## Running the server
 
 ```bash
 # Using Nx
@@ -129,32 +129,32 @@ nx lint-imports fleet-mcp
 nx run-many -t test lint-imports -p fleet-mcp
 ```
 
-## Available MCP Tools
+## Available protocol tools
 
-### Agent Discovery & Inspection
+### Agent discovery & inspection
 - `list_agents`: List all agents with optional filtering by status and project
 - `show_agent`: Show detailed information about a specific agent
 - `list_agent_projects`: List available projects (templates)
 - `list_agent_roles`: List available roles for a project
 
-### Agent Lifecycle
+### Agent lifecycle
 - `create_agent`: Create a new agent with specified name, project, role, and task
 - `delete_agent`: Delete an agent and destroy its workspace
 - `restart_agent`: Restart an agent workspace to refresh environment
 
-### Task Management
+### Task management
 - `start_agent_task`: Assign a task to an idle agent
 - `cancel_agent_task`: Cancel a running task by sending Ctrl+C interrupt
 
-### History & Logs
+### History & logs
 - `show_agent_task_history`: View paginated task history (ordered newest first)
 - `show_agent_log`: View paginated conversation logs (default: latest entry only)
 
-## Workspace Metadata Collection
+## Workspace metadata collection
 
 Fleet MCP supports collecting workspace metadata (git branch, PR number, etc.) through a `Taskfile.yml` configuration file. This enables tracking which agents are working on which features, PRs, and branches.
 
-### Quick Start
+### Quick start
 
 1. **Create a Taskfile.yml** in your workspace root:
 
@@ -206,7 +206,7 @@ for agent in agents["agents"]:
     print(f"{agent['name']}: PR #{agent['metadata'].get('pull_request_number')}")
 ```
 
-### Taskfile Configuration
+### Taskfile configuration
 
 Each metadata field is defined as a task with a `meta` key:
 
@@ -235,9 +235,9 @@ tasks:
 For a configuration example, see:
 - [Example Taskfile](examples/Taskfile.yml)
 
-## Usage Examples
+## Usage examples
 
-### Example 1: List All Agents
+### Example 1: list all agents
 
 ```python
 # Using MCP client
@@ -246,7 +246,7 @@ print(result["agents"])
 # [{"name": "agent-1", "status": "idle", "project": "Setup", ...}, ...]
 ```
 
-### Example 2: Create a New Agent
+### Example 2: create a new agent
 
 ```python
 result = await client.call_tool("create_agent", {
@@ -260,7 +260,7 @@ print(result["agent"]["workspace_id"])
 # "workspace-uuid-here"
 ```
 
-### Example 3: Send Task to Agent
+### Example 3: send task to agent
 
 ```python
 # First, verify agent is idle
@@ -277,7 +277,7 @@ if agent["agent"]["status"] == "idle":
     # "Task assigned to agent 'data-scientist'"
 ```
 
-### Example 4: View Task History
+### Example 4: view task history
 
 ```python
 result = await client.call_tool("show_agent_task_history", {
@@ -292,7 +292,7 @@ for task in result["tasks"]:
 
 ## Development
 
-### Project Structure
+### Project structure
 
 ```
 libs/fleet-mcp/
@@ -313,7 +313,7 @@ libs/fleet-mcp/
     └── tools/               # Tool layer tests
 ```
 
-### Layer Responsibilities
+### Layer responsibilities
 
 - **Tools**: Parameter validation, MCP protocol handling, response formatting
 - **Services**: Business rules, cross-cutting concerns, orchestration
