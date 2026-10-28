@@ -9,7 +9,7 @@ This Moon monorepo uses a **two-directory structure**. All code MUST go into one
 
 ### Code Placement Rules
 
-**DO NOT** place new code in `stacks/`, `services/`, `tools/`, `third_party/`, or any other top-level directory. These directories are deprecated and being migrated. The `specs/` directory is managed by speckit and should be left as-is.
+**DO NOT** place new code in `stacks/`, `services/`, `tools/`, `third_party/`, or any other top-level directory. These directories are deprecated and being migrated.
 
 | If your code... | Place it in |
 |-----------------|-------------|

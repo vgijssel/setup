@@ -98,8 +98,6 @@ rm ~/.fleet-mcp/auth_token
 # Restart the server (generates new token)
 ```
 
-For more details, see the [authentication documentation](../../specs/004-fleet-mcp-auth/quickstart.md).
-
 ## Running the Server
 
 ```bash
@@ -234,8 +232,7 @@ tasks:
 - Environment tracking: `kubernetes_namespace`, `deployed_version`
 - Development status: `git_status`, `branch_ahead`, `last_commit`
 
-For complete documentation, examples, and troubleshooting, see:
-- [Workspace Metadata Quickstart](../../specs/005-workspace-metadata/quickstart.md)
+For a configuration example, see:
 - [Example Taskfile](examples/Taskfile.yml)
 
 ## Usage Examples
