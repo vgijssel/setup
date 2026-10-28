@@ -2,7 +2,7 @@
 # trunk-ignore-all(checkov/CKV_DOCKER_3)
 # trunk-ignore-all(trivy/DS002)
 # trunk-ignore-all(trivy/DS026)
-FROM python:3.10.8-slim
+FROM python:3.10-slim-bookworm
 
 RUN pip3 install --no-cache-dir --upgrade \
     pip

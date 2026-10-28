@@ -301,6 +301,13 @@ command:
       - /var/lib/docker
     timeout: 60000
 
+  docker_iptables_backend_linux:
+    title: Docker uses nft-backed iptables for IPv4 and IPv6
+    skip: {{.Env.IS_MACOS}}
+    exec: iptables --version | grep -F '(nf_tables)' && ip6tables --version | grep -F '(nf_tables)'
+    exit-status: 0
+    timeout: 60000
+
   docker_version_linux:
     title: Docker client is available
     skip: {{.Env.IS_MACOS}}

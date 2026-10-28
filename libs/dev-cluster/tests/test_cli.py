@@ -36,7 +36,7 @@ def test_cli_help():
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
     assert "dev-cluster" in result.output
-    assert "Local development cluster management" in result.output
+    assert "dev-cluster: local development cluster management." in result.output
 
 
 def test_create_help():
