@@ -140,8 +140,8 @@ directories:
   path: charts/fleet
 - contents:
   - helmChart:
-      appVersion: v1.9.2
-      version: 1.9.2
+      appVersion: v1.9.3
+      version: 1.9.3
     path: .
   path: charts/envoy-gateway
 - contents:
