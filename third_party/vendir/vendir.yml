@@ -180,7 +180,7 @@ directories:
       - path: .
         helmChart:
           name: psmdb-operator
-          version: 1.23.1
+          version: 1.23.2
           repository:
             url: https://percona.github.io/percona-helm-charts
   - path: charts/psmdb-operator-crds
