@@ -133,8 +133,10 @@ helm uninstall eg -n envoy-gateway-system
 | deployment.pod.affinity | object | `{}` |  |
 | deployment.pod.annotations."prometheus.io/port" | string | `"19001"` |  |
 | deployment.pod.annotations."prometheus.io/scrape" | string | `"true"` |  |
+| deployment.pod.extraContainers | list | `[]` | Additional sidecar containers on the deployment definition. |
 | deployment.pod.extraVolumeMounts | list | `[]` |  |
 | deployment.pod.extraVolumes | list | `[]` |  |
+| deployment.pod.initContainers | list | `[]` | Additional init containers on the deployment definition. Also used for native sidecars (an init container with restartPolicy: Always). |
 | deployment.pod.labels | object | `{}` |  |
 | deployment.pod.nodeSelector | object | `{}` |  |
 | deployment.pod.securityContext.fsGroup | int | `65532` |  |
@@ -166,7 +168,7 @@ helm uninstall eg -n envoy-gateway-system
 | global.images.envoyProxy.image | string | `""` | Full image for the managed Envoy Proxy data plane. This updates the generated `envoyProxy` config and does not change the `envoy-gateway` control plane Deployment image. If not specified, the default image built into `envoy-gateway` is used. |
 | global.images.envoyProxy.pullPolicy | string | `""` | Image pull policy for the managed Envoy Proxy data plane. Default behavior: IfNotPresent. |
 | global.images.envoyProxy.pullSecrets | list | `[]` | Pull secrets for the managed Envoy Proxy data plane. |
-| global.images.ratelimit.image | string | `"docker.io/envoyproxy/ratelimit:0482748e"` |  |
+| global.images.ratelimit.image | string | `"docker.io/envoyproxy/ratelimit:5ae0682e"` |  |
 | global.images.ratelimit.pullPolicy | string | `"IfNotPresent"` |  |
 | global.images.ratelimit.pullSecrets | list | `[]` |  |
 | hpa.behavior | object | `{}` |  |
