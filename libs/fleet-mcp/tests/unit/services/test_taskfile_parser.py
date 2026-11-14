@@ -1,6 +1,6 @@
 """Unit tests for Taskfile parser.
 
-TDD Approach: These tests are written FIRST, before the parser is implemented.
+TDD Approach: these tests are written FIRST, before the parser is implemented.
 Expected to FAIL until parser is created in fleet_mcp/services/taskfile_parser.py
 """
 

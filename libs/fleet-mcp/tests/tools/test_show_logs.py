@@ -1,8 +1,8 @@
 """Tests for show_agent_log MCP tool.
 
-User Story: US4 (Task and Log History Tracking)
-Architecture: Layer 1 (Tool Layer)
-Testing Strategy: Mock Service layer
+User Story—US4 (Task and Log History Tracking)
+Architecture: layer 1 (Tool Layer)
+Testing Strategy: mock Service layer
 
 This test file validates that the show_agent_log tool correctly:
 - Calls TaskService.get_conversation_logs() with correct parameters

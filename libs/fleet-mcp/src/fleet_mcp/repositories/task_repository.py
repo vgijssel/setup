@@ -7,20 +7,20 @@ from ..helpers import construct_app_url
 class TaskRepository:
     """Repository for task assignment operations.
 
-    Architecture: Layer 3 (Data Access)
-    Dependencies: CoderClient (Layer 4)
+    Architecture: layer 3 (Data Access)
+    Dependencies: the CoderClient (Layer 4)
 
     Responsibilities:
     - Communicate with Coder API for task operations
     - Transform API responses to domain models
-    - Handle workspace application discovery for AgentAPI
+    - Handle workspace app discovery for AgentAPI
     """
 
     def __init__(self, client: CoderClient):
         """Initialize TaskRepository.
 
         Args:
-            client: CoderClient instance for API communication
+            client: the CoderClient instance for API communication
         """
         self.client = client
 
@@ -28,16 +28,16 @@ class TaskRepository:
         """Assign a task to an agent workspace.
 
         Args:
-            agent_name: Name of the agent to assign task to (case insensitive)
-            task_description: Description of the task to assign
+            agent_name: name of the agent to assign task to (case insensitive)
+            task_description: description of the task to assign
 
         Raises:
-            NotFoundError: If agent doesn't exist
-            ValidationError: If task description is empty
-            CoderAPIError: If task assignment fails
+            `NotFoundError`: if agent doesn't exist
+            ValidationError: if task description is empty
+            CoderAPIError: if task assignment fails
 
         Note:
-            Agent name comparison is case insensitive because the Coder API
+            agent name comparison is case insensitive because the Coder API
             backend is case insensitive.
         """
         # Get agent workspace (case insensitive lookup)
@@ -64,14 +64,14 @@ class TaskRepository:
         Sends interrupt signal to the Claude Code (ccw) app via AgentAPI.
 
         Args:
-            agent_name: Name of the agent to cancel task for (case insensitive)
+            agent_name: name of the agent to cancel task for (case insensitive)
 
         Raises:
-            NotFoundError: If agent doesn't exist or ccw app not found
-            CoderAPIError: If cancellation fails
+            `NotFoundError`: if agent doesn't exist or ccw app not found
+            CoderAPIError: if cancellation fails
 
         Note:
-            Agent name comparison is case insensitive because the Coder API
+            agent name comparison is case insensitive because the Coder API
             backend is case insensitive.
         """
         # Get agent workspace (case insensitive lookup)
@@ -115,20 +115,20 @@ class TaskRepository:
         """Get task history for an agent by extracting from workspace JSON.
 
         Task history is stored in workspace.latest_build.resources[].agents[].apps[]
-        where app.slug == "ccw" or app.display_name == "Claude Code".
+        where `app.slug == "ccw"` or `app.display_name == "Claude Code"`.
         The app.statuses[] array contains the task history items.
 
         Args:
-            agent_name: Name of the agent to get history for (case insensitive)
+            agent_name: name of the agent to get history for (case insensitive)
 
         Returns:
-            List of task status dictionaries
+            list of task status dictionaries
 
         Raises:
-            NotFoundError: If agent doesn't exist
+            `NotFoundError`: if agent doesn't exist
 
         Note:
-            Agent name comparison is case insensitive because the Coder API
+            agent name comparison is case insensitive because the Coder API
             backend is case insensitive.
         """
         # Get agent workspace (case insensitive lookup)
@@ -171,16 +171,16 @@ class TaskRepository:
         """Get conversation logs for an agent from experimental task API.
 
         Args:
-            agent_name: Name of the agent to get logs for (case insensitive)
+            agent_name: name of the agent to get logs for (case insensitive)
 
         Returns:
-            List of log entry dictionaries
+            list of log entry dictionaries
 
         Raises:
-            NotFoundError: If agent doesn't exist
+            `NotFoundError`: if agent doesn't exist
 
         Note:
-            Agent name comparison is case insensitive because the Coder API
+            agent name comparison is case insensitive because the Coder API
             backend is case insensitive.
         """
         # Get agent workspace (case insensitive lookup)

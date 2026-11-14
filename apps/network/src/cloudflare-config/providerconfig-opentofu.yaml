@@ -3,7 +3,7 @@
 # (Fleet atomic-release rule).
 #
 # `configuration` is injected as a shared .tf file into EVERY workspace using this config.
-# We keep only the remote-state backend here (shared by all network workspaces), because
+# Keep only the remote-state backend here (shared by all network workspaces), because
 # provider-opentofu does NOT persist state itself. Each Workspace declares its own
 # required_providers + provider block in its module, so the netbird-data workspace and the
 # cloudflare-record workspace only pull the plugin they actually use. State Secret + lock

@@ -1,16 +1,16 @@
 # Portable, SHARED Fleet bundle deployed to BOTH clusters (secret + network) on the
 # default target: the ExternalSecrets that sync cloudflare / netdata secrets out of
 # OpenBao into the consuming namespaces, plus the ClusterIssuer (LE prod, Cloudflare
-# DNS-01). These are cluster-agnostic — the ExternalSecrets reference the store only by
+# DNS-01). These are cluster-agnostic—the ExternalSecrets reference the store only by
 # name (`openbao`).
 #
 # The ClusterSecretStore itself is NOT here: it's the one piece that differs per
-# cluster, so each cluster owns its own store named `openbao` — secret's in-cluster
+# cluster, so each cluster owns its own store named `openbao`—secret's in-cluster
 # kubernetes-auth store in apps/secret/src/config, network's remote JWT-auth store in
 # apps/network/src/config. That is what lets this one ExternalSecret set serve both.
 #
 # The consuming namespace (netdata) is owned by its operator Helm bundle (Fleet
-# defaultNamespace), not created here — declaring it in both bundles causes a Fleet
+# defaultNamespace), not created here—declaring it in both bundles causes a Fleet
 # ownership conflict. On a fresh bootstrap the ExternalSecrets targeting that namespace
 # error-and-retry until the operator bundle creates the namespace, which Fleet
 # reconciles continuously (expected).
@@ -21,12 +21,12 @@
 # error-and-retries, which is expected.
 defaultNamespace: external-secrets
 # Multi-cluster: deploys on BOTH the secret and network clusters. The selectors alone do
-# NOT restrict anything under a Rancher GitRepo, which appends its own catch-all target —
+# NOT restrict anything under a Rancher GitRepo, which appends its own catch-all target—
 # the terminal doNotDeploy entry below is what keeps this off every other cluster.
 # dependsOn the vault-secrets-operator bundle, which installs the secrets.hashicorp.com CRDs.
 # Fleet applies a bundle as ONE atomic unit, so a VaultStaticSecret/VaultDynamicSecret here
-# cannot land before the CRD that defines it exists — without this a fresh cluster fails the
-# bundle with "no matches for kind", the same rule that keeps Crossplane CRs out of the
+# cannot land before the CRD that defines it exists—without this a fresh cluster fails the
+# bundle with `no matches for kind`, the same rule that keeps Crossplane CRs out of the
 # provider's own bundle.
 dependsOn:
   - selector:
@@ -43,7 +43,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

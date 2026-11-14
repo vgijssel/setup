@@ -10,9 +10,9 @@ from ..models.errors import CoderAPIError
 class ProjectRepository:
     """Repository for project data access using Coder template API.
 
-    Architecture: Layer 3 (Repository Layer)
-    Dependencies: CoderClient (Layer 4)
-    Used by: ProjectService (Layer 2)
+    Architecture: layer 3 (Repository Layer)
+    Dependencies: the CoderClient (Layer 4)
+    Used by—ProjectService (Layer 2)
 
     Responsibilities:
     - Transform TemplateRemote ↔ Project domain models
@@ -25,7 +25,7 @@ class ProjectRepository:
         """Initialize repository with Coder API client.
 
         Args:
-            coder_client: Async HTTP client for Coder API
+            coder_client: the asynchronous HTTP client for Coder API
         """
         self.client = coder_client
 
@@ -37,10 +37,10 @@ class ProjectRepository:
         2. It has both ai_prompt and system_prompt rich parameters
 
         Returns:
-            List of Project domain models
+            list of Project domain models
 
         Raises:
-            CoderAPIError: If Coder API request fails
+            `CoderAPIError`: if Coder API request fails
         """
         try:
             templates = await self.client.list_templates()
@@ -80,17 +80,17 @@ class ProjectRepository:
         """List all roles (workspace presets) for a specific project.
 
         Args:
-            project_name: Project name (template display_name) - case insensitive
+            project_name: project name (template display_name) - case insensitive
 
         Returns:
-            List of Role domain models
+            list of Role domain models
 
         Raises:
-            CoderAPIError: If project not found or API request fails
+            `CoderAPIError`: if project not found or API request fails
 
         Note:
-            Project name comparison is case insensitive because the Coder API
-            backend is case insensitive. For example, "Setup", "SETUP", and
+            project name comparison is case insensitive because the Coder API
+            backend is case insensitive. For example, `Setup`, `SETUP`, and
             "setup" all refer to the same project.
         """
         try:
@@ -141,10 +141,10 @@ class ProjectRepository:
         """Transform Coder template API response to Project domain model.
 
         Args:
-            template: Template dictionary from Coder API
+            template: template dictionary from Coder API
 
         Returns:
-            Project domain model
+            project domain model
 
         Business Logic:
         - Maps template.id → project.id

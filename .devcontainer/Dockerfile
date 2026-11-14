@@ -42,6 +42,8 @@ RUN chmod +x /tmp/docker-in-docker-install.sh && \
     DOCKERDASHCOMPOSEVERSION="none" \
     INSTALLDOCKERCOMPOSESWITCH="false" \
     /tmp/docker-in-docker-install.sh && \
+    update-alternatives --set iptables /usr/sbin/iptables-nft && \
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-nft && \
     rm /tmp/docker-in-docker-install.sh
 
 # Configure Docker daemon for nested docker-in-docker compatibility:

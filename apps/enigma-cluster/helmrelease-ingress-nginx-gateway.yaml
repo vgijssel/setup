@@ -49,7 +49,7 @@ spec:
         ports:
           http: 80
           https: 443
-      # Since we're using host network, report the node's internal IP
+      # Since this uses host networking, report the node's internal IP
       reportNodeInternalIp: true
       # DNS policy for host network
       dnsPolicy: ClusterFirstWithHostNet
@@ -60,7 +60,7 @@ spec:
       service:
         enabled: true
         type: ClusterIP
-      # Admission webhooks - disable to avoid conflicts with tenant nginx
+      # Admission webhooks - turn off to avoid conflicts with tenant nginx
       admissionWebhooks:
         enabled: false
       # Metrics

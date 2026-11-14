@@ -176,7 +176,7 @@ verjaardag_hilde_tts_loop:
           - delay:
               seconds: 1
 
-          # Keuken assistent: PIEP
+          # Keuken assistent—PIEP
           - action: tts.speak
             data:
               cache: true

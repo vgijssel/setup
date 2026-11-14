@@ -6,7 +6,7 @@ import sys
 
 
 def check_op_installed() -> bool:
-    """Check if op CLI is installed."""
+    """Check if op command-line tool is installed."""
     try:
         result = subprocess.run(
             ["op", "--version"],
@@ -26,17 +26,17 @@ def create_op_connect_token_secret(
     """Create 1Password secrets in the cluster.
 
     Creates two secrets required by the 1Password operator:
-    1. 1password-credentials: Contains the 1password-credentials.json file
-    2. 1password-operator-token: Contains the operator token
+    1. 1password-credentials: contains the 1password-credentials.json file
+    2. 1password-operator-token: contains the operator token
 
     Both secrets are created in the 1password namespace.
 
     Args:
-        cluster_context: Kubectl context for the cluster
-        verbose: Enable verbose output
+        cluster_context: the kubectl context for the cluster
+        verbose: enable verbose output
 
     Raises:
-        RuntimeError: If secret creation fails
+        `RuntimeError`: if secret creation fails
     """
     # Create namespace first
     result = subprocess.run(

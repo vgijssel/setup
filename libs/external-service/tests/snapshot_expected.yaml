@@ -28,7 +28,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/instance: external-service
   annotations:
-    # Request Let's Encrypt certificate via cert-manager
+    # Request Let’s Encrypt certificate via cert-manager
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     # Backend uses HTTPS with potentially self-signed certificate
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS

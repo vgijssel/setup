@@ -5,7 +5,7 @@ tags:
 
 # Inherits `build` (uv build) and `test` (uv run --all-extras pytest) from the python
 # tag (.moon/tasks/tag-python.yml). The library is a set of pyinfra facts/operations
-# imported by deploys (e.g. apps/pikvm); it ships no CLI.
+# imported by deploys (for example apps/pikvm); it ships no command-line tool.
 tasks:
   install:
     command: uv sync

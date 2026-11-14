@@ -21,20 +21,20 @@ class MetadataClient:
     a /metadata endpoint. This client fetches metadata from those endpoints.
 
     Error Handling:
-    - HTTP 404: Returns empty metadata (agent app not running)
-    - HTTP 5xx: Returns empty metadata (server error)
-    - Timeout: Returns empty metadata (agent not responding)
-    - Connection error: Returns empty metadata (network issue)
-    - Invalid JSON: Returns empty metadata (malformed response)
+    - HTTP 404: returns empty metadata (agent app not running)
+    - HTTP 5xx: returns empty metadata (server error)
+    - Timeout: returns empty metadata (agent not responding)
+    - Connection error: returns empty metadata (network issue)
+    - Invalid JSON: returns empty metadata (malformed response)
     """
 
     def __init__(self, coder_session_token: str, timeout: float = 10.0):
         """Initialize MetadataClient.
 
         Args:
-            coder_session_token: Coder session token for authenticated requests.
+            coder_session_token: the Coder session token for authenticated requests.
                 Required for fetching metadata from Coder proxy URLs to avoid 303 redirects.
-            timeout: Request timeout in seconds (default: 10.0)
+            timeout: request timeout in seconds (default: 10.0)
         """
         self.timeout = timeout
         self.coder_session_token = coder_session_token
@@ -43,14 +43,14 @@ class MetadataClient:
         """Fetch metadata from agent's /metadata endpoint.
 
         Args:
-            url: Full URL to the /metadata endpoint
+            `url`: the full URL to the /metadata endpoint
                 Example: https://coder.example.com/@alice/ws.123/apps/fleet-mcp/metadata
 
         Returns:
-            WorkspaceMetadata object (empty on failure)
+            `WorkspaceMetadata` object (empty on failure)
 
         Note:
-            This method never raises exceptions - it returns empty metadata on all errors
+            this method never raises exceptions - it returns empty metadata on all errors
             to ensure graceful degradation per FR-007 requirement.
         """
         try:

@@ -1,6 +1,6 @@
 """Unit tests for metadata models.
 
-TDD Approach: These tests are written FIRST, before the models are implemented.
+TDD Approach: these tests are written FIRST, before the models are implemented.
 Expected to FAIL until models are created in fleet_mcp/models/metadata.py
 """
 

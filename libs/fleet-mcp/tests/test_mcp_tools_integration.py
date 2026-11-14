@@ -96,7 +96,7 @@ class TestMCPToolsIntegration:
         # Call tool
         result = await list_agents(full_stack["agent_service"])
 
-        # Assert: Result is a Pydantic model, access fields as attributes
+        # Assert: result is a Pydantic model, access fields as attributes
         assert hasattr(result, "agents")
         assert result.total_count == 1
         assert result.agents[0].name == "agent-1"
@@ -356,12 +356,12 @@ class TestMCPToolsIntegration:
     async def test_create_agent_with_invalid_project_returns_proper_error(
         self, respx_mock, coder_base_url, full_stack
     ):
-        """Regression test: Ensure creating agent with invalid project returns proper ValidationError.
+        """Regression test: ensure creating agent with invalid project returns proper ValidationError.
 
-        Bug: ValidationError was being raised with 1 argument instead of 2 (field, message),
+        Bug—ValidationError was being raised with 1 argument instead of 2 (field, message),
         causing "ValidationError.__init__() missing 1 required positional argument: 'message'"
 
-        Scenario: User tries "Create agent PapiChulo for Setup which will search for typos"
+        Scenario: user tries "Create agent PapiChulo for Setup which searches for typos"
         but Setup project doesn't exist or isn't a valid fleet-mcp project.
         """
         # Mock list templates - return a template that is NOT "Setup"
@@ -411,12 +411,12 @@ class TestMCPToolsIntegration:
             await create_agent(
                 full_stack["agent_service"],
                 name="PapiChulo",
-                project="Setup",  # This project doesn't exist!
+                project="Setup",  # This project doesn't exist.
                 task="search for typos",
                 role="coder",
             )
 
-        # Assert: Should get a proper ValidationError, not a TypeError about missing 'message' argument
+        # Assert: should get a proper ValidationError, not a TypeError about missing 'message' argument
         error = exc_info.value
         error_str = str(error)
         # It should NOT be "ValidationError.__init__() missing 1 required positional argument: 'message'"
@@ -429,9 +429,9 @@ class TestMCPToolsIntegration:
     async def test_create_agent_with_invalid_role_returns_proper_error(
         self, respx_mock, coder_base_url, full_stack
     ):
-        """Regression test: Ensure creating agent with invalid role returns proper ValidationError.
+        """Regression test: ensure creating agent with invalid role returns proper ValidationError.
 
-        This tests the line: raise ValidationError(f"Role '{role}' not found...")
+        This tests the line `raise ValidationError(f"Role '{role}' not found...")`.
         which was missing the 'field' parameter.
         """
         # Mock list templates
@@ -487,10 +487,10 @@ class TestMCPToolsIntegration:
                 name="PapiChulo",
                 project="Setup",
                 task="search for typos",
-                role="coder",  # This role doesn't exist!
+                role="coder",  # This role doesn't exist.
             )
 
-        # Assert: Should get a proper ValidationError, not a TypeError
+        # Assert: should get a proper ValidationError, not a TypeError
         error = exc_info.value
         error_str = str(error)
         assert "missing 1 required positional argument" not in error_str
@@ -932,14 +932,14 @@ class TestMCPToolsIntegration:
     async def test_health_check_endpoint(self, full_stack):
         """Test /health endpoint returns healthy status.
 
-        Note: This test validates the health check HTTP endpoint exists.
+        Note: this test validates the health check HTTP endpoint exists.
         The actual HTTP route is tested via direct HTTP requests to the server.
         """
         # The health check is now a custom HTTP route at /health
         # It's tested by making an HTTP GET request to http://host:port/health
         # This integration test confirms the endpoint structure is correct
 
-        # Since this is a custom HTTP route (not a tool), we verify it exists
+        # Since this is a custom HTTP route (not a tool), verify it exists
         # by checking the __main__ module has the health_check function
         import fleet_mcp.__main__ as main_module
 

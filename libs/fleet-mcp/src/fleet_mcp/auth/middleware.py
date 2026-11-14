@@ -19,21 +19,21 @@ class AuthMiddleware(BaseHTTPMiddleware):
     """Authentication middleware for FastMCP HTTP requests.
 
     Validates Bearer tokens in the Authorization header. Exempts specific
-    paths (e.g., /health) from authentication.
+    paths (for example, /health) from authentication.
 
     Args:
-        app: ASGI application to wrap
-        token_manager: TokenManager instance for token validation
-        enabled: Whether authentication is enabled (default: True)
+        app: the ASGI app to wrap
+        token_manager: the TokenManager instance for token validation
+        enabled: whether authentication is enabled (default: true)
     """
 
     def __init__(self, app, token_manager: TokenManager, enabled: bool = True):
         """Initialize the authentication middleware.
 
         Args:
-            app: ASGI application to wrap
-            token_manager: TokenManager instance for token validation
-            enabled: Whether authentication is enabled (default: True)
+            app: the ASGI app to wrap
+            token_manager: the TokenManager instance for token validation
+            enabled: whether authentication is enabled (default: true)
         """
         super().__init__(app)
         self.token_manager = token_manager
@@ -43,10 +43,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """Create an AuthRequest from a Starlette Request.
 
         Args:
-            request: Incoming HTTP request
+            request: the incoming HTTP request
 
         Returns:
-            AuthRequest with path and authorization header
+            `AuthRequest` with path and authorization header
         """
         authorization_header = request.headers.get("Authorization")
         return AuthRequest(
@@ -60,10 +60,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         Uses timing-safe comparison to prevent timing attacks.
 
         Args:
-            bearer_token: Token from Authorization header
+            bearer_token: token from Authorization header
 
         Returns:
-            True if token is valid, False otherwise
+            `True` if token is valid, False otherwise
         """
         if bearer_token is None:
             return False
@@ -80,11 +80,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """Create a JSON error response.
 
         Args:
-            error_code: AuthErrorCode enum value
-            description: Human-readable error description
+            error_code: the AuthErrorCode enum value
+            description: human-readable error description
 
         Returns:
-            JSONResponse with 401 status code
+            jSONResponse with 401 status code
         """
         auth_error = AuthError(
             error=error_code,
@@ -99,13 +99,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
         """Process the request and validate authentication.
 
         Args:
-            request: Incoming HTTP request
-            call_next: Next middleware/endpoint in chain
+            request: the incoming HTTP request
+            call_next: next middleware/endpoint in chain
 
         Returns:
-            Response from next middleware/endpoint or 401 error
+            response from next middleware/endpoint or 401 error
         """
-        # If authentication is disabled, pass through
+        # If authentication is turned off, pass through
         if not self.enabled:
             return await call_next(request)
 

@@ -80,7 +80,7 @@
 
 ### 🩹 Fixes
 
-- chore(devenv): update Coder CLI to v2.27.1 ([#769](https://github.com/vgijssel/setup/pull/769))
+- chore(devenv): update Coder command-line tool to v2.27.1 ([#769](https://github.com/vgijssel/setup/pull/769))
 
 ## 0.11.0 (2025-10-08)
 
@@ -99,7 +99,7 @@
 
 - Re-enable VSCode extension installation after upstream issue resolution ([#765](https://github.com/vgijssel/setup/pull/765))
 
-  The VSCode CLI hanging issue (https://github.com/microsoft/vscode/issues/269737) has been resolved, so we can now re-enable the automatic installation of VSCode extensions from the extensions.json file.
+  The VSCode command-line tool hanging issue (https://github.com/microsoft/vscode/issues/269737) has been resolved, so it is now possible to re-enable the automatic installation of VSCode extensions from the extensions.json file.
 
 ## 0.10.4 (2025-10-06)
 
@@ -111,7 +111,7 @@
 
 ### 🩹 Fixes
 
-- chore(devenv): upgrade coder CLI to 2.26.1 and add version validation ([#760](https://github.com/vgijssel/setup/pull/760), [#759](https://github.com/vgijssel/setup/issues/759))
+- chore(devenv): upgrade coder command-line tool to 2.26.1 and add version validation ([#760](https://github.com/vgijssel/setup/pull/760), [#759](https://github.com/vgijssel/setup/issues/759))
 
 ## 0.10.2 (2025-10-06)
 
@@ -123,13 +123,13 @@
 
 ### 🩹 Fixes
 
-- fix: disable VSCode extension installation temporarily ([#753](https://github.com/vgijssel/setup/pull/753))
+- fix: turn off VSCode extension installation temporarily ([#753](https://github.com/vgijssel/setup/pull/753))
 
 ## 0.10.0 (2025-10-02)
 
 ### 🚀 Features
 
-- Add Nx IDE configuration to disable automatic console extension installation ([#746](https://github.com/vgijssel/setup/pull/746))
+- Add Nx IDE configuration to turn off automatic console extension installation ([#746](https://github.com/vgijssel/setup/pull/746))
 
 ## 0.9.0 (2025-09-30)
 

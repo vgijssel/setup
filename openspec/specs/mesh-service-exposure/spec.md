@@ -1,8 +1,8 @@
-# mesh-service-exposure Specification
+# Mesh-service-exposure specification
 
 ## Purpose
 
-Publishing an in-cluster Kubernetes Service into the NetBird overlay as a dedicated mesh peer, reachable at a flat, cluster-agnostic hostname with a publicly-trusted certificate and its own complete TCP/UDP port space. A mesh hostname is not publicly resolvable by default; a service whose consumers include devices that cannot run a mesh client MAY opt into publishing its overlay address publicly, which keeps those devices on the same hostname as every mesh peer rather than giving them a parallel one.
+Publishing an in-cluster Kubernetes Service into the NetBird overlay as a dedicated mesh peer, reachable at a flat, cluster-agnostic hostname with a publicly trusted certificate and its own complete TCP/UDP port space. A mesh hostname is not publicly resolvable by default; a service whose consumers include devices that cannot run a mesh client MAY opt into publishing its overlay address publicly, which keeps those devices on the same hostname as every mesh peer rather than giving them a parallel one.
 
 ## Requirements
 
@@ -39,14 +39,14 @@ Each exposed service SHALL be published on its own overlay address, so that the 
 - **WHEN** a service declares an HTTPS listener on port 443
 - **THEN** a client connecting to `<service>.<peer-dns-domain>:443` is served, and no alternate port (such as a shifted unprivileged port) is required or exposed
 
-#### Scenario: Raw TCP and UDP alongside HTTPS
+#### Scenario: Raw connection-oriented and datagram traffic alongside encrypted web traffic
 
 - **WHEN** a service declares an HTTPS listener plus raw TCP ports and raw UDP ports
 - **THEN** all three are reachable at the same hostname on their declared port numbers
 
-### Requirement: Publicly-trusted certificate without public resolvability
+### Requirement: Publicly trusted certificate without public resolvability
 
-Each exposed service SHALL serve a certificate issued by a publicly-trusted authority for its mesh hostname, such that a standard client validates it with no name mismatch, no trust override, and no login interstitial. A mesh hostname SHALL NOT resolve from the public internet unless the service explicitly opts in under "Non-peer devices reach the service at the mesh hostname" below, and opting in SHALL remain a per-service choice rather than a property of the domain.
+Each exposed service SHALL serve a certificate issued by a publicly trusted authority for its mesh hostname, such that a standard client validates it with no name mismatch, no trust override, and no login interstitial. A mesh hostname SHALL NOT resolve from the public internet unless the service explicitly opts in under "Non-peer devices reach the service at the mesh hostname" below, and opting in SHALL remain a per-service choice rather than a property of the domain.
 
 #### Scenario: Client validates the certificate with no override
 
@@ -55,7 +55,7 @@ Each exposed service SHALL serve a certificate issued by a publicly-trusted auth
 
 #### Scenario: Hostname does not resolve publicly by default
 
-- **WHEN** `openbao.vpn.blueora.ng` — a service that has not opted in — is queried against a public resolver
+- **WHEN** `openbao.vpn.blueora.ng`—a service that has not opted in—is queried against a public resolver
 - **THEN** no address record is returned
 
 #### Scenario: Certificate issuance does not publish the name
@@ -68,7 +68,7 @@ Each exposed service SHALL serve a certificate issued by a publicly-trusted auth
 - **WHEN** the public zone containing the peer DNS domain is inspected
 - **THEN** it contains no wildcard **address record**, because a wildcard answers at arbitrary label depth and would make every mesh hostname publicly resolvable and let public DNS override the mesh resolver
 - **AND** any address record that is present is an explicit per-service record created by that service's own opt-in, so the set of publicly resolvable mesh names is enumerable from the zone rather than implied by it
-- **NOTE** this constrains DNS records only, and says nothing about certificates. A wildcard *certificate* for the peer DNS domain publishes no address record and is therefore permitted — it is in fact what the implementation uses, because it keeps individual service names out of public Certificate Transparency logs as well
+- **NOTE** this constrains DNS records only, and says nothing about certificates. A wildcard *certificate* for the peer DNS domain publishes no address record and is therefore permitted—it is in fact what the implementation uses, because it keeps individual service names out of public Certificate Transparency logs as well
 
 ### Requirement: Access restricted to explicitly named peer groups
 
@@ -129,7 +129,7 @@ A workload in one cluster SHALL be able to consume a service exposed by another 
 #### Scenario: Secret consumer reads across clusters
 
 - **WHEN** the network cluster's secret consumer is configured with the OpenBao mesh hostname
-- **THEN** it authenticates and reads secrets over the overlay, validating the publicly-trusted certificate
+- **THEN** it authenticates and reads secrets over the overlay, validating the publicly trusted certificate
 
 #### Scenario: Consumer needs no knowledge of placement
 
@@ -148,7 +148,7 @@ Where a consumer cannot itself become a mesh peer, the capability SHALL provide 
 #### Scenario: Local resolution does not weaken validation
 
 - **WHEN** the hostname resolves to a different address inside the consumer's cluster than it does on the mesh
-- **THEN** both paths terminate at the same certificate for that hostname, so the local override does not require disabling verification
+- **THEN** both paths end at the same certificate for that hostname, so the local override does not require disabling verification
 
 ### Requirement: Non-peer devices reach the service at the mesh hostname
 

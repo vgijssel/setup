@@ -9,16 +9,16 @@ def construct_app_url(
     """Construct app URL based on subdomain configuration.
 
     Args:
-        base_url: Coder server base URL (e.g., "https://coder.example.com")
-        workspace: Workspace data from Coder API
-        app: App configuration with subdomain field
-        workspace_id: Workspace UUID
+        base_url: the Coder server base URL (for example, "https://coder.example.com")
+        workspace: workspace data from Coder API
+        app: app configuration with subdomain field
+        workspace_id: workspace UUID
 
     Returns:
-        App base URL (with trailing slash)
+        app base URL (with trailing slash)
 
     Example:
-        Subdomain format:
+        subdomain format:
             https://8000--main--workspace--owner.coder.example.com/
 
         Path format:
@@ -31,7 +31,7 @@ def construct_app_url(
 
     if uses_subdomain:
         # Subdomain format: {port}--{agent}--{workspace}--{owner}.{wildcard_domain}/
-        # Extract port from app URL (e.g., "http://127.0.0.1:8000" -> "8000")
+        # Extract port from app URL (for example, "http://127.0.0.1:8000" -> "8000")
         app_url = app.get("url", "")
         parsed = urlparse(app_url)
         port = parsed.port or 80
@@ -47,7 +47,7 @@ def construct_app_url(
                 break
 
         # Extract wildcard domain from base URL
-        # e.g., "https://coder.enigma.vgijssel.nl" -> "coder.enigma.vgijssel.nl"
+        # for example, "https://coder.enigma.vgijssel.nl" -> "coder.enigma.vgijssel.nl"
         base_parsed = urlparse(base_url)
         wildcard_domain = base_parsed.netloc
 

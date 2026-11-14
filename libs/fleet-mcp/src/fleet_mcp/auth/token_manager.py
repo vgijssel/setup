@@ -17,10 +17,10 @@ class TokenManager:
     """Manages access token generation, persistence, and loading."""
 
     def __init__(self, token_file_path: Path | str):
-        """Initialize TokenManager with token file path.
+        """Initialize TokenManager with token path.
 
         Args:
-            token_file_path: Path to token file (e.g., ~/.fleet-mcp/auth_token)
+            token_file_path: path to token file (for example, ~/.fleet-mcp/auth_token)
         """
         self.token_file_path = Path(token_file_path)
         self._cached_token: AccessToken | None = None
@@ -42,7 +42,7 @@ class TokenManager:
         """Save token to file with atomic write and 0600 permissions.
 
         Args:
-            token_value: The token string to save
+            token_value: the token string to save
 
         Uses atomic write (temp file + rename) to prevent corruption.
         """
@@ -76,12 +76,12 @@ class TokenManager:
         """Load token from file and validate.
 
         Returns:
-            AccessToken: Validated token object
+            `AccessToken`: the validated token object
 
         Raises:
-            FileNotFoundError: If token file doesn't exist
-            ValueError: If JSON is invalid
-            ValidationError: If token format is invalid
+            `FileNotFoundError`: if token file doesn't exist
+            ValueError: if JSON is invalid
+            ValidationError: if token format is invalid
         """
         if not self.token_file_path.exists():
             raise FileNotFoundError(f"Token file not found: {self.token_file_path}")
@@ -91,7 +91,7 @@ class TokenManager:
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in token file: {e}") from e
 
-        # Pydantic will validate token format
+        # Pydantic validates token format
         return AccessToken(
             value=data["value"], created_at=datetime.fromisoformat(data["created_at"])
         )
@@ -100,12 +100,12 @@ class TokenManager:
         """Get existing token or generate new one.
 
         Returns:
-            AccessToken: Existing or newly generated token
+            `AccessToken`: existing or newly generated token
 
         This is the main entry point for token management:
-        - First: Check for FLEET_MCP_AUTH_TOKEN environment variable
-        - Second: Try to load existing token from file
-        - Last: Generate and persist new token
+        - First: check for FLEET_MCP_AUTH_TOKEN environment variable
+        - Second: try to load existing token from file
+        - Last: generate and persist new token
         - Token is cached in memory after first load
         """
         # Return cached token if available

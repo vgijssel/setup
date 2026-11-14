@@ -173,7 +173,7 @@ def handle_unmanaged_files():
 
     # Backup each unmanaged file
     for file_path in unmanaged_files:
-        # The file_path is already an absolute path, so we don't need to join with HOME
+        # The file_path is already an absolute path, so joining with HOME is unnecessary
         source_path = file_path
 
         # Extract the relative path by removing the HOME prefix

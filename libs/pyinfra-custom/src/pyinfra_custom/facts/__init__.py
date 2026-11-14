@@ -1,15 +1,15 @@
 """Custom pyinfra facts.
 
-- :class:`~pyinfra_custom.facts.openbao.OpenBaoSecret` — one OpenBao KV field, fetched
+- :class:`~pyinfra_custom.facts.openbao.OpenBaoSecret`—one OpenBao KV field, fetched
   via the ``hvac`` SDK on the control machine (never transmitted to the target host).
-- :mod:`~pyinfra_custom.facts.netbird` — NetBird client state (version / connected /
+- :mod:`~pyinfra_custom.facts.netbird`—NetBird client state (version / connected /
   DNS / SSH server / SSH root / SSH SFTP), each guarded by
   ``requires_command('netbird')``.
-- :class:`~pyinfra_custom.facts.pacman.PacmanUpgradablePackages` — upgradable packages,
+- :class:`~pyinfra_custom.facts.pacman.PacmanUpgradablePackages`—upgradable packages,
   guarded by ``requires_command('pacman')``.
-- :class:`~pyinfra_custom.facts.goss.GossVersion` — installed goss version, guarded by
+- :class:`~pyinfra_custom.facts.goss.GossVersion`—installed goss version, guarded by
   ``requires_command('goss')``.
-- :class:`~pyinfra_custom.facts.netdata.NetdataVersion` — installed netdata version,
+- :class:`~pyinfra_custom.facts.netdata.NetdataVersion`—installed netdata version,
   guarded by ``requires_command('netdata')``.
 """
 

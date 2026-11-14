@@ -11,9 +11,9 @@ from ..models.errors import AgentNotFoundError, CoderAPIError
 class AgentRepository:
     """Repository for agent data access using Coder workspace API.
 
-    Architecture: Layer 3 (Repository Layer)
-    Dependencies: CoderClient (Layer 4)
-    Used by: AgentService (Layer 2)
+    Architecture: layer 3 (Repository Layer)
+    Dependencies: the CoderClient (Layer 4)
+    Used by—AgentService (Layer 2)
 
     Responsibilities:
     - Transform WorkspaceRemote ↔ Agent domain models
@@ -25,7 +25,7 @@ class AgentRepository:
         """Initialize repository with Coder API client.
 
         Args:
-            coder_client: Async HTTP client for Coder API
+            coder_client: the asynchronous HTTP client for Coder API
         """
         self.client = coder_client
         self._preset_cache: dict[str, dict[str, str]] = (
@@ -36,10 +36,10 @@ class AgentRepository:
         """List all agents by fetching all workspaces for authenticated user.
 
         Returns:
-            List of Agent domain models
+            list of Agent domain models
 
         Raises:
-            CoderAPIError: If Coder API request fails
+            `CoderAPIError`: if Coder API request fails
         """
         try:
             workspaces = await self.client.list_workspaces(owner="me")
@@ -54,19 +54,19 @@ class AgentRepository:
         """Get agent by name by finding matching workspace.
 
         Args:
-            name: Agent name (workspace name) - case insensitive
+            name: agent name (workspace name) - case insensitive
 
         Returns:
-            Agent domain model
+            agent domain model
 
         Raises:
-            AgentNotFoundError: If no workspace with that name exists
-            CoderAPIError: If Coder API request fails
+            `AgentNotFoundError`: if no workspace with that name exists
+            CoderAPIError: if Coder API request fails
 
         Note:
-            Agent name comparison is case insensitive because the Coder API
-            backend is case insensitive. For example, "WorkspaceStates",
-            "WORKSPACESTATES", and "workspacestates" all refer to the same agent.
+            agent name comparison is case insensitive because the Coder API
+            backend is case insensitive. For example, `WorkspaceStates`,
+            `WORKSPACESTATES`, and "workspacestates" all refer to the same agent.
         """
         try:
             workspaces = await self.client.list_workspaces(owner="me")
@@ -96,16 +96,16 @@ class AgentRepository:
         """Create a new agent by creating a Coder workspace.
 
         Args:
-            name: Unique agent name
-            template_id: Coder template UUID
-            preset_id: Workspace preset UUID (role)
-            task: Initial task description (ai_prompt)
+            name: unique agent name
+            template_id: the Coder template UUID
+            preset_id: workspace preset UUID (role)
+            task: initial task description (ai_prompt)
 
         Returns:
-            Created Agent domain model
+            created Agent domain model
 
         Raises:
-            CoderAPIError: If workspace creation fails
+            `CoderAPIError`: if workspace creation fails
         """
         try:
             # Build rich parameter values for AI Prompt
@@ -130,11 +130,11 @@ class AgentRepository:
         """Delete an agent by deleting its workspace.
 
         Args:
-            agent_name: Agent name (workspace name)
+            agent_name: agent name (workspace name)
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            CoderAPIError: If workspace deletion fails
+            `AgentNotFoundError`: if agent doesn't exist
+            CoderAPIError: if workspace deletion fails
         """
         try:
             # Find workspace ID by name
@@ -149,14 +149,14 @@ class AgentRepository:
         """Restart an agent by restarting its workspace.
 
         Args:
-            agent_name: Agent name (workspace name)
+            agent_name: agent name (workspace name)
 
         Returns:
-            Updated Agent domain model after restart
+            updated Agent domain model after restart
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            CoderAPIError: If workspace restart fails
+            `AgentNotFoundError`: if agent doesn't exist
+            CoderAPIError: if workspace restart fails
         """
         try:
             # Find workspace ID by name
@@ -176,10 +176,10 @@ class AgentRepository:
         - lifecycle_state is "ready"
 
         Args:
-            workspace: Workspace data from Coder API
+            workspace: workspace data from Coder API
 
         Returns:
-            True if all agents are healthy, False otherwise
+            `True` if all agents are healthy, False otherwise
         """
         latest_build = workspace.get("latest_build", {})
         resources = latest_build.get("resources", [])
@@ -188,7 +188,7 @@ class AgentRepository:
         if not resources:
             return False
 
-        # Track if we found at least one agent
+        # Track whether at least one agent was found
         found_any_agent = False
 
         # Check all agents in all resources
@@ -198,7 +198,7 @@ class AgentRepository:
             if not agents:
                 continue
 
-            # We found at least one agent
+            # At least one agent was found
             found_any_agent = True
 
             for agent in agents:
@@ -209,17 +209,17 @@ class AgentRepository:
                 if agent_status != "connected" or lifecycle_state != "ready":
                     return False
 
-        # Healthy only if we found at least one agent and all were healthy
+        # Healthy only if at least one agent was found and all were healthy
         return found_any_agent
 
     async def _workspace_to_agent(self, workspace: dict[str, Any]) -> Agent:
         """Transform Coder workspace API response to Agent domain model.
 
         Args:
-            workspace: Workspace dictionary from Coder API
+            workspace: workspace dictionary from Coder API
 
         Returns:
-            Agent domain model
+            agent domain model
 
         Business Logic:
         - Maps workspace.name → agent.name
@@ -296,14 +296,14 @@ class AgentRepository:
         """Get role name from preset ID by querying template presets.
 
         Args:
-            template_id: Template UUID
-            preset_id: Preset UUID
+            template_id: template UUID
+            preset_id: preset UUID
 
         Returns:
-            Role name (preset name) or "Unknown" as fallback
+            role name (preset name) or "Unknown" as fallback
 
         Note:
-            Uses caching to avoid repeated API calls for the same template
+            uses caching to avoid repeated API calls for the same template
         """
         if not preset_id:
             return "Unknown"  # Default fallback
@@ -323,7 +323,7 @@ class AgentRepository:
                 self._preset_cache[template_id] = {}
 
             for preset in presets:
-                # Preset structure from Coder API: {"ID": "...", "Name": "...", ...}
+                # Preset structure from Coder API: `{"ID": "...", "Name": "...", ...}`
                 preset_uuid = preset.get("ID")
                 preset_name = preset.get("Name", "unknown")
                 if preset_uuid:
@@ -333,7 +333,7 @@ class AgentRepository:
             return self._preset_cache[template_id].get(preset_id, "Unknown")
 
         except Exception:
-            # If we can't fetch presets, return default
+            # If fetching presets fails, return default
             return "Unknown"
 
     @staticmethod
@@ -341,14 +341,14 @@ class AgentRepository:
         """Extract the last task from workspace task history.
 
         Task history is stored in workspace.latest_build.resources[].agents[].apps[]
-        where app.slug == "ccw" or app.display_name == "Claude Code".
+        where `app.slug == "ccw"` or `app.display_name == "Claude Code"`.
         The app.statuses[] array contains the task history items.
 
         Args:
-            workspace: Workspace dictionary from Coder API
+            workspace: workspace dictionary from Coder API
 
         Returns:
-            Last task summary string or None if no history exists
+            last task summary string or None if no history exists
         """
         latest_build = workspace.get("latest_build") or {}
         resources = latest_build.get("resources", [])
@@ -385,10 +385,10 @@ class AgentRepository:
         """Parse datetime string or return current time if invalid.
 
         Args:
-            dt_str: Datetime string, datetime object, or None
+            dt_str: the datetime string, datetime object, or None
 
         Returns:
-            Parsed datetime object
+            parsed datetime object
         """
         if isinstance(dt_str, datetime):
             return dt_str

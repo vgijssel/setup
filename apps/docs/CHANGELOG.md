@@ -6,7 +6,7 @@
 
 # 1.0.0 (2025-09-25)
 
-### ⚠️  Breaking Changes
+### ⚠️  Breaking changes
 
 - Migrate docs folder to apps/docs following Nx monorepo structure ([#733](https://github.com/vgijssel/setup/pull/733))
 

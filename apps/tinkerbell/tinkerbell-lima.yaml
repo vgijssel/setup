@@ -8,12 +8,12 @@
 # $ export KUBECONFIG=$(limactl list k3s --format 'unix://{{.Dir}}/copied-from-guest/kubeconfig.yaml')
 # $ kubectl get no
 # NAME       STATUS   ROLES                  AGE   VERSION
-# lima-k3s   Ready    control-plane,master   69s   v1.21.1+k3s1
+# `lima-k3s   Ready    control-plane,master   69s   v1.21.1+k3s1`
 #
 # This template requires Lima v0.7.0 or later.
 
 images:
-  # Try to use release-yyyyMMdd image if available. Note that release-yyyyMMdd will be removed after several months.
+  # Try to use release-yyyyMMdd image if available. Note that release-yyyyMMdd is removed after several months.
   - location: https://cloud-images.ubuntu.com/releases/24.04/release-20241119/ubuntu-24.04-server-cloudimg-amd64.img
     arch: x86_64
     digest: sha256:b63f266fa4bdf146dea5b0938fceac694cb3393688fb12a048ba2fc72e7bfe1b
@@ -27,7 +27,7 @@ images:
   - location: https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img
     arch: aarch64
 
-# Mounts are disabled in this template, but can be enabled optionally.
+# Mounts are turned off in this template, but can be enabled optionally.
 mounts: []
 
 # containerd is managed by k3s, not by Lima, so the values are set to false here.

@@ -1,15 +1,15 @@
-# Let's Encrypt production issuer, solved over Cloudflare DNS-01.
+# Let’s Encrypt production issuer, solved over Cloudflare DNS-01.
 #
 # DNS-01 specifically, not HTTP-01: the two certificates it issues are for names that must NOT be
-# publicly reachable or even publicly resolvable — `*.vpn.blueora.ng` (the one shared mesh
+# publicly reachable or even publicly resolvable—`*.vpn.blueora.ng` (the one shared mesh
 # wildcard, apps/secret/src/mesh-tls). It used to also issue `omada.blueora.ng` for the Omada
 # device exception; that certificate and the whole path it served were deleted 2026-10-07. A TXT
 # challenge needs no inbound path and publishes no address record, which is the whole mechanism
-# behind "publicly-trusted certificate, privately resolvable name".
+# behind "publicly trusted certificate, privately resolvable name."
 #
 # NO `dnsZones` on the solver, deliberately: it solves for whatever zone its token can edit, and
 # the token minted at `cloudflare/token/cert-manager` covers both `blueora.ng` and `vgijssel.nl`
-# (in two different Cloudflare accounts — scoping is by zone id, which is globally unique). So
+# (in two different Cloudflare accounts—scoping is by zone id, which is globally unique). So
 # adding a zone is a change to the OpenBao role, not to this issuer.
 #
 # Stays NotReady until the cloudflare-api-token VaultDynamicSecret alongside is populated.

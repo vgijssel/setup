@@ -18,23 +18,23 @@ async def show_agent_task_history(
     """Show paginated task history for an agent.
 
     Tool: show_agent_task_history
-    User Story: US4 (Task and Log History Tracking)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US4 (Task and Log History Tracking)
+    Architecture: layer 1 (Tool Layer)
 
     Returns task history ordered by created_at descending (newest first).
 
     Args:
-        task_service: Service instance for task business logic
-        agent_name: Name of the agent to query
-        page: Page number (1-indexed, default 1)
-        page_size: Items per page (1-100, default 20)
+        task_service: the service instance for task business logic
+        agent_name: name of the agent to query
+        page: page number (1-indexed, default 1)
+        page_size: items per page (1-100, default 20)
 
     Returns:
-        Dictionary with tasks, pagination metadata
+        dictionary with tasks, pagination metadata
 
     Raises:
-        AgentNotFoundError: If agent doesn't exist
-        ValueError: If pagination parameters are invalid
+        `AgentNotFoundError`: if agent doesn't exist
+        ValueError: if pagination parameters are invalid
     """
     tasks, total_count = await task_service.get_task_history(
         agent_name, page, page_size

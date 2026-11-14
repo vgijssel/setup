@@ -1,4 +1,4 @@
-"""Main CLI module for dev-cluster."""
+"""Main command-line tool module for dev-cluster."""
 
 import subprocess
 import sys
@@ -14,10 +14,10 @@ def check_prerequisites(verbose: bool = False) -> bool:
     """Check if all required tools are installed.
 
     Args:
-        verbose: Enable verbose output
+        verbose: enable verbose output
 
     Returns:
-        True if all prerequisites are met
+        `True` if all prerequisites are met
     """
     tools = {
         "kind": (kind.check_kind_installed(), "https://kind.sigs.k8s.io/"),
@@ -62,7 +62,7 @@ def _check_kubectl_installed() -> bool:
 @click.pass_context
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def cli(ctx, verbose):
-    """dev-cluster: Local development cluster management.
+    """dev-cluster: local development cluster management.
 
     If no subcommand is provided, defaults to 'create'.
     """

@@ -2,4 +2,4 @@
 
 ### 🚀 Features
 
-- Create vault-login CLI tool for secure 1Password secrets retrieval with file-based caching ([#859](https://github.com/vgijssel/setup/pull/859))
+- Create vault-login command-line tool tool for secure 1Password secrets retrieval with file-based caching ([#859](https://github.com/vgijssel/setup/pull/859))

@@ -15,21 +15,22 @@ async def list_agent_roles(
     """List all available roles (workspace presets) for a specific project.
 
     Tool: list_agent_roles
-    User Story: US1 (Agent Discovery and Inspection)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US1 (Agent Discovery and Inspection)
+    Architecture: layer 1 (Tool Layer)
 
     Args:
-        project_service: Service instance for project business logic
-        project: Project name to query roles for
+        project_service: the service instance for project business logic
+        project: project name to query roles for
 
     Returns:
-        ListRolesResponse with roles, project name, and total count
+        `ListRolesResponse` with roles, project name, and total count
 
     Raises:
-        ValidationError: If project name is invalid
-        CoderAPIError: If project not found
+        `ValidationError`: if project name is invalid
+        CoderAPIError: if project not found
 
     Example:
+
         result = await list_agent_roles(project_service, project="Setup")
     """
     roles = await project_service.list_roles(project)

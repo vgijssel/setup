@@ -20,7 +20,7 @@ context remounts read-write before a block of writes and read-only after -- but 
 remount and produces an empty ``--dry`` diff. The idempotent ``files.*`` operations inside
 are always queued; they self-verify and report no change when converged.
 
-Secrets (NetBird setup key, PiKVM admin/root passwords) are read from OpenBao via the
+Secrets (NetBird setup key, PiKVM administrator/root passwords) are read from OpenBao via the
 ``OpenBaoSecret`` fact, which fetches on the control machine and never transmits secret
 material to the PiKVM. Values passed to the host ride in per-command ``_env`` and never
 appear in argv or ``--dry`` output. Even ``--dry`` reads OpenBao.
@@ -61,11 +61,11 @@ SECRET_PATH = "pikvm"
 
 # Escape hatch for running the deploy when OpenBao is unreachable (pyinfra has no
 # Ansible-style per-task tags). When set, the OpenBao-backed slices are skipped:
-#   * Task 7 (PiKVM admin + root passwords) is skipped entirely.
+#   * Task 7 (PiKVM administrator + root passwords) is skipped entirely.
 #   * Task 6 first-bring-up registration (reads the setup key) is refused with a clear
 #     error -- an unregistered box genuinely cannot register without the key. A box that
 #     is already connected takes the secret-free reconcile branch, so skipping is safe.
-# Every non-secret slice (goss health, NetBird overlay/routing, static IP, ...) still
+# Every non-secret slice (goss health, NetBird overlay/routing, static IP, and others) still
 # runs. Set PIKVM_SKIP_SECRETS=1 (or true/yes) to enable.
 SKIP_SECRETS = os.environ.get("PIKVM_SKIP_SECRETS", "").strip().lower() in (
     "1",
@@ -108,14 +108,14 @@ def _fingerprint(*values: str) -> str:
     return digest.hexdigest()
 
 
-# ── Root SSH authorized key (bootstrap — must run FIRST) ─────────────────────────
+# ── Root SSH authorized key (bootstrap—must run FIRST) ─────────────────────────
 # Authorize the operator SSH public key for root so the box stays reachable over the
 # LAN (192.168.1.31) with key auth as a fallback. This runs before NetBird so that if
 # the overlay/NetBird bring-up blips the network session the apply is running over, the
 # operator can reconnect over the LAN and re-run. rw-guarded and idempotent.
 #
-# We render authorized_keys to EXACTLY this one key (files.put of the full content), so
-# the apply also *removes* any other keys -- e.g. a temporary deploy key added out of
+# The deployment renders authorized_keys to EXACTLY this one key (files.put of the full content), so
+# the apply also *removes* any other keys -- for example a temporary deploy key added out of
 # band. files.put self-verifies against the remote sha, so a converged box is a no-op.
 
 ROOT_SSH_DIR = "/root/.ssh"
@@ -150,22 +150,22 @@ with rootfs.writable(changed_if=ssh_key_needs_rw):
 # ── System DNS: route /etc/resolv.conf through the systemd-resolved stub ──────────
 # PiKVM ships /etc/resolv.conf as a symlink to systemd-resolved's UPLINK resolv.conf
 # (nameserver 192.168.1.1, the LAN router), so every resolver that reads the file directly
-# (Go's static resolver in goss/netbird, dig, ...) queries the router and NXDOMAINs NetBird
+# (Go's static resolver in goss/netbird, dig, and others) queries the router and NXDOMAINs NetBird
 # split-DNS names like *.svc.cluster.local. Replace it with a static file pointing at the
 # resolved STUB (127.0.0.53): resolved then applies split-DNS (mesh -> wt0, public ->
 # upstream) for EVERY resolver uniformly. This supersedes the per-unit resolv.conf bind in
 # goss-serve.service and removes its boot-race (that optional bind no-op'd before resolved
-# had created its stub file). SSH reaches the box by IP, so a DNS change cannot lock us out.
+# had created its stub file). SSH reaches the box by IP, so a DNS change cannot lock operators out.
 RESOLV_CONF_REMOTE = "/etc/resolv.conf"
 _resolv_conf = Path(os.path.join(FILES, "resolv.conf")).read_text(encoding="utf-8")
 _resolv_conf_sha = hashlib.sha256(_resolv_conf.encode()).hexdigest()
 
 # It is out of sync if it is still the resolved-managed symlink, or a plain file whose
-# contents differ from ours. A converged box (our static file already in place) does nothing.
+# contents differ from the managed file. A converged box (the managed static file already in place) does nothing.
 # The Link fact returns a dict for a symlink, False for a non-link file, and None if absent
 # -- so a plain `is not None` wrongly treats an already-converged regular file (False) as a
 # symlink and then errors removing a link that isn't there. Only a dict means "still a
-# symlink we must drop first".
+# symlink that must be dropped first."
 resolv_is_symlink = isinstance(host.get_fact(Link, path=RESOLV_CONF_REMOTE), dict)
 resolv_needs_rw = (
     resolv_is_symlink
@@ -193,21 +193,21 @@ with rootfs.writable(changed_if=resolv_needs_rw):
 # Follow the official OS-update path (docs.pikvm.org/_update_os): `pikvm-update`
 # remounts rw, force-refreshes the db, self-updates the updater, runs the curated
 # `pacman -Su` (with --overwrite/--ask), validates the kvmd config, and normally
-# reboots. We call it with --no-reboot and let pyinfra own the reboot so the apply can
-# continue on the freshly-updated system. The PiKVM AUR/NetBird guide assumes an
+# reboots. The deployment calls it with --no-reboot and lets pyinfra own the reboot so the apply can
+# continue on the freshly updated system. The PiKVM AUR/NetBird guide assumes an
 # up-to-date box, so this belongs before the NetBird slices.
 #
 # `pikvm-update` is a bespoke one-shot with its own exit-code contract, so it stays a
 # documented server.shell (no operation equivalent):
 #   0   -> already up-to-date / completed, no reboot needed
 #   100 -> update applied successfully, reboot required (its --no-reboot signal)
-#   101 -> kvmd config broke mid-update: DO NOT REBOOT -- fail loudly
-# so we treat {0,100} as success and only then reboot; 101 (or anything else) aborts
+#   101 -> kvmd config broke mid-update—DO NOT REBOOT -- fail loudly
+# so the deployment treats {0,100} as success and only then reboots; 101 (or anything else) aborts
 # the apply with the rootfs left rw for inspection, exactly as the updater intends.
 #
 # CONNECTIVITY: this is a large, major-version upgrade that restarts core services and
 # can briefly disrupt the network session the apply runs over. It runs under a detached
-# systemd unit (below) so a dropped session cannot kill it mid-transaction; prefer the
+# systemd unit (below) so a dropped session cannot stop it mid-transaction; prefer the
 # LAN inventory for the first run. A failed upgrade can need physical recovery (docs).
 
 _upgradable = host.get_fact(PacmanUpgradablePackages)
@@ -215,11 +215,11 @@ os_update_needed = len(_upgradable) > 0
 
 if os_update_needed:
     # Run the upgrade under a transient systemd unit (systemd-run --wait), NOT directly
-    # over SSH. The upgrade restarts core services and can sever the session we run over;
-    # a detached unit keeps upgrading regardless, so a dropped connection can never kill
+    # over SSH. The upgrade restarts core services and can sever the session used by the deployment;
+    # a detached unit keeps upgrading regardless, so a dropped connection can never stop
     # pacman mid-transaction. --wait blocks and propagates the unit's result while the
-    # session is alive; if the session drops the unit finishes on the box anyway and we
-    # simply re-run the apply (pending upgrades -> 0 -> skipped).
+    # session is alive; if the session drops the unit finishes on the box anyway and the operator
+    # simply re-runs the apply (pending upgrades -> 0 -> skipped).
     #
     # SuccessExitStatus=100 maps pikvm-update's "applied, reboot required" (--no-reboot)
     # onto systemd success, so the op passes for exit 0 or 100 and only fails for 101
@@ -241,7 +241,7 @@ if os_update_needed:
     )
 
 
-# ── NetBird read-only-rootfs overlay (Task 4) ────────────────────────────────────
+# ── NetBird read-only rootfs overlay (Task 4) ────────────────────────────────────
 # Persistent state dir + tmpfs-overlay helper + oneshot unit that mounts the overlay
 # before NetBird and copies state back on stop. Enable only here; starting happens
 # alongside NetBird in a later slice.
@@ -250,7 +250,7 @@ NETBIRD_STATE_DIR = "/root/netbird-state"
 # Bind-mount target for the writable overlay. The netbird-bin package does NOT ship
 # /var/lib/netbird, and the rootfs is read-only at boot, so the mount target must be
 # created here (persistently, while rw) or the overlay unit fails every boot with
-# "mkdir: cannot create directory '/var/lib/netbird': Read-only file system".
+# `mkdir: cannot create directory '/var/lib/netbird': Read-only file system`.
 NETBIRD_LIB_DIR = "/var/lib/netbird"
 OVERLAY_SCRIPT_SRC = os.path.join(FILES, "setup-netbird-overlay.sh")
 OVERLAY_SCRIPT_REMOTE = "/usr/local/bin/setup-netbird-overlay.sh"
@@ -309,15 +309,15 @@ with rootfs.writable(changed_if=overlay_needs_rw):
 # Build netbird-bin from the AUR as the unprivileged kvmd-webterm user (makepkg
 # refuses to run as root), install with pacman, and drop the PiKVM systemd override.
 #
-# The AUR PKGBUILD always builds the latest release, so NETBIRD_VERSION is the pin we
-# expect: the build/install runs only when the installed version does not match it. If
+# The AUR PKGBUILD always builds the latest release, so NETBIRD_VERSION is the expected pin; the deployment
+# checks it: the build/install runs only when the installed version does not match it. If
 # the AUR moves past the pin, the box never converges (a loud, visible signal) until
 # NETBIRD_VERSION is bumped -- Renovate owns that bump.
 #
-# We deliberately do NOT run a full `pacman -Syu` here. PiKVM holds `python-periphery`
+# The deployment deliberately does NOT run a full `pacman -Syu` here. PiKVM holds `python-periphery`
 # (pinned python<3.14) while the ALARM repos already ship python 3.14, so a full upgrade
 # fails to prepare its transaction. `netbird-bin` is a *binary* package (depends=(glibc),
-# no makedepends), so it only needs `git` + `base-devel` (both shipped on PiKVM). We sync
+# no makedepends), so it only needs `git` + `base-devel` (both shipped on PiKVM). The deployment syncs
 # the db and install just those with pacman.packages -- no system-wide upgrade.
 
 NETBIRD_VERSION = "0.75.0"
@@ -389,21 +389,21 @@ with rootfs.writable(changed_if=netbird_needs_rw):
 # SFTP: the native SSH server is started with `--enable-ssh-sftp` (`enable_ssh_sftp=True`)
 # so it serves an SFTP subsystem. pyinfra's `files.put` uploads over SFTP, so WITHOUT this
 # the apply cannot transfer any changed file when it runs over the NetBird SSH server --
-# it fails with "Unable to establish SFTP connection". (The netbird@ systemd override also
+# it fails with `Unable to establish SFTP connection`. (The netbird@ systemd override also
 # drops ProtectHome/ProtectSystem so those SSH sessions can write the rootfs at all -- see
 # files/netbird@.service.d/pikvm.conf.) Persisted as EnableSSHSFTP; reconciled below.
 #
-# NATIVE SSH: NetBird's built-in SSH server is enabled here (`allow_server_ssh=True`)
+# NATIVE SSH—NetBird's built-in SSH server is enabled here (`allow_server_ssh=True`)
 # with root login permitted (`enable_ssh_root=True`) so the box stays reachable as
 # `root` the same way it is today, but authenticated by NetBird/IdP identity (JWT) over
 # the wt0 overlay instead of a static authorized_keys entry. Both flags are persisted by
 # NetBird in /var/lib/netbird/default.json (ServerSSHAllowed / EnableSSHRoot), so they
 # are passed explicitly on every `netbird up` to make the desired state deterministic,
 # and the reconcile below is gated on facts that read those persisted values so a
-# converged box makes no changes. JWT auth is left ON (we do NOT pass --disable-ssh-auth);
+# converged box makes no changes. JWT auth is left ON (the deployment does NOT pass `--disable-ssh-auth`);
 # access is still governed by an Access Control policy in the NetBird dashboard, so the
 # SSH server does no useful thing until that policy exists. The LAN root authorized_keys
-# fallback (bootstrap slice above) is intentionally kept as a break-glass path.
+# fallback (bootstrap slice preceding) is intentionally kept as a break-glass path.
 #
 # DNS is ENABLED here (`disable_dns=False`). The stock PiKVM guide passes
 # `--disable-dns` to stop NetBird writing /etc/resolv.conf on the read-only rootfs, but
@@ -424,8 +424,8 @@ with rootfs.writable(changed_if=netbird_needs_rw):
 # SSH-DISCONNECT SAFETY: restarting NetBird / cycling `netbird up` bounces the wt0
 # interface, which severs the SSH session when the apply runs OVER NetBird (the `apply`
 # inventory). The reconcile therefore runs under a detached transient unit
-# (`systemd-run --wait`), exactly like the OS update above: a dropped session cannot
-# kill it mid-restart -- the unit completes on the box and a re-run converges (DNS
+# (`systemd-run --wait`), exactly like the earlier OS update: a dropped session cannot
+# stop it mid-restart -- the unit completes on the box and a re-run converges (DNS
 # enabled + config unchanged -> the guard is false -> no-op). Over the LAN
 # (`apply_local`) SSH is on eth0 and does not drop, so `--wait` returns normally. State
 # is persisted to /root/netbird-state inside the same unit, so the enabled-DNS config
@@ -440,7 +440,7 @@ ssh_server_allowed = host.get_fact(NetbirdServerSshAllowed)
 ssh_root_enabled = host.get_fact(NetbirdSshRootEnabled)
 # SFTP subsystem on the native SSH server: pyinfra's files.put uploads over SFTP, so the
 # apply cannot transfer a changed file when it runs OVER the NetBird SSH server unless this
-# is on. Persisted as EnableSSHSFTP; drives the reconcile the same way as the flags above.
+# is on. Persisted as EnableSSHSFTP; drives the earlier reconcile the same way as the flags.
 ssh_sftp_enabled = host.get_fact(NetbirdSshSftpEnabled)
 
 if not netbird_connected and SKIP_SECRETS:
@@ -512,10 +512,10 @@ else:
     )
 
 
-# ── PiKVM admin + system root passwords (Task 7) ─────────────────────────────────
+# ── PiKVM administrator + system root passwords (Task 7) ─────────────────────────────────
 # Set the PiKVM web `admin` password (pikvm.htpasswd) and the system `root` password
 # (chpasswd) from OpenBao. Both write to the rootfs (rw-guarded). Passwords are hashed
-# and salted on disk, so we detect "already applied" with a root-only fingerprint file
+# and salted on disk, so the deployment detects "already applied" with a root-only fingerprint file
 # rather than by comparing hashes -- a converged box then makes no changes.
 #
 # Both secrets are passed via per-command _env and referenced as shell variables, so
@@ -560,7 +560,7 @@ if passwords_need_update:
 
 # ── DHCP (untagged) + static VLAN 10 via systemd-networkd (Task 8) ────────────────
 # The PiKVM's switch port is a TRUNK: it carries the untagged/native VLAN plus tagged
-# 802.1Q VLAN 10 (Management). We configure both:
+# 802.1Q VLAN 10 (Management). Configure both:
 #   * <iface>.network  -> DHCP=ipv4 on the untagged/native traffic (takes whatever lease
 #     the DHCP server on the native VLAN hands out) AND VLAN=vlan10 to attach the tagged
 #     device on top of the physical link. The default route comes from this DHCP lease.
@@ -640,7 +640,7 @@ if network_needs_rw:
     # rootfs is already ro (context exited); reload picks up the new .netdev/.network
     # files (creating the vlan10 device) and reconfigure re-reads the link config in
     # place. networkctl has no pyinfra operation -> documented shell. This re-requests the
-    # untagged DHCP lease and brings up VLAN 10 (see CONNECTIVITY RISK above).
+    # untagged DHCP lease and brings up VLAN 10 (see earlier CONNECTIVITY RISK).
     server.shell(
         name="Network: reload + reconfigure (DHCP untagged + VLAN 10 static)",
         commands=[
@@ -652,12 +652,12 @@ if network_needs_rw:
 
 
 # ── NetBird site-to-VPN routing peer (Task 9) ────────────────────────────────────
-# Turn the box into a NetBird routing peer for the *site-to-VPN* direction: LAN devices
-# that do NOT run NetBird reach peers inside the mesh (e.g. the Omada controller) by
+# Turn the box into a NetBird routing peer for the *site-to-VPN* direction—LAN devices
+# that do NOT run NetBird reach peers inside the mesh (for example the Omada controller) by
 # routing through this box. Reference: https://docs.netbird.io/use-cases/remote-access/site-to-vpn
 #
 # Two pieces of *runtime* state are required and neither survives the read-only rootfs, so --
-# exactly like the NetBird overlay slice above -- a boot-time oneshot re-asserts them on every
+# exactly like the earlier NetBird overlay slice -- a boot-time oneshot re-asserts them on every
 # boot (netbird-routing.service), and the deploy applies them immediately by starting it:
 #   1. IPv4 forwarding (net.ipv4.ip_forward=1).
 #   2. A SNAT/masquerade rule rewriting LAN source addresses onto the NetBird interface so
@@ -672,7 +672,7 @@ if network_needs_rw:
 # (this repo does not manage the NetBird account policy or the router):
 #   1. NetBird dashboard -> Network Routing: designate this peer (via its group) as a routing
 #      peer and add an Access Control policy permitting the LAN source group -> the mesh
-#      destination (e.g. the Omada resource/peer). Without the route + policy NetBird does not
+#      destination (for example the Omada resource/peer). Without the route + policy NetBird does not
 #      distribute the network to this peer and traffic is dropped.
 #   2. LAN router: add a static route for the NetBird account block 100.65.0.0/16 -> this
 #      box's LAN IP (its DHCP lease; set a reservation so it is stable), or push it via DHCP
@@ -680,7 +680,7 @@ if network_needs_rw:
 #      rewrites their source to wt0.
 #
 # LAN CIDR defaults to 192.168.0.0/16 so the SNAT rule covers every home VLAN whose clients
-# reach the mesh through this box (legacy 192.168.1.0/24 today, 192.168.10/20/30/... after
+# reach the mesh through this box (legacy 192.168.1.0/24 today, `192.168.10/20/30/...` after
 # the Omada cutover); the NetBird interface defaults to wt0. Both are overridable by env.
 
 ROUTING_LAN_CIDR = os.environ.get("PIKVM_LAN_CIDR", "192.168.0.0/16")
@@ -763,7 +763,7 @@ server.shell(
 # client queries the daemon for a human-readable (rspecish) pass/fail report; netdata can
 # scrape the same endpoint as prometheus/verbose (one metric per assertion). See SPEC.md.
 #
-# Read-only-rootfs writes: the goss binary + `validate` (/usr/local/bin) and the config +
+# Read-only rootfs writes: the goss binary + `validate` (/usr/local/bin) and the config +
 # unit (/etc, /etc/systemd/system) all live on the root partition -- PiKVM's `rw` helper
 # remounts / (which backs /usr too), so one rootfs.writable covers them all.
 GOSS_VERSION = "0.4.10"
@@ -874,22 +874,22 @@ server.shell(
 # Install the netdata Agent from the pinned, sha256-verified static build (mirrors the
 # goss binary install) and run it as a long-lived daemon bound to 127.0.0.1:19999 -- no
 # LAN/mesh inbound port. netdata collects the box's system metrics; Phase C adds a goss
-# /healthz scrape and Phase D claims the agent to Netdata Cloud. See SPEC.md + tasks/plan.md.
+# /healthz scrape and Phase D claims the agent to Netdata’s cloud service. See SPEC.md + tasks/plan.md.
 #
-# Read-only-rootfs discipline -- the single `rw` helper (rootfs.writable) covers the whole
+# Read-only rootfs discipline -- the single `rw` helper (rootfs.writable) covers the whole
 # install:
 #   * The static build installs under /opt/netdata (a directory on the root partition).
 #   * /usr lives on the same root block device as / (mmcblk0p3), so remounting / read-write
 #     also makes /usr's paths writable. The installer's get_systemd_service_dir() then writes
-#     the base unit to /usr/lib/systemd/system/netdata.service; our drop-in in
+#     the base unit to /usr/lib/systemd/system/netdata.service; the managed drop-in in
 #     /etc/systemd/system overrides it regardless of where the base unit lives.
-# Runtime writes never touch the rootfs: metrics go to dbengine on a 2 GiB tmpfs RAM disk
+# Runtime writes never modify the rootfs: metrics go to dbengine on a 2 GiB tmpfs RAM disk
 # (Phase E: [db] mode = dbengine + [directories] cache = /var/lib/netdatadb) and
 # log -> the /run/netdata tmpfs. netdata only creates its leaf dirs, so the drop-in lists
 # cache/lib/log as RuntimeDirectory to make systemd create /run/netdata{,/cache,/lib,/log}
-# each boot. Cloud identity persistence is Phase D; the metrics RAM disk is Phase E.
+# each boot. Persistence of cloud identity is Phase D; the metrics RAM disk is Phase E.
 #
-# Install flags: --dont-start-it (pyinfra owns start), --disable-telemetry (opt out of
+# Install flags: --dont-start-it (pyinfra owns start), `--disable-telemetry` (opt out of
 # anonymous stats), --stable-channel. --auto-update is deliberately NOT passed, so the
 # bundled updater is installed but never enabled -- the version is pinned here and bumped
 # by Renovate, exactly like the goss/NetBird pins.
@@ -912,8 +912,8 @@ NETDATA_DROPIN_REMOTE = os.path.join(NETDATA_DROPIN_DIR, "pikvm.conf")
 # static build is the sole source of the version, so a mismatch triggers a reinstall).
 netdata_needs_install = NETDATA_VERSION not in host.get_fact(NetdataVersion)
 
-# Config-drift window: the netdata.conf override (which the installer also writes, so we
-# replace its default) and the systemd drop-in, both on the root partition.
+# Config-drift window: the netdata.conf override (which the installer also writes, so the deployment
+# replaces its default) and the systemd drop-in, both on the root partition.
 netdata_config_needs_rw = (
     host.get_fact(Directory, path=NETDATA_DROPIN_DIR) is None
     or _file_out_of_sync(NETDATA_CONF_REMOTE, NETDATA_CONF_SRC)
@@ -940,13 +940,13 @@ if netdata_needs_install:
             ],
         )
 
-# ── netdata dbengine RAM disk: 2 GiB tmpfs for 24h history + ML (Task 11, Phase E) ─
+# ── netdata dbengine RAM disk: 2 GiB tmpfs for 24 h history + ML (Task 11, Phase E) ─
 # netdata's ML anomaly detection only runs on the dbengine backend, and dbengine needs a
 # writable store with enough retention to train its models. The read-only rootfs rules out
-# on-disk dbengine, so we give netdata a dedicated 2 GiB tmpfs "RAM disk" and point
+# on-disk dbengine, so the deployment gives netdata a dedicated 2 GiB tmpfs "RAM disk" and points
 # [directories] cache at it (netdata.conf). netdata-db.service (a Before=netdata oneshot
 # mirroring netdata-overlay.service) mounts it each boot; metrics stay 100% in RAM and are
-# recreated empty on reboot (history is deliberately non-durable -- only the Cloud identity
+# recreated empty on reboot (history is deliberately non-durable -- only the cloud identity
 # persists, via the overlay). Kept on a SEPARATE tmpfs from the identity dir
 # (/var/lib/netdata) so the multi-hundred-MB metrics DB is never snapshotted to the rootfs.
 #
@@ -1111,15 +1111,15 @@ server.shell(
 )
 
 
-# ── netdata Cloud claim + reboot-durable identity (Task 11, Phase D) ──────────────
-# Connect the agent to Netdata Cloud so the box appears in the Space, and keep that
+# ── netdata cloud claim + reboot-durable identity (Task 11, Phase D) ──────────────
+# Connect the agent to Netdata’s cloud service so the box appears in the Space, and keep that
 # identity stable across reboots. Two independent pieces:
 #
 # (a) IDENTITY OVERLAY (mirrors the NetBird overlay, Task 4). netdata.conf puts the metrics
-#     DB in RAM ([db] mode = ram) and cache/log on the /run tmpfs, so METRICS never touch
-#     disk. Only netdata's *identity* -- the machine GUID (lib/registry) and the Cloud claim
+#     DB in RAM ([db] mode = ram) and cache/log on the /run tmpfs, so METRICS never reach
+#     disk. Only netdata's *identity* -- the machine GUID (lib/registry) and the cloud claim
 #     (lib/cloud.d: claimed_id + this node's private key, a few KB) -- must survive reboot,
-#     or a fresh GUID each boot would spawn a DUPLICATE Cloud node. netdata-overlay.service
+#     or a fresh GUID each boot would spawn a DUPLICATE cloud node. netdata-overlay.service
 #     (Before=netdata) tmpfs-mounts /var/lib/netdata and restores /root/netdata-state into it
 #     on start, and snapshots it back on stop. The mount target /var/lib/netdata is created
 #     persistently here (rw) -- the ro rootfs cannot mkdir it at boot otherwise.
@@ -1127,11 +1127,11 @@ server.shell(
 # (b) CLAIM (gated on `not SKIP_SECRETS` AND not-already-claimed). The reusable claim token
 #     is read from OpenBao `kv/netdata` and passed to netdata-claim.sh via per-command _env
 #     (never in argv / --dry / on disk). The claim writes only the per-node identity to
-#     cloud.d; the token itself is never persisted. After claiming we snapshot the identity
+#     cloud.d; the token itself is never persisted. After claiming, the deployment snapshots the identity
 #     to /root/netdata-state immediately so even a hard reboot before a graceful stop keeps
 #     the node stable. netdata-claim.sh warns it is deprecated but still works on v2.10.4;
 #     the alternative (a persisted claim.conf) would write the reusable token to the rootfs,
-#     which we deliberately avoid.
+#     which this setup deliberately avoids.
 
 NETDATA_STATE_DIR = "/root/netdata-state"
 NETDATA_LIB_DIR = "/var/lib/netdata"
@@ -1210,9 +1210,9 @@ server.shell(
     ),
 )
 
-# Claim to Netdata Cloud. Gate: skip when secrets are unavailable, and skip when the
+# Claim to Netdata’s cloud service. Gate: skip when secrets are unavailable, and skip when the
 # identity already carries a claim (persisted claimed_id) so a converged box never
-# re-claims. The token/rooms/url come from OpenBao kv/netdata (NOT kv/pikvm).
+# re-claims. The token/rooms/URL come from OpenBao kv/netdata (NOT kv/pikvm).
 netdata_already_claimed = (
     host.get_fact(File, path=f"{NETDATA_STATE_DIR}/cloud.d/claimed_id") is not None
 )
@@ -1240,7 +1240,7 @@ if netdata_needs_claim:
     # netdata-claim.sh writes the REUSABLE token into /opt/netdata/etc/netdata/claim.conf
     # (on the rootfs) and runs `netdatacli reload-claiming-state`, which claims and writes
     # the durable PER-NODE identity (claimed_id + private key) into netdata's lib dir
-    # (/var/lib/netdata, the overlay tmpfs). We then: wait for the async claim to land,
+    # (/var/lib/netdata, the overlay tmpfs). Then: wait for the async claim to land,
     # DELETE claim.conf so the reusable token is never persisted, and snapshot the identity
     # to /root/netdata-state so the node survives reboot. Token rides in _env
     # ($NETDATA_CLAIM_TOKEN) -- never argv/--dry. Runs inside rootfs.writable because

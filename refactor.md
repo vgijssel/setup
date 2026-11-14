@@ -1,4 +1,4 @@
-# Apps Directory Structure
+# Apps directory structure
 
 ## Convention
 
@@ -6,7 +6,7 @@ Every top-level directory under `apps/` is a logical grouping. Each grouping
 contains one or more subdirectories, where each subdirectory is one of two
 types:
 
-**Umbrella Helm chart** — contains a `Chart.yaml` declaring an external chart
+**Umbrella Helm chart**—contains a `Chart.yaml` declaring an external chart
 as a dependency, a `Chart.lock`, and a `values.yaml` with overrides. ArgoCD
 auto-detects this as Helm.
 
@@ -17,7 +17,7 @@ apps/<grouping>/<name>/
     └── values.yaml
 ```
 
-**Plain Kubernetes manifests** — contains raw YAML files. No `Chart.yaml`
+**Plain Kubernetes manifests**—contains raw YAML files. No `Chart.yaml`
 present. ArgoCD auto-detects this as a directory of manifests. By convention,
 these directories are named `manifests/`.
 
@@ -144,7 +144,7 @@ kubectl wait --for=condition=ready pod -l app=vcluster \
   --timeout=300s
 ```
 
-### Step 2: Deploy ArgoCD to the vCluster
+### Step 2—deploy the controller to the virtual cluster
 
 Once the vCluster is running, deploy ArgoCD into it:
 
@@ -174,14 +174,14 @@ vcluster disconnect
 
 ---
 
-## ApplicationSets
+## `ApplicationSet` resources
 
 The two ApplicationSets in `apps/argocd-apps/manifests/` manage all
 directories outside the `argocd*` groupings. Each app subdirectory must
 contain a `config.json` with routing metadata. The `argocd*` directories do
-not use `config.json` — they are managed by the bootstrap chain.
+not use `config.json`—they are managed by the bootstrap chain.
 
-### config.json format
+### Config.json format
 
 ```json
 {
@@ -199,7 +199,7 @@ Use a registered cluster name for vCluster targets:
 }
 ```
 
-### Production ApplicationSet
+### Production `ApplicationSet`
 
 Scans every `config.json` under `apps/*/*/`, excluding the three ArgoCD
 groupings. Generates one Application per subdirectory.
@@ -251,7 +251,7 @@ spec:
 > manages those directories through dedicated Application CRDs, no
 > `config.json` is needed and the generator naturally skips them.
 
-### Pull Request ApplicationSet
+### Pull request `ApplicationSet`
 
 Uses a Matrix generator to cross-product open PRs with app directories that
 have PR-specific configuration. The PR number is injected as a Helm parameter
@@ -375,9 +375,9 @@ kubectl apply (one-time)
 
 | Rule | Reason |
 |---|---|
-| No `resources-finalizer` on the self-managing Application | Controller deletes itself while processing the finalizer — permanent deadlock |
+| No `resources-finalizer` on the self-managing Application | Controller deletes itself while processing the finalizer—permanent deadlock |
 | `ServerSideApply=true` on the self-managing Application | Client-side apply annotation can exceed 262KB limit |
 | No `config.json` in `argocd*` directories | Managed by bootstrap chain, not ApplicationSets |
 | `Chart.lock` must be committed | ArgoCD requires it to resolve umbrella chart dependencies |
-| Every Helm directory participating in PR environments needs `values-pr.yaml` | ArgoCD errors on missing value files — use an empty `{}` if no overrides needed |
-| Plain manifest directories are named `manifests/` | Convention only — keeps intent clear when scanning the repo |
+| Every Helm directory participating in PR environments needs `values-pr.yaml` | ArgoCD errors on missing value files—use an empty `{}` if no overrides needed |
+| Plain manifest directories are named `manifests/` | Convention only—keeps intent clear when scanning the repo |

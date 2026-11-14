@@ -2,7 +2,7 @@
 #
 # CRD ownership: the operator subchart (psmdb-operator) ships the 4 psmdb.percona.com
 # CRDs in its crds/ dir, which Helm installs on first apply (and never deletes on
-# uninstall). The psmdb-operator-crds subchart ALSO ships them — as TEMPLATES — so they
+# uninstall). The psmdb-operator-crds subchart ALSO ships them—as TEMPLATES—so they
 # carry `helm.sh/resource-policy: keep` and become upgradable. To let the template CRDs
 # ADOPT the crds/-preinstalled ones instead of colliding, the Fleet bundle sets
 # helm.takeOwnership: true (fleet.yaml). Both are pinned 1.23.0 so the content is identical.

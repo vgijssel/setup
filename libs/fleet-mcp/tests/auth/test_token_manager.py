@@ -149,7 +149,7 @@ class TestTokenManager:
         assert token.created_at == created_at
 
     def test_custom_token_file_path(self, tmp_path):
-        """Test TokenManager respects custom token file path."""
+        """Test TokenManager respects custom token path."""
         custom_path = tmp_path / "custom_dir" / "my_token"
         manager = TokenManager(token_file_path=custom_path)
 

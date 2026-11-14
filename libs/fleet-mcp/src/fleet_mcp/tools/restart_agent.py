@@ -18,25 +18,26 @@ async def restart_agent(
     """Restart an agent's workspace to refresh its environment.
 
     Tool: restart_agent
-    User Story: US2 (Agent Lifecycle Management)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US2 (Agent Lifecycle Management)
+    Architecture: layer 1 (Tool Layer)
 
     This stops and then starts the agent's workspace, which can help
     resolve issues or refresh the environment state.
 
     Args:
-        agent_service: Service instance for agent business logic
-        agent_name: Name of the agent to restart
+        agent_service: the service instance for agent business logic
+        agent_name: name of the agent to restart
 
     Returns:
-        RestartAgentResponse with updated agent and success message
+        `RestartAgentResponse` with updated agent and success message
 
     Raises:
-        AgentNotFoundError: If agent doesn't exist
-        ValidationError: If agent_name is invalid
-        CoderAPIError: If restart fails
+        `AgentNotFoundError`: if agent doesn't exist
+        ValidationError: if agent_name is invalid
+        CoderAPIError: if restart fails
 
     Example:
+
         result = await restart_agent(agent_service, agent_name="stuck-agent")
     """
     agent = await agent_service.restart_agent(agent_name)

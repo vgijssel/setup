@@ -18,25 +18,26 @@ async def delete_agent(
     """Delete an agent and destroy its underlying workspace.
 
     Tool: delete_agent
-    User Story: US2 (Agent Lifecycle Management)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US2 (Agent Lifecycle Management)
+    Architecture: layer 1 (Tool Layer)
 
     This is a forceful deletion that works even if the agent is busy.
-    All workspace data will be permanently deleted.
+    All workspace data is permanently deleted.
 
     Args:
-        agent_service: Service instance for agent business logic
-        agent_name: Name of the agent to delete
+        agent_service: the service instance for agent business logic
+        agent_name: name of the agent to delete
 
     Returns:
-        DeleteAgentResponse with agent name and success message
+        `DeleteAgentResponse` with agent name and success message
 
     Raises:
-        AgentNotFoundError: If agent doesn't exist
-        ValidationError: If agent_name is invalid
-        CoderAPIError: If deletion fails
+        `AgentNotFoundError`: if agent doesn't exist
+        ValidationError: if agent_name is invalid
+        CoderAPIError: if deletion fails
 
     Example:
+
         result = await delete_agent(agent_service, agent_name="old-agent")
     """
     await agent_service.delete_agent(agent_name)

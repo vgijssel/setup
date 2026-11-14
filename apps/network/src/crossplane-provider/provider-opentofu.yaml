@@ -1,13 +1,13 @@
-# upbound/provider-opentofu — runs OpenTofu (Terraform-compatible) inside Crossplane via
-# Workspace CRs with inline HCL. Used here to manage the Cloudflare DNS record(s) fronting
-# the NetBird reverse proxy with the actively-maintained cloudflare/cloudflare TF provider
+# upbound/provider-opentofu—runs OpenTofu (Terraform-compatible) inside Crossplane via
+# Workspace CRs with inline HCL. Used here to manage the Cloudflare DNS records fronting
+# the NetBird reverse proxy with the actively maintained cloudflare/cloudflare TF provider
 # (v5, cloudflare_dns_record), rather than a Crossplane-native Cloudflare provider.
 #
 # Why this over the Crossplane Cloudflare providers: crossplane-contrib/provider-upjet-
 # cloudflare has no published release (unpinnable); wildbitca's images ship with NO os/arch
-# metadata (architecture: None) so the kubelet can't schedule them on this arm64 node;
+# metadata (architecture: none) so the kubelet can't schedule them on this arm64 node;
 # cdloh is arm64-native but stale. provider-opentofu is Upbound-official, multi-arch
-# (arm64 + amd64 — verified), and just runs `tofu`, which pulls the arm64 cloudflare
+# (arm64 + amd64—verified), and just runs `tofu`, which pulls the arm64 cloudflare
 # provider plugin at init time.
 #
 # Pinned by tag + multi-arch index digest.

@@ -3,7 +3,7 @@
 HTTPRoute per HTTPS listener: everything on the mesh hostname goes to the backing Service.
 
 No path matching, no rewriting, no header manipulation. This chart publishes a service, it does
-not reshape it — a consumer talking to `<name>.<domain>` must see exactly what it would see
+not reshape it—a consumer talking to `<name>.<domain>` must see exactly what it would see
 talking to the in-cluster Service, or the mesh hostname stops being a drop-in address. Anything
 cleverer belongs in a per-service route, not in the shared chart.
 

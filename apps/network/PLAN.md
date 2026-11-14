@@ -1,16 +1,16 @@
-# Plan: Migrate the network cluster from Terranetes to Crossplane
+# Network cluster migration plan
 
-> ## ⚠️ SUPERSEDED — historical. Every phase below is either done or obsolete.
+> ## ⚠️ SUPERSEDED—historical. Every phase below is either done or obsolete.
 >
 > This is the archived implementation plan for `apps/network/SPEC.md`, whose own banner lists what
 > has since been replaced. Do not run these phases: the Tailscale/ACL track (P1–P3, P7) describes
 > a provider and a tailnet that no longer exist, and the ESO-based MongoDB credential path (P5–P6)
-> was inverted — OpenBao now owns `kv/mongodb#omada_password` and Percona consumes it.
+> was inverted—OpenBao now owns `kv/mongodb#omada_password` and Percona consumes it.
 >
 > Service exposure is no longer in scope for this cluster's plan at all: it is one shared
 > mechanism, `libs/mesh-service` (one Envoy Gateway pod + its own NetBird client per
-> service, flat `<service>.vpn.blueora.ng` names, mesh-only resolution, publicly-trusted shared
-> wildcard). The reverse-proxy and `NBResource`/`netbird.io/expose` paths are gone outright —
+> service, flat `<service>.vpn.blueora.ng` names, mesh-only resolution, publicly trusted shared
+> wildcard). The reverse-proxy and `NBResource`/`netbird.io/expose` paths are gone outright—
 > including the last exception, Omada's physical APs and switches, which since 2026-10-07 reach
 > the controller at the same `omada.vpn.blueora.ng` as everything else (publicly published A
 > record + the LAN gateway's `100.65.0.0/16` route, no `NBResource` and no second hostname).
@@ -19,7 +19,7 @@
 
 Implementation plan for `apps/network/SPEC.md`. Tasks are dependency-ordered; each is a
 single focused session touching ≤~5 files, with acceptance + verification. The reference
-implementation is the `secret` cluster (PR #989) — clone its structure, adapt names/targets.
+implementation is the `secret` cluster (PR #989)—clone its structure, adapt names/targets.
 
 ## Dependency graph (high level)
 
@@ -33,22 +33,22 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 - P1→P3 (Tailscale/Crossplane track) and P4→P6 (MongoDB track) are **independent** and can be
   built in parallel; both converge at the live apply (P9).
 - P7 (teardown) must land with/after P3 (the ACL must be managed by Crossplane before the
-  Terranetes Configuration is removed — otherwise nothing owns the tailnet policy).
+  Terranetes Configuration is removed—otherwise nothing owns the tailnet policy).
 - P9 is the only phase that mutates live infra (recreates the cluster + applies).
 
 ## Verification checkpoints
 
 - **After P3:** on a scratch/live apply, the `ACL` MR is `SYNCED=True READY=True` and the live
-  tailnet policy is byte-equivalent to today's (diff the admin-console policy before/after).
+  tailnet policy is byte-equivalent to today's (diff the administrator console policy before/after).
 - **After P6:** Percona 3-member `rs0` is `ready`, and `mongodb-uri` in `omada` resolves.
 - **After P9:** full `stop→start` (create → tailscale_auth → apply) brings Omada up; no `terraform.appvia.io`
   objects on the network cluster.
 
 ---
 
-## P0 — Prerequisites & vendored charts
+## P0—prerequisites & vendored charts
 
-- [x] **T0.1: Vendor the Percona operator Helm chart(s).**
+- [x] **T0.1: Vendor the Percona operator Helm charts.**
   - Acceptance: `psmdb-operator` **1.23.0** and its split CRD chart `psmdb-operator-crds` **1.23.0**
     are vendored under the repo's chart-vendoring path (mirror how `crossplane-2.3.3.tgz` /
     `openbao-0.28.4.tgz` are vendored). Versions pinned exactly.
@@ -66,7 +66,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P1 — Crossplane core (network)
+## `P1`—core infrastructure controller (network)
 
 - [x] **T1.1: Add the `crossplane` bundle for the network cluster.**
   - Acceptance: `apps/network/src/crossplane/{Chart.yaml,values.yaml,fleet.yaml}` mirror
@@ -77,7 +77,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P2 — provider-upjet-tailscale (network)
+## P2—provider-upjet-tailscale (network)
 
 - [x] **T2.1: DeploymentRuntimeConfig pinning the provider SA name.**
   - Acceptance: `deploymentruntimeconfig-provider-tailscale.yaml` fixes the pod SA to
@@ -95,7 +95,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P3 — Tailscale ACL via Crossplane (replaces the OpenTofu module)
+## `P3`—declarative mesh access control (replaces the infrastructure module)
 
 - [x] **T3.1: api_key ExternalSecret + ProviderConfig.**
   - Acceptance: `externalsecret-tailscale-apikey.yaml` syncs `kv/network-tailscale-crossplane#api_key`
@@ -109,10 +109,10 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 - [x] **T3.2: Translate the tailnet policy to an `ACL` managed resource.**
   - Acceptance: `acl-tailnet.yaml` (`acl.tailscale.upbound.io/v1alpha1`, `deletionPolicy: Orphan`)
     carries the **verbatim** HuJSON from `apps/network/src/tailscale-config/main.tf`
-    (autoApprovers, groups, tagOwners, acls, ssh, nodeAttrs, grants — unchanged). Set
+    (autoApprovers, groups, tagOwners, acls, ssh, nodeAttrs, grants—unchanged). Set
     `overwriteExistingContent: true` (confirm exact field name from the CRD) so first apply adopts
     the live policy.
-  - Verify: HuJSON diff vs. `main.tf` is empty (semantically); `SYNCED/READY=True` and admin-console
+  - Verify: HuJSON diff vs. `main.tf` is empty (semantically); `SYNCED/READY=True` and administrator console
     policy unchanged (checkpoint after P3, exercised in P9).
   - Files: `apps/network/src/tailscale-config/acl-tailnet.yaml`.
 
@@ -125,7 +125,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P4 — Percona operator install (network)
+## P4—percona operator install (network)
 
 - [x] **T4.1: Add the `mongodb-operator` bundle.**
   - Acceptance: `apps/network/src/mongodb-operator/{Chart.yaml,values.yaml,fleet.yaml}` install
@@ -136,7 +136,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P5 — PerconaServerMongoDB CR + omada user (network)
+## P5—PerconaServerMongoDB CR + omada user (network)
 
 - [x] **T5.1: Replace the mongo chart with the Percona CR (3-member).**
   - Acceptance: `apps/network/src/mongodb/perconaservermongodb.yaml` defines a **3-member** `rs0`
@@ -146,12 +146,12 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
     password). `secrets.users` names the system-users secret. Delete the old chart
     (`Chart.yaml`, `Chart.lock`, `values.yaml`, `charts/mongodb-*.tgz`) and
     `templates/externalsecret-mongodb-credentials.yaml`.
-  - Verify (live): all 3 `rs0` pods `Running`; **kernel-guard validation** — check pod logs for a
+  - Verify (live): all 3 `rs0` pods `Running`; **kernel-guard validation**—check pod logs for a
     SERVER-121912 / kernel-version refusal; if present, change image to `7.0.37-20` and re-apply.
   - Files: `apps/network/src/mongodb/perconaservermongodb.yaml`; delete old mongo chart files.
 
 - [x] **T5.2: ESO Kubernetes SecretStore for the Percona conn-str secret.**
-  - Acceptance: `secretstore-mongodb.yaml` — an ESO **Kubernetes** `SecretStore` (or ClusterSecretStore)
+  - Acceptance: `secretstore-mongodb.yaml`—an ESO **Kubernetes** `SecretStore` (or ClusterSecretStore)
     granting read of `mongodb-custom-user-secret-conn-str` in the mongodb namespace; RBAC for ESO's SA.
     `fleet.yaml` `dependsOn` mongodb-operator, network-targeted.
   - Verify (live): the store reports `Ready`.
@@ -159,12 +159,12 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P6 — Omada wiring
+## `P6`—network controller wiring
 
 - [x] **T6.1: Rewire `mongodb-uri` to the Percona connection string.**
   - Acceptance: `apps/network/src/omada/templates/externalsecret-mongodb-uri.yaml` reads the
     generated connection string via the T5.2 Kubernetes store (key confirmed from the live secret,
-    e.g. `omada_rs0_connectionString`/`…Srv`) and materializes `mongodb-uri` in the `omada`
+    for example `omada_rs0_connectionString`/`…Srv`) and materializes `mongodb-uri` in the `omada`
     namespace. If Omada requires the `omada` database in the path, the ExternalSecret `target.template`
     composes `…/omada?authSource=admin` from the fetched string. Omada `values.yaml`
     `externalMongoDBUrlSecret` unchanged (name `mongodb-uri`, key `uri`).
@@ -174,10 +174,10 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P7 — Terranetes teardown (network)
+## `P7`—legacy infrastructure controller teardown (network)
 
 - [x] **T7.1: Remove Terranetes config + scripts from the network cluster.**
-  - DONE + extended: per user direction, terranetes was removed ENTIRELY — the
+  - DONE + extended: per user direction, terranetes was removed ENTIRELY—the
     `platform-terranetes` bundle (`apps/platform/src/terranetes`), the vendored
     `terranetes-controller` chart (+ vendir entry/lock), and the local amd64
     `appvia/terranetes-{controller,executor}:v0.5.7` docker images were all deleted, and
@@ -197,7 +197,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
   - Verify: `shellcheck` clean; dry idempotent re-run is a no-op.
   - Files: `apps/network/scripts/apply.sh`.
   - SUPERSEDED (per user direction): the script layout now mirrors `apps/secret` more closely.
-    `bootstrap.sh` was renamed to `tailscale_auth.sh` and reduced to its ONE job — seed the
+    `bootstrap.sh` was renamed to `tailscale_auth.sh` and reduced to its ONE job—seed the
     Tailscale operator OAuth client (`operator-oauth`) from the secret cluster's OpenBao
     (`VAULT_TOKEN` from `.env`); it no longer seeds the Crossplane `api_key`. A `tailscale_auth`
     moon task was added, and `start.sh` now runs `tailscale_auth` **before** `apply` (end-to-end
@@ -206,7 +206,7 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P8 — Secret-cluster cleanup
+## P8—secret-cluster cleanup
 
 - [x] **T8.1: Remove the obsolete `network-terranetes` role.**
   - Acceptance: delete `apps/secret/src/openbao-config/role-network-terranetes.yaml`; keep
@@ -224,12 +224,12 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 
 ---
 
-## P9 — Live bring-up & end-to-end validation
+## P9—live bring-up & end-to-end validation
 
 - [ ] **T9.1: Seed the Tailscale API key (one-time).**
-  - Acceptance: an admin-console Tailscale API access token with `policy_file` write is stored at
+  - Acceptance: an administrator console Tailscale API access token with `policy_file` write is stored at
     `kv/network-tailscale-crossplane#api_key` in OpenBao (via `bao kv put` using `VAULT_TOKEN`;
-    the bring-up scripts do not seed it — it persists in OpenBao).
+    the bring-up scripts do not seed it—it persists in OpenBao).
   - Verify: `bao kv get kv/network-tailscale-crossplane` shows `api_key`.
 
 - [ ] **T9.2: Recreate the cluster and apply.**
@@ -251,17 +251,17 @@ P0 vendor charts ─┬─► P1 crossplane ─► P2 provider ─► P3 Provide
 ## Risks & mitigations
 
 - **upjet `ACL` create may replace the whole policy.** Mitigation: `deletionPolicy: Orphan` +
-  `overwriteExistingContent: true`; author byte-equivalent HuJSON; diff the admin-console policy
+  `overwriteExistingContent: true`; author byte-equivalent HuJSON; diff the administrator console policy
   before/after the first apply (P3 checkpoint). Because the content is unchanged, a replace is a no-op.
 - **Chicken-and-egg on first apply.** ESO needs OpenBao to sync both `operator-oauth` and the
   `api_key`; OpenBao reachability depends on the tailnet ACL-A grant, which is **already live** from
   the prior Terranetes state. `tailscale_auth.sh` seeds `operator-oauth` out-of-band to start the
   operator/egress; then ESO + Crossplane converge. If the tailnet policy were ever lost, re-seed via
-  the admin console (documented — there is no longer a `network:configure`).
+  the administrator console (documented—there is no longer a `network:configure`).
 - **PSMDB 8.0.26 kernel guard on OrbStack/vind.** Validated in T5.1; documented fallback `7.0.37-20`.
 - **Custom-user connection-string secret keys differ from docs.** Confirm exact keys from the live
   secret in T6.1 before finalizing the ExternalSecret; template the DB path if required.
 - **Fleet atomic-release ordering.** ProviderConfig/ACL and the PSMDB CR live in bundles that
-  `dependsOn` their operator/provider bundles (CRDs must exist first) — mirrors the secret cluster.
-- **Tailscale API key expiry (≤90d).** Accepted; reseed via `bao kv put`. (Rotation automation is
-  out of scope — SPEC Open Question #4.)
+  `dependsOn` their operator/provider bundles (CRDs must exist first)—mirrors the secret cluster.
+- **Tailscale API key expiry (≤90 d).** Accepted; reseed via `bao kv put`. (Rotation automation is
+  out of scope—SPEC Open Question #4.)

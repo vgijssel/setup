@@ -36,7 +36,7 @@ def valid_token(token_manager):
 
 @pytest.fixture
 def test_app(token_manager):
-    """Create a test FastMCP-like application."""
+    """Create a test FastMCP-like app."""
 
     async def list_agents(request: Request):
         """Simulated MCP tool endpoint."""
@@ -119,7 +119,7 @@ class TestIntegration:
         """Test that malformed Authorization header returns 401."""
         client = TestClient(test_app)
 
-        # Test case 1: Missing "Bearer" prefix
+        # Test case 1: missing "Bearer" prefix
         response = client.get(
             "/mcp/list_agents",
             headers={"Authorization": valid_token},
@@ -128,7 +128,7 @@ class TestIntegration:
         data = response.json()
         assert data["error"] == AuthErrorCode.MALFORMED_HEADER.value
 
-        # Test case 2: Wrong authentication scheme
+        # Test case 2: wrong authentication scheme
         response = client.get(
             "/mcp/list_agents",
             headers={"Authorization": f"Basic {valid_token}"},
@@ -137,7 +137,7 @@ class TestIntegration:
         data = response.json()
         assert data["error"] == AuthErrorCode.MALFORMED_HEADER.value
 
-        # Test case 3: Empty Authorization header
+        # Test case 3: empty Authorization header
         response = client.get(
             "/mcp/list_agents",
             headers={"Authorization": ""},
@@ -154,7 +154,7 @@ class TestConfiguration:
         """Test that token is created during startup, not on first request.
 
         This test simulates the expected behavior in __main__.py:
-        When AUTH_ENABLED=true, the token should be created immediately
+        when AUTH_ENABLED=true, the token should be created immediately
         during server startup, not lazily on first authenticated request.
         """
         # Simulate what happens in __main__.py when AUTH_ENABLED=true
@@ -179,7 +179,7 @@ class TestConfiguration:
         )
 
     def test_auth_disabled_by_default(self, token_manager):
-        """Test that authentication is disabled by default."""
+        """Test that authentication is turned off by default."""
 
         async def list_agents(request: Request):
             """Simulated MCP tool endpoint."""

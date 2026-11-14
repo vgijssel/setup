@@ -39,10 +39,10 @@ class AgentListView(BaseModel):
         """Create an AgentListView from an Agent domain model.
 
         Args:
-            agent: Agent domain model
+            agent: agent domain model
 
         Returns:
-            AgentListView with workspace_id and updated_at excluded,
+            `AgentListView` with workspace_id and updated_at excluded,
             and metadata filtered to include_in_list=true fields only
         """
         # Filter metadata for list view

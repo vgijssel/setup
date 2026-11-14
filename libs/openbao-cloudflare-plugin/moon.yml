@@ -23,7 +23,7 @@ tasks:
       runFromWorkspaceRoot: false
       runInCI: false
 
-  # Print the per-architecture sha256 of the binary in the published image — the value
+  # Print the per-architecture sha256 of the binary in the published image—the value
   # apps/secret/src/openbao-config/values.yaml pins as plugins.cloudflare.sha256, and which
   # OpenBao requires. Normally invoked via bin/openbao-plugin-pin from CI; pass
   # ARCH=amd64 only if the target cluster is amd64 (both vind clusters are arm64).

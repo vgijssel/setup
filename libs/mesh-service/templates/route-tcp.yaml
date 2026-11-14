@@ -1,6 +1,6 @@
 {{- include "mesh-service.validate" . -}}
 {{/*
-TCPRoute per raw TCP listener — one per port, since a declared port range expands to one
+TCPRoute per raw TCP listener—one per port, since a declared port range expands to one
 listener each.
 
 This kind is why the chart exists in this shape. The BYOP reverse proxy it replaces could not
@@ -9,7 +9,7 @@ carry L4 at all: `mode=tcp` services silently never bind on reverse-proxy 0.72.x
 TCPRoute reached Standard in Gateway API v1.6, bundled with Envoy Gateway 1.9.2.
 
 There is no hostname on an L4 route: the port and the peer's overlay address are the whole
-address. That is exactly why each service needs its OWN peer — sharing one would put every
+address. That is exactly why each service needs its OWN peer—sharing one would put every
 service's raw ports in one namespace and bring the arbitration back.
 */}}
 {{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}

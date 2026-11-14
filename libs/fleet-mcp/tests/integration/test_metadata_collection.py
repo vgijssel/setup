@@ -1,6 +1,6 @@
 """Integration tests for metadata collection flow.
 
-TDD Approach: These tests verify the end-to-end metadata collection flow.
+TDD Approach: these tests verify the end-to-end metadata collection flow.
 Written FIRST before implementation.
 """
 

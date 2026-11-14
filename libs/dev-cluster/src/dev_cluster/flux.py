@@ -6,7 +6,7 @@ import sys
 
 
 def check_flux_installed() -> bool:
-    """Check if flux CLI is installed."""
+    """Check if flux command-line tool is installed."""
     try:
         result = subprocess.run(
             ["flux", "version", "--client"],
@@ -30,15 +30,15 @@ def bootstrap_flux(
     """Install Flux and create GitRepository and Kustomization resources.
 
     Args:
-        cluster_context: Kubectl context for the cluster
-        cluster_name: Name of the cluster
-        repo_url: Git repository URL
-        branch: Git branch to use
-        path: Path in repo
-        verbose: Enable verbose output
+        cluster_context: the kubectl context for the cluster
+        cluster_name: name of the cluster
+        repo_url: the Git repository URL
+        branch: the Git branch to use
+        path: path in repo
+        verbose: enable verbose output
 
     Raises:
-        RuntimeError: If Flux installation fails
+        `RuntimeError`: if Flux installation fails
     """
     full_path = os.path.join(os.environ["SETUP_DIR"], path)
 
@@ -47,7 +47,7 @@ def bootstrap_flux(
 
     path = os.path.join("/", path)
 
-    # Step 1: Install Flux
+    # Step 1: install Flux
     install_cmd = [
         "flux",
         "install",
@@ -67,7 +67,7 @@ def bootstrap_flux(
             print(result.stderr, file=sys.stderr)
         raise RuntimeError("Failed to install Flux")
 
-    # Step 2: Create GitRepository source
+    # Step 2: create GitRepository source
     git_source_cmd = [
         "flux",
         "create",
@@ -93,7 +93,7 @@ def bootstrap_flux(
             print(result.stderr, file=sys.stderr)
         raise RuntimeError("Failed to create Flux GitRepository source")
 
-    # Step 3: Create Kustomization
+    # Step 3: create Kustomization
     kustomization_cmd = [
         "flux",
         "create",
@@ -127,11 +127,11 @@ def suspend_flux_reconciliation(
     """Suspend Flux reconciliation.
 
     Args:
-        cluster_context: Kubectl context for the cluster
-        verbose: Enable verbose output
+        cluster_context: the kubectl context for the cluster
+        verbose: enable verbose output
 
     Raises:
-        RuntimeError: If suspension fails
+        `RuntimeError`: if suspension fails
     """
     # Suspend git source
     result = subprocess.run(
@@ -193,16 +193,16 @@ def wait_for_flux_ready(
     - All HelmReleases to be ready
 
     Args:
-        cluster_context: Kubectl context for the cluster
-        timeout: Timeout in seconds (default 30 minutes)
-        verbose: Enable verbose output
+        cluster_context: the kubectl context for the cluster
+        timeout: timeout in seconds (default 30 minutes)
+        verbose: enable verbose output
 
     Returns:
-        True if Flux is ready, False if timeout
+        `True` if Flux is ready, False if timeout
     """
     timeout_str = f"{timeout}s"
 
-    # Step 1: Wait for Flux deployments to be ready
+    # Step 1: wait for Flux deployments to be ready
     if verbose:
         print("Waiting for Flux system deployments...")
     result = subprocess.run(
@@ -228,7 +228,7 @@ def wait_for_flux_ready(
             print(result.stderr, file=sys.stderr)
         return False
 
-    # Step 2: Wait for GitRepository sources to be ready
+    # Step 2: wait for GitRepository sources to be ready
     if verbose:
         print("Waiting for GitRepository sources...")
     result = subprocess.run(
@@ -253,7 +253,7 @@ def wait_for_flux_ready(
             print(result.stderr, file=sys.stderr)
         return False
 
-    # Step 3: Wait for Kustomizations to be ready
+    # Step 3: wait for Kustomizations to be ready
     if verbose:
         print("Waiting for Kustomizations...")
     result = subprocess.run(
@@ -278,7 +278,7 @@ def wait_for_flux_ready(
             print(result.stderr, file=sys.stderr)
         return False
 
-    # Step 4: Wait for HelmReleases to be ready
+    # Step 4: wait for HelmReleases to be ready
     if verbose:
         print("Waiting for HelmReleases...")
     result = subprocess.run(

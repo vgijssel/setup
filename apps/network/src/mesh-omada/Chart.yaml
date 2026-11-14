@@ -1,5 +1,5 @@
 # Thin per-service bundle: publishes the Omada controller into the NetBird mesh as
-# `omada.vpn.blueora.ng` — the HTTPS admin UI plus its raw TCP and UDP device ports, all on one
+# `omada.vpn.blueora.ng`—the HTTPS administrator UI plus its raw TCP and UDP device ports, all on one
 # peer that owns its whole port space.
 #
 # This is the exposure the old stacks could not produce between them: the BYOP reverse proxy
@@ -13,7 +13,7 @@
 # used to serve them under a second name.
 #
 # ONE single-level `file://` dependency, never a nested umbrella: `.gitignore` ignores
-# `apps/**/charts/`, and `bin/fleet-apply` builds only the TOP-LEVEL bundle chart — helm does not
+# `apps/**/charts/`, and `bin/fleet-apply` builds only the TOP-LEVEL bundle chart—helm does not
 # recurse into a subchart's own `file://` deps, so a wrapped subchart would silently vanish.
 #
 # Chart.lock + charts/*.tgz are gitignored under apps/network/src (Fleet builds the dep at apply

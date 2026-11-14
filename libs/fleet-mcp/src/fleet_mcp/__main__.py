@@ -132,7 +132,7 @@ def get_task_service() -> TaskService:
 
 
 # ========================================================================
-# User Story 1: Agent Discovery Tools
+# User story 1: agent discovery tools
 # ========================================================================
 
 
@@ -201,7 +201,7 @@ async def list_agent_roles(
 
 
 # ========================================================================
-# User Story 2: Agent Lifecycle Management Tools
+# User story 2: agent lifecycle management tools
 # ========================================================================
 
 
@@ -259,7 +259,7 @@ async def restart_agent(
 
 
 # ========================================================================
-# User Story 3: Task Assignment and Cancellation Tools
+# User story 3: task assignment and cancellation tools
 # ========================================================================
 
 
@@ -309,7 +309,7 @@ async def cancel_agent_task(
 
 
 # ========================================================================
-# User Story 4: Task History and Logs
+# User story 4: task history and logs
 # ========================================================================
 
 
@@ -342,7 +342,7 @@ async def show_agent_log(
 
 
 # ========================================================================
-# Health Check (Custom HTTP Route)
+# Health check (custom web route)
 # ========================================================================
 
 
@@ -425,7 +425,7 @@ async def get_workspace_metadata(request):
 
 
 # ========================================================================
-# Authentication Configuration
+# Authentication configuration
 # ========================================================================
 
 # Get auth configuration from environment
@@ -448,7 +448,7 @@ if AUTH_ENABLED:
     _token_manager.get_or_create_token()
     logger.info("Authentication token initialized")
 
-# Create the ASGI application for stateless HTTP mode (uvicorn)
+# Create the ASGI app for stateless HTTP mode (uvicorn)
 app = mcp.http_app(stateless_http=True)
 
 # Wrap with authentication middleware

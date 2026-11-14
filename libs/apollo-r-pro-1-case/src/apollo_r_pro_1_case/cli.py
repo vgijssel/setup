@@ -13,7 +13,7 @@ from .params import DEFAULTS, CaseParams
 
 STEM = "apollo-r-pro-1-ceiling-case"
 
-#: Mesh tolerances. 0.02 mm deflection keeps the R2 corners and the rounded vent
+#: mesh tolerances. 0.02 mm deflection keeps the R2 corners and the rounded vent
 #: ends smooth without inflating the file the way the stock dimpled STL does.
 LINEAR_TOLERANCE = 0.02
 ANGULAR_TOLERANCE = 0.1

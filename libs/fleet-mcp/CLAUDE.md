@@ -1,10 +1,10 @@
-# Fleet MCP Development Guide
+# Development guide for `fleet-mcp`
 
-## Development Environment
+## Development environment
 
 When developing fleet-mcp inside a Coder workspace, the fleet-mcp server runs under `supervisorctl` for process management.
 
-### Using Supervisorctl
+### Using supervisorctl
 
 **Check service status:**
 ```bash
@@ -31,7 +31,7 @@ supervisorctl stop fleet-mcp
 supervisorctl start fleet-mcp
 ```
 
-### After Making Code Changes
+### After making code changes
 
 When you modify the fleet-mcp source code:
 
@@ -41,7 +41,7 @@ When you modify the fleet-mcp source code:
    supervisorctl restart fleet-mcp
    ```
 
-### Checking Logs
+### Checking logs
 
 To monitor the fleet-mcp service in real-time:
 ```bash
@@ -53,7 +53,7 @@ To see the full log output:
 supervisorctl tail fleet-mcp
 ```
 
-## Environment Variables
+## Environment variables
 
 ### FLEET_MCP_TASKFILE
 

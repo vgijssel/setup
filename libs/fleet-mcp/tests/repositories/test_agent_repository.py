@@ -95,7 +95,7 @@ class TestAgentRepositoryListAll:
         """Test listing agents when list contains None workspaces.
 
         This can happen when the Coder API returns a workspace list where
-        some workspaces are None (e.g., during certain race conditions or
+        some workspaces are None (for example, during certain race conditions or
         after agent creation).
         """
         # Mock workspace data with None in the list
@@ -138,7 +138,7 @@ class TestAgentRepositoryListAll:
         """Test listing agents when workspace has None latest_build.
 
         This can happen when the Coder API returns a workspace where
-        latest_build is None instead of missing (e.g., during workspace creation).
+        latest_build is None instead of missing (for example, during workspace creation).
         The bug manifests as: 'NoneType' object has no attribute 'get'
         """
         # Mock workspace data with latest_build = None
@@ -207,7 +207,7 @@ class TestAgentRepositoryGetByName:
         """Test getting agent by name when list contains None workspaces.
 
         This can happen when the Coder API returns a workspace list where
-        some workspaces are None (e.g., during race conditions after agent creation).
+        some workspaces are None (for example, during race conditions after agent creation).
         The bug manifests as: 'NoneType' object has no attribute 'get'
         """
         mock_workspace = {
@@ -238,7 +238,7 @@ class TestAgentRepositoryGetByName:
     ):
         """Test getting agent by name with case insensitive lookup - uppercase.
 
-        When an agent is created with name "WorkspaceStates", it should be
+        When an agent is created with name `WorkspaceStates`, it should be
         retrievable with "WORKSPACESTATES" (all uppercase).
         This is because the Coder API backend is case insensitive.
         """
@@ -258,7 +258,7 @@ class TestAgentRepositoryGetByName:
         # Try to get agent with uppercase name
         agent = await agent_repo.get_by_name("WORKSPACESTATES")
 
-        # Verify we found the agent
+        # Verify the agent was found
         assert isinstance(agent, Agent)
         assert agent.name == "WorkspaceStates"
         assert agent.workspace_id == "ws-1"
@@ -268,7 +268,7 @@ class TestAgentRepositoryGetByName:
     ):
         """Test getting agent by name with case insensitive lookup - lowercase.
 
-        When an agent is created with name "WorkspaceStates", it should be
+        When an agent is created with name `WorkspaceStates`, it should be
         retrievable with "workspacestates" (all lowercase).
         This is because the Coder API backend is case insensitive.
         """
@@ -288,7 +288,7 @@ class TestAgentRepositoryGetByName:
         # Try to get agent with lowercase name
         agent = await agent_repo.get_by_name("workspacestates")
 
-        # Verify we found the agent
+        # Verify the agent was found
         assert isinstance(agent, Agent)
         assert agent.name == "WorkspaceStates"
         assert agent.workspace_id == "ws-1"
@@ -298,7 +298,7 @@ class TestAgentRepositoryGetByName:
     ):
         """Test getting agent by name with case insensitive lookup - mixed case.
 
-        When an agent is created with name "WorkspaceStates", it should be
+        When an agent is created with name `WorkspaceStates`, it should be
         retrievable with "workspaceSTATES" (mixed case).
         This is because the Coder API backend is case insensitive.
         """
@@ -318,7 +318,7 @@ class TestAgentRepositoryGetByName:
         # Try to get agent with mixed case name
         agent = await agent_repo.get_by_name("workspaceSTATES")
 
-        # Verify we found the agent
+        # Verify the agent was found
         assert isinstance(agent, Agent)
         assert agent.name == "WorkspaceStates"
         assert agent.workspace_id == "ws-1"
@@ -415,8 +415,8 @@ class TestAgentRepositoryTemplateDisplayNameMapping:
         """Test that _workspace_to_agent maps template_display_name to agent.project.
 
         This is critical because:
-        - template.name is the technical identifier (e.g., "coder-devcontainer")
-        - template.display_name is the user-facing name (e.g., "Setup")
+        - template.name is the technical identifier (for example, "coder-devcontainer")
+        - template.display_name is the user-facing name (for example, "Setup")
         - Per data-model.md:134-140, agent.project should show "Setup" not "coder-devcontainer"
         """
         # Mock workspace data with BOTH template_name and template_display_name
@@ -998,7 +998,7 @@ class TestAgentRepositoryHealthChecking:
     ):
         """Test workspace status 'running' with resources but no agents maps to STARTING.
 
-        Regression test: This is the bug we're fixing. Workspace with resources
+        Regression test: this reproduces the bug. Workspace with resources
         but empty agents array should be considered unhealthy and marked as STARTING.
         """
         mock_workspace = {

@@ -1,11 +1,11 @@
 {{- include "mesh-service.validate" . -}}
 {{/*
 TLSRoute per TLS (passthrough) listener. Envoy routes on SNI alone and forwards the encrypted
-stream, so the backend terminates and presents its OWN certificate — this chart's certificate is
+stream, so the backend terminates and presents its OWN certificate—this chart's certificate is
 not used on a passthrough listener.
 
 Use this only where the backend must own the TLS session end to end. For the normal case prefer
-HTTPS: terminating here is what gives the service a publicly-trusted certificate for its mesh
+HTTPS: terminating here is what gives the service a publicly trusted certificate for its mesh
 name without the backend having to know that name exists.
 */}}
 {{- $listeners := include "mesh-service.listeners" . | fromYamlArray }}

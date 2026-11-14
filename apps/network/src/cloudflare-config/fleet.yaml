@@ -4,14 +4,14 @@
 # The bundle NAME is now a misnomer and is kept on purpose. It used to own the Cloudflare
 # reverse-proxy DNS: a `*.vgijssel.nl` CNAME, the `vgijssel.nl` NetBird reverse-proxy domain
 # registration and the PiKVM private service. All three went with the BYOP reverse proxy
-# (mesh exposure replaced it — see libs/mesh-service), and the Cloudflare credential
+# (mesh exposure replaced it—see libs/mesh-service), and the Cloudflare credential
 # they needed went with them; nothing here touches Cloudflare any more. Renaming the directory
 # would rename the Fleet bundle, which prunes and re-creates the `default` ProviderConfig that
-# EVERY Workspace on this cluster references (../mesh-omada, ../mesh-jwks) — a self-inflicted
+# EVERY Workspace on this cluster references (../mesh-omada, ../mesh-jwks)—a self-inflicted
 # outage window for a cosmetic gain, so the name stays.
 #
 # dependsOn crossplane-provider (label selector): the opentofu.upbound.io CRDs (ProviderConfig,
-# Workspace) are registered by the provider, so it must be installed before these CRs apply —
+# Workspace) are registered by the provider, so it must be installed before these CRs apply—
 # else the atomic Helm release fails on unknown CRDs. (Same split/ordering as secret's
 # openbao-config -> crossplane-provider.)
 dependsOn:
@@ -33,7 +33,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

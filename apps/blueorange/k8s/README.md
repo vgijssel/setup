@@ -1,6 +1,6 @@
-# Blue Orange Kubernetes Deployment
+# Kubernetes deployment
 
-This directory contains Kubernetes manifests for deploying the Blue Orange application with Cloudflare Tunnel.
+This directory contains Kubernetes manifests for deploying the Blue Orange app with Cloudflare Tunnel.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ This directory contains Kubernetes manifests for deploying the Blue Orange appli
 
 ## Setup
 
-### 1. Create Cloudflare Tunnel Token Secret
+### 1. Create Cloudflare tunnel token secret
 
 First, obtain your tunnel token from Cloudflare Zero Trust dashboard, then create the secret:
 
@@ -27,7 +27,7 @@ kubectl create secret generic tunnel-token \
 3. Create a new tunnel or select an existing one
 4. Copy the tunnel token (starts with `eyJ...`)
 
-### 2. Deploy with Kustomize (Recommended)
+### 2. Deploy with Kustomize (recommended)
 
 Deploy all resources in the correct order using kustomize:
 
@@ -35,13 +35,13 @@ Deploy all resources in the correct order using kustomize:
 kubectl apply -k k8s/
 ```
 
-Or preview what will be applied:
+Or preview what gets applied:
 
 ```bash
 kubectl kustomize k8s/
 ```
 
-### Alternative: Apply Manually
+### Alternative—apply manually
 
 If you prefer to apply manifests individually without kustomize:
 
@@ -52,7 +52,7 @@ kubectl apply -f k8s/deployment-blueorange.yaml
 kubectl apply -f k8s/deployment-cloudflared.yaml
 ```
 
-## Verify Deployment
+## Verify deployment
 
 Check that all pods are running:
 
@@ -75,7 +75,7 @@ kubectl logs -n blueorange -l app=cloudflared -f
 
 ## Architecture
 
-- **blueorange deployment**: Runs 2 replicas of the nginx container serving the built application
+- **blueorange deployment**: Runs 2 replicas of the nginx container serving the built app
 - **blueorange service**: ClusterIP service exposing port 80
 - **cloudflared deployment**: Runs 2 replicas of cloudflared tunnel connector using tunnel token
 - **tunnel-token secret**: Contains the Cloudflare tunnel token for authentication

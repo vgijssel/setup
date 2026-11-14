@@ -1,13 +1,13 @@
 # Portable Fleet bundle for the Omada controller. Fleet detects the umbrella
 # Chart.yaml here and deploys it with values.yaml, plus the sibling manifests in templates/
-# (three VaultStaticSecrets — mongodb-uri, controller TLS, backup S3 — and the backup CronJob).
+# (three VaultStaticSecrets—mongodb-uri, controller TLS, backup S3—and the backup CronJob).
 # Owns the `omada` namespace.
 #
 # dependsOn the mongodb bundle so the database is up before Omada connects. The pod also needs
 # the mongodb-uri + TLS Secrets (VSO) before it is fully Ready. Fleet error-and-retries during
 # bootstrap until the DB + secrets exist, which is expected.
 #
-# THIS BUNDLE OWNS NO EXPOSURE AT ALL — it runs the controller and the omada-controller chart's
+# THIS BUNDLE OWNS NO EXPOSURE AT ALL—it runs the controller and the omada-controller chart's
 # ordinary dynamic ClusterIP Service, nothing more. Every consumer without exception (humans,
 # on-mesh tooling, and the physical gateway/switches/APs) reaches it at `omada.vpn.blueora.ng`
 # via ../mesh-omada, which owns its own NetBird peer, its own port space and the public A record
@@ -15,7 +15,7 @@
 #
 # Until 2026-10-07 this bundle also owned a SECOND, device-only path: a hand-written Service
 # pinning `clusterIP: 10.96.0.20`, a device `NBResource` advertising that /32, a CoreDNS split
-# horizon and an `omada.blueora.ng` certificate. All of it is deleted — the fleet was migrated
+# horizon and an `omada.blueora.ng` certificate. All of it is deleted—the fleet was migrated
 # onto the mesh hostname (openspec `netbird-peer-mesh-envoy-gateway` group 12) and the machinery
 # that existed only to give one class of consumer a second name went with it. There is no
 # LoadBalancer/VIP dependency and no pinned ClusterIP.
@@ -32,7 +32,7 @@ dependsOn:
       matchLabels:
         fleet.vgijssel.nl/bundle: network-mongodb
 # network-ONLY. bin/fleet-apply applies every bundle globally, so target the network
-# cluster explicitly (previously scoped only by network:apply's static list) — this
+# cluster explicitly (previously scoped only by network:apply's static list)—this
 # keeps the bundle off the secret cluster.
 targetCustomizations:
   - name: network
@@ -41,7 +41,7 @@ targetCustomizations:
         cluster.vgijssel.nl/name: network
   # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
   # after these, so without this a non-matching cluster falls through to it and deploys with
-  # default values. Keeps this bundle off every cluster not named above. See bin/fleet-lint-targets.
+  # default values. Keeps this bundle off every cluster not named earlier. See bin/fleet-lint-targets.
   - name: none
     doNotDeploy: true
     clusterSelector: {}

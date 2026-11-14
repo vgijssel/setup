@@ -36,24 +36,24 @@ prompt:
 
 # Behavior
 behavior:
-  # Namespace validation and switching behavior.  Set to "false" if you do not have
+  # Namespace validation and switching behavior. Set to "false" if you do not have
   # the right to list namespaces.
   # Valid values:
   #   true:    Make sure the namespace exists with `kubectl get namespaces`.
   #   false:   Switch namespaces without validation.
-  #   partial: Check for partial matches when running `kubie ns <namespace>`
+  #   partial: check for partial matches when running `kubie ns <namespace>`
   #            and no exact match is found:
   #              - if exactly one namespace partially matches, switch to that namespace
   #              - if multiple namespaces partially match, select from those
   # Default: true
   validate_namespaces: true
 
-  # Enable or disable the printing of the 'CONTEXT => ...' headers when running
+  # Enable or turn off the printing of the `CONTEXT => ...` headers when running
   # `kubie exec`.
   # Valid values:
   #   auto:   Prints context headers only if stdout is a TTY. Piping/redirecting
-  #           kubie output will auto-disable context headers.
-  #   always: Always prints context headers, even if stdout is not a TTY.
+  #           kubie output automatically turns off context headers.
+  #   always: always prints context headers, even if stdout is not a TTY.
   #   never:  Never prints context headers.
   # Default: auto
   print_context_in_exec: auto

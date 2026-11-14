@@ -8,19 +8,19 @@ declared. Enrolment in the account grants nothing by itself.
 ║                                                                                           ║
 ║ It was an NBPolicy. On operator v0.7.0 that resource CREATES NOTHING ON ITS OWN, and says ║
 ║ nothing about it: the CR reported `Ready=True` while the account had no such policy, and   ║
-║ the only trace was one line per reconcile in the operator log —                            ║
+║ the only trace was one line per reconcile in the operator log—║
 ║   `NBPolicy  0 ports found for protocol in policy  {"protocol": "tcp"}`                    ║
-║ — emitted even though the CR carried `ports: [443]` and `protocols: [tcp]`.                ║
+║—emitted even though the CR carried `ports: [443]` and `protocols: [tcp]`.                ║
 ║                                                                                           ║
 ║ The reason is in the CRDs: `NBResource` has `policyName`, `policySourceGroups`, `tcpPorts` ║
-║ and `udpPorts`. `NBPolicy` is an AGGREGATOR, not a declaration — it collects its ports     ║
+║ and `udpPorts`. `NBPolicy` is an AGGREGATOR, not a declaration—it collects its ports     ║
 ║ from the NBResources that name it and renders one account policy per protocol from those.  ║
 ║ With no NBResource pointing at it there are no ports, nothing to create, and it calls that ║
 ║ success. This chart deliberately has no NBResource (that is the exposure path it replaces),║
 ║ so the CR can never do anything here.                                                      ║
 ║                                                                                           ║
 ║ Measured consequence while it was an NBPolicy: the only thing granting access was the      ║
-║ account's built-in `Default` policy — All <-> All, protocol `all`, bidirectional — so every ║
+║ account's built-in `Default` policy—All <-> All, protocol `all`, bidirectional—so every ║
 ║ peer in the account could reach every port of the exposure, including OpenBao's.            ║
 ║                                                                                           ║
 ║ Do NOT "simplify" this back to an NBPolicy without first checking that the operator has    ║
@@ -32,26 +32,28 @@ The ports are DERIVED from `listeners`, never restated. That is what makes the s
 "undeclared port is not reachable" true by construction instead of true as long as someone
 remembers to keep two lists in sync when they add a listener.
 
-ONE POLICY PER PROTOCOL — and this is a provider constraint, not a style choice. A single rule
+ONE POLICY PER PROTOCOL—and this is a provider constraint, not a style choice. A single rule
 carrying both protocols and all ports would open the CROSS PRODUCT: a service with HTTPS on 443
 plus UDP on 29810 would also admit UDP/443 and TCP/29810, neither of which was declared. The
 obvious fix is two `rule` blocks in one policy, and the provider REFUSES it:
 
+  ```text
   Invalid Attribute Value ... Attribute rule list must contain at least 1 elements and at most
   1 elements, got: 2
+  ```
 
-(Hit live on `mesh-omada`, the first mixed-protocol service — `mesh-openbao` is HTTPS-only and
-passed, so a single-protocol service will never surface this.) So each protocol gets its own
+(Hit live on `mesh-omada`, the first mixed-protocol service—`mesh-openbao` is HTTPS-only and
+passed, so a single-protocol service never surfaces this.) So each protocol gets its own
 `netbird_policy` with its single rule, which is also exactly what the NBPolicy CR had to do.
 An HTTPS-only service therefore renders exactly one policy: tcp/443.
 
-bidirectional = false — this authorises sources to reach the service, not the service to reach
+bidirectional = false—this authorises sources to reach the service, not the service to reach
 back into them. The Envoy pod originates nothing on the overlay; it only answers.
 
 Groups are resolved by NAME through data sources because `netbird_policy` takes group IDs, and
 the ids are assigned by NetBird. The destination group is the `Group` CR this chart renders
 alongside (group-mesh-service.yaml), so on a first apply this Workspace may fail until the
-operator has created it — Crossplane retries, and that is the intended ordering, not a defect.
+operator has created it—Crossplane retries, and that is the intended ordering, not a defect.
 
 State lives in the shared kubernetes backend, keyed per-workspace. Name is `mesh-<name>-policy`
 because Workspace is CLUSTER-scoped: it has to be unique across every bundle on the cluster, not

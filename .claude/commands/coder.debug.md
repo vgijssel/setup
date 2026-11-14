@@ -4,7 +4,7 @@ description: Debug a Coder workspace by analyzing logs and Kubernetes state to i
 argument-hint: [workspace ID]
 ---
 
-# Coder Workspace Debugger
+# Coder workspace debugger
 
 Debug a Coder workspace by analyzing logs and Kubernetes state to identify root causes and solutions.
 
@@ -16,7 +16,7 @@ Investigate why the Coder workspace "$ARGUMENTS" is experiencing problems. Perfo
 
 <investigation_steps>
 
-## Step 1: Validate Workspace Exists
+## Step 1: validate workspace exists
 
 First, verify the workspace exists and get its current status:
 
@@ -26,9 +26,9 @@ coder list | grep -E "(Name|$ARGUMENTS)"
 
 If the workspace doesn't exist, report this and stop.
 
-## Step 2: Check Kubernetes Pod State
+## Step 2: check Kubernetes pod state
 
-Identify the pod(s) associated with this workspace in the `coder-workspace` namespace:
+Identify the pods associated with this workspace in the `coder-workspace` namespace:
 
 ```bash
 kubectl get pods -n coder-workspace -o wide | grep -E "(NAME|$ARGUMENTS)"
@@ -60,7 +60,7 @@ Check for events related to the workspace:
 kubectl get events -n coder-workspace --sort-by='.lastTimestamp' | grep -i "$ARGUMENTS" | tail -30
 ```
 
-## Step 4: SSH Log File Discovery
+## Step 4: SSH log file discovery
 
 List available log files in the workspace's /tmp directory:
 
@@ -74,7 +74,7 @@ Also check common log locations:
 coder ssh $ARGUMENTS -- ls -la /var/log/ 2>/dev/null | head -20
 ```
 
-## Step 5: Analyze Startup Script Logs
+## Step 5: analyze startup script logs
 
 Read the Coder startup script log (primary diagnostic source):
 
@@ -82,7 +82,7 @@ Read the Coder startup script log (primary diagnostic source):
 coder ssh $ARGUMENTS -- cat /tmp/coder-startup-script.log 2>/dev/null || echo "Startup script log not found"
 ```
 
-## Step 6: Check Agent Logs
+## Step 6: check agent logs
 
 Read Coder agent logs if available:
 
@@ -90,7 +90,7 @@ Read Coder agent logs if available:
 coder ssh $ARGUMENTS -- cat /tmp/coder-agent.log 2>/dev/null || echo "Agent log not found"
 ```
 
-## Step 7: System State Check
+## Step 7: system state check
 
 Check basic system health inside the workspace:
 
@@ -120,15 +120,15 @@ After gathering all logs and state information, perform a thorough root cause an
 
 <output_format>
 
-## Debug Summary: $ARGUMENTS
+## Debug summary for `$ARGUMENTS`
 
-### Workspace Status
+### Workspace status
 [Current state of the workspace - running, stopped, failed, etc.]
 
-### Problem Description
+### Problem description
 [Concise description of the observed problem]
 
-### Root Cause Analysis
+### Root cause analysis
 
 **Primary Cause**: [Most likely root cause based on evidence]
 
@@ -140,12 +140,12 @@ After gathering all logs and state information, perform a thorough root cause an
 **Contributing Factors**:
 - [Any secondary issues discovered]
 
-### Timeline of Events
+### Timeline of events
 1. [Event 1 with timestamp if available]
 2. [Event 2]
 3. [Current state]
 
-### Solutions (Ranked by Confidence)
+### Solutions (ranked by confidence)
 
 #### 1. [Highest Confidence Solution] - **Confidence: High (80-100%)**
 - **Action**: [Specific steps to resolve]
@@ -162,7 +162,7 @@ After gathering all logs and state information, perform a thorough root cause an
 - **Rationale**: [Why to try this if others fail]
 - **Risk**: [Risks]
 
-### Additional Recommendations
+### Additional recommendations
 - [Any preventive measures]
 - [Monitoring suggestions]
 - [Configuration improvements]

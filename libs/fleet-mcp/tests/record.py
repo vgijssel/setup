@@ -91,14 +91,14 @@ def _redact_secrets(response):
             if secret_value and secret_value in body:
                 body = body.replace(secret_value, f"***{secret_name}_REDACTED***")
 
-        # Use regex to redact any CODER_SESSION_TOKEN values (agent tokens in responses)
+        # Use regular expression to redact any CODER_SESSION_TOKEN values (agent tokens in responses)
         body = re.sub(
             r'"CODER_SESSION_TOKEN":"[^"]*"',
             '"CODER_SESSION_TOKEN":"***CODER_SESSION_TOKEN_REDACTED***"',
             body,
         )
 
-        # Use regex to redact any CODER_AGENT_TOKEN values
+        # Use regular expression to redact any CODER_AGENT_TOKEN values
         body = re.sub(
             r'"CODER_AGENT_TOKEN":"[^"]*"',
             '"CODER_AGENT_TOKEN":"***CODER_AGENT_TOKEN_REDACTED***"',
@@ -225,7 +225,7 @@ async def wait_for_apps_healthy(
                         health = app.get("health", "")
                         app_name = app.get("display_name", app.get("slug", "unknown"))
 
-                        # Skip disabled apps - they will never be healthy
+                        # Skip turned off apps - they cannot become healthy
                         if health == "disabled":
                             continue
 
@@ -276,7 +276,7 @@ async def wait_for_agent_idle(
     """Wait for agent to reach idle status using AgentRepository.
 
     This waits for the workspace to be fully initialized and Claude Code to be idle,
-    which means task history and other metadata will be populated in the workspace response.
+    which means task history and other metadata is populated in the workspace response.
     """
     print(f"⏳ Waiting for agent {agent_name} to be idle...")
     for attempt in range(timeout // 5):
@@ -460,7 +460,7 @@ Test Workspace Name: {TEST_WORKSPACE_NAME}
             logs = await client.get_task_logs(owner_name, workspace_id)
         print(f"✓ Logs: {len(logs)} entries")
 
-        # Skip restart and delete for now - we have the core cassettes we need
+        # Skip restart and delete for now - the required core cassettes are available
         # The task execution triggers builds that conflict with restart
         print("\n⚠️  Skipping restart_workspace_success.yaml (build conflicts)")
         print("⚠️  Skipping delete_workspace_success.yaml (will clean up in finally)")
@@ -496,7 +496,7 @@ Next steps:
                 # Check if workspace still exists
                 try:
                     await client.get_workspace(workspace_id)
-                    # If we get here, workspace exists - delete it
+                    # If execution reaches this point, workspace exists - delete it
                     await client.delete_workspace(workspace_id)
                     print("✓ Cleanup: Workspace deleted")
                     # Wait for deletion to complete

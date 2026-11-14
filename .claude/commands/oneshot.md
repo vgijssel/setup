@@ -25,7 +25,7 @@ After implementing the prompt, follow these steps:
 
 Important notes:
 - Use `git status` and `git diff` to understand what changes were made
-- Create a meaningful branch name that reflects the changes (e.g., `feat/add-feature`, `fix/bug-description`)
+- Create a meaningful branch name that reflects the changes (for example, `feat/add-feature`, `fix/bug-description`)
 - Write a clear commit message following conventional commit format
 - Ensure the PR description explains what was changed and why
 - Keep iterating on CI fixes until all checks pass

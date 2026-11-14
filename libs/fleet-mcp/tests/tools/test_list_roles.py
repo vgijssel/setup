@@ -33,9 +33,9 @@ class TestListAgentRoles:
     ):
         """Test list_agent_roles() returns ListRolesResponse - T056.
 
-        Arrange: Mock service to return roles
-        Act: Call list_agent_roles() with project name
-        Assert: Returns ListRolesResponse with correct structure
+        Arrange: mock service to return roles
+        Act: call list_agent_roles() with project name
+        Assert: returns ListRolesResponse with correct structure
         """
         # Arrange
         project_name = "Setup"
@@ -70,9 +70,9 @@ class TestListAgentRoles:
     async def test_list_agent_roles_delegates_to_service(self, mock_project_service):
         """Test list_agent_roles() calls service.list_roles() - T057.
 
-        Arrange: Mock service to return roles
-        Act: Call list_agent_roles() with project name
-        Assert: Service method was called with correct parameters
+        Arrange: mock service to return roles
+        Act: call list_agent_roles() with project name
+        Assert: service method was called with correct parameters
         """
         # Arrange
         project_name = "DataOne"
@@ -101,9 +101,9 @@ class TestListAgentRoles:
     ):
         """Test list_agent_roles() propagates ValidationError from service - T058.
 
-        Arrange: Mock service to raise ValidationError
-        Act: Call list_agent_roles() with invalid project name
-        Assert: ValidationError is raised
+        Arrange: mock service to raise ValidationError
+        Act: call list_agent_roles() with invalid project name
+        Assert—ValidationError is raised
         """
         # Arrange
         mock_project_service.list_roles.side_effect = ValidationError(
@@ -121,8 +121,8 @@ class TestListAgentRoles:
     async def test_list_agent_roles_calculates_total_count(self, mock_project_service):
         """Test list_agent_roles() correctly counts roles.
 
-        Arrange: Mock service to return varying numbers of roles
-        Act: Call list_agent_roles()
+        Arrange: mock service to return varying numbers of roles
+        Act: call list_agent_roles()
         Assert: total_count matches number of roles
         """
         # Arrange - empty list

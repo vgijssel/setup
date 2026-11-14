@@ -1,4 +1,4 @@
-"""NetBird client state, read from the ``netbird`` CLI as pyinfra facts.
+"""NetBird client state, read from the ``netbird`` command-line tool as pyinfra facts.
 
 Each fact is guarded by ``requires_command('netbird')`` so a host without NetBird
 installed returns the fact's default silently (rather than erroring), letting change
@@ -41,7 +41,7 @@ class NetbirdConnected(FactBase[bool]):
 
     def command(self) -> str:
         # `netbird status` exits non-zero when the daemon is down; keep the fact truthy
-        # so `process` still runs and reports "not connected".
+        # so `process` still runs and reports `not connected`.
         return "netbird status 2>/dev/null || true"
 
     def process(self, output: list[str]) -> bool:
@@ -52,7 +52,7 @@ class NetbirdDnsDisabled(FactBase[bool]):
     """``True`` when NetBird's persisted config has ``DisableDNS: true``.
 
     Drives the DNS-enable reconcile. Returns ``False`` before registration (the config
-    file does not exist yet), matching "DNS not disabled".
+    file does not exist yet), matching `DNS not disabled`.
     """
 
     default = bool  # bool() -> False
@@ -74,7 +74,7 @@ class NetbirdServerSshAllowed(FactBase[bool]):
     """``True`` when NetBird's persisted config has ``ServerSSHAllowed: true``.
 
     Drives the SSH-server-enable reconcile. Returns ``False`` before registration (the
-    config file does not exist yet), matching "SSH server not allowed".
+    config file does not exist yet), matching `SSH server not allowed`.
     """
 
     default = bool  # bool() -> False
@@ -96,7 +96,7 @@ class NetbirdSshRootEnabled(FactBase[bool]):
     """``True`` when NetBird's persisted config has ``EnableSSHRoot: true``.
 
     Drives the SSH-root-enable reconcile. Returns ``False`` before registration (the
-    config file does not exist yet), matching "root login not enabled".
+    config file does not exist yet), matching `root login not enabled`.
     """
 
     default = bool  # bool() -> False
@@ -121,7 +121,7 @@ class NetbirdSshSftpEnabled(FactBase[bool]):
     default, so ``pyinfra``'s ``files.put`` (an SFTP upload) fails with "Unable to
     establish SFTP connection" whenever management runs OVER the NetBird SSH server and a
     file actually needs transferring. Returns ``False`` before registration (the config
-    file does not exist yet), matching "SFTP not enabled".
+    file does not exist yet), matching `SFTP not enabled`.
     """
 
     default = bool  # bool() -> False

@@ -25,12 +25,12 @@ STOCK_OUTER_Y = 61.8756
 STOCK_OUTER_Z = 24.0
 STOCK_WALL = 1.75
 STOCK_CORNER_R = 2.0
-#: Inner wall faces sit at x = +/-23.70 and y = +/-29.1878.
+#: inner wall faces sit at x = +/-23.70 and y = +/-29.1878.
 STOCK_CAVITY_X = 47.40
 STOCK_CAVITY_Y = 58.3756
-#: Inner face of the front skin. Also the datum the board stack bottoms out on.
+#: inner face of the front skin. Also the datum the board stack bottoms out on.
 STOCK_FRONT_SKIN = 1.75
-#: Vent slots: 2.0 mm tall, rounded ends, four rows 16/3 mm apart.
+#: vent slots: 2.0 mm tall, rounded ends, four rows 16/3 mm apart.
 STOCK_VENT_H = 2.0
 STOCK_VENT_PITCH_Z = 16.0 / 3.0
 STOCK_VENT_ROW0_BOTTOM_Z = 3.0
@@ -44,16 +44,16 @@ STOCK_VENT_Y_WALL_CENTRES_X = (-16.0, 0.0, 16.0)
 STOCK_DIMPLE_R = 0.5
 
 # ---------------------------------------------------------------------------
-# R-PRO-1 board
+# `R-PRO-1` board
 # ---------------------------------------------------------------------------
 
 BOARD_X = 44.475
 BOARD_Y = 56.975
 BOARD_T = 1.586
-#: Tallest front-side component stack above the board's front face. The board is
+#: height of the tallest front-side component stack measured from the board's front face. The board is
 #: not fastened: this stack rests on the front skin and sets the board's height.
 BOARD_FRONT_STACK = 13.9
-#: Both connectors leave the *rear* face of the board, pointing out of the back.
+#: both connectors leave the *rear* face of the board, pointing out of the back.
 BOARD_RJ45_BEHIND = 16.90
 BOARD_USBC_MOUTH_BEHIND = 10.00
 
@@ -63,15 +63,15 @@ class CaseParams:
     """Every dimension of the remodel. Override any field to re-cut the part."""
 
     # -- shell ------------------------------------------------------------
-    #: Side walls and divider. 2.0 mm (5 x 0.4 mm extrusions) rather than the
+    #: side walls and divider. 2.0 mm (5 x 0.4 mm extrusions) rather than the
     #: stock 1.75 mm, because the box is now 2.6x taller and 1.6x wider.
     wall: float = 2.0
-    #: Left at the stock value on purpose: the mmWave radar fires through it and
+    #: left at the stock value on purpose: the mmWave radar fires through it and
     #: it is the datum the board stack sits on. Changing it moves the board.
     front_skin: float = STOCK_FRONT_SKIN
     corner_r: float = STOCK_CORNER_R
     inner_corner_r: float = 2.0
-    #: Front inner face to the underside of the mount plate. The requirement is
+    #: front inner face to the underside of the mount plate. The requirement is
     #: >= 60 so a straight USB-C plug stands up inside the case; the RJ45 tops
     #: out around z = 34 and is fully enclosed well below that.
     inner_height: float = 60.0
@@ -79,7 +79,7 @@ class CaseParams:
     # -- sensor compartment ----------------------------------------------
     sensor_cavity_x: float = STOCK_CAVITY_X
     cavity_y: float = STOCK_CAVITY_Y
-    #: Ribs on the +/-X cavity walls that take up the board's sideways slop.
+    #: ribs on the +/-X cavity walls that take up the board's sideways slop.
     board_rib_clearance: float = 0.5
     board_rib_w: float = 3.0
     board_rib_h: float = 18.0
@@ -92,7 +92,7 @@ class CaseParams:
     psu_z: float = 21.4
     psu_clearance_x: float = 1.6
     psu_clearance_y: float = 0.8
-    #: Ribs that trap the module along Y. It is laid body-down on the front skin
+    #: ribs that trap the module along Y. It is laid body-down on the front skin
     #: with its pins facing the open back, so the pins stay reachable.
     psu_rib_t: float = 1.6
     psu_rib_h: float = 8.0
@@ -104,23 +104,23 @@ class CaseParams:
     vent_x_wall_centres_y: tuple[float, ...] = STOCK_VENT_X_WALL_CENTRES_Y
     vent_y_wall_len: float = STOCK_VENT_Y_WALL_LEN
     vent_y_wall_centres_x: tuple[float, ...] = STOCK_VENT_Y_WALL_CENTRES_X
-    #: Dead band below the rim, kept clear for the mount-plate tabs.
+    #: dead band below the rim, kept clear for the mount-plate tabs.
     vent_top_margin: float = 10.0
 
     # -- mount plate ------------------------------------------------------
     plate_t: float = 3.0
-    #: Tabs hang off the plate, inside the +/-Y walls, and take the body screws.
+    #: tabs hang off the plate, inside the +/-Y walls, and take the body screws.
     tab_t: float = 3.5
     tab_w: float = 14.0
     tab_h: float = 8.0
     tab_centres_x: tuple[float, ...] = (-14.0, 39.2)
-    #: Per-side gap between a tab and the wall it slides against. Without this
-    #: the tabs are nominally a zero-clearance fit and will not go in.
+    #: per-side gap between a tab and the wall it slides against. Without this
+    #: the tabs are nominally a zero-clearance fit and do not go in.
     tab_clearance: float = 0.25
-    #: M3 self-tapping pilot in the tab, M3 clearance through the wall.
+    #: pilot for an M3 self-tapping screw in the tab, M3 clearance through the wall.
     tab_pilot_d: float = 2.5
     side_screw_d: float = 3.2
-    #: Ceiling screws: M3 clearance, 90 degree countersink, heads flush inside.
+    #: ceiling screws—M3 clearance, 90 degree countersink, heads flush inside.
     mount_hole_d: float = 3.4
     mount_head_d: float = 6.4
     mount_inset_x: float = 7.0
@@ -128,16 +128,16 @@ class CaseParams:
 
     # -- mains entry, in the outer wall of the PSU bay --------------------
     mains_hole_d: float = 7.0
-    #: Measured down from the rim, so the lead leaves next to the ceiling.
+    #: measured down from the rim, so the lead leaves next to the ceiling.
     mains_hole_below_rim: float = 8.0
-    #: Pair of through-slots for a cable tie, as strain relief.
+    #: pair of through-slots for a cable tie, as strain relief.
     tie_slot_w: float = 3.5
     tie_slot_h: float = 1.8
     tie_slot_offset_y: float = 8.0
 
     # -- low-voltage pass-through, through the divider --------------------
-    #: Rounded slot, so the clear rectangle inside it is narrower than `w` x `h`.
-    #: Sized to pass an assembled USB-C plug (about 12 x 7), not just bare wire.
+    #: rounded slot, so the clear rectangle inside it is narrower than `w` x `h`.
+    #: sized to pass an assembled USB-C plug (about 12 x 7), not just bare wire.
     wire_pass_w: float = 18.0
     wire_pass_h: float = 10.0
     wire_pass_y: float = -12.0

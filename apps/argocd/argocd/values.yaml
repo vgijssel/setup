@@ -39,14 +39,14 @@ argo-cd:
 
   # Server configuration
   server:
-    # Ingress disabled - managed by apps/argocd/ingress umbrella chart
+    # Ingress turned off - managed by apps/argocd/ingress umbrella chart
     ingress:
       enabled: false
 
     ingressGrpc:
       enabled: false
 
-  # ApplicationSet webhook ingress disabled - managed by apps/argocd/ingress umbrella chart
+  # ApplicationSet webhook ingress turned off - managed by apps/argocd/ingress umbrella chart
   applicationSet:
     ingress:
       enabled: false
@@ -55,7 +55,7 @@ argo-cd:
   # Increase liveness probe timeout to prevent restarts in resource-constrained environments
   repoServer:
     livenessProbe:
-      # Increase timeout from default 1s to 5s
+      # Increase timeout from default 1 s to 5 s
       # The full health check can be slow under load
       timeoutSeconds: 5
       # Increase failure threshold to be more tolerant

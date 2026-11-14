@@ -15,15 +15,15 @@ update: 2025-01-12 07:19:28
 
 ![](pikvm-lessons-learned.jpeg)
 
-**TL;DR If you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It will save you a lot of time.**
+**Summary: if you are thinking about using the Raspberry Pi 4 (Pi) which hosts PiKVM for multiple use cases, just get a second Pi. It saves you a lot of time.**
 
-Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) I decided to purchase the [Geekworm KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). I was about to learn this was actually a lot harder than I imagined it would be.
+Having **not** read the [PiKVM](https://docs.pikvm.org/) documentation thoroughly (reading _is_ hard after all) the author decided to purchase the [Geekworm KVM-A3](https://wiki.geekworm.com/KVM-A3) with a Pi 8GiB instead of the recommend 1GiB to host both the PiKVM OS and [Windmill](https://www.windmill.dev/) inside of [K3S](https://k3s.io). The author was about to learn this was actually a lot harder than expected.
 
 <!-- more -->
 
-## Windmill in PiKVM Host OS
+## Running the workflow engine on the host
 
-PiKVM is based on Arch Linux, which supports K3s. The only notable difference? Its read-only filesystem! Let's change that.
+PiKVM is based on Arch Linux, which supports K3s. The only notable difference? Its read-only filesystem. Change that first.
 
 <h4>Steps</h4>
 
@@ -36,15 +36,15 @@ PiKVM is based on Arch Linux, which supports K3s. The only notable difference? I
 
 <h4>Result</h4>
 
-I was surprised it took a really long time to start the Windmill pods. Checking out the kubectl logs I came to the realisation that k3s was unable to pull an image from the registry due to a mismatch in architecture. The [Windmill package](https://github.com/windmill-labs/windmill/pkgs/container/windmill) only supports `arm64`, while PiKVM runs on `armhf`.
+Surprisingly, it took a really long time to start the Windmill pods. Checking out the kubectl logs revealed that k3s was unable to pull an image from the registry due to a mismatch in architecture. The [Windmill package](https://github.com/windmill-labs/windmill/pkgs/container/windmill) only supports `arm64`, while PiKVM runs on `armhf`.
 
 > [!tip] Lesson 1
 >
-> Do your due diligence! Arm64 and armhf are different architectures, and software compatibility isn't guaranteed.
+> Do your due diligence. Arm64 and armhf are different architectures, and software compatibility isn't guaranteed.
 
-## PiKVM in ESXi-Arm Fling VM
+## First virtual machine attempt
 
-PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikvm/pi-builder/issues/4), [source](https://github.com/pikvm/pikvm/issues/711)), yet I needed to run 64-bit and 32-bit software on the same machine. Enter [ESXi-Arm Fling](https://williamlam.com/2024/10/new-esxi-arm-fling-based-on-8-0-update-3b.html). Success guaranteed of course, as ESXi is built and maintained by a reputable company.
+PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikvm/pi-builder/issues/4), [source](https://github.com/pikvm/pikvm/issues/711)), yet the author needed to run 64-bit and 32-bit software on the same machine. Enter [ESXi-Arm Fling](https://williamlam.com/2024/10/new-esxi-arm-fling-based-on-8-0-update-3b.html). Success guaranteed of course, as ESXi is built and maintained by a reputable company.
 
 <h4>Steps</h4>
 
@@ -77,17 +77,17 @@ PiKVM doesn't offer a 64-bit version of the OS ([source](https://github.com/pikv
 
 <h4>Result</h4>
 
-The VM wouldn't boot—a 32-bit PiKVM image can't run as a 64-bit VM. I also tried to run the virtual machine with the Debian net installer: [https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/](https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/) and trying add grub to the root file system, but with no success.
+The VM wouldn't boot—a 32-bit PiKVM image can't run as a 64-bit VM. The author also tried to run the virtual machine with the Debian net installer: [https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/](https://cdimage.debian.org/debian-cd/current/arm64/iso-cd/) and trying add grub to the root file system, but with no success.
 
 > [!tip] Lesson 2
 >
-> Details matter! Not all OS images work with hypervisors. The Pi has a unique boot process.
+> Details matter. Not all OS images work with hypervisors. The Pi has a unique boot process.
 
 > [!tip] Lesson 3
 >
-> Temper expectations with early-access software. ESXi-Arm Fling doesn't support 32-bit arm VMs ([source](https://williamlam.com/2020/10/how-to-run-raspberry-pi-os-as-a-vm-on-esxi-arm.html), [source](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=250308#c2)).
+> Temper expectations with early access software. ESXi-Arm Fling doesn't support 32-bit arm VMs ([source](https://williamlam.com/2020/10/how-to-run-raspberry-pi-os-as-a-vm-on-esxi-arm.html), [source](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=250308#c2)).
 
-## PiKVM in Pimox VM
+## Second virtual machine attempt
 
 Pimox (Proxmox + Pi) seemed promising based on [this Reddit post](https://www.reddit.com/r/Proxmox/comments/nvdb1z/proxmox_on_the_raspberry_pi_now_supports_32bit/) with support for 32-bit VMs.
 
@@ -105,17 +105,17 @@ Pimox (Proxmox + Pi) seemed promising based on [this Reddit post](https://www.re
 
 <h4>Result</h4>
 
-Hypervisors like Proxmox can't easily passthrough all devices from host to guest. I did some reading about [vfio passthrough](https://www.openeuler.org/en/blog/wxggg/2020-11-29-vfio-passthrough-2.html) but that was waaaay out of my comfort zone, so I decided to give up on running PiKVM inside a vm.
+Hypervisors like Proxmox can't easily passthrough all devices from host to guest. The author read about [vfio passthrough](https://www.openeuler.org/en/blog/wxggg/2020-11-29-vfio-passthrough-2.html) but that was waaaay out of the author’s comfort zone, so he decided to give up on running PiKVM inside a vm.
 
-Thanks for [helping me set up PiKVM in a vm @srepac](https://discord.com/channels/1138148231180714085/1138148231663067258/1321907940382343209)!
+Thanks for [helping the author set up PiKVM in a VM, @srepac](https://discord.com/channels/1138148231180714085/1138148231663067258/1321907940382343209).
 
 > [!tip] Lesson 4
 >
 > Tackle highest risk first. Device passthrough in VMs is complex. Not all devices can be passed to guests.
 
-## Kvmd-armbian in Pimox Host OS
+## Running the unofficial port on the host
 
-Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost) big time I kept pursuing my goal. Determined I found [kvmd-armbian](https://github.com/srepac/kvmd-armbian) which is an unofficial port that supports 32-bit, 64-bit on arm AND x86 machines. Bonus points having a [Discord channel](https://discord.gg/64EQQuwjsB) for support.
+Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost) big time, the author kept pursuing his goal. Determined, he found [kvmd-armbian](https://github.com/srepac/kvmd-armbian) which is an unofficial port that supports 32-bit, 64-bit on arm AND x86 machines. Bonus points having a [Discord channel](https://discord.gg/64EQQuwjsB) for support.
 
 <h4>Steps</h4>
 
@@ -128,7 +128,7 @@ Suffering from [sunk cost fallacy](https://en.wikipedia.org/wiki/Sunk_cost) big 
 	pve-firewall stop
 	```
 
-5. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
+5. [Fix OLED screen for kvmd-armbian](#fix-the-display-for-the-unofficial-port)
 6. Celebrate 🎉
 
 <h4>Result</h4>
@@ -139,9 +139,9 @@ With help from the kvmd-armbian community ❤️ it worked, but running two unof
 >
 > Prioritize long-term maintainability.
 
-## Kvmd-armbian in Pimox LXC
+## Running the unofficial port in a container
 
-If I can't run kvmd-armbian on the host and not in a VM, what are my options? I looked into docker containers and [LXC containers](https://linuxcontainers.org/lxc/introduction/). As LXC is closer to a vm than Docker and PiKVM has specific host requirements like an additional partition for msd, I decided to go with LXC.
+With kvmd-armbian unsuitable for the host or a VM, what options remained? The author looked into docker containers and [LXC containers](https://linuxcontainers.org/lxc/introduction/). As LXC is closer to a vm than Docker and PiKVM has specific host requirements like an additional partition for msd, the author decided to go with LXC.
 
 <h4>Steps</h4>
 
@@ -152,33 +152,33 @@ If I can't run kvmd-armbian on the host and not in a VM, what are my options? I 
 	3. **Password**: Password1234 (Tip: don't)
 3. Start the LXC container and attach the console
 4. Run kvmd-installer
-5. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
-6. Forward devices from host to guest (I have to admit this was _pretty_ time consuming 😅)
-	1. [Passthrough GPIO for ATX control](#Passthrough%20GPIO%20for%20ATX%20control)
-	2. [Passthrough OTG port for keyboard/mouse](#Passthrough%20OTG%20port%20for%20keyboard/mouse)
-	3. [Passthrough OTG port for keyboard/mouse](#Passthrough%20OTG%20port%20for%20keyboard/mouse)
-	4. [Passthrough HDMI capture card](#Passthrough%20HDMI%20capture%20card)
-	5.  [Passthrough I2C for the OLED screen](#Passthrough%20I2C%20for%20the%20OLED%20screen)
+5. [Fix OLED screen for kvmd-armbian](#fix-the-display-for-the-unofficial-port)
+6. Forward devices from host to guest (this was _pretty_ time consuming 😅)
+	1. [Passthrough GPIO for ATX control](#passthrough-gpio-for-atx-control)
+	2. [Passthrough OTG port for keyboard/mouse](#passthrough-otg-port-for-keyboardmouse)
+	3. [Passthrough OTG port for keyboard/mouse](#passthrough-otg-port-for-keyboardmouse)
+	4. [Passthrough HDMI capture card](#passthrough-hdmi-capture-card)
+	5.  [Passthrough I2C for the OLED screen](#passthrough-i2c-for-the-oled-screen)
 7. Celebrate 🎉
 
 <h4>Result</h4>
 
-This separation enabled easier updates for both host and guest OS, leaving me less worried about potential future breakage.
+This separation enabled easier updates for both host and guest OS, leaving the author less worried about potential future breakage.
 
 > [!tip] Lesson 6
 >
-> Ask for help! LXC and device passthrough are pretty far out of my comfort zone, I used ChatGPT which was incredibly helpful!
+> Ask for help. LXC and device passthrough are pretty far out of the author’s comfort zone; he used ChatGPT which was incredibly helpful.
 
-## Kvmd-armbian in Incus LXC
+## Running the unofficial port on a supported hypervisor
 
-Next I decided to see if it's possible to use a hypervisor which is officially supported on arm AND supports LXC out of the box. I investigated the following, not an exhaustive list:
+Next the author decided to see if it's possible to use a hypervisor which is officially supported on arm AND supports LXC out of the box. He investigated the following, not an exhaustive list:
 
 | Hypervisor                                                                                      | Raspberry Pi 4 support                                                                                          | LXC support                                                     |
 | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | [ESXI Arm Fling](https://williamlam.com/2024/10/new-esxi-arm-fling-based-on-8-0-update-3b.html) | ✅                                                                                                              | ❌                                                              |
 | [Proxmox](https://github.com/jiangcuo/Proxmox-Port)                                             | ✅: Using unofficial Pimox port                                                                                 | ✅                                                              |
 | [xcp ng](https://xcp-ng.org/)                                                                   | ❌: [Work in progress](https://xcp-ng.org/blog/2024/04/03/integrating-xen-on-the-ampere-platform-a-first-look/) | ❌: Abandoned initiative [RunX](https://github.com/xcp-ng/runx) |
-| [Cloud hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor)                        | ✅                                                                                                              | ❌                                                              |
+| [cloud-hypervisor](https://github.com/cloud-hypervisor/cloud-hypervisor)                        | ✅                                                                                                              | ❌                                                              |
 | [Incus](https://github.com/lxc/incus)                                                           | ✅                                                                                                              | ✅                                                              |
 
 The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup/pull/679)).
@@ -197,7 +197,7 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
         ansible-playbook -i ./production.local provisioner.yml --diff
         ```
 
-3. Create [Incus kvmd-armbian LXC container with passthrough](#Incus%20kvmd-armbian%20LXC%20container%20with%20passthrough)
+3. Create [Incus kvmd-armbian LXC container with passthrough](#container-for-the-unofficial-port-with-device-passthrough)
 4. Start the LXC container
 
 	```bash
@@ -205,7 +205,7 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
 	```
 
 5. Run the kvmd-armbian installer
-6. [Fix OLED screen for kvmd-armbian](#Fix%20OLED%20screen%20for%20kvmd-armbian)
+6. [Fix OLED screen for kvmd-armbian](#fix-the-display-for-the-unofficial-port)
 7. Restart the container
 
 	```bash
@@ -216,11 +216,11 @@ The choice landed on Incus (see [pull request](https://github.com/vgijssel/setup
 
 <h4>Result</h4>
 
-A clean, supported hypervisor setup (many kudos to the Incus team 👏). At this point I'm pretty happy. But having spent all this time, it would be a waste not to spend **EVEN MORE** time trying to improve things.
+A clean, supported hypervisor setup (many kudos to the Incus team 👏). At this point the author was pretty happy. But having spent all this time, it would be a waste not to spend **EVEN MORE** time trying to improve things.
 
-## PiKVM in Incus LXC
+## Running the official image on a supported hypervisor
 
-Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a (dated) implementation of running PiKVM inside a docker container, I adapted the official PiKVM image for LXC (see [pull request](https://github.com/vgijssel/setup/pull/679) with [Packer](https://www.packer.io/) pipeline).
+Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a (dated) implementation of running PiKVM inside a docker container, the author adapted the official PiKVM image for LXC (see [pull request](https://github.com/vgijssel/setup/pull/679) with [Packer](https://www.packer.io/) pipeline).
 
 <h4>Steps</h4>
 
@@ -239,14 +239,14 @@ Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a 
 	1. Remove `/etc/fstab`
 	2. Disable msd
 	3. Add a systemd boot service to generate certificates
-	4. Mask service `kvmd-pst`, `kvmd-fan`, `kvmd-watchdog` and `kvmd-bootconfig` because PiKVM works without those (and I don't want to spend more time fixing those services 😂)
+	4. Mask service `kvmd-pst`, `kvmd-fan`, `kvmd-watchdog` and `kvmd-bootconfig` because PiKVM works without those (and the author chose not to spend more time fixing those services 😂)
 5. Import the image into Incus
 
 	```bash
 	incus image import pikvm-rpi4.tar.xz --alias pikvm-rpi4/latest
 	```
 
-6. Create [Incus PiKVM LXC container with passthrough](#Incus%20PiKVM%20LXC%20container%20with%20passthrough)
+6. Create [Incus PiKVM LXC container with passthrough](#container-for-the-official-image-with-device-passthrough)
 7. Check the console for errors
 
 	```bash
@@ -257,21 +257,21 @@ Inspired by [pikvm-container](https://github.com/Prototyped/pikvm-container), a 
 
 <h4>Result</h4>
 
-Success! I'm running an officially supported hypervisor and a _hacky_-officially supported installation of PiKVM inside an LXC container! Now I can get back to what I was doing, spinning up Windmill.
+Success. The author is running an officially supported hypervisor and a _hacky_-officially supported installation of PiKVM inside an LXC container. Now he can get back to the original task, spinning up Windmill.
 
 > [!tip] Lesson 7
 >
-> The on holder wins 🇳🇱 (in regular English: Persistence pays off)
+> The on holder wins 🇳🇱 (in regular English: persistence pays off)
 
-## Closing Thoughts
+## Closing thoughts
 
-Thanks to the kvmd-armbian community, Google, Reddit, and ChatGPT, I've gained invaluable insights into the Raspberry Pi, hypervisors, and device passthrough. Would I recommend this journey? Probably not—just get a second Pi for PiKVM. But where's the fun in that? 😆
+Thanks to the kvmd-armbian community, Google, Reddit, and ChatGPT, the author gained invaluable insights into the Raspberry Pi, hypervisors, and device passthrough. Would the author recommend this journey? Probably not—just get a second Pi for PiKVM. But where's the fun in that? 😆
 
 ---
 
-## Code Snippets
+## Code snippets
 
-### Fix OLED Screen for Kvmd-armbian
+### Fix the display for the unofficial port
 
 Copied from [Discord comment](https://discord.com/channels/1138148231180714085/1138148231663067258/1323568386189295669)
 
@@ -290,9 +290,9 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled.service
 systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 ```
 
-### Passthrough GPIO for ATX Control
+### Passthrough GPIO for ATX control
 
-1. I used the output of `journalctl -f` to figure out where kvmd-armbian would break:
+1. The author used the output of `journalctl -f` to figure out where kvmd-armbian would break:
 
 	```bash
 	Dec 29 19:36:40 pikvm kvmd[602]: File "/usr/bin/kvmd", line 8, in <module>
@@ -307,7 +307,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 	Dec 29 19:36:40 pikvm kvmd[602]: self.__chip = gpiod.Chip(self.__device_path) Dec 29 19:36:40 pikvm kvmd[602]: PermissionError: [Errno 1] Operation not permitted
 	```
 
-2. Running `kvmd -m` showed me what gpio device what was spected
+2. Running `kvmd -m` showed the author which GPIO device was expected
 
 	```yaml
 	kvmd:
@@ -324,9 +324,9 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 	```
 
 4. Restart the LXC using the UI
-5. Works!
+5. Works.
 
-### Passthrough OTG Port for keyboard/mouse
+### Passthrough OTG port for keyboard/mouse
 
 1. Failure from `journalctl`
 
@@ -378,7 +378,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 	crw-rw----  1 root kvmd    236,   2 Dec 30 15:52 hidg2
 	```
 
-6. Now it's a bit of a 🐔 and 🥚 situation, where we need the `/dev/hidg*` devices to exist on the host before starting the container. But once the container starts these devices are created on the host 😅. Therefore inside the LXC we need to add these devices manually
+6. Now it's a bit of a 🐔 and 🥚 situation, where the setup needs the `/dev/hidg*` devices to exist on the host before starting the container. But once the container starts these devices are created on the host 😅. Therefore inside the LXC, add these devices manually
 
 	```bash
 	mknod /dev/kvmd-hid-keyboard c 236 0
@@ -393,9 +393,9 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 	chmod 0660  /dev/kvmd-hid-keyboard /dev/kvmd-hid-mouse /dev/kvmd-hid-mouse-alt
 	```
 
-8. Login to the web UI validate that the keyboard works! (Note the kvmd is attached to a server, so unable to test the mouse)
+8. Login to the web UI validate that the keyboard works. (Note the kvmd is attached to a server, so unable to test the mouse)
 
-### Passthrough HDMI Capture Card
+### Passthrough HDMI capture card
 
 1. Failure from `journalctl`
 
@@ -407,7 +407,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 	Dec 30 05:03:41 pikvm systemd[1]: Failed to start PiKVM - EDID loader for TC358743.
 	```
 
-2. The error message mentions the relevant device!
+2. The error message mentions the relevant device.
 3. Update the LXC template
 
 	```yaml
@@ -416,14 +416,14 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 	```
 
 4. Restart the LXC
-5. Now we see a different error
+5. Now a different error appears
 
 	```bash
 	Dec 30 05:32:21 pikvm kvmd[237]: kvmd.apps.kvmd.streamer           INFO --- => -- ERROR [36989.079          ] -- H264: Can t open encoder device: No such file or directory
 	Dec 30 05:32:21 pikvm kvmd[237]: kvmd.apps.kvmd.streamer           INFO --- => -- ERROR [36989.079          ] -- H264: Encoder destroyed due an error (prepare)
 	```
 
-6. This is because the H264 encoder is a separate video device on the Raspberry Pi. I decided to simply passthrough all video devices, but there is probably a smarter way to go about this 🙈
+6. This is because the H264 encoder is a separate video device on the Raspberry Pi. The author decided to pass through all video devices, but there is probably a smarter way to go about this 🙈
 
 	```yaml
 	lxc.cgroup2.devices.allow: c 81:* rwm
@@ -447,7 +447,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 7. Restart the LXC
 8. Navigate to the web UI and validate it works 🎉
 
-### Passthrough I2C for the OLED Screen
+### Passthrough I2C for the OLED screen
 
 1. `journalctl` and `systemctl` didn't show the `kvmd-oled` service
 2. Running `systemctl start kvmd-oled` showed the problem, the device `/dev/i2c-1` didn't exist
@@ -467,7 +467,7 @@ systemctl enable /usr/lib/systemd/system/kvmd-oled-shutdown.service
 3. BOOM
    ![[pikvm-oled-screen.png]]
 
-### Incus Kvmd-armbian LXC Container with Passthrough
+### Container for the unofficial port with device passthrough
 
 ```bash
 # create pikvm container using ubuntu/jammy as the base as mentioned in the kvmd-armbian repository
@@ -509,7 +509,7 @@ incus config device add kvmd hidg2 unix-char path=/dev/kvmd-hid-mouse-alt source
 incus config device add kvmd i2c-1 unix-char path=/dev/i2c-1 source=/dev/i2c-1 required=true gid=999 uid=999
 ```
 
-### Incus PiKVM LXC Container with Passthrough
+### Container for the official image with device passthrough
 
 ```bash
 incus init provisioner:pikvm-rpi4/latest pikvm

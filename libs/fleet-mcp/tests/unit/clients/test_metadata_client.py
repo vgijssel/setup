@@ -1,6 +1,6 @@
 """Unit tests for MetadataClient.
 
-TDD Approach: These tests verify MetadataClient HTTP behavior.
+TDD Approach: these tests verify MetadataClient HTTP behavior.
 Written FIRST before implementation.
 """
 
@@ -160,7 +160,7 @@ async def test_metadata_client_custom_headers():
 
 @respx.mock
 async def test_metadata_fetch_without_auth_fails():
-    """REGRESSION TEST: Metadata fetch without authentication should fail.
+    """REGRESSION TEST: metadata fetch without authentication should fail.
 
     This test demonstrates the bug where MetadataClient makes unauthenticated
     requests to Coder proxy URLs, resulting in 303 redirects to the login page
@@ -205,14 +205,14 @@ async def test_metadata_fetch_without_auth_fails():
 
     route = respx.get(url).mock(side_effect=check_auth_header)
 
-    # After fix: MetadataClient WITH token support
+    # After fix—MetadataClient WITH token support
     # The old implementation would not accept coder_session_token parameter
     # and would return empty metadata due to 303 redirect
     client = MetadataClient(coder_session_token=token)
     metadata = await client.get_metadata(url)
 
-    # EXPECTED BEHAVIOR (after fix): Should receive metadata successfully with auth
-    # OLD BEHAVIOR (before fix): Would return empty metadata due to 303 redirect
+    # EXPECTED BEHAVIOR (after fix): should receive metadata successfully with auth
+    # OLD BEHAVIOR (before fix): would return empty metadata due to 303 redirect
     assert len(metadata.data) > 0, (
         "Metadata should be populated when authentication is provided. "
         "Old implementation returned empty metadata due to 303 redirect."

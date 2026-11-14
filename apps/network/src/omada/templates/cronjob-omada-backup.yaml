@@ -1,21 +1,21 @@
 # Ship Omada's native Auto Backup .cfg files off-cluster to S3-compatible object storage.
 #
-# WHY: Omada's own Auto Backup engine writes rotated, encrypted .cfg snapshots to
-# /opt/tplink/EAPController/data/autobackup on the data PVC — but that PVC lives on the same
+# WHY—Omada's own Auto Backup engine writes rotated, encrypted .cfg snapshots to
+# /opt/tplink/EAPController/data/autobackup on the data PVC—but that PVC lives on the same
 # OrbStack VM disk as everything else, so a disk/machine loss takes the backups with it. The
 # .cfg is a portable LOGICAL backup (architecture-/host-independent), which is exactly the
 # artifact to restore into the future amd64 cluster; getting it off the box is the whole point.
 #
 # WHAT: daily, an init step (alpine/kubectl) finds the running Omada pod by label and streams
 # the autobackup dir out via `kubectl exec ... -- tar` into a shared emptyDir; then rclone
-# uploads it with `copy` (additive — never deletes) so S3 accumulates full history even after
+# uploads it with `copy` (additive—never deletes) so S3 accumulates full history even after
 # Omada rotates the local copies. rclone's remote `s3:` is configured entirely from env
 # (RCLONE_CONFIG_S3_*), with the access/secret keys coming from the omada-backup-s3 Secret that
-# Vault Secrets Operator syncs out of kv/s3-backup (vaultstaticsecret-omada-backup-s3.yaml —
+# Vault Secrets Operator syncs out of kv/s3-backup (vaultstaticsecret-omada-backup-s3.yaml—
 # External Secrets Operator is gone, so this is no longer an ExternalSecret).
 #
-# PREREQUISITE (one-time, manual): enable Omada Auto Backup in the UI —
-#   Settings > Backup & Restore > Auto Backup: Daily, pick a retained-data range (NOT
+# PREREQUISITE (one-time, manual): enable Omada Auto Backup in the UI—
+#   Settings > Backup & Restore > Auto Backup: daily, pick a retained-data range (NOT
 #   "Settings only" if you want client/stats history), set a max file count. Until at least one
 #   .cfg exists the job logs "no .cfg files yet" and exits cleanly.
 #
@@ -35,14 +35,14 @@ spec:
   # It used to be 120, and that silently skipped most nightly runs. These clusters live in an
   # OrbStack VM on a LAPTOP that sleeps overnight, so at 03:17 local there is usually no
   # kube-controller-manager running at all. A CronJob whose schedule is missed by more than
-  # startingDeadlineSeconds is not started LATE — it is dropped, with no Job object and no event,
+  # startingDeadlineSeconds is not started LATE—it is dropped, with no Job object and no event,
   # and only lastScheduleTime stops advancing. Found live 2026-10-06: four consecutive nights
   # missed, last success 2026-10-02, while the hourly OpenBao snapshot CronJob beside it (which
-  # sets no deadline) never missed — it also gets 24 attempts a day, several while the host is
+  # sets no deadline) never missed—it also gets 24 attempts a day, several while the host is
   # awake, whereas a daily job gets exactly one.
   # With the field unset the controller starts the most recent missed schedule once it notices,
-  # i.e. shortly after the host wakes, which is the correct semantics for a backup: late is fine,
-  # skipped is not. The 5-minute watchdogs keep their 60s deadline on purpose — for them a skip is
+  # that is shortly after the host wakes, which is the correct semantics for a backup: late is fine,
+  # skipped is not. The 5-minute watchdogs keep their 60 s deadline on purpose—for them a skip is
   # harmless because the next attempt is 5 minutes away.
   # Caveat worth knowing: with no deadline, >100 consecutive missed schedules (100 days for a
   # daily job) makes the controller refuse with "too many missed start times"; recover by
@@ -66,7 +66,7 @@ spec:
               type: RuntimeDefault
           initContainers:
             # Copy the autobackup .cfg files out of the running Omada container into /work.
-            # alpine/kubectl (not registry.k8s.io/kubectl, which is distroless with no shell) —
+            # alpine/kubectl (not `registry.k8s.io/kubectl`, which is distroless with no shell)—
             # the logic runs in /bin/sh, and busybox tar unpacks the stream. Pinned to the
             # multi-arch index digest, matching the v1.35.0 clusters.
             - name: fetch-cfg

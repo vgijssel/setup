@@ -13,9 +13,9 @@ if TYPE_CHECKING:
 class AgentService:
     """Service for agent business logic and validation.
 
-    Architecture: Layer 2 (Service Layer)
-    Dependencies: AgentRepository, ProjectRepository, MetadataRepository (Layer 3)
-    Used by: MCP Tools (Layer 1)
+    Architecture: layer 2 (Service Layer)
+    Dependencies: the AgentRepository, ProjectRepository, MetadataRepository (Layer 3)
+    Used by—MCP Tools (Layer 1)
 
     Responsibilities:
     - Business logic for agent operations
@@ -34,9 +34,9 @@ class AgentService:
         """Initialize service with repositories.
 
         Args:
-            agent_repo: Repository for agent data access
-            project_repo: Repository for project data access
-            metadata_repo: Repository for metadata collection
+            agent_repo: the repository for agent data access
+            project_repo: repository for project data access
+            metadata_repo: repository for metadata collection
         """
         self.agent_repo = agent_repo
         self.project_repo = project_repo
@@ -50,19 +50,19 @@ class AgentService:
         """List all agents with optional filtering.
 
         Args:
-            status_filter: Filter by agent status (optional)
-            project_filter: Filter by project name (optional, case-insensitive)
+            status_filter: filter by agent status (optional)
+            project_filter: filter by project name (optional, case-insensitive)
 
         Returns:
-            List of Agent domain models matching filters (with metadata always included)
+            list of Agent domain models matching filters (with metadata always included)
 
         Raises:
-            ValidationError: If filters are invalid
+            `ValidationError`: if filters are invalid
 
         Note:
-            Project name filtering is case insensitive because the Coder API
-            backend is case insensitive. For example, filtering by "Setup",
-            "SETUP", or "setup" will all return the same agents.
+            project name filtering is case insensitive because the Coder API
+            backend is case insensitive. For example, filtering by `Setup`,
+            `SETUP`, or "setup" all return the same agents.
 
             Metadata is ALWAYS collected for list operations when metadata_repo is available:
             - Only fields with include_in_list=true are included in the response
@@ -92,15 +92,15 @@ class AgentService:
         """Get agent details by name (case-insensitive).
 
         Args:
-            name: Agent name (case-insensitive)
-            include_metadata: Whether to collect and include workspace metadata (default: True)
+            name: agent name (case-insensitive)
+            include_metadata: whether to collect and include workspace metadata (default: true)
 
         Returns:
-            Agent domain model (with metadata if include_metadata=True)
+            agent domain model (with metadata if include_metadata=True)
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            ValidationError: If name is invalid
+            `AgentNotFoundError`: if agent doesn't exist
+            ValidationError: if name is invalid
         """
         if not name or not name.strip():
             raise ValidationError("name", "Agent name cannot be empty")
@@ -123,18 +123,18 @@ class AgentService:
         """Create a new agent with validation.
 
         Args:
-            name: Unique agent name (1-20 alphanumeric + hyphens)
-            project: Project name (must exist)
-            task: Initial task description (non-empty)
-            role: Agent role name (optional, if None uses first available role for project)
+            name: unique agent name (1-20 alphanumeric + hyphens)
+            project: project name (must exist)
+            task: initial task description (non-empty)
+            role: agent role name (optional, if None uses first available role for project)
 
         Returns:
-            Created Agent domain model
+            created Agent domain model
 
         Raises:
-            ValidationError: If inputs are invalid
-            AgentConflictError: If agent name already exists
-            CoderAPIError: If Coder API fails
+            `ValidationError`: if inputs are invalid
+            AgentConflictError: if agent name already exists
+            CoderAPIError: if Coder API fails
         """
         # Validate agent name format
         self._validate_agent_name(name)
@@ -211,11 +211,11 @@ class AgentService:
         """Delete an agent (case-insensitive).
 
         Args:
-            name: Agent name (case-insensitive)
+            name: agent name (case-insensitive)
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            ValidationError: If name is invalid
+            `AgentNotFoundError`: if agent doesn't exist
+            ValidationError: if name is invalid
         """
         # Validate agent name format
         self._validate_agent_name(name)
@@ -228,14 +228,14 @@ class AgentService:
         """Restart an agent's workspace (case-insensitive).
 
         Args:
-            name: Agent name (case-insensitive)
+            name: agent name (case-insensitive)
 
         Returns:
-            Updated Agent domain model
+            updated Agent domain model
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            ValidationError: If name is invalid
+            `AgentNotFoundError`: if agent doesn't exist
+            ValidationError: if name is invalid
         """
         # Validate agent name format
         self._validate_agent_name(name)
@@ -249,16 +249,16 @@ class AgentService:
 
         Business Rules (from Coder API):
         - Max length: 32 characters
-        - Pattern: Alphanumeric + hyphens only
+        - Pattern: alphanumeric + hyphens only
         - Must start with letter or number (not hyphen)
         - Reserved names: "new" and "create" are blocked
         - Cannot be empty or whitespace-only
 
         Args:
-            name: Agent name to validate
+            name: agent name to validate
 
         Raises:
-            ValidationError: If name is invalid
+            `ValidationError`: if name is invalid
         """
         if not name or not name.strip():
             raise ValidationError("name", "Agent name cannot be empty")

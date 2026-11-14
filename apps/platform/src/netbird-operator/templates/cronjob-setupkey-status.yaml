@@ -6,14 +6,14 @@
 # ║ THE BUG, read out of the source rather than inferred.                                     ║
 # ║ internal/controller/setupkey_controller.go, tag v0.7.0:                                   ║
 # ║                                                                                           ║
-# ║   ok, err := func() (bool, error) {                                                       ║
-# ║       ...                                                                                 ║
-# ║       _, err = r.Netbird.SetupKeys.Update(ctx, id, {AutoGroups: autoGroupIDs})   // <-- !  ║
-# ║       return true, nil                                                                    ║
-# ║   }()                                                                                     ║
-# ║   if ok { return ctrl.Result{RequeueAfter: 15 * time.Minute}, nil }             // <-- !!  ║
-# ║   ...                                                                                     ║
-# ║   sp.Patch(ctx, setupKey, patch.WithStatusObservedGeneration{})       // never reached     ║
+# ║   `ok, err := func() (bool, error) {`                                                       ║
+# ║       `...`                                                                                 ║
+# ║       `_, err = r.Netbird.SetupKeys.Update(ctx, id, {AutoGroups: autoGroupIDs})   // <-- !`  ║
+# ║       `return true, nil`                                                                    ║
+# ║   `}()`                                                                                     ║
+# ║   `if ok { return ctrl.Result{RequeueAfter: 15 * time.Minute}, nil }             // <-- !!`  ║
+# ║   `...`                                                                                     ║
+# ║   `sp.Patch(ctx, setupKey, patch.WithStatusObservedGeneration{})       // never reached`     ║
 # ║                                                                                           ║
 # ║ The closure commented "check if setup key is up to date" PERFORMS the update itself and    ║
 # ║ returns true, and the early return then skips the only call that records the generation.   ║
@@ -24,13 +24,13 @@
 # ║     SetupKey generation is 3, but latest observed generation is 2                          ║
 # ║ Restarting the operator does not clear it, and Fleet has no knob to ignore it              ║
 # ║ (`diff.comparePatches` affects drift detection, not readiness). Under `dependsOn` one      ║
-# ║ stuck bundle blocks every bundle that depends on it — the same cascade that took seven     ║
+# ║ stuck bundle blocks every bundle that depends on it—the same cascade that took seven     ║
 # ║ BundleDeployments down when mesh DNS failed.                                              ║
 # ╚═══════════════════════════════════════════════════════════════════════════════════════════╝
 #
 # WHY PATCHING THE STATUS IS A STATEMENT OF FACT AND NOT A FORGERY. The desired spec has already
-# been pushed to the management API by the time the operator returns early — that is literally the
-# line above the early return. So the generation HAS been observed and acted on; the only thing
+# been pushed to the management API by the time the operator returns early—that is literally the
+# line preceding the early return. So the generation HAS been observed and acted on; the only thing
 # missing is the record of it. The job therefore refuses to act unless the operator's own
 # `Ready=True` condition is present, so it never papers over a reconcile that actually failed. A
 # genuine failure sets `Ready=False`, which Fleet still surfaces regardless of this field.
@@ -40,7 +40,7 @@
 # account-side key does not need recreating.
 #
 # Only `SetupKey` is affected. Surveyed the other netbird.io controllers: `group_controller.go` has
-# a single return path and always patches, which matches what was observed live — of every
+# a single return path and always patches, which matches what was observed live—of every
 # netbird.io CR on both clusters, the only one ever seen lagging was the one SetupKey whose spec
 # had been edited since creation.
 #
@@ -74,7 +74,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: reconcile
-              # alpine/kubectl, not registry.k8s.io/kubectl (distroless, no shell). Same image and
+              # alpine/kubectl, not `registry.k8s.io/kubectl` (distroless, no shell). Same image and
               # pinned digest as the routing-peer watchdogs.
               image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
               env:

@@ -13,7 +13,7 @@ tags:
 # end-to-end (create cluster → put_netbird_operator_auth → apply); the network cluster
 # is a consumer of secrets, not a producer (no configure/producer step). Mirrors `secret`.
 tasks:
-  # Create (or reconnect to) the vind cluster "network", seed the NetBird operator
+  # Create (or reconnect to) the vind cluster `network`, seed the NetBird operator
   # management API PAT (put_netbird_operator_auth), then install Fleet + apply every bundle
   # (apply). Idempotent. This is the single bring-up command.
   start:
@@ -24,7 +24,7 @@ tasks:
       cache: false
   # Seed the NetBird operator management API PAT (access_token) from the secret cluster's
   # OpenBao (VAULT_TOKEN from .env) into the network cluster's netbird-mgmt-api-key
-  # Secret — breaks the operator/ESO chicken-and-egg. Invoked by `start`; also runnable
+  # Secret—breaks the operator/ESO chicken-and-egg. Invoked by `start`; also runnable
   # standalone. Idempotent.
   put_netbird_operator_auth:
     command: scripts/put_netbird_operator_auth.sh

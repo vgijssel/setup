@@ -21,16 +21,16 @@ async def list_agents(
     """List all agents in the fleet with optional filtering.
 
     Tool: list_agents
-    User Story: US1 (Agent Discovery and Inspection), US2 (Track Multiple Agents)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US1 (Agent Discovery and Inspection), US2 (Track Multiple Agents)
+    Architecture: layer 1 (Tool Layer)
 
     Args:
-        agent_service: Service instance for agent business logic
-        status_filter: Filter by agent status (optional)
-        project_filter: Filter by project name (optional)
+        agent_service: the service instance for agent business logic
+        status_filter: filter by agent status (optional)
+        project_filter: filter by project name (optional)
 
     Returns:
-        ListAgentsResponse with agents (workspace_id excluded, metadata always included) and total count
+        `ListAgentsResponse` with agents (workspace_id excluded, metadata always included) and total count
 
         Metadata included in response:
         - Only fields with include_in_list=true are shown
@@ -38,6 +38,8 @@ async def list_agents(
         - metadata_count shows number of filtered fields
 
     Example:
+
+        ```python
         # List all agents with metadata
         result = await list_agents(agent_service)
 
@@ -46,6 +48,7 @@ async def list_agents(
 
         # List agents in Setup project with metadata
         result = await list_agents(agent_service, project_filter="Setup")
+        ```
     """
     agents = await agent_service.list_agents(
         status_filter=status_filter,

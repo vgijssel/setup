@@ -22,8 +22,8 @@ async def cancel_agent_task(
     """Cancel the current task on an agent by sending Ctrl+C interrupt signal.
 
     Tool: cancel_agent_task
-    User Story: US3 (Task Assignment and Cancellation)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US3 (Task Assignment and Cancellation)
+    Architecture: layer 1 (Tool Layer)
 
     This sends a SIGINT (Ctrl+C) interrupt signal to the agent's workspace.
     It tries AgentAPI first, and falls back to experimental task API if unavailable.
@@ -33,19 +33,20 @@ async def cancel_agent_task(
     - Sends interrupt signal via AgentAPI (primary) or experimental API (fallback)
 
     Args:
-        task_service: Service instance for task business logic
-        agent_name: Name of the agent to cancel task for
+        task_service: the service instance for task business logic
+        agent_name: name of the agent to cancel task for
 
     Returns:
-        CancelTaskResponse with agent name and success message
+        `CancelTaskResponse` with agent name and success message
 
     Raises:
-        ValidationError: If agent_name is invalid
-        AgentNotFoundError: If agent doesn't exist
-        ValueError: If agent is not busy
-        CoderAPIError: If cancellation fails
+        `ValidationError`: if agent_name is invalid
+        AgentNotFoundError: if agent doesn't exist
+        ValueError: if agent is not busy
+        CoderAPIError: if cancellation fails
 
     Example:
+
         result = await cancel_agent_task(task_service, agent_name="stuck-agent")
     """
     await task_service.cancel_task(agent_name)

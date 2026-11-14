@@ -1,9 +1,9 @@
 """Contract tests for list_agents metadata filtering (User Story 2).
 
-TDD Approach: These tests are written FIRST to verify the contract for metadata
+TDD Approach: these tests are written FIRST to verify the contract for metadata
 filtering in list_agents responses. They should FAIL until implementation is complete.
 
-User Story 2: Fleet operators can list all agents and see summary metadata
+User Story 2—Fleet operators can list all agents and see summary metadata
 (only include_in_list=true fields, values only without schemas)
 """
 
@@ -16,7 +16,7 @@ class TestListAgentsMetadataFiltering:
 
     def test_list_agents_includes_metadata_field(self):
         """Test that list_agents response includes metadata field for each agent."""
-        # Arrange: Create agent with metadata
+        # Arrange: create agent with metadata
         agent = Agent(
             name="test-agent",
             workspace_id="ws-123",
@@ -40,7 +40,7 @@ class TestListAgentsMetadataFiltering:
             },
         )
 
-        # Act: Serialize for list view (this is what the service does)
+        # Act: serialize for list view (this is what the service does)
         agent_dict = agent.model_dump()
 
         # Assert: metadata field exists
@@ -49,7 +49,7 @@ class TestListAgentsMetadataFiltering:
 
     def test_list_agents_filters_metadata_by_include_in_list(self):
         """Test that list_agents only includes fields with include_in_list=true."""
-        # Arrange: Metadata with mixed include_in_list values
+        # Arrange: metadata with mixed include_in_list values
         metadata = WorkspaceMetadata(
             data={
                 "pull_request_number": MetadataField(
@@ -73,26 +73,26 @@ class TestListAgentsMetadataFiltering:
             }
         )
 
-        # Act: Filter for list view (only include_in_list=True)
+        # Act: filter for list view (only include_in_list=True)
         filtered = {
             name: field.value
             for name, field in metadata.data.items()
             if field.schema.include_in_list
         }
 
-        # Assert: Only include_in_list=true fields are present
+        # Assert: only include_in_list=true fields are present
         assert len(filtered) == 2
         assert "pull_request_number" in filtered
         assert "git_commit_sha" in filtered
         assert "git_branch" not in filtered
 
-        # Assert: Values only (no schema)
+        # Assert: values only (no schema)
         assert filtered["pull_request_number"] == 819
         assert filtered["git_commit_sha"] == "abc123"
 
     def test_list_agents_metadata_values_only_no_schema(self):
         """Test that list_agents metadata includes values only (no schema objects)."""
-        # Arrange: Full metadata with schema
+        # Arrange: full metadata with schema
         metadata = WorkspaceMetadata(
             data={
                 "pull_request_number": MetadataField(
@@ -104,21 +104,21 @@ class TestListAgentsMetadataFiltering:
             }
         )
 
-        # Act: Extract value only for list view
+        # Act: extract value only for list view
         list_view_metadata = {
             name: field.value
             for name, field in metadata.data.items()
             if field.schema.include_in_list
         }
 
-        # Assert: Only value is present (no schema, no error)
+        # Assert: only value is present (no schema, no error)
         assert "pull_request_number" in list_view_metadata
         assert list_view_metadata["pull_request_number"] == 819
         assert isinstance(list_view_metadata["pull_request_number"], int)
 
     def test_list_agents_with_empty_metadata(self):
         """Test list_agents handles agents with no metadata gracefully."""
-        # Arrange: Agent with empty metadata
+        # Arrange: agent with empty metadata
         agent = Agent(
             name="test-agent",
             workspace_id="ws-123",
@@ -130,7 +130,7 @@ class TestListAgentsMetadataFiltering:
             metadata=None,  # No metadata
         )
 
-        # Act: Serialize
+        # Act: serialize
         agent_dict = agent.model_dump()
 
         # Assert: metadata field exists but is None
@@ -139,7 +139,7 @@ class TestListAgentsMetadataFiltering:
 
     def test_list_agents_with_no_include_in_list_fields(self):
         """Test list_agents with metadata but no include_in_list=true fields."""
-        # Arrange: Metadata with only include_in_list=false fields
+        # Arrange: metadata with only include_in_list=false fields
         metadata = WorkspaceMetadata(
             data={
                 "git_branch": MetadataField(
@@ -157,19 +157,19 @@ class TestListAgentsMetadataFiltering:
             }
         )
 
-        # Act: Filter for list view
+        # Act: filter for list view
         filtered = {
             name: field.value
             for name, field in metadata.data.items()
             if field.schema.include_in_list
         }
 
-        # Assert: Empty dict (no fields to display)
+        # Assert: empty dict (no fields to display)
         assert filtered == {}
 
     def test_list_agents_metadata_with_null_values(self):
         """Test list_agents includes null values for failed metadata fields."""
-        # Arrange: Metadata with null value (collection failed)
+        # Arrange: metadata with null value (collection failed)
         metadata = WorkspaceMetadata(
             data={
                 "pull_request_number": MetadataField(
@@ -182,20 +182,20 @@ class TestListAgentsMetadataFiltering:
             }
         )
 
-        # Act: Filter for list view
+        # Act: filter for list view
         filtered = {
             name: field.value
             for name, field in metadata.data.items()
             if field.schema.include_in_list
         }
 
-        # Assert: Field is included with null value
+        # Assert: field is included with null value
         assert "pull_request_number" in filtered
         assert filtered["pull_request_number"] is None
 
     def test_list_agents_metadata_various_value_types(self):
         """Test list_agents supports various JSON types as metadata values."""
-        # Arrange: Metadata with different value types
+        # Arrange: metadata with different value types
         metadata = WorkspaceMetadata(
             data={
                 "pr_number": MetadataField(
@@ -221,14 +221,14 @@ class TestListAgentsMetadataFiltering:
             }
         )
 
-        # Act: Filter for list view
+        # Act: filter for list view
         filtered = {
             name: field.value
             for name, field in metadata.data.items()
             if field.schema.include_in_list
         }
 
-        # Assert: All value types are preserved
+        # Assert: all value types are preserved
         assert filtered["pr_number"] == 819
         assert filtered["pr_open"] is True
         assert filtered["pr_title"] == "Add metadata feature"

@@ -1,4 +1,4 @@
-# Keeps the routing peer in the `network-k8s` group — the group the mesh exposures name as an
+# Keeps the routing peer in the `network-k8s` group—the group the mesh exposures name as an
 # allowed source.
 #
 # WHY THIS EXISTS AT ALL. Every ordinary pod on this cluster egresses to the overlay through the
@@ -6,28 +6,28 @@
 # `../../../secret/src/mesh-openbao` admits `homelab` + `network-k8s`, which is how Vault Secrets
 # Operator reaches `openbao.vpn.blueora.ng` without a mesh client of its own. But the operator
 # enrols the routing peer with a setup key IT creates, auto-joining only the group named after
-# `--cluster-name` (`network`) — so out of the box the peer is in `network` and the policy does
+# `--cluster-name` (`network`)—so out of the box the peer is in `network` and the policy does
 # not cover it. It still worked, invisibly, because the account's built-in `Default` policy
 # (All <-> All) covered everything; the moment that is narrowed, the network cluster loses OpenBao
-# — which is where its certificates come from.
+#—which is where its certificates come from.
 #
 # WHY IT IS A JOB AND NOT A FIELD. Operator v0.7.0's `NBRoutingPeer` spec is pod-shape only
 # (replicas, labels, annotations, nodeSelector, privileged, resources, tolerations, volumes,
-# volumeMounts) — no `autoGroups`, no `setupKeyRef` — and the `Group` CR carries only `name`, not
-# membership. So there is no declarative way to say "this peer is also in network-k8s"; the only
+# volumeMounts)—no `autoGroups`, no `setupKeyRef`—and the `Group` CR carries only `name`, not
+# membership. So there is no declarative way to say "this peer is also in `network-k8s`"; the only
 # route is patching the operator-created setup key through the management API.
 #
 # WHY IT IS A JOB AND NOT A `network:start` STEP. A start-time script cannot run at the right
 # moment: the routing peer (and therefore `.status.setupKeyID`) does not exist until well after
 # `apply`, and `start.sh` ends by exec'ing `apply.sh`. A reconciler that retries on a schedule
-# needs no ordering at all, and — the actual point — it makes the fix survive a cluster rebuild,
+# needs no ordering at all, and—the actual point—it makes the fix survive a cluster rebuild,
 # which recreates the key with `[network]` alone. A hand-patched account is the failure mode this
 # replaces: it was correct live and absent from git, so the next rebuild would have silently
 # regressed cross-cluster secret access with nothing checking.
 #
 # WHAT IT DOES, every 15 min:
 #   1. read `network-k8s`'s group id from the Group CR status, and the routing peer's setup key id
-#      from the NBRoutingPeer status (nothing hardcoded — a rebuild regenerates both);
+#      from the NBRoutingPeer status (nothing hardcoded—a rebuild regenerates both);
 #   2. GET the setup key. If the group id is already in `auto_groups`, stop. Steady state is one
 #      GET and no writes;
 #   3. otherwise PUT the key with the group APPENDED to whatever it already had (never replacing
@@ -36,7 +36,7 @@
 #      restart the key is right and the running peer is still wrong.
 #
 # The operator does NOT fight this back: it reconciles the key's existence and validity, not its
-# `auto_groups` (measured — a patch persisted across many reconciles). If a future operator does
+# `auto_groups` (measured—a patch persisted across many reconciles). If a future operator does
 # start reconciling that field, this job turns into a restart loop and that is the symptom to
 # look for.
 #
@@ -70,7 +70,7 @@ spec:
               type: RuntimeDefault
           containers:
             - name: reconcile
-              # alpine/kubectl (not registry.k8s.io/kubectl, which is distroless with no shell):
+              # alpine/kubectl (not `registry.k8s.io/kubectl`, which is distroless with no shell):
               # this needs /bin/sh AND curl, both of which it has. Same image and pinned digest as
               # the sibling router watchdog.
               image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883

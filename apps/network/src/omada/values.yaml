@@ -1,16 +1,16 @@
-# TP-Link Omada controller, run rootless against EXTERNAL MongoDB, with a Let's
-# Encrypt cert mounted at /cert (no ingress-nginx on this cluster — the controller
+# TP-Link Omada controller, run rootless against EXTERNAL MongoDB, with a Let’s
+# Encrypt cert mounted at /cert (no ingress-nginx on this cluster—the controller
 # terminates TLS itself on 8043).
 #
-# ONE exposure path, and this bundle is not it. Everything — humans, on-mesh tooling and the
-# physical gateway/switches/APs — reaches the controller at `omada.vpn.blueora.ng` via
+# ONE exposure path, and this bundle is not it. Everything—humans, on-mesh tooling and the
+# physical gateway/switches/APs—reaches the controller at `omada.vpn.blueora.ng` via
 # ../mesh-omada/, which runs its own NetBird peer and terminates the shared mesh wildcard. This
 # bundle just runs the controller and its ordinary ClusterIP Service, which that exposure dials
 # as a normal in-cluster backendRef.
 #
 # Until 2026-10-07 there was a SECOND path for the devices: `omada.blueora.ng` -> a pinned
 # ClusterIP, with its own cert-manager certificate, a device `NBResource`, a CoreDNS split
-# horizon and an external-dns annotation. All of it is deleted — the devices were migrated onto
+# horizon and an external-dns annotation. All of it is deleted—the devices were migrated onto
 # the mesh hostname (openspec 12.7) and the machinery that existed only to give them a second
 # name went with it.
 omada-controller-helm:
@@ -20,7 +20,7 @@ omada-controller-helm:
 
     # Mount the SHARED MESH WILDCARD at /cert (templates/vaultstaticsecret-controller-tls.yaml).
     # The controller serves it on 8043, which is what lets the mesh exposure re-encrypt to this
-    # backend and still VALIDATE it: Gateway API requires a `validation.hostname`, and
+    # backend and still VALIDATE it: gateway API requires a `validation.hostname`, and
     # `*.vpn.blueora.ng` covers `omada.vpn.blueora.ng`, the one name anything uses now.
     #
     # It replaced a dedicated cert-manager certificate for `omada.blueora.ng`. Collapsing the two
@@ -41,12 +41,12 @@ omada-controller-helm:
   # and the mesh exposure's sole backend, dialled by name. The hand-written pinned-ClusterIP
   # Service that used to sit beside it (and the `10.96.0.20` literal that had to be duplicated
   # into a NetBird resource, a CoreDNS override and the LAN gateway's static routing table) is
-  # deleted — nothing addresses this controller by IP any more.
+  # deleted—nothing addresses this controller by IP any more.
   service:
     type: ClusterIP
 
   # Persist controller data + logs (data is still required even with external Mongo,
-  # for backups/firmware — chart note).
+  # for backups/firmware—chart note).
   persistence:
     data:
       enabled: true
@@ -56,17 +56,17 @@ omada-controller-helm:
       size: 1Gi
 
 # Off-machine backup of Omada's NATIVE Auto Backup .cfg files (templates/cronjob-omada-backup.yaml).
-# Omada's own Auto Backup engine (enable ONCE in the UI: Settings > Backup & Restore > Auto Backup)
+# Omada's own Auto Backup engine (enable ONCE in the UI: settings > Backup & Restore > Auto Backup)
 # writes rotated, encrypted .cfg snapshots to /opt/tplink/EAPController/data/autobackup on the data
 # PVC. The CronJob copies those .cfg files out of the running pod (kubectl exec | tar) and uploads
 # them to S3-compatible object storage with rclone (additive `copy`, so S3 keeps full history even
-# after Omada rotates the local copies). The .cfg is a portable logical backup — architecture- and
-# host-independent — so it is the safe artifact for the planned arm64 -> amd64 cluster move.
+# after Omada rotates the local copies). The .cfg is a portable logical backup—architecture- and
+# host-independent—so it is the safe artifact for the planned arm64 -> amd64 cluster move.
 #
 # Credentials come from OpenBao (kv/<openbao.key>) via ESO (templates/externalsecret-omada-backup-s3.yaml,
 # the shared `openbao` ClusterSecretStore). Endpoint/bucket/region are NOT secret and live here.
 backup:
-  # Daily at 03:17 Amsterdam — after Omada's own nightly auto-backup has written the day's .cfg.
+  # Daily at 03:17 Amsterdam—after Omada's own nightly auto-backup has written the day's .cfg.
   schedule: 17 3 * * *
   timeZone: Europe/Amsterdam
   # Hetzner Object Storage (S3-compatible), rclone `s3` backend with the generic `Other` provider.
@@ -93,7 +93,7 @@ mongodb:
   clusterName: mongodb
   namespace: mongodb
   replsetName: rs0
-  # Number of replica-set members, i.e. how many seed hosts to list. Must equal
+  # Number of replica-set members, that is how many seed hosts to list. Must equal
   # spec.replsets[0].size in the CR.
   replicas: 3
   user: omada

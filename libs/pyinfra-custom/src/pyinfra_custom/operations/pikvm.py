@@ -14,7 +14,7 @@ def htpasswd(user: str, password: str):
     in the process argument list or in ``--dry`` output.
 
     Not idempotent: ``kvmd-htpasswd`` re-hashes with a fresh salt each run, so callers
-    gate this with ``_if`` (e.g. a provisioning fingerprint) to keep a converged box a
+    gate this with ``_if`` (for example a provisioning fingerprint) to keep a converged box a
     no-op.
     """
     yield StringCommand(

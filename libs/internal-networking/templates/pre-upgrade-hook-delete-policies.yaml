@@ -6,7 +6,7 @@
 # spec.rules.preconditions, spec.generate.apiVersion, etc.)
 #
 # The hook compares the hash annotation on existing policies with the new hash.
-# Only if they differ will the policy be deleted and recreated.
+# The policy is deleted and recreated only if they differ.
 #
 # This prevents unnecessary deletions which would cause:
 # - Deletion of all generated resources (Tailscale Services, Gateway Ingresses)

@@ -3,7 +3,7 @@
 
 # Name - used to generate resource names; set to unique value when deploying multiple instances
 name: relay-server
-# Optional: Override the full resource name (takes precedence over name)
+# Optional: override the full resource name (takes precedence over name)
 fullnameOverride: ""
 
 replicaCount: 1
@@ -26,7 +26,7 @@ resources:
 
 # File descriptor limits (ulimits)
 # Critical for stability under load - prevents crashes when too many files are opened
-# Note: Standard Kubernetes doesn't support ulimits via securityContext.
+# Note: standard Kubernetes doesn't support ulimits via securityContext.
 # These values are documented for reference; actual implementation requires:
 # - Container runtime configuration (Docker/containerd)
 # - Or init container approach (see PRD for examples)
@@ -37,7 +37,7 @@ ulimits:
     hard: 2048
 
 # Liveness probe - checks if server is responsive
-# Default: TCP probe (relay server doesn't expose HTTP /health endpoint)
+# Default—TCP probe (relay server doesn't expose HTTP /health endpoint)
 # Note: relay-server is a WebSocket server, use TCP socket probe
 livenessProbe:
   tcpSocket:
@@ -48,7 +48,7 @@ livenessProbe:
   failureThreshold: 3
 
 # Readiness probe - checks if server is ready to accept traffic
-# Default: TCP probe (relay server doesn't expose HTTP /ready endpoint)
+# Default—TCP probe (relay server doesn't expose HTTP /ready endpoint)
 # Note: relay-server is a WebSocket server, use TCP socket probe
 readinessProbe:
   tcpSocket:

@@ -11,6 +11,6 @@ smee:
     enabled: true
     name: smee-dhcp
     # There is already an existing DHCP server in the network
-    # so we're using the proxy mode
+    # so this uses the proxy mode
     # See: https://github.com/tinkerbell/smee
     mode: proxy

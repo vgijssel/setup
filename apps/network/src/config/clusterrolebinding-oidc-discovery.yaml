@@ -1,16 +1,16 @@
 # Make the OIDC discovery endpoints anonymously readable so the in-cluster jwks-mirror
-# can serve this cluster's JWKS WITHOUT credentials — the mirror's nginx does an
+# can serve this cluster's JWKS WITHOUT credentials—the mirror's nginx does an
 # unauthenticated apiserver read of /openid/v1/jwks and re-serves it over the NetBird mesh
 # to the secret cluster's OpenBao. The mirror reads the apiserver as system:anonymous, so
 # this binding is what authorizes the read.
 #
 # system:service-account-issuer-discovery is a built-in ClusterRole that grants GET on
-# EXACTLY two non-resource URLs — /openid/v1/jwks and /.well-known/openid-configuration
-# (public key material) — and nothing else. Binding it to the system:unauthenticated
+# EXACTLY two non-resource URLs—/openid/v1/jwks and /.well-known/openid-configuration
+# (public key material)—and nothing else. Binding it to the system:unauthenticated
 # group lets anonymous callers read only those two endpoints; every other API path stays
 # denied for system:anonymous. Cross-cluster reachability is gated by NetBird policy, not the
 # apiserver: the mirror's mesh exposure (../mesh-jwks) admits source group `secret-k8s` on
-# tcp/443 and nothing else. There is no NBResource in that path any more — it was replaced by
+# tcp/443 and nothing else. There is no NBResource in that path any more—it was replaced by
 # a per-service mesh peer on 2026-10-07.
 #
 # Paired with the jwks-mirror bundle (apps/network/src/jwks-mirror) and the jwt-network

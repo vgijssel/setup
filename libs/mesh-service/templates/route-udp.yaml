@@ -1,10 +1,10 @@
 {{- include "mesh-service.validate" . -}}
 {{/*
-UDPRoute per raw UDP listener — one per port.
+UDPRoute per raw UDP listener—one per port.
 
 UDP is the protocol neither replaced stack could express: the reverse proxy has no UDP service
 type, and `ingress-nginx` (already vendored, and the obvious alternative) has no first-class UDP
-either — it needs a ConfigMap side-channel rather than a route object. Carrying device discovery
+either—it needs a ConfigMap side-channel rather than a route object. Carrying device discovery
 and management protocols over the same mechanism as HTTPS is the reason Envoy Gateway won the
 data-plane decision.
 */}}

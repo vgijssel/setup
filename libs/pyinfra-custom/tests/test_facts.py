@@ -18,7 +18,7 @@ def test_goss_version_requires_command_and_parses():
     fact = GossVersion()
     assert fact.requires_command() == "goss"
     assert fact.command() == "goss --version"
-    # goss prints e.g. "goss version v0.4.10 (linux/arm64)"; the pinned "0.4.10" install
+    # goss prints for example "goss version v0.4.10 (linux/arm64)"; the pinned "0.4.10" install
     # gate looks for its version substring, which this output contains.
     assert (
         fact.process(["goss version v0.4.10 (linux/arm64)", ""])
@@ -34,7 +34,7 @@ def test_netdata_version_requires_command_and_parses():
     # otherwise an installed box returns the empty default and the install re-runs forever.
     assert fact.requires_command() == "/opt/netdata/bin/netdata"
     assert fact.command() == "/opt/netdata/bin/netdata -v"
-    # netdata prints e.g. "netdata v2.10.4"; the pinned "2.10.4" install gate looks for
+    # netdata prints for example "netdata v2.10.4"; the pinned "2.10.4" install gate looks for
     # its version substring, which this output contains.
     assert fact.process(["netdata v2.10.4", ""]) == "netdata v2.10.4"
     assert "2.10.4" in fact.process(["netdata v2.10.4"])

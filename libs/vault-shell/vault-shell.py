@@ -57,7 +57,7 @@ def error(message: str, hint: str | None = None) -> None:
 
 
 def check_platform() -> None:
-    """Verify we're running on Linux."""
+    """Verify the process is running on Linux."""
     if sys.platform != "linux":
         error(
             "vault-shell requires Linux (uses bubblewrap for namespace isolation).",
@@ -78,7 +78,7 @@ def check_bwrap_available() -> None:
 
 
 def check_op_available() -> None:
-    """Check that 1Password CLI is installed."""
+    """Check that 1Password command-line tool is installed."""
     if shutil.which("op") is None:
         error(
             "'op' (1Password CLI) is not installed.",
@@ -109,7 +109,7 @@ def get_secrets_dir() -> Path:
 
 
 def list_available_service_accounts(secrets_dir: Path) -> list[str]:
-    """List available service account names based on token files."""
+    """List available service account’s names based on token files."""
     if not secrets_dir.exists():
         return []
     # Service account tokens are stored as files without extensions
@@ -152,7 +152,7 @@ def load_token(secrets_dir: Path, service_account_name: str) -> str:
             error(f"Token file {token_file} is empty.")
         return token
     elif json_file.exists():
-        # Legacy format: JSON with token field
+        # Legacy format—JSON with token field
         try:
             data = json.loads(json_file.read_text())
             token = data.get("token")
@@ -253,14 +253,14 @@ def build_bwrap_command(
     3. Execs the user's shell
 
     This ensures secrets are ONLY written inside the namespace - they never
-    exist outside the namespace boundary. We use /secrets/{service_account_name} as a
+    exist outside the namespace boundary. Use /secrets/{service_account_name} as a
     dedicated tmpfs mount, avoiding issues with virtiofs/bind-mounted working
     directories where tmpfs mounts may not isolate properly.
     """
     home = os.environ.get("HOME", "/home/user")
     shell = os.environ.get("SHELL", "/bin/bash")
     # Use /secrets/{service_account_name} - a dedicated tmpfs for secrets
-    # The service account name in the path makes it clear which service account is active
+    # The service account’s name in the path makes it clear which service account is active
     secrets_path = f"/secrets/{service_account_name}"
 
     cmd = [
@@ -404,7 +404,7 @@ def main() -> None:
     setup_dir = get_setup_dir()
     secrets_dir = get_secrets_dir()
 
-    # Handle missing service account name
+    # Handle missing service account’s name
     if not args.service_account_name:
         print("Error: service account name is required", file=sys.stderr)
         print(file=sys.stderr)
@@ -413,7 +413,7 @@ def main() -> None:
 
     service_account_name = args.service_account_name
 
-    # Load token (will exit with helpful message if not found)
+    # Load token (exits with helpful message if not found)
     token = load_token(secrets_dir, service_account_name)
 
     # Determine template directory
@@ -448,7 +448,7 @@ def main() -> None:
     print("Type 'exit' to leave and cleanup secrets\n")
 
     # Replace current process with bwrap
-    # The init script inside bwrap will:
+    # The init script inside bwrap performs these steps:
     # 1. Run `op inject` for each template, writing to the namespace-isolated tmpfs
     # 2. Exec the user's shell
     # Secrets are written directly to the tmpfs inside the namespace and are

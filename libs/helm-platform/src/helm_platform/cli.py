@@ -1,4 +1,4 @@
-"""Click CLI for helm-platform."""
+"""Click command-line tool for helm-platform."""
 
 import difflib
 import sys

@@ -1,17 +1,17 @@
-# Ignition / Flatcar provisioning
+# Provisioning the immutable operating system
 
-This app provisions a single Flatcar Container Linux VM in Hetzner Cloud (nbg1)
+This app provisions a single Flatcar Container Linux VM in Hetzner’s cloud service (nbg1)
 running the Omada and UniFi controllers, Caddy, Tailscale, and Netdata. The
 machine config is authored as **Butane** (`butane.yaml`) and compiled to
-**Ignition** by the `poseidon/ct` OpenTofu provider at `plan`/`apply` time — see
-`../main.tf` (`data "ct_config"`). There is no separate `butane` CLI step and no
+**Ignition** by the `poseidon/ct` OpenTofu provider at `plan`/`apply` time—see
+`../main.tf` (`data "ct_config"`). There is no separate `butane` command-line tool step and no
 committed Ignition JSON.
 
 ## Why units are inlined in `butane.yaml`
 
 `butane.yaml` is a Terraform `templatefile()` template. Secrets (Tailscale
 authkey, Cloudflare token, Netdata claim token) and dynamic values (image tags,
-the Volume device path, the admin FQDNs) are substituted via `${...}`
+the Volume device path, the administrator FQDNs) are substituted via `${...}`
 placeholders before compilation. All systemd units and on-disk assets
 (Caddyfile, launcher scripts) are authored **inline** here rather than as
 separate `files/*.service` so that secrets can be injected without ever writing
@@ -29,9 +29,9 @@ echo 'data.ct_config.ignition.rendered' | tofu console
 Volume ID; to render eagerly, substitute a fixed device path into a throwaway
 `templatefile()` call.)
 
-## Task 0 — Upload the Flatcar snapshot (one-time)
+## Task 0—upload the Flatcar snapshot (one-time)
 
-Hetzner ships no stock Flatcar image, so we upload the official Flatcar Hetzner
+Hetzner ships no stock Flatcar image, so upload the official Flatcar Hetzner
 image once as a **snapshot** and record its ID into `var.flatcar_snapshot_id`.
 
 Using [`hcloud-upload-image`](https://github.com/apricote/hcloud-upload-image)
@@ -78,7 +78,7 @@ path:
 3. A recreate may assign a new Tailscale `100.x` IP. The authkey is **reusable**
    and the hostname is stable, so the node re-joins as the same device. Re-read
    the IP and update `TF_VAR_tailscale_ip`, then `apply` again to refresh the
-   private admin DNS records:
+   private administrator DNS records:
 
    ```bash
    ssh core@<old-or-public-ip> ip -4 -o addr show tailscale0
@@ -86,4 +86,4 @@ path:
    ```
 
 A plain `systemctl reboot` (no recreate) preserves `/etc`, `/var`, and the
-Volume — both controllers return with data intact.
+Volume—both controllers return with data intact.

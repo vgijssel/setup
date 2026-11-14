@@ -1,6 +1,6 @@
 """Unit tests for MetadataService.
 
-TDD Approach: These tests verify MetadataService behavior with FLEET_MCP_TASKFILE.
+TDD Approach: these tests verify MetadataService behavior with FLEET_MCP_TASKFILE.
 Written FIRST before implementation changes.
 """
 
@@ -65,7 +65,7 @@ async def test_metadata_service_parameter_overrides_env():
 async def test_main_endpoint_uses_fleet_mcp_taskfile_env():
     """Test that __main__.py endpoint uses FLEET_MCP_TASKFILE environment variable."""
     # This test verifies the integration in __main__.py
-    # We'll mock the MetadataService to verify it receives the correct path
+    # Mock the MetadataService to verify it receives the correct path
 
     test_taskfile = "/workspaces/test/Taskfile.yml"
 

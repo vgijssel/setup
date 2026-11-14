@@ -4,31 +4,31 @@
 
 - Update chezmoi and starship configuration files ([#859](https://github.com/vgijssel/setup/pull/859))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.15.1
 
 ## 0.7.6 (2025-12-15)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.15.0
 
 ## 0.7.5 (2025-11-13)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.14.2
 
 ## 0.7.4 (2025-11-12)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.14.1
 
 ## 0.7.3 (2025-11-11)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.14.0
 
@@ -40,7 +40,7 @@
 
 ## 0.7.1 (2025-11-07)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.13.0
 
@@ -50,103 +50,103 @@
 
 - Replace nohup with Supervisord for fleet-mcp server process management ([#803](https://github.com/vgijssel/setup/pull/803))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.12.2
 
 ## 0.6.17 (2025-11-06)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.12.1
 
 ## 0.6.16 (2025-11-04)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.12.0
 
 ## 0.6.15 (2025-10-27)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.11.4
 
 ## 0.6.14 (2025-10-27)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.11.3
 
 ## 0.6.13 (2025-10-26)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.11.2
 
 ## 0.6.12 (2025-10-18)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.11.1
 
 ## 0.6.11 (2025-10-08)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.11.0
 
 ## 0.6.10 (2025-10-07)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.10.5
 
 ## 0.6.9 (2025-10-06)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.10.4
 
 ## 0.6.8 (2025-10-06)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.10.3
 
 ## 0.6.7 (2025-10-06)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.10.2
 
 ## 0.6.6 (2025-10-06)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.10.1
 
 ## 0.6.5 (2025-10-02)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.10.0
 
 ## 0.6.4 (2025-09-30)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.9.0
 
 ## 0.6.3 (2025-09-25)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.8.1
 
 ## 0.6.2 (2025-09-24)
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.8.0
 
@@ -156,7 +156,7 @@
 
 - Fix devcontainer Docker-in-Docker startup issues and configuration ([#725](https://github.com/vgijssel/setup/pull/725))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.7.0
 
@@ -166,7 +166,7 @@
 
 - Update devcontainer user from "devcontainer" to "coder" to align with Coder's default user. ([#724](https://github.com/vgijssel/setup/pull/724))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.6.0
 
@@ -176,7 +176,7 @@
 
 - Update devcontainer configuration and improve Claude Code installation process ([#722](https://github.com/vgijssel/setup/pull/722))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.5.0
 
@@ -186,7 +186,7 @@
 
 - Multi-architecture build support for linux/amd64 and linux/arm64 platforms, improved shell script linting compliance, and enhanced build/test/release workflow scripts ([#721](https://github.com/vgijssel/setup/pull/721))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.4.0
 
@@ -196,7 +196,7 @@
 
 - Improve Coder template support by cleaning workspace directory for repository cloning and adding GitHub SSH known hosts ([#720](https://github.com/vgijssel/setup/pull/720))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.3.0
 
@@ -206,7 +206,7 @@
 
 - Move devcontainer from libs/ to .devcontainer/ for better IDE integration and standard devcontainer location ([#719](https://github.com/vgijssel/setup/pull/719))
 
-### 🧱 Updated Dependencies
+### 🧱 Updated dependencies
 
 - Updated devenv to 0.2.0
 

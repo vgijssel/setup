@@ -1,4 +1,4 @@
-# apps/secret — AI assistant guide
+# apps/secret—AI assistant guide
 
 The `secret` cluster runs **OpenBao** (single-node raft, static auto-unseal) as the
 homelab's secret/state broker. It is **self-initializing** and configured by
@@ -8,7 +8,7 @@ no `bootstrap`/`configure` step and no Terranetes (both were removed in the migr
 Bring-up is one command: `moon run secret:start` (creates the vind cluster, installs
 Fleet, and applies every bundle end-to-end).
 
-## ⚠️ THE KEY INVARIANT — self-init is a SUBSET of openbao-config
+## ⚠️ The key invariant—self-init is a subset of `openbao-config`
 
 There are **two** places OpenBao configuration is expressed, and they are not peers:
 
@@ -19,11 +19,11 @@ There are **two** places OpenBao configuration is expressed, and they are not pe
 
 **RULE (one-directional): `init ⊂ crossplane`.**
 
-- **init must stay minimal** — its ONLY job is to let Crossplane authenticate. That is
+- **init must stay minimal**—its ONLY job is to let Crossplane authenticate. That is
   exactly four things: enable the `kubernetes` auth method, configure it, and create the
   `crossplane` policy + role that provider-vault logs in with. **Do NOT add anything else
-  to init** (not admin, not kv, not app grants). Once Crossplane can log in, *Crossplane*
-  provisions the rest — including the `admin` role that mints break-glass tokens.
+  to init** (not administrator, not kv, not app grants). Once Crossplane can log in, *Crossplane*
+  provisions the rest—including the `admin` role that mints break-glass tokens.
 - **everything in init MUST also be a Crossplane MR** (so it is owned/reconciled, not just
   seeded once). Every init item has a mirror; keep them semantically identical.
 - **most of Crossplane is NOT in init** (the reverse does not hold).
@@ -35,7 +35,7 @@ Init items and their required mirrors (keep in sync):
 | enable `kubernetes` auth | `authbackend-kubernetes.yaml` (adopts via `external-name`) |
 | configure `kubernetes` auth | `authbackendconfig-kubernetes.yaml` |
 | `crossplane` policy | `policy-crossplane.yaml` |
-| `crossplane` k8s-auth role | `role-crossplane.yaml` |
+| `crossplane` Kubernetes-auth role | `role-crossplane.yaml` |
 
 Crossplane-**only** (must NOT be in init): the `admin` policy+role (`policy-admin.yaml`,
 `role-admin.yaml`), the `kv` mount, the `vault-secrets-operator` policy+role, the `snapshot`
@@ -44,7 +44,7 @@ policy+role, the NetBird + Cloudflare secrets-engine registration and role confi
 
 ### Why the mirror is safe (not a fight)
 - Self-init is **fire-once**: it runs only while OpenBao is uninitialized and never again
-  (not even on pod restart). So there is no ongoing tug-of-war — it seeds, Crossplane
+  (not even on pod restart). So there is no ongoing tug-of-war—it seeds, Crossplane
   takes over.
 - OpenBao stores policy text **verbatim**, so a mirrored MR does not perpetually drift.
 - The auth-method *mount* mirror uses `crossplane.io/external-name` so provider-vault
@@ -55,47 +55,47 @@ policy+role, the NetBird + Cloudflare secrets-engine registration and role confi
 
 ### Why keep init at all (don't collapse it into Crossplane)
 The `crossplane` policy+role (and the auth method they use) must exist **before** Crossplane
-can log in — chicken/egg — so they must be seeded by self-init. Everything else can wait
+can log in—chicken/egg—so they must be seeded by self-init. Everything else can wait
 until Crossplane is authenticated. Note the `admin` break-glass role is Crossplane-owned,
 so it appears shortly after first boot; if the Crossplane *controller* is down you can
 still break-glass by logging in as the self-init `crossplane` role (via the provider-vault
 SA token) and acting directly.
 
-## Break-glass / human admin
-Self-init revokes root and generates no recovery keys, so admin comes from
-`moon run secret:get_openbao_auth`: it mints a short-lived (1h) SA token, logs in to OpenBao's
+## Break-glass / human administrator
+Self-init revokes root and generates no recovery keys, so administrator comes from
+`moon run secret:get_openbao_auth`: it mints a short-lived (1 h) SA token, logs in to OpenBao's
 `admin` kubernetes-auth role, and prints `export BAO_ADDR/BAO_TOKEN`. It only works for
-someone with **kubectl admin** on the cluster (they can mint the `openbao-admin` SA token
-and exec the pod) — which already implies full cluster access, so it grants nothing extra.
+someone with **kubectl administrator** on the cluster (they can mint the `openbao-admin` SA token
+and exec the pod)—which already implies full cluster access, so it grants nothing extra.
 Use it to seed human-only kv secrets and to run recovery-key rotation
 (`sys/rotate/recovery/init`). Reach OpenBao from a workstation via `moon run secret:forward`.
 
-## Fleet targeting — every fleet.yaml needs a cluster selector
+## Fleet targeting—every fleet.yaml needs a cluster selector
 `bin/fleet-apply` (repo root) applies **every** `fleet.yaml` in the repo to whatever
 cluster's Fleet runs it. Cluster targeting is the **only** deploy gate, so **every**
 `fleet.yaml` must declare `targetCustomizations` with a `clusterSelector` on
-`cluster.vgijssel.nl/name`. A bundle without one deploys everywhere and will collide
-across clusters — and the collision is not always a Kubernetes object. `src/netbird-account`
+`cluster.vgijssel.nl/name`. A bundle without one deploys everywhere and collides
+across clusters—and the collision is not always a Kubernetes object. `src/netbird-account`
 reconciles NetBird **account-global** state (the peer DNS domain, the cross-cutting access
 policies), so a second cluster running it would flap the account itself.
 apps/secret bundles target `secret`; shared platform bundles target the clusters that
 consume them.
 
 A `clusterSelector` alone restricts NOTHING under a Rancher GitRepo: it only populates
-`spec.targets`, the GitRepo appends its own catch-all, and targets are first-match-wins — so
+`spec.targets`, the GitRepo appends its own catch-all, and targets are first-match-wins—so
 every `fleet.yaml` also needs a terminal `{name: none, doNotDeploy: true, clusterSelector: {}}`.
 `bin/fleet-lint-targets` enforces it.
 
 ## Non-obvious gotchas (all cost a debug cycle)
 - **self-init `operation`** takes an ACL capability (`update`/`read`/…), **not** `"write"`.
 - **`skip_child_token` is NOT honoured** by provider-vault on the auth_login path, and
-  OpenBao's `default` policy grants no token creation — so the `crossplane` policy must
+  OpenBao's `default` policy grants no token creation—so the `crossplane` policy must
   include `auth/token/create`.
-- **Fleet applies a bundle as one atomic Helm release**, so a `vault.upbound.io` CR (e.g.
+- **Fleet applies a bundle as one atomic Helm release**, so a `vault.upbound.io` CR (for example
   `ProviderConfig`) cannot live in the same bundle as the `Provider` that installs its
   CRD. Provider + DeploymentRuntimeConfig live in `src/crossplane-provider`; ProviderConfig
   + all MRs live in `src/openbao-config` (dependsOn crossplane-provider).
-- **Fleet builds umbrella `file://` chart deps at apply time** — do NOT commit
+- **Fleet builds umbrella `file://` chart deps at apply time**—do NOT commit
   `charts/*.tgz` or `Chart.lock` (both gitignored under `apps/secret/src`).
 - The `jwt-network` backend fetches the network cluster's live JWKS **over the NetBird mesh**,
   so it only reconciles when the network cluster is reachable (not in an isolated cluster). The
@@ -105,16 +105,16 @@ every `fleet.yaml` also needs a terminal `{name: none, doNotDeploy: true, cluste
   (`src/jwks-gateway`) carrying its own mesh client. Because the relay never terminates TLS, both
   horizons end at the SAME certificate for the SAME name, which is why no `jwks_ca_pem` and no
   skip-verify are needed. Turning that relay into an HTTP proxy would break exactly that property.
-  The relay is a **Deployment whose netbird client is a declared container, not injected** — it
+  The relay is a **Deployment whose netbird client is a declared container, not injected**—it
   was a bare Pod with a `SidecarProfile` until 2026-10-08, when a cold-start drill caught it
   running with no sidecar, no peer and no error because the pod was admitted before the operator
   had reconciled that profile. A readinessProbe now makes a wedged client drop out of the Service
   instead of relaying into a dead tunnel, and a watchdog CronJob restarts it. If this leg breaks,
   the symptom to expect is the network cluster's `VaultStaticSecret`s failing while its
-  `VaultDynamicSecret`s stay green — they use different auth paths, and that asymmetry is the tell.
+  `VaultDynamicSecret`s stay green—they use different auth paths, and that asymmetry is the tell.
 - **OpenBao must never become a mesh client.** The NetBird operator's mutating webhook runs
   `failurePolicy: Fail` and the operator itself needs a PAT out of OpenBao, so injecting a sidecar
-  into OpenBao is a cold-start deadlock. That is why the relay above exists, and why this
+  into OpenBao is a cold-start deadlock. That is why the earlier relay exists, and why this
   cluster's own Vault Secrets Operator reaches OpenBao over the in-cluster ClusterIP in plain HTTP
-  rather than over the mesh — which also keeps the certificate chain acyclic, since OpenBao
+  rather than over the mesh—which also keeps the certificate chain acyclic, since OpenBao
   distributes (in `kv/mesh-tls`) the wildcard its own exposure serves.

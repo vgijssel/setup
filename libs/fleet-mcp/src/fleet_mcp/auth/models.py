@@ -32,7 +32,7 @@ class AccessToken(BaseModel):
 
 
 class AuthErrorCode(str, Enum):
-    """Standard OAuth 2.1-style error codes for authentication failures."""
+    """Standard OAuth version 2.1-style error codes for authentication failures."""
 
     MISSING_TOKEN = "missing_token"
     INVALID_TOKEN = "invalid_token"
@@ -40,7 +40,7 @@ class AuthErrorCode(str, Enum):
 
 
 class AuthError(BaseModel):
-    """Authentication error response following OAuth 2.1 format."""
+    """Authentication error response following OAuth version 2.1 format."""
 
     error: AuthErrorCode = Field(..., description="Error code")
     error_description: str = Field(..., description="Human-readable error message")

@@ -1,12 +1,12 @@
-# Enigma Cluster Network Architecture
+# Enigma cluster network architecture
 
 ## Overview
 
-The Enigma cluster is a hybrid Kubernetes cluster running TalosOS with CozyStack on top. It consists of control plane nodes in a local area network (LAN) and a worker node in Hetzner Cloud, connected via Kubespan for secure cross-network communication.
+The Enigma cluster is a hybrid Kubernetes cluster running TalosOS with CozyStack on top. It consists of control plane nodes in a local area network (LAN) and a worker node in Hetzner’s cloud service, connected via Kubespan for secure cross-network communication.
 
-## Node Configuration
+## Node configuration
 
-### Control Plane Nodes (LAN)
+### Control plane nodes (local network)
 
 All control plane nodes are located in the local network at `192.168.50.0/24`:
 
@@ -16,23 +16,23 @@ All control plane nodes are located in the local network at `192.168.50.0/24`:
 | the-dome | 192.168.50.11 | Control Plane | LAN |
 | the-toy-factory | 192.168.50.12 | Control Plane | LAN |
 
-### Worker Nodes (Cloud)
+### Worker nodes (cloud)
 
 | Node | IP Address | Role | Location |
 |------|------------|------|----------|
-| here-i-am | 46.224.93.115 | Worker + Gateway | Hetzner Cloud |
+| here-i-am | 46.224.93.115 | Worker + Gateway | Hetzner’s cloud service |
 
-## Network Connectivity
+## Network connectivity
 
 ### Kubespan
 
 The cluster uses **Kubespan** to establish secure connectivity between nodes across different networks:
 
-- Control plane nodes (LAN) ↔ Worker node (Hetzner Cloud)
+- Control plane nodes (LAN) ↔ Worker node (Hetzner’s cloud service)
 - Encrypted WireGuard-based mesh network
 - Enables seamless pod-to-pod communication across network boundaries
 
-### Public Traffic Gateway
+### Public traffic gateway
 
 **here-i-am** (46.224.93.115) serves as the gateway for all public traffic from the internet:
 
@@ -40,14 +40,14 @@ The cluster uses **Kubespan** to establish secure connectivity between nodes acr
 - Routes external traffic into the cluster
 - Provides ingress capability for services exposed to the internet
 
-## Technology Stack
+## Technology stack
 
 - **Operating System**: TalosOS
 - **Kubernetes Distribution**: CozyStack
 - **Network Overlay**: Kubespan (WireGuard-based)
-- **Cloud Provider**: Hetzner Cloud (for worker node)
+- **Hosting provider**: Hetzner’s cloud service (for worker node)
 
-## Network Diagram
+## Network diagram
 
 ```
 Internet
@@ -66,19 +66,19 @@ Worker + Gateway                     ├─ the-dome (192.168.50.11)
           (Encrypted WireGuard Mesh)
 ```
 
-## Ingress Traffic Routing
+## Ingress traffic routing
 
 ### Tailscale Integration
 
-Every ingress inside the enigma-cozy cluster gets a dedicated Tailscale service. For example, an ingress route like `dashboard.enigma.vijgssel.nl` will have its own Tailscale service named "dashboard". This architecture enables individual ACL control for each ingress through Tailscale's access control system.
+Every ingress inside the enigma-cozy cluster gets a dedicated Tailscale service. For example, an ingress route like `dashboard.enigma.vijgssel.nl` has its own Tailscale service named `dashboard`. This architecture enables individual ACL control for each ingress through Tailscale's access control system.
 
-### Internal Traffic (LAN)
+### Internal traffic (local network)
 
 The enigma nodes reside in VLAN `192.168.50.0/24`. A Pihole instance within this VLAN contains DNS entries for all cluster ingresses, mapping them to their internal MetalLB IPs.
 
-When a service inside the enigma-cozy cluster accesses `dashboard.enigma.vijgssel.nl`, the traffic is routed directly to the local MetalLB IP (e.g., `192.168.50.100`) via Pihole DNS resolution—**not** through Tailscale.
+When a service inside the enigma-cozy cluster accesses `dashboard.enigma.vijgssel.nl`, the traffic is routed directly to the local MetalLB IP (for example, `192.168.50.100`) via Pihole DNS resolution—**not** through Tailscale.
 
-### External Traffic (Outside VLAN)
+### External traffic (outside the virtual local network)
 
 Traffic from outside the `192.168.50.0/24` VLAN is routed through the individual Tailscale services, providing:
 
@@ -107,7 +107,7 @@ Traffic from outside the `192.168.50.0/24` VLAN is routed through the individual
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Configuration Files
+## Configuration files
 
 - **Kubespan Configuration**: Managed through Talos machine config
 - **Network Patches**: `*.patch.yaml` files in this directory

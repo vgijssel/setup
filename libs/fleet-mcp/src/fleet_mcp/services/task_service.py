@@ -8,8 +8,8 @@ from ..repositories.task_repository import TaskRepository
 class TaskService:
     """Service for task assignment operations.
 
-    Architecture: Layer 2 (Business Logic)
-    Dependencies: TaskRepository (Layer 3), AgentRepository (Layer 3)
+    Architecture: layer 2 (Business Logic)
+    Dependencies: the TaskRepository (Layer 3), AgentRepository (Layer 3)
 
     Responsibilities:
     - Validate business rules for task assignment
@@ -23,8 +23,8 @@ class TaskService:
         """Initialize TaskService.
 
         Args:
-            task_repository: TaskRepository instance for task operations
-            agent_repository: AgentRepository instance for agent lookups
+            task_repository: the TaskRepository instance for task operations
+            agent_repository: the AgentRepository instance for agent lookups
         """
         self.task_repository = task_repository
         self.agent_repository = agent_repository
@@ -39,13 +39,13 @@ class TaskService:
         4. Task description must not be empty
 
         Args:
-            agent_name: Name of the agent to assign task to (case-insensitive)
-            task_description: Description of the task to assign
+            agent_name: name of the agent to assign task to (case-insensitive)
+            task_description: description of the task to assign
 
         Raises:
-            ValidationError: If task description is empty
-            AgentNotFoundError: If agent doesn't exist
-            ValueError: If agent is not idle or not online
+            `ValidationError`: if task description is empty
+            AgentNotFoundError: if agent doesn't exist
+            ValueError: if agent is not idle or not online
         """
         # Validate task description
         if not task_description or not task_description.strip():
@@ -82,11 +82,11 @@ class TaskService:
         2. Agent must be busy (has a running task)
 
         Args:
-            agent_name: Name of the agent to cancel task for (case-insensitive)
+            agent_name: name of the agent to cancel task for (case-insensitive)
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            ValueError: If agent is not busy
+            `AgentNotFoundError`: if agent doesn't exist
+            ValueError: if agent is not busy
         """
         # Normalize agent name to lowercase for case-insensitive lookup
         normalized_name = agent_name.lower()
@@ -110,16 +110,16 @@ class TaskService:
         """Get paginated task history for an agent (case-insensitive agent name).
 
         Args:
-            agent_name: Name of the agent (case-insensitive)
-            page: Page number (1-indexed)
-            page_size: Items per page (max 100)
+            agent_name: name of the agent (case-insensitive)
+            page: page number (1-indexed)
+            page_size: items per page (max 100)
 
         Returns:
-            Tuple of (task list, total count)
+            tuple of (task list, total count)
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            ValueError: If page or page_size is invalid
+            `AgentNotFoundError`: if agent doesn't exist
+            ValueError: if page or page_size is invalid
         """
         # Validate pagination parameters
         if page < 1:
@@ -151,16 +151,16 @@ class TaskService:
         """Get paginated conversation logs for an agent (case-insensitive agent name).
 
         Args:
-            agent_name: Name of the agent (case-insensitive)
-            page: Page number (1-indexed)
-            page_size: Items per page (max 100, default 1)
+            agent_name: name of the agent (case-insensitive)
+            page: page number (1-indexed)
+            page_size: items per page (max 100, default 1)
 
         Returns:
-            Tuple of (log list, total count)
+            tuple of (log list, total count)
 
         Raises:
-            AgentNotFoundError: If agent doesn't exist
-            ValueError: If page or page_size is invalid
+            `AgentNotFoundError`: if agent doesn't exist
+            ValueError: if page or page_size is invalid
         """
         # Validate pagination parameters
         if page < 1:

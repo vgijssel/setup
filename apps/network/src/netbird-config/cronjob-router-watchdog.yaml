@@ -1,17 +1,17 @@
 # Self-heal watchdog for the NBRoutingPeer (deploy/router).
 #
 # WHY: the routing peer's netbird daemon logs in only at container start (`netbird up`
-# with the operator's reusable setup key). If management forces a re-auth later — a host
-# VM suspend/resume, or a login expiry — the daemon drops to NeedsLogin/SessionExpired and
+# with the operator's reusable setup key). If management forces a re-auth later—a host
+# VM suspend/resume, or a login expiry—the daemon drops to NeedsLogin/SessionExpired and
 # never re-auths on its own. The NBRoutingPeer CR keeps reporting Ready and the CRD exposes
 # no probe (netbirdio/kubernetes-operator#85), so cross-cluster routing silently dies until
 # someone runs `kubectl rollout restart deploy/router` by hand.
 #
 # WHAT: every 5 min, exec `netbird status` in the router pod. `netbird status` exits 0 even
 # when the session is dead, so the decision is made on the OUTPUT. On a terminal bad state
-# we rollout-restart the Deployment; the new pod re-registers with the same reusable key
-# still in the `router` Secret. If exec fails (pod rolling / not ready) we skip the cycle so
-# we never race an in-flight restart.
+# the watchdog rollout-restarts the Deployment; the new pod re-registers with the same reusable key
+# still in the `router` Secret. If exec fails (pod rolling / not ready) the watchdog skips the cycle so
+# it never races an in-flight restart.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -40,8 +40,8 @@ spec:
               type: RuntimeDefault
           containers:
             - name: watchdog
-              # alpine/kubectl (not registry.k8s.io/kubectl, which is distroless with no
-              # shell) — the watchdog logic runs in /bin/sh. Multi-arch, ~22MB, matches the
+              # alpine/kubectl (not `registry.k8s.io/kubectl`, which is distroless with no
+              # shell)—the watchdog logic runs in /bin/sh. Multi-arch, ~22 MB, matches the
               # v1.35.0 clusters. Pinned to the multi-arch index digest.
               image: alpine/kubectl:1.35.0@sha256:862d86046bbcad03c252bbc10ab8bf893e7aa50aa7a20de8bfc46727dd645883
               env:

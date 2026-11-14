@@ -1,10 +1,10 @@
-# Ingress Library Chart
+# Ingress library chart
 
 Reusable Helm library chart for creating Kubernetes Ingress resources with full configurability and type-safe defaults.
 
 ## Overview
 
-This library chart implements the DRY principle for Ingress resource management across all applications in the monorepo. It provides a generic, type-safe template that can be used as a dependency in any application chart.
+This library chart implements the DRY principle for Ingress resource management across all applications in the monorepo. It provides a generic, type-safe template that can be used as a dependency in any app chart.
 
 ## Features
 
@@ -16,7 +16,7 @@ This library chart implements the DRY principle for Ingress resource management 
 
 ## Usage
 
-### As a Chart Dependency
+### As a chart dependency
 
 Add to your chart's `Chart.yaml`:
 
@@ -67,7 +67,7 @@ ingress:
 
 ## Examples
 
-### Basic HTTP Ingress
+### Basic unencrypted ingress
 
 ```yaml
 ingress:
@@ -80,7 +80,7 @@ ingress:
         number: 8080
 ```
 
-### HTTPS Ingress with TLS
+### Encrypted ingress
 
 ```yaml
 ingress:
@@ -120,7 +120,7 @@ ingress:
     nginx.ingress.kubernetes.io/backend-protocol: GRPC
 ```
 
-### Webhook Ingress with Specific Path
+### Webhook ingress with specific path
 
 ```yaml
 ingress:
@@ -141,7 +141,7 @@ ingress:
     internal-networking/expose: "true"
 ```
 
-## Value Reference
+## Value reference
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
@@ -158,13 +158,13 @@ ingress:
 | `tls.hosts` | array | No | `[]` | Additional TLS hosts |
 | `annotations` | object | No | `{}` | Ingress annotations |
 
-## Design Principles
+## Design principles
 
-### Single Responsibility
+### Single responsibility
 
-This library creates exactly one Ingress resource. For multiple ingresses, use multiple chart instances (e.g., via umbrella chart).
+This library creates exactly one Ingress resource. For multiple ingresses, use multiple chart instances (for example, via umbrella chart).
 
-### Type Safety
+### Type safety
 
 All required fields use Helm's `required` function to fail fast on misconfiguration:
 
@@ -173,28 +173,28 @@ name: {{ .Values.name | required "name is required" }}
 host: {{ .Values.host | required "host is required" }}
 ```
 
-### No Defaults for Critical Values
+### No defaults for critical values
 
 Values like `host`, `name`, and `backend.service.name` have no defaults to prevent accidental misconfigurations.
 
-### Flexibility Over Convention
+### Flexibility over convention
 
-While we provide sensible defaults for optional fields (path, pathType), all Ingress features remain accessible.
+While the chart provides sensible defaults for optional fields (path, pathType), all Ingress features remain accessible.
 
-## Real-World Usage
+## Real-world usage
 
-### ArgoCD Ingress Umbrella Chart
+### Ingress umbrella chart
 
 See `apps/argocd/ingress/` for a complete example of using this library to manage 4 different ingresses via an umbrella chart:
 
 - HTTP ingress (UI/API)
-- gRPC ingress (CLI)
+- gRPC ingress (command-line tool)
 - Server webhook ingress
 - ApplicationSet webhook ingress
 
 Each subchart depends on this library and provides specific configuration.
 
-## Chart Type
+## Chart type
 
 This chart is set to `type: application` rather than `type: library` to ensure templates are rendered. Helm library charts do not render templates by default.
 
@@ -233,7 +233,7 @@ EOF
 helm template test-ingress . --values test-values.yaml
 ```
 
-## Migration Path
+## Migration path
 
 To migrate existing ingresses to this library:
 
@@ -246,7 +246,7 @@ To migrate existing ingresses to this library:
 ## Contributing
 
 When extending this library:
-- Keep it generic (no application-specific logic)
+- Keep it generic (no app-specific logic)
 - Maintain backward compatibility
 - Update this README with new parameters
 - Provide examples for new features

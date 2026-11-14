@@ -1,7 +1,7 @@
 ---
 name: run-prompt
 description: Delegate one or more prompts to fresh sub-task contexts with parallel or sequential execution
-argument-hint: <prompt-number(s)-or-name> [--parallel|--sequential]
+argument-hint: <prompt-numbers-or-name> [--parallel|--sequential]
 ---
 
 <objective>
@@ -9,17 +9,17 @@ Execute one or more prompts from `./prompts/` as delegated sub-tasks with fresh 
 </objective>
 
 <input>
-The user will specify which prompt(s) to run via $ARGUMENTS, which can be:
+The user specifies which prompts to run via $ARGUMENTS, which can be:
 
 **Single prompt:**
 
 - Empty (no arguments): Run the most recently created prompt (default behavior)
-- A prompt number (e.g., "001", "5", "42")
-- A partial filename (e.g., "user-auth", "dashboard")
+- A prompt number (for example, `001`, `5`, "42")
+- A partial filename (for example, `user-auth`, "dashboard")
 
 **Multiple prompts:**
 
-- Multiple numbers (e.g., "005 006 007")
+- Multiple numbers (for example, "005 006 007")
 - With execution flag: "005 006 007 --parallel" or "005 006 007 --sequential"
 - If no flag specified with multiple prompts, default to --sequential for safety
   </input>
@@ -42,7 +42,7 @@ Parse $ARGUMENTS to extract:
 For each prompt number/name:
 
 - If empty or "last": Find with `!ls -t ./prompts/*.md | head -1`
-- If a number: Find file matching that zero-padded number (e.g., "5" matches "005-_.md", "42" matches "042-_.md")
+- If a number: Find file matching that zero-padded number (for example, "5" matches `005-_.md`, "42" matches "042-_.md")
 - If text: Find files containing that string in the filename
 
 <matching_rules>

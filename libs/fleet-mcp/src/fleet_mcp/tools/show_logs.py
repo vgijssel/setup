@@ -18,24 +18,24 @@ async def show_agent_log(
     """Show paginated conversation logs for an agent.
 
     Tool: show_agent_log
-    User Story: US4 (Task and Log History Tracking)
-    Architecture: Layer 1 (Tool Layer)
+    User Story—US4 (Task and Log History Tracking)
+    Architecture: layer 1 (Tool Layer)
 
     Returns conversation logs ordered by time descending (newest first).
     Default page size is 1 to show only the latest message.
 
     Args:
-        task_service: Service instance for task business logic
-        agent_name: Name of the agent to query
-        page: Page number (1-indexed, default 1)
-        page_size: Items per page (1-100, default 1 for latest only)
+        task_service: the service instance for task business logic
+        agent_name: name of the agent to query
+        page: page number (1-indexed, default 1)
+        page_size: items per page (1-100, default 1 for latest only)
 
     Returns:
-        Dictionary with logs, pagination metadata
+        dictionary with logs, pagination metadata
 
     Raises:
-        AgentNotFoundError: If agent doesn't exist
-        ValueError: If pagination parameters are invalid
+        `AgentNotFoundError`: if agent doesn't exist
+        ValueError: if pagination parameters are invalid
     """
     logs, total_count = await task_service.get_conversation_logs(
         agent_name, page, page_size

@@ -13,7 +13,7 @@ spec:
       labels:
         app: test-app
       annotations:
-        # This will be overridden by patches
+        # This is overridden by patches
         ovn.kubernetes.io/logical_switch: placeholder
     spec:
       containers:

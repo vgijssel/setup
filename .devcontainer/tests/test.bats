@@ -22,7 +22,7 @@ setup() {
   run docker run --privileged --rm \
     -v "${SETUP_DIR}:/workspaces/setup" \
     "${IMAGE}" \
-    bin/exec goss --gossfile ./libs/devenv/goss.yaml validate
+    sh -c 'bin/exec goss --gossfile ./libs/devenv/goss.yaml validate || { cat /tmp/dockerd.log; exit 1; }'
 
   echo "Output: ${output}"
   [ "$status" -eq 0 ]

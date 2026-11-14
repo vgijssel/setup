@@ -2,8 +2,8 @@
 # current overlay address of mesh exposures that opt into `publicDns`, so that consumers which
 # cannot run a mesh client can still resolve a mesh hostname.
 #
-# A mesh hostname is NOT publicly resolvable by default — the shared mesh-service chart ships
-# `publicDns` disabled, and only an exposure with non-peer consumers opts in (today: omada
+# A mesh hostname is NOT publicly resolvable by default—the shared mesh-service chart ships
+# `publicDns` turned off, and only an exposure with non-peer consumers opts in (today: omada
 # alone, for the TP-Link gateway/switches/APs). Each opt-in publishes ONE explicit
 # `<service>.vpn.blueora.ng` A record through a `DNSEndpoint` that the chart renders and the
 # exposure's own pod patches, so the set of publicly resolvable mesh names is enumerable from
@@ -11,7 +11,7 @@
 #
 # A WILDCARD IN THIS ZONE REMAINS FORBIDDEN, and these per-name records do not weaken that: a
 # Cloudflare wildcard answers at arbitrary label depth, so one `*` would publish every mesh
-# hostname that exists or ever will — including every service with no device consumers.
+# hostname that exists now or in the future—including every service with no device consumers.
 #
 # VERIFIED BEFORE ENABLING THIS (openspec 12.1), because the obvious fear is that a public record
 # shadows NetBird's resolver for peers: with a deliberately wrong public A record live for a real
@@ -36,7 +36,7 @@
 # unleased one ESO had to mint because it destroys its own leases.
 #
 # domainFilters + txtOwnerId scope external-dns to the managed zones and tag its TXT ownership
-# records to THIS cluster — the secret cluster's external-dns MUST use a different owner id or
+# records to THIS cluster—the secret cluster's external-dns MUST use a different owner id or
 # the two would delete each other's records (historically observed).
 #
 # `blueora.ng` is where the mesh peer DNS domain lives, so it is the zone the `publicDns` records
@@ -47,7 +47,7 @@
 # cert-manager's transient _acme-challenge TXTs) are not at risk.
 external-dns:
   # NOTE no Reloader annotation. external-dns reads CF_API_TOKEN from env ONCE, at startup, so a
-  # rotated Secret is invisible to the running pod — but the restart is now driven by VSO's own
+  # rotated Secret is invisible to the running pod—but the restart is now driven by VSO's own
   # `rolloutRestartTargets` (templates/vaultdynamicsecret-external-dns.yaml) rather than by
   # Reloader watching the Secret. One mechanism, owned by the thing that rotates the credential.
   provider:
@@ -59,7 +59,7 @@ external-dns:
   # cluster-wide already.
   #
   # `service` was removed on 2026-10-07 along with `--publish-internal-services`. It existed for
-  # exactly one annotated Service — the Omada device path's pinned ClusterIP — and that Service
+  # exactly one annotated Service—the Omada device path's pinned ClusterIP—and that Service
   # is deleted, so the source had no remaining input. Leaving it enabled would mean any future
   # Service that happens to carry a hostname annotation gets published silently; requiring a
   # DNSEndpoint makes publication an explicit, reviewable act.

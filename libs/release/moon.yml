@@ -9,7 +9,7 @@ layer: library
 tasks:
   # Three scripts, three silent failure modes. bin/registry-tag-exists reading an ambiguous probe as
   # "absent" re-pushes a live tag; bin/openbao-plugin-pin committing one half of a pin leaves
-  # Fleet deploying a plugin that fails registration with a bare "checksum mismatch". Neither
+  # Fleet deploying a plugin that fails registration with a bare `checksum mismatch`. Neither
   # shows up until long after the commit; and self-upgrade.sh treating a stranded branch as
   # proof that a proposal exists reports success having proposed nothing. regctl, plugin-sha.sh
   # and gh are stubbed and the remote is a local bare repo, so this needs no network and no
@@ -30,8 +30,8 @@ tasks:
 
   # Propose the pins for the currently published artifacts as a PR. Invoked by
   # .github/workflows/publish.yaml after both publishes succeed. `cache: false` and
-  # `runInCI: false`: it reaches the registry and GitHub, so a cached success would mean "we did
-  # not look", and it must never fire from `moon ci` on a pull request.
+  # `runInCI: false`: it reaches the registry and GitHub, so a cached success would mean "the task did
+  # not look," and it must never fire from `moon ci` on a pull request.
   self_upgrade:
     command: ./self-upgrade.sh
     options:
@@ -40,8 +40,8 @@ tasks:
       cache: false
 
   # Assert the committed pins are self-consistent across the two bundles that carry them. The
-  # version is necessarily duplicated — Fleet cannot share values between bundles and an image tag
-  # cannot come from a ConfigMap — so the single-commit atomicity of self_upgrade cannot by itself
+  # version is necessarily duplicated—Fleet cannot share values between bundles and an image tag
+  # cannot come from a ConfigMap—so the single-commit atomicity of self_upgrade cannot by itself
   # guarantee the two agree. This is the check that can. No docker, no network.
   self_upgrade_check:
     command: openbao-plugin-pin --check

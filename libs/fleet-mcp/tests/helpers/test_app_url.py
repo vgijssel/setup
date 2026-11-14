@@ -144,7 +144,7 @@ class TestConstructAppUrl:
         assert result == "https://8000--main--empty-workspace--dave.coder.example.com/"
 
     def test_path_url_with_missing_owner_defaults_to_me(self):
-        """Test path-based URL defaults to 'me' when owner_name is missing."""
+        """Test path-based URL defaults to `me` when owner_name is missing."""
         base_url = "https://coder.example.com"
         workspace = {
             "id": "ws-111",
@@ -163,7 +163,7 @@ class TestConstructAppUrl:
         assert result == "https://coder.example.com/@me/test.ws-111/apps/app/"
 
     def test_subdomain_url_with_missing_owner_defaults_to_me(self):
-        """Test subdomain URL defaults to 'me' when owner_name is missing."""
+        """Test subdomain URL defaults to `me` when owner_name is missing."""
         base_url = "https://coder.example.com"
         workspace = {
             "id": "ws-222",
