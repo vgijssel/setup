@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 dependencies = ["cadquery==2.8.0"]
 
 [project.optional-dependencies]
-dev = ["pytest==8.3.4", "ruff==0.14.14"]
+dev = ["pytest==9.0.3", "ruff==0.14.14"]
 
 [project.scripts]
 build-case = "apollo_r_pro_1_case.cli:main"
