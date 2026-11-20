@@ -1,18 +1,25 @@
 apiVersion: v2
-appVersion: v2.11.0
+appVersion: v2.13.0
 dependencies:
 - alias: otel-collector
   condition: otel-collector.enabled
   name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.144.0
-description: Real-time performance monitoring, done right!
+description: 'Netdata, full-stack observability: the AI SRE that learns your stack!'
 home: https://netdata.cloud/
 icon: https://netdata.github.io/helmchart/logo.png
 keywords:
-- alerting
-- metric
+- observability
 - monitoring
+- full-stack-observability
+- ai-sre
+- kubernetes
+- opentelemetry
+- metrics
+- logs
+- alerting
+- anomaly-detection
 maintainers:
 - email: cloud-sre@netdata.cloud
   name: Netdata Cloud SRE team
@@ -21,4 +28,4 @@ sources:
 - https://github.com/netdata/helmchart
 - https://github.com/netdata/netdata
 type: application
-version: 3.7.173
+version: 3.7.182
