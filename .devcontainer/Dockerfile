@@ -1,4 +1,4 @@
-FROM ubuntu:noble@sha256:353675e2a41babd526e2b837d7ec780c2a05bca0164f7ea5dbbd433d21d166fc
+FROM ubuntu:noble@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b
 
 # Labels to associate with the vgijssel/setup repository
 LABEL org.opencontainers.image.source=https://github.com/vgijssel/setup
