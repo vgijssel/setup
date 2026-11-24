@@ -1,0 +1,48 @@
+# The uplink for the `storage` cluster network: both Mellanox ports on every node, bonded in
+# `broadcast` mode at MTU 9000.
+#
+# ONE cluster-wide VlanConfig covers all three nodes, which is only valid because the two
+# Mellanox ports enumerate identically on each of them. The VlanConfigs of a cluster network must
+# together cover EVERY node or the storage-network webhook refuses to apply, so if the names ever
+# diverge this splits into one VlanConfig per node rather than gaining a second entry here.
+#
+# `mode: broadcast` is mandatory, not a preference. The two ports reach DIFFERENT peers over
+# direct cables with no switch, so active-backup strands a peer, LACP cannot negotiate one LAG
+# with two partners, and the balance modes hash frames onto whichever cable, delivering a share
+# of them to the wrong node. Broadcast sends every frame out both ports and the peer it was not
+# addressed to discards it. Costs: per-node egress caps near 25 Gb/s and rx counters read high.
+# See the fabric section of apps/network/harvester.md.
+#
+# A `miimon` and `txQLen` of -1 both mean "leave the kernel default," which is how Harvester's
+# UI writes an unset field. They do not turn off link monitoring.
+#
+# NIC NAMES ARE THE RISK HERE. These are kernel interface names, and
+# apps/network/harvester.md records that illusion's NVMe devices already swap names between
+# boots. If the Mellanox ports ever do the same, Fleet applying a stale name reconfigures the
+# bond onto an interface that is not there, and the storage fabric drops on all three nodes at
+# once. Longhorn replicas go degraded and live migration stops. Verify against live before
+# changing this file, and prefer a window where volumes are healthy.
+#
+# MTU 9000 must be identical across every VlanConfig of this cluster network. The NAD Harvester
+# generates carries no `mtu` key, so the pod side inherits the bridge MTU and this declaration is
+# not proof of jumbo frames end to end. Check `ip link show storage-br` on the hosts.
+apiVersion: network.harvesterhci.io/v1beta1
+kind: VlanConfig
+metadata:
+  name: storage
+  annotations:
+    field.cattle.io/description: Used for longhorn storage replication
+  labels:
+    network.harvesterhci.io/clusternetwork: storage
+spec:
+  clusterNetwork: storage
+  uplink:
+    bondOptions:
+      miimon: -1
+      mode: broadcast
+    linkAttributes:
+      mtu: 9000
+      txQLen: -1
+    nics:
+      - enp4s0f0np0
+      - enp4s0f1np1

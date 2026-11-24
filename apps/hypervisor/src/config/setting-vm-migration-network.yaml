@@ -1,0 +1,18 @@
+# KubeVirt live-migration memory pages, on VLAN 101 of the same `storage` cluster network.
+# virt-handler pods get a `migration0` interface on this range.
+#
+# Reuses the `storage` cluster network with a different VLAN and a non-overlapping CIDR.
+# Harvester's webhook only rejects overlapping ranges, so sharing the cluster network is
+# supported, and separate VLANs keep per-traffic-type packet captures readable.
+#
+# Cheaper to change than storage-network: it needs only that no migration is in flight. VMs keep
+# running, and KubeVirt restarts every virt-handler pod. Still copied verbatim from live, in the
+# live key order, so a Fleet sync is a no-op rather than a data-plane restart.
+#
+# `exclude: []` reserves no addresses. Populating it is how guest IPs would be carved out, and
+# unlike the storage-network equivalent that edit carries no VM-downtime prerequisite.
+apiVersion: harvesterhci.io/v1beta1
+kind: Setting
+metadata:
+  name: vm-migration-network
+value: '{"clusterNetwork":"storage","vlan":101,"range":"172.16.101.0/24","exclude":[]}'
