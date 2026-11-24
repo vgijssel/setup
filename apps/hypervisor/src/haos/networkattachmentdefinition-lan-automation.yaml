@@ -1,0 +1,30 @@
+# The VM network HAOS attaches to, VLAN 30 (Trusted), on the `mgmt` cluster network, bridged
+# through `mgmt-br` on the Omada LAG. Per apps/network/network.md, VLAN 30 is 192.168.30.0/24
+# with the gateway at .1.
+#
+# `promiscMode: true` and the empty `ipam` are what make this a plain L2 attachment. Addressing
+# is the guest's problem, handled by the VLAN 30 DHCP scope, not by Harvester.
+#
+# TWO THINGS LIVE HERE THAT THIS FILE DELIBERATELY DOES NOT DECLARE:
+#
+#   - `network.harvesterhci.io/route`, which records the CIDR and gateway Harvester discovered
+#     plus a `connectivity` verdict from probing that gateway. The verdict flips to "false"
+#     whenever the gateway stops answering, so declaring it would make a network outage show up
+#     as configuration drift. Omitted, it is a map key Fleet never looks at.
+#   - the `network.harvesterhci.io/ready` label, which is status for the same reason.
+#
+# The three remaining labels are declared because they are static facts about this NAD rather
+# than observations: the cluster network it belongs to, its type, and its VLAN ID, which agrees
+# with the `vlan` in spec.config. Harvester's UI lists VM networks by these labels, so a NAD that
+# loses them stops appearing as a selectable network even though the bridge still works.
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: lan-automation
+  namespace: default
+  labels:
+    network.harvesterhci.io/clusternetwork: mgmt
+    network.harvesterhci.io/type: L2VlanNetwork
+    network.harvesterhci.io/vlan-id: "30"
+spec:
+  config: '{"cniVersion":"0.3.1","name":"lan-automation","type":"bridge","bridge":"mgmt-br","promiscMode":true,"vlan":30,"ipam":{}}'

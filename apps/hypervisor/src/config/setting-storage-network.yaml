@@ -1,0 +1,23 @@
+# Longhorn replication traffic, moved off the pod network onto VLAN 100 of the `storage`
+# cluster network. Longhorn instance-manager pods get an `lhnet1` interface on this range.
+#
+# DANGER, and the reason this file is byte-identical to the live value. Changing a configured
+# storage-network needs EVERY VM in the cluster stopped and every Longhorn volume detached; the
+# webhook refuses otherwise, and applying it restarts the Longhorn data plane while workloads
+# stay down until started by hand. The controller tracks the value through
+# `storage-network.settings.harvesterhci.io/hash`, computed over this string, so a
+# whitespace-only reformat of the JSON may be enough to count as a change. The value below is
+# therefore copied verbatim from the cluster, compact, and in the live key order. Re-indent it
+# and the first Fleet sync may try to reconfigure the storage fabric under three running nodes.
+#
+# `exclusiveVlan: false` lets VLAN 100 be shared, which is what allows rwx-network to run in
+# share mode on the same VLAN and range instead of consuming a third one.
+#
+# Sizing: share mode needs (nodes x 3) + (disks x 2) + 32 usable addresses, so 3 nodes with 9
+# disks need about 61 of the 254 in this /24. Adding disks does not need a range change, which
+# is the point of the headroom.
+apiVersion: harvesterhci.io/v1beta1
+kind: Setting
+metadata:
+  name: storage-network
+value: '{"vlan":100,"clusterNetwork":"storage","range":"172.16.100.0/24","exclusiveVlan":false}'

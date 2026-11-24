@@ -1,0 +1,29 @@
+# Default StorageClass: 3-way replicated, migratable, on the SSD-tagged Longhorn disks.
+#
+# `diskSelector: ssd` matches the Longhorn disk tag, so the tag on each node's disks is what
+# actually routes a volume here. The tags live on the Longhorn node objects and are not declared
+# in this bundle; an untagged disk silently drops out of the pool.
+#
+# `migratable: "true"` is what lets a VM on this class live-migrate, which is why the HAOS image
+# and every running guest sit here rather than on longhorn-sata.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn-ssd
+  annotations:
+    field.cattle.io/description: Fast distributed storage
+    # Both keys are set live. The beta key is deprecated but Harvester's UI still reads it, so
+    # dropping it here would make the UI stop showing this class as the default.
+    storageclass.beta.kubernetes.io/is-default-class: "true"
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: driver.longhorn.io
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+parameters:
+  dataEngine: v1
+  diskSelector: ssd
+  encrypted: "false"
+  migratable: "true"
+  numberOfReplicas: "3"
+  staleReplicaTimeout: "30"

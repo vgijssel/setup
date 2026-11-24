@@ -32,9 +32,9 @@
 # corruption this script exists to avoid.
 #
 # Usage:
-#   moon run harvester:shutdown                # prompts before mutating anything
-#   moon run harvester:shutdown -- --dry-run   # print the plan, change nothing
-#   moon run harvester:shutdown -- --yes       # unattended
+#   moon run hypervisor:shutdown                # prompts before mutating anything
+#   moon run hypervisor:shutdown -- --dry-run   # print the plan, change nothing
+#   moon run hypervisor:shutdown -- --yes       # unattended
 #
 # Environment:
 #   HARVESTER_NODES        seed node addresses to find a live one through

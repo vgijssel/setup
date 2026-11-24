@@ -1,0 +1,19 @@
+# RWX volume traffic (Longhorn's share-manager NFS export) in SHARE mode: it reuses
+# storage-network's VLAN 100 and its range rather than taking a VLAN of its own.
+#
+# Share mode is what makes this a cheap setting. The alternative, a dedicated network, would
+# need a third VLAN and CIDR and would buy nothing, since RWX and replication already contend
+# for the same ~25 Gb/s per node. It also means enabling RWX needs no edit to storage-network,
+# which is the setting that costs a full every-VM-stopped window.
+#
+# Not free, though: applying it restarts every longhorn-csi-plugin pod, which disrupts volume
+# attach and detach, VM disk provisioning, and live migration until they settle. Do not overlap
+# a change here with rolling node maintenance.
+#
+# Harvester drives Longhorn's own `endpoint-network-for-rwx-volume` from this setting. Never set
+# the Longhorn setting directly.
+apiVersion: harvesterhci.io/v1beta1
+kind: Setting
+metadata:
+  name: rwx-network
+value: '{"share-storage-network":true}'

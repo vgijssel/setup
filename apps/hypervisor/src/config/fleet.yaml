@@ -1,0 +1,73 @@
+# Fleet bundle for the hypervisor's cluster-wide configuration: the storage classes, the
+# `storage` cluster network and its VlanConfig, and the four harvesterhci.io Settings that
+# apps/network/harvester.md records as kubectl commands. Guests live in sibling bundles,
+# starting with ../haos.
+#
+# Harvester appears in Continuous Delivery at all only because the Rancher-side
+# `harvester-baremetal-container-workload` feature flag is active. Without it the dashboard drops
+# every cluster labelled `provider.cattle.io: harvester` from the target picker and reports them
+# as hidden, so the GitRepo has nothing to deploy to. The flag is experimental on the 1.8 line.
+#
+# Scope. Harvester owns monitoring, logging, Rancher, KubeVirt, and Longhorn, and upstream states
+# that none of them are modifiable from outside. This bundle leaves them alone, along with the
+# `cattle-system`, `harvester-system`, and `longhorn-system` namespaces. It also leaves out the
+# per-image StorageClasses named `lh-<uuid>`, which Harvester generates from a
+# VirtualMachineImage's UID and must never be declared by hand.
+#
+# EVERY object here already exists on the cluster, so this bundle ADOPTS rather than creates.
+# Two consequences, both load-bearing:
+#
+#   - takeOwnership below. Fleet installs a bundle as a Helm release, and Helm refuses to manage
+#     an object that carries no ownership metadata of its own. Without the flag the Bundle shows
+#     green while its BundleDeployment holds the real error.
+#   - The Setting values are copied byte-for-byte from live, compact, and in the live key order.
+#     Harvester's controllers track these through a hash annotation computed over the value
+#     string, so reformatting the JSON can register as a change, and for storage-network a change
+#     means a storage-fabric reconfigure that requires every VM stopped. See that file.
+#
+# NO `diff.comparePatches`, deliberately. Harvester's controllers write plenty of annotations
+# onto these objects (hashes, generated NAD names, the derived uplink MTU and VLAN set), and the
+# instinct is to enumerate them all as ignores. That is unnecessary, because Fleet only compares
+# fields the manifest actually declares. Its drift check reads `plan.Update`, which holds changes
+# to existing values. In Fleet's own words, "Adding a new key to a map is not considered an
+# update." An annotation the manifest never mentions is a new map key, invisible to Fleet.
+#
+# Verified on 2026-11-24 against the secret cluster's Fleet, not assumed: a deployed bundle whose
+# ConfigMap gained two brand-new annotation keys out-of-band stayed `nonModified: true` and
+# Ready, while rewriting the value of an annotation the bundle DID declare flipped it to
+# `modified: 1` within one poll. Fleet reported that drift and did not fight it. Nothing is
+# corrected unless `correctDrift` is enabled, so there is no reconcile loop in either case.
+#
+# The rule that follows, and the one these manifests are written to: do not declare a field
+# another controller owns. Where a field must be both declared and controller-rewritten, the
+# compact form is `jsonPointers` (one entry per path, or `/metadata/annotations` for all of
+# them), not an `operations` list, and `name` is matched as a regular expression when it is not
+# an exact match, so one entry can cover several objects.
+#
+# The label domain is `blueora.ng`. The older vind clusters carry `vgijssel.nl` keys, so nothing
+# selects this bundle until the Fleet cluster object agrees:
+#
+#   kubectl -n fleet-default label clusters.fleet.cattle.io <cluster> \
+#     cluster.blueora.ng/name=harvester
+labels:
+  fleet.blueora.ng/bundle: hypervisor-config
+# Everything in this bundle is cluster-scoped, so this is only a fallback for anything namespaced
+# added later. Deliberately not one of the preceding system namespaces.
+defaultNamespace: default
+helm:
+  releaseName: hypervisor-config
+  # Adopt the pre-existing objects. See the header.
+  takeOwnership: true
+# harvester-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: harvester
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: harvester
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

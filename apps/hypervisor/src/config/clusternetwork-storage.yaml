@@ -1,0 +1,18 @@
+# The `storage` cluster network: the switchless Mellanox 25G mesh that carries Longhorn
+# replication, live migration, and RWX NFS. See the fabric section of apps/network/harvester.md.
+#
+# A ClusterNetwork is only a name. Everything physical lives in its VlanConfig, which declares
+# the two Mellanox ports per node, bond mode `broadcast` (mandatory on a switchless mesh, where
+# the two ports reach different peers), and MTU 9000. See vlanconfig-storage.yaml, and read its
+# warning about NIC names before changing it.
+#
+# The controller also writes `uplink-mtu`, `mtu-source-vc`, and the `vlan-id-set-str` pair here
+# as this network's VlanConfigs and Settings come and go. Those are not declared, because their
+# values follow live state rather than git, and because a field this manifest never mentions is
+# a map key Fleet's drift check does not look at. See the measured evidence in fleet.yaml.
+apiVersion: network.harvesterhci.io/v1beta1
+kind: ClusterNetwork
+metadata:
+  name: storage
+  annotations:
+    field.cattle.io/description: Used for the longhorn storage network
