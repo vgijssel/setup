@@ -1,0 +1,147 @@
+# The Home Assistant VM: 4 vCPU, 8 GiB, one 32 GiB boot disk cloned from the haos-os-18-2
+# image, bridged onto VLAN 30 through the lan-automation network in this namespace.
+#
+# UNLIKE THE VM IT REPLACED, THIS ONE IS A RECIPE. `default/haos` adopted a machine built by
+# hand in the UI: its PVC, its cloud-init Secret and its per-image StorageClass all carried
+# Harvester-generated names that git could not predict. Every one of those is gone here:
+# the disk name is fixed, the storage class is a real name rather than an `lh-<uid>`, and
+# there is no cloud-init Secret at all. Applied to an empty cluster this builds a bootable
+# HAOS guest; the Home Assistant DATA is then restored into it from a Home Assistant backup,
+# which is the layer that actually owns that state. A fresh boot lands on HAOS onboarding -
+# that is expected, and the restore happens there.
+#
+# ─── THE MAC IS INHERITED FROM THE GUEST THIS REPLACED. ─────────────────────────────────────
+# The interface below declares the same MAC the previous guest used, so this instance takes
+# DHCP lease 192.168.30.30 and everything on VLAN 30 that learned that address keeps working.
+# That is only safe because the old VM is GONE: it was deleted in the same change that created
+# this one (its bundle was removed, so Fleet uninstalled Helm release `hypervisor-haos`). Two
+# NICs with one MAC on one L2 segment is an address conflict, so never re-create a guest with
+# this MAC alongside this one. Ordering was never in doubt during the cutover: the old VM is
+# deleted in seconds, while this one cannot boot until CDI has imported a 512 MiB xz artifact
+# and cloned a 32 GiB disk, which takes minutes.
+# ────────────────────────────────────────────────────────────────────────────────────────────
+#
+# HOW THE BOOT DISK IS BUILT, and why it needs no image at runtime. The `volumeClaimTemplates`
+# annotation names a disk whose `harvesterhci.io/imageId` points at a CDI-backed image, and
+# Harvester's VM controller responds by creating a DataVolume of the same name whose
+# `source.pvc` is the image's golden PVC, addressed by namespace/name
+# (pkg/controller/master/virtualmachine/vm_controller.go). That is a full PVC-to-PVC copy, not
+# a delta: when the clone completes the disk owes the image nothing, and `haos-os-18-2` could
+# be deleted without touching it. Two consequences worth stating because neither is obvious:
+#
+#   - `createDataVolume` sets NO ownerReferences, so deleting this VM does not cascade into
+#     the DataVolume or the PVC. The data survives a `kubectl delete vm`, exactly as it does
+#     for the current guest. Removing the disk is a separate, deliberate act.
+#   - The volume below is a `persistentVolumeClaim`, NOT a `dataVolume`. This matters: the
+#     v1.9 backup engine's `volumeToPVCMappings()` only collects `volume.PersistentVolumeClaim`
+#     entries, so a VM that declares `dataVolumeTemplates` + `dataVolume` volumes gets a
+#     VirtualMachineBackup that is ACCEPTED and then silently backs up nothing, forever, with
+#     no error and no condition (harvester/harvester#11861, still open). Declaring the disk the
+#     Harvester-native way keeps this guest backupable. Do not "simplify" it into
+#     dataVolumeTemplates.
+#
+# NO CLOUD-INIT DISK. The old VM carried one because the Harvester UI always attaches one;
+# Home Assistant OS is an appliance image that ignores NoCloud entirely, so the Secret only
+# ever existed to be generated, owned by the VM, and cascade-deleted with it. Omitting it
+# removes an object git could not express and loses nothing.
+#
+# `firmware.uuid` and `firmware.serial` are carried over from the guest this replaced, on
+# purpose. The guest treats them as its hardware identity, so reusing them means Home
+# Assistant's hardware view does not change across the migration. Safe only because the old VM
+# no longer exists; a duplicate SMBIOS UUID on a second live guest would be its own problem.
+#
+# `evictionStrategy: LiveMigrateIfPossible` plus the migratable longhorn-ssd class is what keeps
+# rolling node maintenance non-disruptive. The nodeAffinity on `network.harvesterhci.io/mgmt`
+# only requires a node attached to the mgmt cluster network, which is all three.
+#
+# `harvesterhci.io/mac-address` and `harvesterhci.io/vmRunStrategy` are NOT declared: both are
+# Harvester's own record of what the UI set, and the authoritative values are the spec fields
+# below. Declaring them duplicates the source of truth for no gain.
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: haos
+  namespace: haos
+  annotations:
+    harvesterhci.io/volumeClaimTemplates: '[{"metadata":{"name":"haos-disk-0","annotations":{"harvesterhci.io/imageId":"haos/haos-os-18-2"}},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"32Gi"}},"volumeMode":"Block","storageClassName":"longhorn-ssd"}}]'
+  labels:
+    harvesterhci.io/os: linux
+spec:
+  # Restarts the guest if it exits non-zero but honours a guest shutdown, matching what the
+  # previous guest ran with. `correctDrift: true` on the GitRepo means Fleet enforces this, so
+  # stopping the VM from the Harvester UI gets reverted - stop it by committing `Halted`.
+  runStrategy: RerunOnFailure
+  template:
+    metadata:
+      # `kubevirt.io/pci-topology-version` is controller-owned and not declared, because
+      # KubeVirt bumps it and pinning it would make an upgrade look like drift.
+      annotations:
+        harvesterhci.io/sshNames: "[]"
+      labels:
+        harvesterhci.io/vmName: haos
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: network.harvesterhci.io/mgmt
+                    operator: In
+                    values:
+                      - "true"
+      architecture: amd64
+      domain:
+        cpu:
+          cores: 4
+          maxSockets: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: disk-0
+          inputs:
+            - bus: usb
+              name: tablet
+              type: tablet
+          interfaces:
+            - bridge: {}
+              macAddress: 4e:89:35:29:63:28
+              model: virtio
+              name: default
+        features:
+          acpi:
+            enabled: true
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: false
+          serial: 984f5b01-5097-4104-8a68-fce3145bbe1e
+          uuid: a02d5c19-67c3-4639-aadd-71b1d990e9d3
+        machine:
+          type: q35
+        memory:
+          guest: 8Gi
+        # Requests are deliberately below the limits, because Harvester reserves a fraction of
+        # the guest's memory and CPU rather than the whole allocation. That is what lets three
+        # nodes host more guest memory than any one node has free.
+        resources:
+          limits:
+            cpu: "4"
+            memory: 8Gi
+          requests:
+            cpu: 400m
+            memory: 5461Mi
+      evictionStrategy: LiveMigrateIfPossible
+      hostname: haos
+      networks:
+        - multus:
+            networkName: haos/lan-automation
+          name: default
+      terminationGracePeriodSeconds: 120
+      volumes:
+        - name: disk-0
+          persistentVolumeClaim:
+            claimName: haos-disk-0
