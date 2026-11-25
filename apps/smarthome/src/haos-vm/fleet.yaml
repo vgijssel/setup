@@ -1,0 +1,49 @@
+# The Home Assistant guest VM, on its own so that it applies only AFTER the image it boots from
+# exists. Everything it depends on - the namespace, the image, the VLAN 30 network - is in
+# ../haos-image.
+#
+# ─── dependsOn IS LOAD-BEARING, NOT ORDERING PREFERENCE. ─────────────────────────────────────
+# Harvester's VM validator resolves the StorageClass named in volumeClaimTemplates and refuses
+# the VM if it is missing:
+#
+#   admission webhook "validator.harvesterhci.io" denied the request:
+#   failed to get storage class haos-18-2 - the StorageClass does not exist
+#
+# That class is derived by Harvester from the VirtualMachineImage, so it cannot exist until the
+# image does. Putting the VM in the image's bundle made the whole Helm release fail as a unit,
+# which meant the image was never created either. This dependsOn is what turns that deadlock
+# into a sequence, and is why a cold `fleet apply` converges.
+#
+# The same validator also resolves every Multus network the VM references, which is why
+# `haos/lan-automation` is in the image bundle rather than here.
+#
+# CONSEQUENCE WORTH KNOWING: if the image never finishes importing, this bundle never deploys
+# and the VM simply does not appear. That is a clean waiting state rather than an error, but it
+# does mean "no VM" can mean "the image is still broken" - check ../haos-image first.
+# ────────────────────────────────────────────────────────────────────────────────────────────
+#
+# NO `helm.takeOwnership`, NO `diff.comparePatches` - same reasoning as the image bundle.
+# KubeVirt rewrites the VM's restart timestamp, its observed API versions and its PCI topology
+# version, none of which this manifest declares.
+labels:
+  fleet.blueora.ng/bundle: smarthome-haos-vm
+defaultNamespace: haos
+helm:
+  releaseName: smarthome-haos-vm
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.blueora.ng/bundle: smarthome-haos-image
+# harvester-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: harvester
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: harvester
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
