@@ -1,102 +1,75 @@
-# The Home Assistant OS image the guest's boot disk is cloned from, replacing the uploaded
-# `default/image-j9gz6` whose bits existed in exactly one place.
+# The Home Assistant OS image the guest boots from, on Harvester's DEFAULT backing-image backend.
 #
-# ─── THIS FILE IS NOT YET REPRODUCIBLE. THE URL BELOW CANNOT IMPORT ON ITS OWN. ──────────────
-# A COMPRESSED URL DOES NOT WORK on Harvester's CDI path, and the failure is silent until the
-# importer crash-loops. `initializeDownload` (pkg/image/cdi/cdi.go) derives the target size like
-# this:
+# WHY NOT `backend: cdi`. An earlier revision used CDI to escape the per-image StorageClass name
+# `lh-<image UID>`, which a VM manifest cannot predict. That escape was unnecessary:
+# `spec.backingImageName` below makes `GetStorageClassName()` return the name verbatim
+# (pkg/image/common/operator.go), so the class is called `haos-18-2` and the boot disk can name
+# it in git. The field is immutable and valid only with this backend.
 #
-#     virtualSize, _ := fetchImageVirtualSize(imageURL)  // ranged GET of bytes 0-127, parses a
-#     size, _        := fetchImageSize(imageURL)         // qcow2 header; HEAD Content-Length
-#     if virtualSize == 0 { virtualSize = size }     // "means the image is not qcow format"
+#     a set backingImageName is returned unchanged, ahead of the lh-<uid> fallback
 #
-# The first 128 bytes of an `.xz` are not a qcow2 header, so virtualSize comes back 0 and
-# Harvester falls back to Content-Length - the COMPRESSED size. `generateDVTargetStorage` then
-# requests exactly `status.virtualSize`, so the golden-image DataVolume was created at
-# 535,936,800 bytes (~511 MiB) for an image whose real virtual size is 32 GiB, with CDI's scratch
-# PVC sized to match at ~542 MiB. The decompressed qcow2 is ~1.09 GiB, so the importer dies in
-# the TransferScratch phase with "Unable to transfer source data to scratch space" and restarts
-# forever.
+# Choosing CDI to solve a problem this field already solved is what produced every failure that
+# followed: a DataVolume sized from an HTTP header, a clone that needed a VolumeSnapshotClass,
+# a CDI-owned StorageProfile Helm could not adopt, and a populator wedged by hand. None of that
+# machinery exists here. Longhorn downloads the file, inspects it with `qemu-img info`, and VM
+# disks are thin deltas on the backing image, so there is also no fully allocated golden PVC
+# costing 32 GiB per replica.
 #
-# There is NO manifest-level fix. VirtualMachineImage.spec has no size or capacity field at all
-# (backend, backingImageName, checksum, description, displayName, pvcName, pvcNamespace, retry,
-# securityParameters, sourceType, storageClassParameters, targetStorageClassName, and the URL), the size
-# comes only from the controller-owned `status.virtualSize`, and recreating the image re-derives
-# it from the URL - so deleting the image and letting Fleet reconcile reproduces the bug rather
-# than fixing it.
+# ─── THE URL IS STILL WRONG, AND THIS IS THE ONE THING LEFT TO FIX. ──────────────────────────
+# Longhorn validates a downloaded file with `qemu-img info` (pkg/util/util.go), and qemu-img
+# reads qcow2 and raw - NOT `.xz`, and not `.gz` either: `GunzipFile` exists in
+# backing-image-manager but is referenced only by its tests, never on the download path. There
+# is no `xz` anywhere in that repository.
 #
-# The live image was unwedged by hand (patching `status.virtualSize` to 34359738368 and forcing
-# the DataVolume to be regenerated). That repair is NOT expressed here and CANNOT be: it is
-# status, which Fleet does not manage. Treat this image as hand-held until the URL points at an
-# UNCOMPRESSED qcow2, which is the only change that makes the import work from scratch - then
-# `fetchImageVirtualSize` reads a real header and every derived size is correct. Home Assistant
-# publishes no uncompressed artifact (every asset is .xz, .ova or .zip), so that means serving a
-# decompressed copy from somewhere this cluster can reach.
+# So the URL below CANNOT import. It is kept pointing at upstream only so the artifact that is
+# wanted is unambiguous, and because the rest of this file is correct and worth landing: fixing
+# it is a one-line change once a decompressed copy is hosted somewhere this cluster can reach.
+# Home Assistant publishes no uncompressed artifact - every asset is .xz, .ova or .zip - so that
+# copy has to be produced once and served, for example as a release asset on this repository
+# (~1.09 GiB, inside GitHub's 2 GiB per-asset limit).
+#
+# Why UPLOAD works and download does not, since the asymmetry is the whole story: an upload hands
+# Longhorn the actual bytes, so it writes the file and reads the real virtual size out of the
+# qcow2 header. That is why the guest this replaces reported size 1091698688 with virtualSize
+# 34359738368 from an uploaded qcow2. A download has to be fetched before it can be inspected,
+# and anything qemu-img cannot parse is treated as raw at its on-disk length.
 # ────────────────────────────────────────────────────────────────────────────────────────────
 #
-# WHY `backend: cdi` AND NOT `backingimage`. This is the whole point of the file, and the
-# difference is measured, not stylistic:
+# `storageClassParameters` are inherited into the per-image StorageClass alongside the backing
+# image name (GetImageStorageClassParameters), and match longhorn-ssd deliberately: without them
+# the class falls back to Longhorn defaults and loses the ssd disk selector, the three replicas
+# and `migratable`, which is what keeps the guest live-migratable during node maintenance.
 #
-#   - With `backend: backingimage` (Longhorn V1), Harvester derives a per-image StorageClass
-#     named `lh-<image UID>` and every volume created from the image is a thin DELTA on a
-#     Longhorn BackingImage of the same UID. The UID is assigned at create time, so the name
-#     is unknowable until the object exists - a boot disk cannot be declared in git - and the
-#     running volume then depends on that backing image for its whole life. Deleting the image
-#     strands the disk. That is exactly the trap `default/image-j9gz6` is in today.
-#   - With `backend: cdi`, `GetStorageClassName()` returns `spec.targetStorageClassName`
-#     verbatim (pkg/image/common/operator.go). No UID is involved, so `longhorn-ssd` below is
-#     the real class name and the VM's boot disk can name it in git. Harvester imports the
-#     image into a "golden image" PVC (`haos/haos-os-18-2`) and volumes made from it are CDI
-#     PVC-to-PVC CLONES - full independent copies, referenced by namespace/name. Once a clone
-#     finishes, the running disk needs nothing from this object.
+# `checksum` is empty because Home Assistant publishes no checksum assets for its release
+# artifacts. Pin it once the URL is final and a real digest exists.
 #
-# CDI itself handles gz/xz perfectly well - it decompresses, converts qcow2 to raw and expands
-# to the target size. That is why the URL below looked safe and is not: the defect is in
-# Harvester's SIZING layer in front of CDI, not in CDI. Verifying the importer's capabilities
-# says nothing about whether Harvester can size the volume it imports into.
-#
-# The boot disk also needs CDI's clone to work, which needs
-# apps/hypervisor/src/config/storageprofile-longhorn-ssd.yaml - without it CDI snapshots through
-# the `longhorn` class, which demands an unconfigured backup target, and the clone hangs.
-#
-# `checksum` IS EMPTY ON PURPOSE. The Home Assistant OS release publishes no checksum assets
-# for its artifacts (verified against the 18.2 asset list), and Harvester's checksum semantics
-# for a COMPRESSED download are ambiguous - pre- or post-decompression is not documented. A
-# wrong value fails the import. Pin it once the first import succeeds and the semantics are
-# known; until then the pinned tag plus GitHub's immutable release assets are the integrity
-# story. See the runbook note in fleet.yaml.
-#
-# UPGRADING HAOS is a NEW OBJECT, never an edit. The version is in the object NAME, so 19.x
-# arrives as `haos-os-19-0` beside this one and the VM's imageId annotation moves to it. That
-# is safe precisely because clones are full copies: pruning `haos-os-18-2` afterwards deletes
-# its golden PVC and leaves the running disk untouched. Editing `url` in place would instead
-# ask Harvester to re-import under a live name, which its validator rejects.
-#
-# 32 GiB is the image's virtual size and matches the disk the current guest runs on. Note that
-# harvester/harvester#11801 rejects CDI imports whose virtual size is not whole-GiB aligned;
-# 34359738368 bytes is exactly 32 GiB, so this image is unaffected either way.
+# UPGRADING HAOS is a NEW OBJECT, never an edit: `url`, `backend` and `backingImageName` are all
+# immutable, so 19.x arrives as a sibling and the VM's imageId annotation and boot-disk
+# storageClassName move to it.
 apiVersion: harvesterhci.io/v1beta1
 kind: VirtualMachineImage
 metadata:
-  name: haos-os-18-2
+  name: haos-18-2
   namespace: haos
   annotations:
-    field.cattle.io/description: Home Assistant OS 18.2, imported from the pinned upstream release
-  # NO labels, and no `harvesterhci.io/storageClassName` annotation. The image mutator keeps
-  # that annotation in sync with spec.targetStorageClassName on its own (EnsureTargetSC) and
-  # the validator errors if a declared value disagrees, so the spec field is the single source
-  # of truth. `harvesterhci.io/image-type`, `imageDisplayName` and `os-type` are all populated
-  # by the controller once it has inspected the artifact - and what a CDI import of an xz-
-  # compressed qcow2 reports for image-type is not something this file should assert. Declaring
-  # a label the controller also computes buys nothing and risks perpetual drift; an undeclared
-  # one Harvester adds is invisible to Fleet's diff.
+    field.cattle.io/description: Home Assistant OS 18.2
+  # No labels and no `harvesterhci.io/storageClassName` annotation: the image mutator keeps that
+  # annotation in sync with spec.targetStorageClassName itself, and image-type, imageDisplayName
+  # and os-type are all populated by the controller once it has inspected the artifact.
 spec:
-  backend: cdi
+  backend: backingimage
+  # Pins both the Longhorn BackingImage name and, through GetStorageClassName, the per-image
+  # StorageClass name. This is what the VM's boot disk references.
+  backingImageName: haos-18-2
   displayName: haos-os-18.2
   sourceType: download
   url: https://github.com/home-assistant/operating-system/releases/download/18.2/haos_ova-18.2.qcow2.xz
   checksum: ""
-  # Where the golden image PVC is provisioned, and - because this is the CDI backend - the
-  # literal value of status.storageClassName that the VM's boot disk names.
   targetStorageClassName: longhorn-ssd
+  storageClassParameters:
+    diskSelector: ssd
+    encrypted: "false"
+    migratable: "true"
+    numberOfReplicas: "3"
+    staleReplicaTimeout: "30"
   retry: 3
