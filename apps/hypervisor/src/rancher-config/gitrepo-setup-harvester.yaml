@@ -1,0 +1,35 @@
+# The GitRepo that delivers this repository to Harvester. Created by hand in Continuous
+# Delivery on 2026-11-24 and adopted here, so that the entry point to GitOps is itself in git.
+#
+# `fleet-default` is load-bearing, not a default. A GitRepo only ever produces
+# BundleDeployments for clusters in its own workspace, and Harvester (`c-27cxq`) is the only
+# cluster in this one. The sibling ./gitrepo-setup-rancher.yaml covers `fleet-local`.
+#
+# `paths: [apps]` means this GitRepo builds EVERY bundle in the repo, including the ones written
+# for Rancher. What keeps those off Harvester is each bundle's own clusterSelector plus its
+# terminal doNotDeploy entry, never this GitRepo. See bin/fleet-lint-targets. The catch-all
+# Bundle that a GitRepo also builds for the `apps` path itself is suppressed by apps/.fleetignore.
+#
+# The spec is copied from the live object rather than composed. `correctDrift` is enabled, so
+# Fleet rewrites rather than reports any difference between this file and the object, including
+# a difference this file introduces. `targets` and `pollingInterval` are reproduced verbatim for
+# that reason; `1m0s` is how Fleet serialises the interval, and `60s` would read as a change.
+#
+# The dashboard's `field.cattle.io/description` annotation is deliberately left undeclared. Fleet
+# compares only the fields a manifest declares, so omitting it keeps it live and untouched,
+# rather than making cosmetic dashboard metadata something this file has to stay in step with.
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: setup-harvester
+  namespace: fleet-default
+spec:
+  repo: https://github.com/vgijssel/setup
+  branch: main
+  paths:
+    - apps
+  pollingInterval: 1m0s
+  correctDrift:
+    enabled: true
+  targets:
+    - clusterName: harvester

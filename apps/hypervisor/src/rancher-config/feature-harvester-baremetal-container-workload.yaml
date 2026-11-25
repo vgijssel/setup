@@ -1,0 +1,19 @@
+# The feature flag that makes Harvester appear in Continuous Delivery at all. Without it the
+# dashboard drops every cluster labelled `provider.cattle.io: harvester` from the target picker
+# and reports them as hidden, so ./gitrepo-setup-harvester.yaml would have nothing to deploy to,
+# and every bundle under ../ would be undeliverable. It was enabled by hand; this adopts it.
+#
+# The flag is EXPERIMENTAL on the 1.8 line, and Rancher stamps the object with
+# `feature.cattle.io/experimental: "true"` itself. That annotation, along with `status`, is left
+# undeclared: both belong to Rancher's controllers, and a field this manifest does not declare is
+# invisible to Fleet's drift check.
+#
+# Only `spec.value` is declared, which is the whole of a Feature's configuration. `status.default`
+# records what the flag would be if unset (false here), so setting this to the default would be
+# indistinguishable from not managing the flag at all.
+apiVersion: management.cattle.io/v3
+kind: Feature
+metadata:
+  name: harvester-baremetal-container-workload
+spec:
+  value: true

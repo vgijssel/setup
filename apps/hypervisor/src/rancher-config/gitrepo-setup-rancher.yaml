@@ -1,0 +1,31 @@
+# The GitRepo that delivers this repository to Rancher's own cluster, and therefore the GitRepo
+# that delivers the bundle this file belongs to. Created by hand in Continuous Delivery and
+# adopted here. Deleting it stops all delivery to Rancher, which is why the bundle sets
+# keepResources.
+#
+# `fleet-local` is the whole reason a second GitRepo exists. Fleet resolves targets only within
+# the GitRepo's own workspace, so ./gitrepo-setup-harvester.yaml in `fleet-default` cannot reach
+# `local` however its selectors are written, and relabelling the cluster does not change that.
+# The alternative, moving `local` into `fleet-default`, is accepted by the API but would put
+# every bundle in this repo in front of the Rancher cluster, leaving the terminal doNotDeploy
+# entries as the only guard. Two workspaces and two GitRepos is the safer shape.
+#
+# `targets: [{clusterSelector: {}}]` is an empty selector, which matches every cluster in the
+# workspace. That is exactly one cluster (`local`), so it is not the deploy-everywhere hazard
+# that the same stanza would be in `fleet-default`. Reproduced verbatim from live, for the same
+# correctDrift reason as the sibling file.
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: setup-rancher
+  namespace: fleet-local
+spec:
+  repo: https://github.com/vgijssel/setup
+  branch: main
+  paths:
+    - apps
+  pollingInterval: 1m0s
+  correctDrift:
+    enabled: true
+  targets:
+    - clusterSelector: {}
