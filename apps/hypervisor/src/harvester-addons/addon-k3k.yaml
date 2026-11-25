@@ -1,0 +1,30 @@
+# The k3k operator: the controller and CRDs that turn a `Cluster` into a k3s control plane running
+# as pods on this hypervisor. Installed by hand from
+# harvester/harvester v1.9 addons/standalone/k3k/addon.yaml on 2026-11-24 and enabled from the
+# dashboard, so this ADOPTS it. See fleet.yaml.
+#
+# `enabled: true` is the live value and is the whole point of declaring this object. It is also the
+# field with teeth: setting it back to false makes Harvester's addon controller UNINSTALL the Helm
+# release, taking the operator and every k3k virtual cluster's control plane with it. Upstream's
+# manifest ships `false`, so this must never be "resynced" from upstream.
+#
+# `valuesContent: ""` is live, and is required by the CRD rather than optional, so the empty string
+# is a declaration that the chart runs on its defaults, not a placeholder.
+#
+# Pinned to chart v1.1.0 from Rancher's own repo. Renovate does not watch this: the repo/chart pair
+# is a Harvester Addon field, not one of the manager formats configured in renovate.json, so a
+# version bump here is manual and deliberate. That is the right default for an operator holding
+# live control planes.
+apiVersion: harvesterhci.io/v1beta1
+kind: Addon
+metadata:
+  name: k3k
+  namespace: k3k-system
+  labels:
+    addon.harvesterhci.io/experimental: "true"
+spec:
+  chart: k3k
+  enabled: true
+  repo: https://rancher.github.io/k3k
+  valuesContent: ""
+  version: v1.1.0

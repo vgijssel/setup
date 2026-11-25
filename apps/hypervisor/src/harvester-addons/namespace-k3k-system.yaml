@@ -1,4 +1,4 @@
-# Home for the k3k Addon below and for the operator's own Helm release. Created by the upstream
+# Home for ./addon-k3k.yaml and for the operator's own Helm release. Created by the upstream
 # standalone manifest, not by Harvester, which is why it has to be declared here: on a cold apply
 # the Addon cannot be created without it.
 #

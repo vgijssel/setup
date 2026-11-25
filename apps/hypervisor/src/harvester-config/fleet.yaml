@@ -10,13 +10,16 @@
 # (Bundle green, BundleDeployment holding the error). The `fleet.blueora.ng/bundle` label stays
 # `hypervisor-config` for the same reason, that ../haos selects it in dependsOn.
 #
-# Renaming the DIRECTORY is not free either. Rancher's GitRepo derives a Bundle's name from its
-# path, so the rename deletes the old Bundle and creates a new one, and a deleted Bundle
-# uninstalls its Helm release, which here would delete a live hypervisor's storage classes,
-# cluster network and Settings. `keepResources` below is what makes that survivable. Fleet
-# propagates it to the BundleDeployment and the downstream agent leaves the objects in place,
-# for the new Bundle to re-adopt. It only helps if the LIVE Bundle already carries it, so it has
-# to reach the cluster in its own merge BEFORE the rename does.
+# Renaming the DIRECTORY is a free action only while no GitRepo exists. Rancher's GitRepo derives
+# a Bundle's name from its path, so once one is syncing, renaming this directory deletes the old
+# Bundle and creates a new one, and a deleted Bundle uninstalls its Helm release, which here would
+# delete a live hypervisor's storage classes, cluster network and Settings. `keepResources` below
+# is what makes that survivable. Fleet propagates it to the BundleDeployment and the downstream
+# agent leaves the objects in place for the new Bundle to re-adopt. It only protects a Bundle that
+# already carries it, so a FUTURE rename of this directory has to be preceded by a merge that is
+# nothing but the keepResources flag. The rename to `harvester-config` needed no such merge,
+# because on 2026-11-25 the cluster had no GitRepo and no bundle from this repo
+# (`fleet-local` held only Harvester's own six `mcc-*` bundles).
 #
 # Harvester appears in Continuous Delivery at all only because the Rancher-side
 # `harvester-baremetal-container-workload` feature flag is active. Without it the dashboard drops
