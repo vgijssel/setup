@@ -14,13 +14,20 @@ An unexplained failure must never be read as permission to upload. A release ass
 replaced atomically, and a half-written one is indistinguishable from a good one to the cluster
 that consumes it.
 
-THE RELEASE MAY NOT EXIST YET, and that is a normal state rather than an error: a release PR can
-sit open for days, and until it merges release-please has created no tag and no release. Failing
-would make the workflow red for that whole time, so this skips loudly instead.
+A MISSING RELEASE IS AN ERROR, not a state to tolerate. release.yaml runs the release-please step
+BEFORE this one in the same job, so by the time this runs the release for the committed version
+either exists or was never going to: the version committed here is the version release-please has
+already tagged. If the repository declares 18.2.0 and no haos-image@18.2.0 release exists, the two
+have diverged and the only honest thing to do is say so -- skipping would leave the declared
+version silently unpublished, which is the exact failure mode release.yaml's convergence model
+exists to prevent.
 
-There is no wait or retry here. release.yaml runs the release-please step BEFORE this one in the
-same job, so if this push merged a release PR the record provably already exists. Polling would
-only ever burn time in the common case, where the release PR is simply still open.
+There is also no wait or retry, for the same reason: ordering is guaranteed by step order, so
+polling could only ever burn time.
+
+The window to know about: between merging a bump of release_please_version/release-as and merging
+the release PR that release-please then opens, the declared version genuinely has no release. This
+step is red for that interval. That is intended -- it is a visible prompt to merge the release PR.
 """
 
 from __future__ import annotations
@@ -75,15 +82,19 @@ def main() -> int:
 
     assets = _release_assets(tag)
     if assets is None:
-        print(
-            f"==> SKIPPING: no release tagged {tag}.\n"
-            f"    release-as in release-please-config.json declares {versions.release_please}, so\n"
-            "    release-please will cut this tag when its release PR merges. Until then there is\n"
-            "    nothing to attach to. This run is a no-op on purpose; the next push or the nightly\n"
-            "    run picks it up. If the release PR HAS merged and no tag appeared, check the\n"
-            "    release-please step for a stuck 'autorelease: pending' label."
+        raise RuntimeError(
+            f"no release tagged {tag} exists, but the repository declares "
+            f"{versions.release_please}.\n"
+            "  release-please runs before this step in the same job, so a declared version with no\n"
+            "  release means the two have diverged. Either:\n"
+            "    - release-please has opened a release PR that is not merged yet, in which case\n"
+            "      merge it and this goes green; or\n"
+            "    - it opened none, which means no releasable commit (feat/fix) has touched\n"
+            "      libs/haos-image since .release-please-manifest.json's recorded version, so the\n"
+            "      release-as pin can never be reached; or\n"
+            "    - the release PR merged but no tag appeared, which is usually a stuck\n"
+            "      'autorelease: pending' label on the merged PR."
         )
-        return 0
 
     if asset in assets:
         print(f"==> {asset} is already attached to {tag}, skipping")

@@ -13,6 +13,12 @@ three has a different owner, so each has to live where its owner can write it:
 ``release-please-config.json`` ``packages["libs/haos-image"].release-as``
     The version release-please tags. release-please owns the file; the pin is hand-written.
 
+``.release-please-manifest.json`` is deliberately NOT one of them, and must NOT be set to the
+same value. It records the version already RELEASED, so if it equalled ``release-as`` then
+release-please would believe that version was out and would never cut it -- leaving the publish
+step permanently failing on a release that can never appear. It starts at ``0.0.0`` and
+release-please maintains it from there.
+
 Home Assistant's stable tags are two-part (``18.5``, ``18.4``, ``17.3``) and its prereleases are
 ``18.5.rc1``, which is not semver at all, so the upstream version can never be handed to
 release-please unchanged. The ``.0`` patch is the whole of the mapping.
