@@ -1,0 +1,68 @@
+# Lint the PULL REQUEST TITLE, nothing else. Split out of test.yaml deliberately, and the split is
+# load-bearing rather than tidiness.
+#
+# This is the ONLY check whose input is the PR title, so it is the only one that has to re-run when
+# a PR is `edited`. While it lived in test.yaml, that `edited` type re-ran the whole workflow —
+# including the six-minute macOS job — on every title edit, every body edit, and every base-branch
+# retarget. Those extra runs land on a head SHA that already has results, and `cancel-in-progress`
+# then kills the run that produced them.
+#
+# That race cost a stuck PR. `Trunk Check` is a REQUIRED status check, and it is not a job: the
+# trunk action posts it as its own check run, created once per commit SHA. A job-backed context is
+# re-reported by the replacement run, so it recovers; the app-posted one is not, so it stays owned
+# by whichever run reached it first. Measured on pull request 1115, where merging the parent PR
+# retargeted the base 40 seconds after a push:
+#
+#   run 45597922866  cancelled  head=f5a595f8  <- owns the only `Trunk Check` check run
+#   run 45598032324  success    head=f5a595f8  <- re-reported every other context, not that one
+#
+# So the required check passed on the strength of a CANCELLED run. The same race with the
+# cancellation landing a few seconds earlier leaves the SHA with no `Trunk Check` at all, and a
+# required context that is never reported blocks the pull request until somebody re-pushes.
+#
+# Keeping `synchronize` here is not redundant with test.yaml. Required status checks are evaluated
+# against the HEAD COMMIT, so a job that only ran on `opened` and `edited` would leave every
+# subsequently pushed SHA without this context, which is the same permanent block by a different
+# route.
+name: Pull Request Title
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+# Scoped by workflow as well as branch. Concurrency groups are repository-wide, so sharing
+# `head_ref` alone with test.yaml would make the two workflows cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  # The job NAME is the required status check context, so it must stay `Commit Convention` across
+  # this move. Renaming it would leave the ruleset waiting on a context nothing reports.
+  #
+  # This repo allows squash merges only (`protected-main`'s allowed_merge_methods) and
+  # `squash_merge_commit_title` is PR_TITLE, so the branch commits never reach main — the PR title
+  # becomes the conventional commit on main, and release-please derives each package's version
+  # bump from its type. A malformed or unrecognised type therefore silently ships nothing, which
+  # is why this is a required check and not a review habit.
+  #
+  # Trunk's `commitlint` action covers the local commit-msg hook. Both read the same
+  # commitlint.config.js, so the two halves cannot drift.
+  commit_convention:
+    name: Commit Convention
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: Lint the pull request title
+        run: printf '%s' "$PR_TITLE" | bin/commitlint
+        env:
+          # Via env, never interpolated into the script: a title is attacker-controlled text and
+          # `${{ }}` in a run block is a shell injection.
+          PR_TITLE: ${{ github.event.pull_request.title }}
