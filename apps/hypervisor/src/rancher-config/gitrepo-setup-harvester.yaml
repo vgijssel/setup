@@ -18,11 +18,26 @@
 # The dashboard's `field.cattle.io/description` annotation is deliberately left undeclared. Fleet
 # compares only the fields a manifest declares, so omitting it keeps it live and untouched,
 # rather than making cosmetic dashboard metadata something this file has to stay in step with.
+#
+# `helm.sh/resource-policy: keep` guards the gap `keepResources` leaves. keepResources protects
+# this object when the BUNDLE is deleted. It does nothing when the object is merely dropped from
+# the bundle's manifest, which Helm treats as a deletion on the next upgrade, and dropping it is
+# exactly what moving this file to another bundle does. Deleting THIS object stops all delivery to
+# Harvester, which is every bundle this repository has on the hypervisor.
+#
+# The annotation has to reach the cluster in an EARLIER sync than any such move, because Helm
+# decides what to delete by reading the policy off the previous release's manifest. A single
+# commit that both adds the annotation and moves the file is therefore not protected by it. That
+# is the only reason this annotation arrives on its own, ahead of the move into
+# ../rancher-self, and it is the same sequence ../rancher-self/gitrepo-setup-rancher.yaml went
+# through.
 apiVersion: fleet.cattle.io/v1alpha1
 kind: GitRepo
 metadata:
   name: setup-harvester
   namespace: fleet-default
+  annotations:
+    helm.sh/resource-policy: keep
 spec:
   repo: https://github.com/vgijssel/setup
   branch: main
