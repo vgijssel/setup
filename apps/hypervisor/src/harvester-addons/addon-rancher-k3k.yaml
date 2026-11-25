@@ -1,0 +1,69 @@
+# The `rancher-k3k` stack: the Addon that stands up Rancher as a k3k virtual cluster on this
+# hypervisor, which is the Rancher that owns Continuous Delivery and therefore the GitRepo
+# delivering this very file. Applied by hand from the
+# harvester/harvester v1.9.1 release asset rancher-k3k-addon.yaml on 2026-11-24 and configured
+# from the dashboard, so this ADOPTS it. See fleet.yaml.
+#
+# `enabled: true` is the live value and is the field with teeth. Setting it back to false makes
+# Harvester's addon controller UNINSTALL the Helm release, taking the k3k Cluster and the Rancher
+# inside it with it. Upstream's manifest ships `false`, so this must never be "resynced" from
+# upstream.
+#
+# BOOTSTRAPPASSWORD IS THE ONE VALUE NOT COPIED FROM LIVE, and the reasoning matters more than the
+# value. Live holds a long dashboard-generated plaintext secret. The CRD marks valuesContent
+# required rather than optional, so the field can be neither omitted to let the live value stand
+# nor declared verbatim in a public repository. It is declared here as the literal `rancher`.
+#
+# That literal is inert on the running cluster. Measured 2026-11-25 inside the k3k Rancher:
+# `setting.management.cattle.io/first-login` carries the value `false`, so an administrator
+# password has been set and Rancher no longer seeds that password from the bootstrap secret.
+#
+# What the resulting one-time change reaches, read from chart rancher-k3k 1.9.1 rather than
+# assumed. The chart renders exactly two objects: `Secret/rancher-init` in this namespace, and the
+# k3k `Cluster`. Only the Secret carries bootstrapPassword, as one `spec.set` entry of a HelmChart
+# manifest that k3k mounts into the k3s server's auto-deploy directory. So rewriting it reaches
+# Rancher's own `bootstrap-secret`, which is a pre-install and pre-upgrade hook annotated
+# `helm.sh/resource-policy: keep`, and nothing else. The Rancher Deployment does not consume
+# bootstrapPassword, so no Rancher pod restarts. The k3k Cluster object renders identically and
+# stays untouched.
+#
+# ON A RE-PROVISION THIS VALUE IS THE FIRST LOGIN, because `first-login` starts out true on a
+# fresh Rancher. Treat it as a bootstrap credential to be changed immediately, the same way the
+# chart's own default of `password` would be.
+#
+# Every other value is copied from live, in the live key order and indentation. valuesContent is a
+# YAML STRING that Harvester diffs as a string, so reordering or reindenting registers as a change
+# and upgrades a live Rancher for nothing. Two of those values are worth naming:
+#
+#   - `k3kCluster.storageClassName` was changed from the chart default of `harvester-longhorn` to
+#     `longhorn-ssd`, which ../config declares. That is this bundle's dependsOn in practice.
+#   - `rancher.repo` is absent, so the chart default applies, and `rancher.version v2.15.3` is
+#     resolved from https://releases.rancher.com/server-charts/latest.
+#
+# Pinned to chart 1.9.1 from Harvester's own repo. Renovate does not watch this: the repo and chart
+# pair is a Harvester Addon field, not one of the manager formats configured in renovate.json, so a
+# version bump here is manual and deliberate. That is the right default for the chart holding this
+# cluster's Rancher.
+apiVersion: harvesterhci.io/v1beta1
+kind: Addon
+metadata:
+  name: rancher-k3k
+  namespace: rancher-k3k
+  labels:
+    addon.harvesterhci.io/experimental: "true"
+spec:
+  chart: rancher-k3k
+  enabled: true
+  repo: https://charts.harvesterhci.io
+  valuesContent: |
+    certManagerVersion: v1.20.2
+    rancher:
+      hostname: rancher.lan.blueora.ng
+      version: v2.15.3
+      bootstrapPassword: rancher
+      replicas: 1
+    k3kCluster:
+      servers: 1
+      version: v1.35.4-k3s1
+      storageClassName: longhorn-ssd
+  version: 1.9.1

@@ -3,31 +3,39 @@
 # apps/network/harvester.md records as kubectl commands. Guests live in sibling bundles,
 # starting with ../haos, and the Harvester Addons this repo owns in ../harvester-addons.
 #
-# THE DIRECTORY IS `harvester-config`; THE HELM RELEASE IS STILL `hypervisor-config`, and the
-# mismatch is deliberate. This bundle adopts live objects, so they already carry
-# `meta.helm.sh/release-name: hypervisor-config`. Helm refuses to adopt an object annotated for a
-# different release even with takeOwnership, so renaming the release would block the whole bundle
-# (Bundle green, BundleDeployment holding the error). The `fleet.blueora.ng/bundle` label stays
-# `hypervisor-config` for the same reason, that ../haos selects it in dependsOn.
+# THIS DIRECTORY IS NOT RENAMED, AND THE `keepResources` FLAG BELOW IS WHY IT CANNOT BE YET.
+# `config` says nothing about which product's config it holds, and `harvester-config` would, but
+# Rancher's GitRepo derives a Bundle's NAME FROM ITS PATH. Renaming the directory therefore
+# deletes the old Bundle and creates a new one, and deleting a Bundle UNINSTALLS its Helm
+# release, which here means deleting a live hypervisor's storage classes, its cluster network and
+# its Settings.
 #
-# This is measured, not theoretical. On 2026-11-25 `default/sh.helm.release.v1.hypervisor-config.v1`
-# still exists from an earlier `bin/fleet-apply` whose Bundle was later deleted, and
+# That is no longer hypothetical. Measured on 2026-11-25: `fleet-default/setup-harvester` syncs
+# `main` with a `1m0s` pollingInterval and `correctDrift` enabled, and Bundle
+# `setup-harvester-apps-hypervisor-src-config` is deployed and Ready on Harvester with
+# `spec.keepResources` UNSET. A rename merged today would uninstall `storageclass/longhorn-ssd`,
+# which rancher-k3k's control-plane volumes provision through, along with
+# `setting/storage-network`, whose reconfigure requires every VM stopped.
+#
+# `keepResources: true` is the guard that makes the rename survivable. Fleet propagates it to the
+# BundleDeployment and the downstream agent leaves the objects in place for the new Bundle to
+# re-adopt. It only protects a Bundle that ALREADY CARRIES IT, and a Bundle deleted by a rename is
+# deleted against the spec it was last synced with. So the flag and the rename cannot land in the
+# same merge, and the rename has to be a later change that carries nothing else.
+#
+# THE HELM RELEASE IS `hypervisor-config` AND MUST STAY SO ACROSS THAT RENAME. This bundle adopts
+# live objects, so they already carry `meta.helm.sh/release-name: hypervisor-config`. Helm refuses
+# to adopt an object annotated for a different release even with takeOwnership, so renaming the
+# release would block the whole bundle (Bundle green, BundleDeployment holding the error). The
+# `fleet.blueora.ng/bundle` label stays `hypervisor-config` for the same reason, that ../haos and
+# ../harvester-addons select it in dependsOn.
+#
+# That is measured too. On 2026-11-25 `default/sh.helm.release.v1.hypervisor-config.v1` still
+# exists from an earlier `bin/fleet-apply` whose Bundle was later deleted, and
 # `storageclass/longhorn-ssd` and `setting/storage-network` both carry
-# `meta.helm.sh/release-name: hypervisor-config` with `app.kubernetes.io/managed-by: Helm`. So the
-# first sync of this renamed directory UPGRADES that existing release rather than installing a new
-# one. An empty Bundle list is not proof that nothing owns these objects; the object's own
-# release-name annotation is.
-#
-# Renaming the DIRECTORY is a free action only while no GitRepo exists. Rancher's GitRepo derives
-# a Bundle's name from its path, so once one is syncing, renaming this directory deletes the old
-# Bundle and creates a new one, and a deleted Bundle uninstalls its Helm release, which here would
-# delete a live hypervisor's storage classes, cluster network and Settings. `keepResources` below
-# is what makes that survivable. Fleet propagates it to the BundleDeployment and the downstream
-# agent leaves the objects in place for the new Bundle to re-adopt. It only protects a Bundle that
-# already carries it, so a FUTURE rename of this directory has to be preceded by a merge that is
-# nothing but the keepResources flag. The rename to `harvester-config` needed no such merge,
-# because on 2026-11-25 the cluster had no GitRepo and no bundle from this repo
-# (`fleet-local` held only Harvester's own six `mcc-*` bundles).
+# `meta.helm.sh/release-name: hypervisor-config` with `app.kubernetes.io/managed-by: Helm`. An
+# empty Bundle list is not proof that nothing owns these objects; the object's own release-name
+# annotation is.
 #
 # Harvester appears in Continuous Delivery at all only because the Rancher-side
 # `harvester-baremetal-container-workload` feature flag is active. Without it the dashboard drops
@@ -81,8 +89,9 @@ labels:
 # added later. Deliberately not one of the preceding system namespaces.
 defaultNamespace: default
 # Removing this bundle must never delete the hypervisor's storage fabric. Nothing here was
-# created by Fleet, so Fleet has no business destroying it. See the header for the rename this
-# protects.
+# created by Fleet, so Fleet has no business destroying it. This is also the precondition the
+# header describes for ever renaming this directory, and it has to be synced before that rename,
+# not alongside it.
 keepResources: true
 helm:
   releaseName: hypervisor-config
