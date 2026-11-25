@@ -8,16 +8,25 @@
 # are different kinds, so the names do not collide, and there is only one logical role here.
 # Giving the wrapper a distinct name would imply a second set of permissions that does not exist.
 #
-# `rules: []` is explicit rather than omitted. A GlobalRole's own rules apply to Rancher's GLOBAL
-# scope, covering users, settings, and cluster creation, and this role is meant to confer exactly
-# none of that. The empty list says so, where an absent field would read as unconsidered. All of
-# the real permissions live in the inherited template.
+# `rules` IS DELIBERATELY ABSENT, AND MUST STAY ABSENT. A GlobalRole's own rules apply to
+# Rancher's GLOBAL scope, covering users, settings, and cluster creation, and this role confers
+# exactly none of that; all of the real permissions live in the inherited template. Writing that
+# intent as `rules: []` is the obvious move and it is wrong, because Rancher serialises the field
+# with `omitempty`. The empty list never survives a write, so the stored object has no `rules` key
+# at all, Fleet compares a field it declares against a field that is missing, and the bundle is
+# Modified forever.
 #
-# ORDERING, AND THE REASON THIS FILE IS THE INTERESTING ONE. The webhook rejects this object when
-# the `agent-read-only` RoleTemplate does not already exist, and Helm applies GlobalRole before
-# RoleTemplate because it sorts unrecognised kinds alphabetically. Nothing in this directory
-# guarantees the order any more; ./fleet.yaml explains what is being tested and what the fixes
-# are if the predicted failure holds.
+# That is not a cosmetic yellow label. Both GitRepos run `correctDrift.enabled: true` with a one
+# minute poll, so Fleet rewrote the field, Rancher dropped it, and the cycle repeated, leaving
+# Helm release revision 98 and `metadata.generation` climbing roughly once a minute, for a value
+# that can never stick. Measured on 2026-11-25 with a server-side dry-run of both forms. The form
+# WITH the field produces `+rules: []` and `generation: 2 -> 3`; without it, an empty diff.
+#
+# ORDERING, which this file was expected to break and did not. Rancher's webhook does reject a
+# GlobalRole whose inherited RoleTemplate is absent, and `helm template` does sort unrecognised
+# kinds alphabetically, which puts GlobalRole ahead of RoleTemplate. The single bundle installed
+# anyway: all four objects were created at 2026-11-25T09:36:06Z on the first attempt, with the
+# BundleDeployment reporting Installed and Deployed. See ./fleet.yaml.
 apiVersion: management.cattle.io/v3
 kind: GlobalRole
 metadata:
@@ -26,4 +35,3 @@ displayName: Agent Read Only
 description: Grants the agent-read-only cluster RoleTemplate in every managed cluster.
 inheritedClusterRoles:
   - agent-read-only
-rules: []
