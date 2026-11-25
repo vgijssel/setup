@@ -17,7 +17,7 @@
     "libs/haos-image": {
       "release-type": "simple",
       "component": "haos-image",
-      "release-as": "18.2.0"
+      "release-as": "18.4.0"
     }
   }
 }

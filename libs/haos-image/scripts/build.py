@@ -69,8 +69,11 @@ def main() -> int:
     except urllib.error.HTTPError as exc:
         print(
             f"ERROR: {url} returned HTTP {exc.code}.\n"
-            "  Home Assistant publishes stable releases as two-part tags; if this version is a\n"
-            "  prerelease or was withdrawn, the renovate versioning regex should have excluded it.",
+            "  The most likely cause is a BOARD-SPECIFIC release that ships no OVA image: 18.5,\n"
+            "  for example, published only rpi3-64/rpi4-64/rpi5-64/yellow and no qcow2 at all.\n"
+            "  The github-releases datasource sees release tags, not their assets, so renovate\n"
+            "  can propose such a version. Pin the newest release that actually carries\n"
+            "  haos_ova-<version>.qcow2.xz instead.",
             file=sys.stderr,
         )
         return 1

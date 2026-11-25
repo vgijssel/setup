@@ -7,9 +7,16 @@ project:
     # `project.metadata.dependencies` out of every moon.yml, so tracking the upstream version here
     # needs no new manager. The packageRule in renovate.json only pins the versioning scheme, so
     # that two-part stable tags are the only thing ever proposed and `18.5.rc1` never is.
+    #
+    # NOT EVERY HOME ASSISTANT RELEASE SHIPS THIS IMAGE. Some are board-specific: 18.5 published
+    # only rpi3-64, rpi4-64, rpi5-64 and yellow (8 assets, no OVA at all) while 18.2, 18.3 and
+    # 18.4 each published 35 or more, including haos_ova-<version>.qcow2.xz. The github-releases
+    # datasource sees release TAGS, not their assets, so renovate can propose a version whose
+    # qcow2 does not exist; build.py fails on the 404 and says so. When that happens, pin
+    # the newest release that actually carries haos_ova-*.qcow2.xz rather than the newest release.
     dependencies:
       home-assistant/operating-system:
-        version: "18.2"
+        version: "18.4"
         datasource: github-releases
     # The same release as semver, which is what release-please tags. It exists because Home
     # Assistant's stable tags are two-part and cannot be handed to release-please unchanged; the
@@ -18,7 +25,7 @@ project:
     #
     # Renovate bumps the preceding dependency but cannot write this or release-as, so after a
     # renovate pull request both need moving by hand. version_test is what makes that visible.
-    release_please_version: 18.2.0
+    release_please_version: 18.4.0
 tags:
   # Selected by .github/workflows/release.yaml via `moon run :publish --query "tag=publish"`.
   # The tag IS the opt-in: a workflow that lists its targets is a list that goes stale, and a bare
