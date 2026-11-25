@@ -1,0 +1,76 @@
+# Fleet bundle for the Rancher management plane itself, the Rancher that runs inside the
+# `rancher-k3k` k3k virtual cluster on Harvester and imports Harvester as a downstream cluster.
+# Every sibling bundle under ../ targets Harvester. This one targets Rancher.
+#
+# WHY A SEPARATE CLUSTER AT ALL. Fleet scopes targets to the GitRepo's workspace. The
+# `setup-harvester` GitRepo lives in `fleet-default`, whose only cluster is `c-27cxq`
+# (Harvester), so it can never deploy here no matter how its selectors are written. Rancher's
+# own cluster is `local`, in the `fleet-local` workspace, reached by the second GitRepo
+# (`setup-rancher`) that this bundle declares. Both GitRepos point at `apps`, so both build
+# every bundle in this repo, and each bundle's label selector plus its terminal doNotDeploy
+# entry is the only thing keeping it on the cluster it was written for.
+#
+# THE CLUSTER LABEL IS `rancher`, NOT `local`. `local` is the Fleet and Rancher cluster NAME,
+# which this repo never selects on. It selects on `cluster.blueora.ng/name`, applied by hand to
+# the Fleet cluster object:
+#
+#   kubectl -n fleet-local label clusters.fleet.cattle.io local cluster.blueora.ng/name=rancher
+#
+# EVERY OBJECT HERE ALREADY EXISTS, so this bundle ADOPTS rather than creates, except the
+# RoleTemplate and the User, which are new. takeOwnership covers the adoptions. Fleet installs a
+# bundle as a Helm release, Helm refuses to manage an object carrying no ownership metadata of
+# its own, and without the flag the Bundle shows green while its BundleDeployment holds the real
+# error. See ../config/fleet.yaml for the longer version, and for why no `diff.comparePatches`
+# appears here either. Fleet compares only fields the manifest declares, so the labels and
+# annotations that Rancher's own controllers write onto these objects are new map keys, and
+# invisible to its drift check.
+#
+# SELF-MANAGEMENT. This bundle declares two GitRepos, one of which produced the bundle. That is
+# deliberate, because it is the only way the GitOps entry points stop being hand-made dashboard
+# state, and it has two consequences:
+#
+#   - keepResources, set later in this file. Pruning this bundle would otherwise delete
+#     `setup-rancher` and `setup-harvester`, which does not merely remove two objects. It turns
+#     off continuous delivery for the whole repo and leaves every bundle those GitRepos own
+#     orphaned on both clusters.
+#   - Both GitRepos run with `correctDrift.enabled: true`, so Fleet does not just report a
+#     difference between these manifests and the live objects, it rewrites the live object. The
+#     specs are therefore copied from live rather than composed, down to `pollingInterval: 1m0s`
+#     and the `targets` stanza, because a tidier value here is a change to how this repo is
+#     delivered. Confirmed with `kubectl diff` against the live Rancher: no difference.
+#
+# THE AGENT IDENTITY is the `agent-user` User and the `agent-read-only` RoleTemplate. The pair
+# that grants one to the other, a GlobalRole with `inheritedClusterRoles` and its
+# GlobalRoleBinding, lives in ../rancher-rbac. Rancher's webhook rejects a GlobalRole whose
+# inherited RoleTemplate does not exist yet, so the two cannot share a bundle. That file carries
+# the exact error and the reasoning.
+#
+# NO TOKEN IS DECLARED ANYWHERE IN GIT, which is the whole point of separating this bundle from a
+# kubeconfig. Token hashing is not enabled on this Rancher, so a Token object carries its secret
+# as plaintext, and committing one would put a standing credential with cluster-wide read on
+# every cluster into the repository. Git holds the durable identity and its permissions. The
+# short-lived token is minted out of band when an agent needs one.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-rancher-config
+# Both namespaced objects (the two GitRepos) carry an explicit namespace, so this is only a
+# fallback. The RoleTemplate, the User, and the Feature are cluster-scoped.
+defaultNamespace: default
+# Removing this bundle must not delete the GitRepos it adopts. See SELF-MANAGEMENT.
+keepResources: true
+helm:
+  releaseName: hypervisor-rancher-config
+  # Adopt the dashboard-created GitRepos and the already-enabled Feature. See the header.
+  takeOwnership: true
+# rancher-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: rancher
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: rancher
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

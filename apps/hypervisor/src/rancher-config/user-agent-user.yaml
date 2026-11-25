@@ -1,0 +1,32 @@
+# The identity a coding agent authenticates as. Paired with ./roletemplate-agent-read-only.yaml,
+# and granted that template across every cluster by ../rancher-rbac.
+#
+# A Rancher User is normally created by the dashboard under a generated name (`user-xxxxx`),
+# which is why users are not usually declarable. Setting `metadata.name` explicitly is what makes
+# this one reproducible: the name IS the user id, every binding references it, and a generated
+# name would leave the binding in ../rancher-rbac impossible to write down ahead of time.
+#
+# NO PASSWORD, DELIBERATELY. Rancher stores a local user's password on this object, so declaring
+# one would commit a credential. Without it the account cannot sign in to the dashboard at all,
+# and exists only to have tokens minted against it, which is the entire intent. One practical
+# consequence is worth knowing: this user holds no GlobalRole granting dashboard or `/v3` API
+# access either, so its kubeconfig works against `/k8s/clusters/<id>` and nothing else. If
+# dashboard access is ever wanted, bind the built-in `user-base` GlobalRole rather than adding a
+# password here.
+#
+# `principalIds` is declared rather than left to Rancher because the local auth provider derives
+# it from the user id, so the value is knowable (`local://<metadata.name>`), and writing it down
+# keeps Fleet and Rancher agreeing on it. Both GitRepos run with `correctDrift.enabled: true`, so
+# any field this manifest declares and Rancher then rewrites would be rewritten back on every
+# poll. Only fields whose settled values were confirmed against this Rancher with
+# `kubectl apply --dry-run=server` appear below, and the server returned them unchanged.
+apiVersion: management.cattle.io/v3
+kind: User
+metadata:
+  name: agent-user
+displayName: Agent User
+username: agent-user
+principalIds:
+  - local://agent-user
+enabled: true
+mustChangePassword: false

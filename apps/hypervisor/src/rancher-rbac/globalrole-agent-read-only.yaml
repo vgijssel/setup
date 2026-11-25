@@ -1,0 +1,27 @@
+# The object that turns one cluster-scoped RoleTemplate into a grant across every cluster
+# Rancher manages. `inheritedClusterRoles` names the template, and Rancher's RBAC controllers
+# then render a ClusterRole and a ClusterRoleBinding into each downstream cluster for whoever
+# this GlobalRole is bound to, including clusters registered after this file lands, with no
+# second manifest and no per-cluster ClusterRoleTemplateBinding to remember.
+#
+# It shares the name `agent-read-only` with the RoleTemplate in ../rancher-config on purpose.
+# They are different kinds, so the names do not collide, and there is only one logical role
+# here. Giving the wrapper a distinct name would imply a second set of permissions that does not
+# exist.
+#
+# `rules: []` is explicit rather than omitted. A GlobalRole's own rules apply to Rancher's GLOBAL
+# scope, covering users, settings, and cluster creation, and this role is meant to confer exactly
+# none of that. The empty list says so, where an absent field would read as unconsidered. All of
+# the real permissions live in the inherited template.
+#
+# Ordering: the webhook rejects this object when `agent-read-only` does not already exist, which
+# is what the dependsOn in ./fleet.yaml guarantees.
+apiVersion: management.cattle.io/v3
+kind: GlobalRole
+metadata:
+  name: agent-read-only
+displayName: Agent Read Only
+description: Grants the agent-read-only cluster RoleTemplate in every managed cluster.
+inheritedClusterRoles:
+  - agent-read-only
+rules: []

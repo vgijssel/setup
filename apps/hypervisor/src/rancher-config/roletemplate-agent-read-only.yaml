@@ -1,0 +1,117 @@
+# A read-only cluster role for an automated inspector, meaning a coding agent handed a
+# short-lived kubeconfig to look at Harvester without being able to change anything or read
+# anything secret.
+#
+# ONE TEMPLATE, EVERY CLUSTER. This is a Rancher RoleTemplate, not a Kubernetes ClusterRole.
+# Rancher's RBAC controllers render it into a matching ClusterRole and ClusterRoleBinding inside
+# each downstream cluster that a binding names, which is how `cluster-owner` ends up on Harvester
+# without anyone applying it there. ../rancher-rbac inherits this template from a GlobalRole, so
+# every cluster Rancher manages, including clusters registered later, receives it with no further
+# manifest. `context: cluster` is what makes it eligible for that; a project-context template
+# cannot be inherited this way.
+#
+# WHY THE RULES ARE WRITTEN OUT instead of `external: true` against the built-in `view` role. An
+# external template resolves against each downstream cluster's OWN ClusterRole of that name, so
+# one role everywhere would silently mean different permissions per cluster. On Harvester that
+# difference is severe, because `harvesterhci.io:view` carries
+# `rbac.authorization.k8s.io/aggregate-to-view: true` and grants `secrets get,list,watch`. The
+# built-in `view` role therefore confers cluster-wide Secret read there, covering every VM's
+# cloud-init and every Fleet bundle secret. Measured on this cluster, not assumed.
+#
+# SECRETS ARE ABSENT, AND SO IS `management.cattle.io`. The second omission matters as much as
+# the first. Rancher's own Tokens are `management.cattle.io` objects, and token hashing is not
+# enabled here, so those objects hold their secret as plaintext. Read access on that group would
+# let the agent borrow any user's access, which is privilege escalation dressed as read-only.
+# `subresources.kubevirt.io` is omitted for the same class of reason: it is the VM console and
+# VNC, which is interactive access to a guest rather than a view of its configuration.
+#
+# Core-group resources are enumerated one by one rather than wildcarded, because
+# `resources: ["*"]` on apiGroup "" would re-admit Secrets through the back door and undo the
+# preceding paragraph.
+#
+# Rules naming CRDs that a given cluster does not have are harmless, since RBAC does not validate
+# that a resource exists. The Harvester, KubeVirt, and Longhorn groups below therefore cost
+# nothing on a cluster that has never heard of them, which is what lets a single template stay
+# correct everywhere instead of needing a per-cluster variant.
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: agent-read-only
+displayName: Agent Read Only
+description: Read-only access for automated inspection, excluding Secrets and Rancher tokens.
+context: cluster
+rules:
+  - apiGroups: [""]
+    resources:
+      - configmaps
+      - endpoints
+      - events
+      - limitranges
+      - namespaces
+      - nodes
+      - nodes/status
+      - persistentvolumeclaims
+      - persistentvolumes
+      - pods
+      - pods/log
+      - pods/status
+      - replicationcontrollers
+      - resourcequotas
+      - serviceaccounts
+      - services
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [daemonsets, deployments, replicasets, statefulsets]
+    verbs: [get, list, watch]
+  - apiGroups: [batch]
+    resources: [cronjobs, jobs]
+    verbs: [get, list, watch]
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [get, list, watch]
+  - apiGroups: [networking.k8s.io]
+    resources: [ingresses, networkpolicies]
+    verbs: [get, list, watch]
+  - apiGroups: [policy]
+    resources: [poddisruptionbudgets]
+    verbs: [get, list, watch]
+  - apiGroups: [storage.k8s.io]
+    resources: [csidrivers, csinodes, storageclasses, volumeattachments]
+    verbs: [get, list, watch]
+  - apiGroups: [snapshot.storage.k8s.io]
+    resources: [volumesnapshotclasses, volumesnapshotcontents, volumesnapshots]
+    verbs: [get, list, watch]
+  - apiGroups: [apiextensions.k8s.io]
+    resources: [customresourcedefinitions]
+    verbs: [get, list, watch]
+  - apiGroups: [metrics.k8s.io]
+    resources: [nodes, pods]
+    verbs: [get, list, watch]
+  # Reading who can do what is diagnosis, not escalation. These objects hold no credentials.
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [clusterrolebindings, clusterroles, rolebindings, roles]
+    verbs: [get, list, watch]
+  # Harvester, KubeVirt, CDI, and Longhorn. Wildcarded per group because the resource lists are
+  # long, versioned with the product, and contain no credential-bearing kinds.
+  - apiGroups:
+      - harvesterhci.io
+      - network.harvesterhci.io
+      - node.harvesterhci.io
+      - loadbalancer.harvesterhci.io
+      - kubevirt.io
+      - cdi.kubevirt.io
+      - clone.kubevirt.io
+      - snapshot.kubevirt.io
+      - pool.kubevirt.io
+      - instancetype.kubevirt.io
+      - longhorn.io
+    resources: ["*"]
+    verbs: [get, list, watch]
+  - apiGroups: [k8s.cni.cncf.io]
+    resources: [network-attachment-definitions]
+    verbs: [get, list, watch]
+  # Fleet state, so the agent can tell a bundle's desired shape from what landed. GitRepo specs
+  # reference credential Secrets by name but never carry their contents.
+  - apiGroups: [fleet.cattle.io]
+    resources: ["*"]
+    verbs: [get, list, watch]

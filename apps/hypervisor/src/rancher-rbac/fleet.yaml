@@ -1,0 +1,57 @@
+# Fleet bundle that grants ../rancher-config's `agent-read-only` RoleTemplate to its
+# `agent-user` User, in every cluster Rancher manages. Two objects, split out of
+# ../rancher-config for a reason that is not stylistic.
+#
+# WHY NOT ONE BUNDLE. Rancher's webhook validates a GlobalRole's `inheritedClusterRoles` against
+# RoleTemplates that must ALREADY exist. Verified against this Rancher with a server-side
+# dry-run:
+#
+#   admission webhook "rancher.cattle.io.globalroles.management.cattle.io" denied the request:
+#   globalrole.inheritedClusterRoles: Invalid value: "": unable to find all roleTemplates
+#   unable to get roleTemplate agent-read-only: roletemplates.management.cattle.io
+#   "agent-read-only" not found
+#
+# Fleet applies a bundle as ONE Helm release, and the order Helm uses across kinds it does not
+# recognise does not place RoleTemplate ahead of GlobalRole. A single flat bundle therefore fails
+# its first install, and because the failing apply aborts before the RoleTemplate is created,
+# every retry fails identically. That is a bundle which never converges, not one that is merely
+# slow to. dependsOn is the fix, and it is the same pattern ../haos uses against ../config.
+#
+# NO keepResources, unlike ../rancher-config. Here deletion is the desired behaviour: removing
+# this bundle revokes the agent's access everywhere in one step, which is the cheapest revocation
+# available and should not be defeated by a safety flag. The RoleTemplate and the User it
+# references survive in ../rancher-config, so revoking access is not the same as dismantling it.
+#
+# NO takeOwnership. Both objects are new, so nothing is being adopted.
+#
+# WHAT A GlobalRole IS DOING HERE AT ALL. `inheritedClusterRoles` is what turns one
+# cluster-scoped RoleTemplate into a grant across every cluster Rancher manages now or registers
+# later, from a single object. The per-cluster alternative is a ClusterRoleTemplateBinding in
+# each cluster's namespace, which means one object per cluster, written by hand, and forgotten
+# the next time a cluster is registered. One scope note: every cluster includes `local`, the Rancher cluster
+# itself. What contains that is the RoleTemplate omitting Secrets and the whole
+# `management.cattle.io` group, in ../rancher-config/roletemplate-agent-read-only.yaml, and not
+# anything in this bundle.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-rancher-rbac
+# Both objects are cluster-scoped, so this is only a fallback for anything namespaced added later.
+defaultNamespace: default
+helm:
+  releaseName: hypervisor-rancher-rbac
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.blueora.ng/bundle: hypervisor-rancher-config
+# rancher-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: rancher
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: rancher
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
