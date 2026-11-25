@@ -1,0 +1,74 @@
+# How Rancher is reached: through its own chart's Service as a LoadBalancer at 192.168.20.8, with
+# no Ingress at all. This replaces the hand-written Service that used to live in
+# ../rancher-vip, which selected the same pod from the host side.
+#
+# WHY A HelmChartConfig AND NOT A VALUE. Rancher here is installed by k3s's helm-controller from a
+# HelmChart that the Harvester `rancher-k3k` Addon renders into a Secret and mounts into the k3s
+# server's auto-deploy directory. Read from chart rancher-k3k 1.9.1: that template hardcodes the
+# entire `spec.set` list and exposes no values for exposure, so `hostname`, `replicas`,
+# `bootstrapPassword`, `ingress.tls.source` and three more are all the Addon can say. Editing the
+# HelmChart object instead is not a configuration surface: k3s re-applies it from the mounted file.
+#
+# HelmChartConfig is k3s's documented seam for exactly this, a second values file layered over a
+# packaged chart's own, matched to it BY NAME AND NAMESPACE. Hence `rancher` in `kube-system`,
+# which is where the HelmChart lives, NOT the `cattle-system` the release targets.
+#
+# THE ONE RULE THAT DECIDES WHETHER THIS WORKS AT ALL: helm-controller's precedence runs
+# HelmChart valuesContent, then its valuesSecrets, then HelmChartConfig valuesContent, then its
+# valuesSecrets, and `HelmChart spec.set` LAST, over everything else. A key pinned in `spec.set` can
+# therefore never be overridden from here. Checked against the live object on 2026-11-25: set
+# holds bootstrapPassword, both extraEnv entries, global.cattle.psp.enabled, hostname,
+# ingress.tls.source, priorityClassName, and replicas, and none of the three keys below. Re-check
+# that list after any Harvester upgrade that moves the rancher-k3k chart, because a new `set`
+# entry here would silently win and this file would quietly stop applying.
+#
+# WHAT THE THREE VALUES REACH, read from chart rancher 2.15.3 rather than assumed:
+#
+#   - `networkExposure.type: none` is an enumerated value of the chart's own values.schema.json
+#     (ingress | gateway | none). templates/ingate/_helpers.tpl gates the Ingress on type being
+#     `ingress` AND ingress.enabled, and the Gateway on type being `gateway`, so `none` renders
+#     neither. The Ingress is then pruned on upgrade, k3k's syncer drops the host copy, and
+#     Traefik on the management VIP stops routing rancher.lan.blueora.ng. THAT IS THE POINT OF
+#     THIS FILE: before it, Rancher answered on both addresses.
+#   - `service.type: LoadBalancer` is likewise enumerated. templates/service.yaml omits the field
+#     entirely when empty, which is how the Service stayed ClusterIP. Ports 80 and 443 and the
+#     `app: rancher` selector are the chart's, unchanged. externalTrafficPolicy is not templated,
+#     and the Kubernetes default for a LoadBalancer is `Cluster`, which is the value this needs:
+#     kube-vip's services leader holds the address and need not be the node running the pod.
+#   - `service.annotations` is the IPAM. This cluster has no pool a Service can draw from, so
+#     kube-vip takes the address from the annotation, the same way Harvester addresses its own
+#     ingress (`kube-system/rke2-traefik` carries 192.168.20.9). The annotation rides k3k's
+#     syncer to the host copy, which is the object kube-vip actually sees.
+#
+# The Ingress' certificate secret `tls-rancher-ingress` is left orphaned, not deleted: with no
+# Ingress there is no cert-manager ingress-shim Certificate, while the Issuer still renders. It is
+# harmless and cert-manager keeps it. TLS now terminates at Rancher's own listener, which serves a
+# certificate from the SAME CA the Ingress did (`CN=dynamiclistener-ca@...`, SAN already carrying
+# the hostname, measured 2026-11-25), so `cacerts` and every agent's CATTLE_CA_CHECKSUM are
+# unaffected.
+#
+# TWO THINGS THAT LOOK BROKEN AFTERWARDS AND ARE NOT:
+#
+#   - `kubectl -n cattle-system get svc rancher` inside this cluster shows EXTERNAL-IP <pending>,
+#     forever. k3k syncs the Service out and the host assigns the address, but never syncs
+#     `status.loadBalancer` back (rancher/k3k#365, #1281). Read the host copy for the truth. Note
+#     this Service is owned by helm-controller rather than by a Fleet bundle, so kstatus never
+#     judges it and no bundle hangs NotReady on the missing status.
+#   - The management VIP does not 404 for rancher.lan.blueora.ng once the Ingress is gone. The
+#     host-less `cattle-system/rancher-expose` catch-all matches any name, so a stale client
+#     reaching 192.168.20.9 gets HARVESTER's own dashboard, which is itself an embedded Rancher
+#     and looks identical. `/rancherversion` tells them apart: 404 there, JSON on the real one.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  # Must match the HelmChart this configures, in both name and namespace. See the header.
+  name: rancher
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    networkExposure:
+      type: none
+    service:
+      type: LoadBalancer
+      annotations:
+        kube-vip.io/loadbalancerIPs: 192.168.20.8
