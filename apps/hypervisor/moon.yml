@@ -1,7 +1,7 @@
 language: bash
 layer: application
 project:
-  description: hypervisor (Harvester HCI) — Fleet-managed cluster config, guests, and runbooks
+  description: hypervisor (Harvester HCI) — Fleet-managed cluster config and runbooks
 tags:
   - app
   - kubernetes

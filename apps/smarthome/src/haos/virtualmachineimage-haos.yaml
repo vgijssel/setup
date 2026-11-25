@@ -1,0 +1,66 @@
+# The Home Assistant OS image the guest's boot disk is cloned from. Unlike the image it
+# replaces (`default/image-j9gz6`), this one is REPRODUCIBLE: delete it and a `fleet apply`
+# fetches the identical bits back from the pinned release URL.
+#
+# WHY `backend: cdi` AND NOT `backingimage`. This is the whole point of the file, and the
+# difference is measured, not stylistic:
+#
+#   - With `backend: backingimage` (Longhorn V1), Harvester derives a per-image StorageClass
+#     named `lh-<image UID>` and every volume created from the image is a thin DELTA on a
+#     Longhorn BackingImage of the same UID. The UID is assigned at create time, so the name
+#     is unknowable until the object exists - a boot disk cannot be declared in git - and the
+#     running volume then depends on that backing image for its whole life. Deleting the image
+#     strands the disk. That is exactly the trap `default/image-j9gz6` is in today.
+#   - With `backend: cdi`, `GetStorageClassName()` returns `spec.targetStorageClassName`
+#     verbatim (pkg/image/common/operator.go). No UID is involved, so `longhorn-ssd` below is
+#     the real class name and the VM's boot disk can name it in git. Harvester imports the
+#     image into a "golden image" PVC (`haos/haos-os-18-2`) and volumes made from it are CDI
+#     PVC-to-PVC CLONES - full independent copies, referenced by namespace/name. Once a clone
+#     finishes, the running disk needs nothing from this object.
+#
+# `.qcow2.xz` IS DELIBERATE, not an oversight. CDI natively decompresses gz/xz, converts
+# qcow2 to raw, and expands to the target size. Longhorn's backing-image downloader does
+# not, so under the other backend this URL would have to be decompressed and re-hosted
+# somewhere - which is precisely the unreproducible-blob problem this file exists to end.
+#
+# `checksum` IS EMPTY ON PURPOSE. The Home Assistant OS release publishes no checksum assets
+# for its artifacts (verified against the 18.2 asset list), and Harvester's checksum semantics
+# for a COMPRESSED download are ambiguous - pre- or post-decompression is not documented. A
+# wrong value fails the import. Pin it once the first import succeeds and the semantics are
+# known; until then the pinned tag plus GitHub's immutable release assets are the integrity
+# story. See the runbook note in fleet.yaml.
+#
+# UPGRADING HAOS is a NEW OBJECT, never an edit. The version is in the object NAME, so 19.x
+# arrives as `haos-os-19-0` beside this one and the VM's imageId annotation moves to it. That
+# is safe precisely because clones are full copies: pruning `haos-os-18-2` afterwards deletes
+# its golden PVC and leaves the running disk untouched. Editing `url` in place would instead
+# ask Harvester to re-import under a live name, which its validator rejects.
+#
+# 32 GiB is the image's virtual size and matches the disk the current guest runs on. Note that
+# harvester/harvester#11801 rejects CDI imports whose virtual size is not whole-GiB aligned;
+# 34359738368 bytes is exactly 32 GiB, so this image is unaffected either way.
+apiVersion: harvesterhci.io/v1beta1
+kind: VirtualMachineImage
+metadata:
+  name: haos-os-18-2
+  namespace: haos
+  annotations:
+    field.cattle.io/description: Home Assistant OS 18.2, imported from the pinned upstream release
+  # NO labels, and no `harvesterhci.io/storageClassName` annotation. The image mutator keeps
+  # that annotation in sync with spec.targetStorageClassName on its own (EnsureTargetSC) and
+  # the validator errors if a declared value disagrees, so the spec field is the single source
+  # of truth. `harvesterhci.io/image-type`, `imageDisplayName` and `os-type` are all populated
+  # by the controller once it has inspected the artifact - and what a CDI import of an xz-
+  # compressed qcow2 reports for image-type is not something this file should assert. Declaring
+  # a label the controller also computes buys nothing and risks perpetual drift; an undeclared
+  # one Harvester adds is invisible to Fleet's diff.
+spec:
+  backend: cdi
+  displayName: haos-os-18.2
+  sourceType: download
+  url: https://github.com/home-assistant/operating-system/releases/download/18.2/haos_ova-18.2.qcow2.xz
+  checksum: ""
+  # Where the golden image PVC is provisioned, and - because this is the CDI backend - the
+  # literal value of status.storageClassName that the VM's boot disk names.
+  targetStorageClassName: longhorn-ssd
+  retry: 3
