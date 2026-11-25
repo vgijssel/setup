@@ -3,7 +3,7 @@
 #
 # `fleet-default` is load-bearing, not a default. A GitRepo only ever produces
 # BundleDeployments for clusters in its own workspace, and Harvester (`c-27cxq`) is the only
-# cluster in this one. ../rancher-self/gitrepo-setup-rancher.yaml covers `fleet-local`.
+# cluster in this one. ./gitrepo-setup-rancher.yaml covers `fleet-local`.
 #
 # `paths: [apps]` means this GitRepo builds EVERY bundle in the repo, including the ones written
 # for Rancher. What keeps those off Harvester is each bundle's own clusterSelector plus its
@@ -28,9 +28,8 @@
 # The annotation has to reach the cluster in an EARLIER sync than any such move, because Helm
 # decides what to delete by reading the policy off the previous release's manifest. A single
 # commit that both adds the annotation and moves the file is therefore not protected by it. That
-# is the only reason this annotation arrives on its own, ahead of the move into
-# ../rancher-self, and it is the same sequence ../rancher-self/gitrepo-setup-rancher.yaml went
-# through.
+# is the only reason the annotation arrived on its own, one merge ahead of this file reaching this
+# directory, and it is the same sequence ./gitrepo-setup-rancher.yaml went through.
 apiVersion: fleet.cattle.io/v1alpha1
 kind: GitRepo
 metadata:

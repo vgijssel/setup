@@ -2,13 +2,16 @@
 # `rancher-k3k` k3k virtual cluster on Harvester and imports Harvester as a downstream cluster.
 # Every sibling bundle under ../ targets Harvester. This one targets Rancher.
 #
+# One object now: the feature flag. The two GitRepos that used to live here moved to
+# ../rancher-gitrepos, for a reason worth reading before adding anything back.
+#
 # WHY A SEPARATE CLUSTER AT ALL. Fleet scopes targets to the GitRepo's workspace. The
 # `setup-harvester` GitRepo lives in `fleet-default`, whose only cluster is `c-27cxq`
 # (Harvester), so it can never deploy here no matter how its selectors are written. Rancher's
 # own cluster is `local`, in the `fleet-local` workspace, reached by the second GitRepo
-# (`setup-rancher`), declared in ../rancher-self. Both GitRepos point at `apps`, so both build
-# every bundle in this repo, and each bundle's label selector plus its terminal doNotDeploy
-# entry is the only thing keeping it on the cluster it was written for.
+# (`setup-rancher`). Both point at `apps`, so both build every bundle in this repo, and each
+# bundle's label selector plus its terminal doNotDeploy entry is the only thing keeping it on
+# the cluster it was written for.
 #
 # THE CLUSTER LABEL IS `rancher`, NOT `local`. `local` is the Fleet and Rancher cluster NAME,
 # which this repo never selects on. It selects on `cluster.blueora.ng/name`, applied by hand to
@@ -16,58 +19,38 @@
 #
 #   kubectl -n fleet-local label clusters.fleet.cattle.io local cluster.blueora.ng/name=rancher
 #
-# EVERY OBJECT HERE ALREADY EXISTS, so this bundle ADOPTS rather than creates, and takeOwnership
-# is what allows it. Fleet installs a bundle as a Helm release, Helm refuses to manage an object
+# THE FEATURE ALREADY EXISTS, so this bundle ADOPTS rather than creates, and takeOwnership is
+# what allows it. Fleet installs a bundle as a Helm release, Helm refuses to manage an object
 # carrying no ownership metadata of its own, and without the flag the Bundle shows green while
 # its BundleDeployment holds the real error. See ../config/fleet.yaml for the longer version, and
 # for why no `diff.comparePatches` appears here either. Fleet compares only fields the manifest
-# declares, so the labels and annotations that Rancher's own controllers write onto these objects
+# declares, so the labels and annotations that Rancher's own controllers write onto this object
 # are new map keys, and invisible to its drift check.
 #
-# SELF-MANAGEMENT. This bundle and its sibling ../rancher-self declare the two GitRepos that
-# deliver this repository, one of which delivers them. That is deliberate, because it is the only
-# way the GitOps entry points stop being hand-made dashboard state. Two consequences land here,
-# and a third needed a bundle of its own:
+# WHY THE GITREPOS LEFT, in one sentence: a bundle cannot usefully monitor a GitRepo, because a
+# GitRepo's Ready condition is the roll-up of every bundle it owns rather than a fact about the
+# object, and `ignore.conditions` cannot be scoped to one resource. This bundle learned that
+# twice. First as a cycle, when it declared the `setup-rancher` GitRepo that delivers it. Then,
+# once that was moved out and the ignore narrowed, as imported noise: it went red on
+# `setup-harvester` reporting a stalled Home Assistant disk import on the OTHER cluster. The full
+# measurements are in ../rancher-gitrepos/fleet.yaml.
 #
-#   - keepResources, set later in this file. Pruning this bundle would otherwise delete
-#     `setup-harvester`, which does not merely remove an object. It turns off continuous delivery
-#     to Harvester and leaves every bundle that GitRepo owns orphaned there.
-#   - Both GitRepos run with `correctDrift.enabled: true`, so Fleet does not just report a
-#     difference between these manifests and the live objects, it rewrites the live object. The
-#     specs are therefore copied from live rather than composed, down to `pollingInterval: 1m0s`
-#     and the `targets` stanza, because a tidier value here is a change to how this repo is
-#     delivered. Confirmed with `kubectl diff` against the live Rancher: no difference.
-#     Note what correctDrift does to a field that cannot be stored: it retries once a minute,
-#     forever. See ../rancher-agent/globalrole-agent-read-only.yaml for one that cost 98 Helm
-#     release revisions in an hour.
+# WHAT THAT LEAVES HERE is a bundle whose readiness means something again, and the rule that keeps
+# it that way: nothing belongs in this bundle whose Ready condition is an aggregate of other
+# things. A GitRepo is the obvious case; so is anything else that rolls up a fleet of children.
 #
-# A BUNDLE CANNOT MONITOR THE GITREPO THAT DELIVERS IT, which is why `setup-rancher` is no longer
-# declared here but in ../rancher-self. Fleet monitors the readiness of the resources a bundle
-# deploys, and a GitRepo is Ready only when every bundle it owns is Ready, so a bundle deploying
-# its own GitRepo and that GitRepo each wait on the other. Measured as a closed cycle on
-# 2026-11-25, once every other bundle was green:
+# ADDING A RESOURCE IS CHEAP, MOVING ONE IS NOT. A resource dropped from a bundle's manifest is
+# PRUNED by Helm on the next upgrade, and `keepResources` does not cover that case, only bundle
+# deletion. Both GitRepos therefore needed `helm.sh/resource-policy: keep` to reach the cluster
+# in an EARLIER sync than their move, because Helm reads the policy off the previous release's
+# manifest. That is four merges for what looks like a file rename, and it is why the `correctDrift`
+# note below matters: every step here is a commit that a controller applies, not an edit.
 #
-#   gitrepo setup-rancher       desiredReady 7, ready 6, notReady 1 -> only this bundle
-#   this bundle                 desiredReady 3, ready 2, notReady 1 -> only that gitrepo
-#   this BundleDeployment       Installed true, Deployed true, Monitored true, nonModified true
-#
-# Two nodes waiting on each other with nothing else wrong. Note that the `WaitApplied(1)` tail on
-# the error message is stale text carried inside a nested summary; `resourceCounts.waitApplied`
-# was 0 throughout, so nothing was ever actually waiting to apply.
-#
-# The fix is `ignore.conditions`, and it lives in ../rancher-self rather than here because it
-# cannot be scoped to a resource: the condition carries no `reason` and its only other field is a
-# message Fleet regenerates every poll, so a bundle-wide ignore is the only form available. Put
-# here, it would also have suppressed the readiness of the Feature and of `setup-harvester`. The
-# GitRepo was therefore isolated into a bundle of its own, which is the only object in this repo
-# whose readiness is deliberately unreadable.
-#
-# That move was not free, and the cost is worth knowing before anything else is moved between
-# bundles: a resource dropped from a bundle's manifest is PRUNED by Helm on the next upgrade, and
-# `keepResources` does not cover that case, only bundle deletion. Deleting THIS particular object
-# would have stopped all delivery to Rancher with no commit able to restore it. The guard is the
-# `helm.sh/resource-policy: keep` annotation, which had to reach the cluster in an earlier sync
-# than the move because Helm reads the policy off the previous release's manifest.
+# correctDrift is enabled on both GitRepos, so Fleet does not merely report a difference between
+# a manifest and its object, it rewrites the object, including a difference the manifest
+# introduces. A field that cannot be stored at all therefore retries once a minute, forever: see
+# ../rancher-agent/globalrole-agent-read-only.yaml for one that cost 98 Helm release revisions in
+# an hour.
 #
 # THE AGENT IDENTITY IS NOT HERE. All four of its objects, the User, the cluster RoleTemplate,
 # the GlobalRole that inherits it and the GlobalRoleBinding that grants it, live together in
@@ -83,17 +66,18 @@
 # short-lived token is minted out of band when an agent needs one.
 labels:
   fleet.blueora.ng/bundle: hypervisor-rancher-config
-# The `setup-harvester` GitRepo carries an explicit namespace, so this is only a fallback. The
-# Feature is cluster-scoped.
+# The Feature is cluster-scoped, so this is only a fallback for anything namespaced added later.
 defaultNamespace: default
-# NO `ignore.conditions` here, and that is the point of ../rancher-self existing: this bundle's
-# readiness is a real signal again. See the header.
+# NO `ignore.conditions` here, and that is the point of ../rancher-gitrepos existing: this
+# bundle's readiness is a real signal again. See the header.
 #
-# Removing this bundle must not delete the GitRepo it adopts. See SELF-MANAGEMENT.
+# keepResources, because the Feature is adopted rather than created. Dropping the
+# `harvester-baremetal-container-workload` flag is what hides every Harvester-labelled cluster
+# from Continuous Delivery, so pruning this bundle must not take it with it.
 keepResources: true
 helm:
   releaseName: hypervisor-rancher-config
-  # Adopt the dashboard-created GitRepo and the already-enabled Feature. See the header.
+  # Adopt the already-enabled Feature. See the header.
   takeOwnership: true
 # rancher-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
 # its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
