@@ -1,0 +1,64 @@
+# Fleet bundle for the Rancher server's own front-end address on Harvester: one LoadBalancer
+# Service, claimed by kube-vip at 192.168.20.8, so that Rancher answers somewhere other than the
+# Harvester management VIP. See ./service-rancher-vip.yaml for how the address is assigned and
+# why TLS terminating at Rancher rather than at Traefik changes no trust relationship.
+#
+# WHAT THIS REPLACES, AND WHAT IT LEAVES ALONE. Rancher is reachable today at the VIP
+# (192.168.20.9) through the Ingress that k3k syncs out of the virtual cluster, which Traefik
+# routes by Host. That Ingress is not touched here and keeps working: this bundle only adds a
+# second way in. What it buys is an address that serves Rancher and nothing else, where the VIP
+# also carries Harvester's API on 6443, Harvester's own dashboard, and the host-less catch-all
+# `cattle-system/rancher-expose` Ingress that swallows any name pointed at it. Moving DNS for
+# `rancher.lan.blueora.ng` onto this address is a separate, later step; until then both paths
+# answer and either can be rolled back without the other.
+#
+# TARGETED AT HARVESTER DESPITE THE `rancher-` PREFIX, unlike ../rancher-agent, ../rancher-config
+# and ../rancher-self, which target the Rancher cluster. The object belongs to the host: kube-vip,
+# the addresses and the synced Rancher pod are all Harvester's.
+#
+# DECLARING IT IN THE VIRTUAL CLUSTER INSTEAD WOULD WEDGE ITS BUNDLE NOTREADY FOREVER, which is
+# the reason this bundle exists rather than a file under ../rancher-self's GitRepo. k3k's service
+# syncer does copy a LoadBalancer Service out to the host, and the host would assign the address,
+# but it never copies `status.loadBalancer` back to the virtual Service (rancher/k3k#365 and
+# #1281, both open against the v1.1.0 running here). Fleet resolves readiness with kstatus, and
+# kstatus holds a LoadBalancer Service with no ingress address at InProgress. The virtual Service
+# would therefore be permanently not-ready while working perfectly. Declared against Harvester,
+# kube-vip writes the status and readiness is a real signal.
+#
+# dependsOn ../harvester-addons, which declares the `rancher-k3k` namespace this Service lives in
+# and enables the Addon that puts the Rancher pod it selects there. On a cold apply neither the
+# namespace nor the backend exists before that bundle lands.
+#
+# NO takeOwnership. The Service is new, so there is nothing to adopt.
+#
+# NO keepResources, and here that is the wanted behaviour rather than an omission. Unlike every
+# sibling bundle, this one creates rather than adopts, and removing the file should take the
+# address with it: a Service left behind would keep kube-vip announcing 192.168.20.8 with no
+# commit left describing why.
+#
+# ONE OBJECT, ONE BUNDLE, on the same reasoning that split ../harvester-addons from ../config.
+# Fleet applies a bundle atomically, so a wrong address here must not be able to roll back an
+# Addon or a storage class, and this is the bundle most likely to be edited.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-rancher-vip
+# The Service carries an explicit namespace, so this is only a fallback.
+defaultNamespace: default
+helm:
+  releaseName: hypervisor-rancher-vip
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.blueora.ng/bundle: hypervisor-harvester-addons
+# harvester-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: harvester
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: harvester
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

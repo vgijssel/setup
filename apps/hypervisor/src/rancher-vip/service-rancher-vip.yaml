@@ -1,0 +1,66 @@
+# The front-end address of the Rancher server: a LoadBalancer Service on the Harvester cluster
+# that kube-vip answers for at 192.168.20.8, forwarding to the Rancher pod that k3k syncs into
+# this namespace. Recorded in apps/network/harvester.md alongside the VIP and the node IPs.
+#
+# THE ANNOTATION IS THE IPAM. This cluster has no address pool a Service can draw from: there is
+# no kube-vip-cloud-provider, and Harvester's own `loadbalancer.harvesterhci.io` IPPool feeds the
+# harvester-load-balancer controller, which serves VM and guest-cluster backends rather than
+# Services on the host cluster (there are zero IPPools and zero LoadBalancer CRs live). kube-vip
+# itself runs with `svc_enable=true` and claims any Service carrying an explicit address, so the
+# address has to be written here. Without the annotation this Service sits `<pending>` forever.
+#
+# That is not a workaround, it is how Harvester addresses its own ingress: `kube-system/rke2-traefik`
+# is a LoadBalancer Service annotated `kube-vip.io/loadbalancerIPs: 192.168.20.9`, and kube-vip
+# fills in its `status.loadBalancer.ingress` with `ipMode: VIP`. This Service is the same shape
+# with a different address. 192.168.20.8 sits below the VIP and below the node IPs, outside the
+# DHCP pool (`.100`-`.199`), and answered no ARP before it was claimed.
+#
+# `app: rancher` SELECTS A SYNCED POD, NOT A LOCAL ONE. The Rancher that this fronts runs inside
+# the `rancher-k3k-cluster` k3k virtual cluster in `mode: shared`, so its pods are real pods in
+# this namespace carrying their virtual labels, and a plain selector reaches them. The equivalent
+# Service inside the virtual cluster is synced out under a name-mangled copy
+# (`rancher-cattle-system-rancher-k3k-cluster-…`), so this hand-written name cannot collide with
+# it. k3k's syncer only reconciles objects it created.
+#
+# NO `kube-vip.io/ignore-service-security`, deliberately, and it is the opposite choice from
+# rke2-traefik. kube-vip runs with `enable_service_security=true`, which restricts traffic to an
+# address to the ports its Service declares. Both ports Rancher serves are declared below, so the
+# restriction costs nothing and leaves nothing else reachable on this address.
+#
+# TLS TERMINATES AT RANCHER on this path, where the existing Ingress terminates at Traefik, and
+# that turns out to change no trust relationship. Measured from a node on 2026-11-25: the pod's
+# own listener on 443 and the Ingress at the VIP present certificates from the SAME issuer
+# (`CN=dynamiclistener-ca@1795534415`), and the pod certificate already carries
+# `DNS:rancher.lan.blueora.ng` in its SANs. So the `cacerts` setting and every agent's
+# `CATTLE_CA_CHECKSUM` stay valid when a client moves to this address. Port 80 is declared only
+# because Rancher redirects it to 443.
+#
+# `externalTrafficPolicy: Cluster` IS LOAD-BEARING. kube-vip's services leader holds every
+# address it announces (lease `harvester-system/plndr-svcs-lock`, held by `the-dome`), and that
+# node need not be the node running the Rancher pod. Under `Local` a client reaching the
+# announcing node would be blackholed whenever the two diverge. The cost is the client source
+# address, which kube-proxy rewrites; the Ingress path supplies `X-Forwarded-For` and this one
+# does not.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rancher-vip
+  namespace: rancher-k3k
+  annotations:
+    kube-vip.io/loadbalancerIPs: 192.168.20.8
+spec:
+  type: LoadBalancer
+  # See the header. Not a default worth leaving implicit.
+  externalTrafficPolicy: Cluster
+  # The Rancher pod k3k syncs into this namespace. No other pod here carries this label.
+  selector:
+    app: rancher
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443

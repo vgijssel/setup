@@ -27,6 +27,7 @@ Reserved below the DHCP pool (`.100`–`.199`), static or DHCP-reserved by MAC:
 | Node 2 | `the-dome` | `192.168.20.11` | LAG 2 | |
 | Node 3 | `the-toy-factory` | `192.168.20.12` | LAG 3 | |
 | Cluster VIP | — | `192.168.20.9` | — | Management VIP — must NOT be assigned to any node |
+| Rancher VIP | | `192.168.20.8` | | Rancher server only, announced by kube-vip for the LoadBalancer Service in `apps/hypervisor/src/rancher-vip`. Must NOT be assigned to any node |
 
 ## Cluster Configuration
 
