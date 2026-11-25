@@ -1,0 +1,65 @@
+# Everything the Home Assistant guest needs to EXIST BEFORE the VM can be admitted: the
+# namespace, the OS image, and the VLAN 30 network. The VM itself is a separate bundle,
+# ../haos-vm, which dependsOn this one.
+#
+# ─── WHY THIS IS SPLIT FROM THE VM. THIS IS NOT COSMETIC. ────────────────────────────────────
+# Harvester's VM validator refuses a VirtualMachine whose volumeClaimTemplates name a
+# StorageClass that does not exist yet:
+#
+#   server-side apply failed for object haos/haos kubevirt.io/v1, Kind=VirtualMachine:
+#   admission webhook "validator.harvesterhci.io" denied the request:
+#   failed to get storage class haos-18-2 - the StorageClass does not exist
+#
+# On the backing-image backend the per-image StorageClass is created by Harvester AFTER the
+# VirtualMachineImage object, so it cannot exist at the moment the VM is applied. Fleet applies
+# a bundle as ONE Helm release, so with the VM in here the release failed as a unit and the
+# IMAGE never got created either - a deadlock that looks like "nothing happened" and survives
+# deleting every object by hand, because the problem is in the apply, not in leftover state.
+#
+# Splitting is the whole fix: this bundle creates the image, Harvester derives the StorageClass
+# from it, and only then does ../haos-vm apply. That sequencing is what makes a COLD BOOT work -
+# on a cluster with none of these objects, `fleet apply` converges instead of failing.
+#
+# The NAD lives here rather than with the VM for the same reason: the VM validator resolves
+# every Multus network a VM references, so `haos/lan-automation` has to exist first.
+#
+# Worth recording because it is counter-intuitive: the superseded `backend: cdi` design did NOT
+# have this problem, because a CDI-backed boot disk names `longhorn-ssd`, which always exists.
+# CDI was abandoned for a different reason - its clone needs a VolumeSnapshotClass selected
+# through a CDI-owned StorageProfile that Helm cannot adopt. Neither backend is clean; this one
+# is the one whose blocker a dependsOn can solve.
+# ────────────────────────────────────────────────────────────────────────────────────────────
+#
+# NO `helm.takeOwnership`. Every object here is created by this bundle, so the ownership check
+# should stay on - it is what would catch a collision with an object somebody else made.
+#
+# NO `diff.comparePatches`. The Harvester controllers rewrite plenty here: the image's detected
+# type, size, and virtual size, plus the NAD's probed route and ready label. Fleet only compares
+# fields the manifest declares, and none of those are declared. See the measured evidence in
+# apps/hypervisor/src/config/fleet.yaml.
+#
+# dependsOn hypervisor-config: the image's backing image is provisioned through `longhorn-ssd`,
+# whose parameters it also copies into the per-image class. The selector is by label, so the
+# dependency survives the two bundles living in different apps.
+labels:
+  fleet.blueora.ng/bundle: smarthome-haos-image
+defaultNamespace: haos
+helm:
+  releaseName: smarthome-haos-image
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.blueora.ng/bundle: hypervisor-config
+# harvester-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: harvester
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: harvester
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

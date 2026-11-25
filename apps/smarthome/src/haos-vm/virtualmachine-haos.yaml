@@ -23,7 +23,7 @@
 #
 # HOW THE BOOT DISK IS BUILT. The `volumeClaimTemplates` annotation names a disk on the
 # per-image StorageClass `haos-18-2`, which exists because the image sets
-# `spec.backingImageName` - see virtualmachineimage-haos.yaml. Harvester's VM controller creates
+# `spec.backingImageName` - see ../haos-image/virtualmachineimage-haos.yaml. The VM controller creates
 # a plain PVC from that template (`createPVCsFromAnnotation`), Longhorn provisions a volume that
 # is a thin DELTA on the backing image of the same name, and no CDI object is involved: no
 # DataVolume, no golden PVC, no VolumeSnapshot, no StorageProfile. Two things worth stating:
