@@ -1,0 +1,51 @@
+language: bash
+layer: library
+project:
+  description: haos-image republishes the Home Assistant OS disk image UNCOMPRESSED as a release asset
+  metadata:
+    # RENOVATE'S TARGET. The jsonata customManager in renovate.json already reads
+    # `project.metadata.dependencies` out of every moon.yml, so tracking the upstream version here
+    # needs no new manager, only the packageRule that pins the versioning scheme and writes the
+    # `Release-As:` footer. See the header of release.sh for why the two version files exist.
+    dependencies:
+      home-assistant/operating-system:
+        version: "18.2"
+        datasource: github-releases
+tags:
+  - haos
+  - image
+tasks:
+  # Publish the uncompressed qcow2 for the version in version.txt as an asset on the release
+  # release-please cut for it. Driven by .github/workflows/haos-image.yaml, never by `moon ci`.
+  #
+  # NOT tagged `releasable`. That tag means "publish a container image to ghcr, guarded by
+  # bin/registry-tag-exists, and publish.yaml selects on it; this publishes a GitHub release
+  # asset instead and is guarded by the release's own asset list. Sharing the tag would make
+  # publish.yaml log in to ghcr and run a probe that has nothing to probe.
+  release:
+    command: ./release.sh
+    options:
+      runFromWorkspaceRoot: false
+      runInCI: false
+      # The RELEASE is the source of truth for what has shipped. A cache hit would return success
+      # without asking GitHub whether the asset is actually there, so an asset deleted from a
+      # release while version.txt stood still would never be re-uploaded, and the nightly
+      # convergence run would be a no-op for the wrong reason.
+      cache: false
+    inputs:
+      - file: ./version.txt
+      - file: ./moon.yml
+      - "@group(yq_bin)"
+
+  # Offline guard: version.txt and the upstream version must describe the same release. They are
+  # written by two different robots and drift silently, which would publish an asset named after
+  # one version onto a release tagged with another.
+  test:
+    command: ./release.sh --check
+    options:
+      runFromWorkspaceRoot: false
+    inputs:
+      - file: ./version.txt
+      - file: ./moon.yml
+      - file: ./release.sh
+      - "@group(yq_bin)"

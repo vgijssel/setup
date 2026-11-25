@@ -58,6 +58,14 @@
         "libs/openbao-cloudflare-plugin/**"
       ],
       "semanticCommitType": "fix"
+    },
+    {
+      "description": "Home Assistant OS image. Two things are unusual here and both are load-bearing. versioning: upstream stable tags are TWO-part (18.5, 18.4, 17.3) and prereleases are 18.5.rc1, which is not semver at all; this regex matches only two-part stable tags, so rc builds can never be proposed and major/minor are always well defined. commitBody: release-please decides versions from conventional commits, which would invent its own semver bump and lose the correspondence to the Home Assistant version. The Release-As footer pins the release to <major>.<minor>.0 instead, which is what libs/haos-image/release.sh asserts against the upstream version before it publishes anything.",
+      "matchPackageNames": ["home-assistant/operating-system"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)$",
+      "semanticCommitType": "feat",
+      "semanticCommitScope": "haos-image",
+      "commitBody": "Release-As: {{{newMajor}}}.{{{newMinor}}}.0"
     }
   ],
   "pip_requirements": {
