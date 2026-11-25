@@ -19,11 +19,10 @@
 # EVERY OBJECT HERE ALREADY EXISTS, so this bundle ADOPTS rather than creates, and takeOwnership
 # is what allows it. Fleet installs a bundle as a Helm release, Helm refuses to manage an object
 # carrying no ownership metadata of its own, and without the flag the Bundle shows green while
-# its BundleDeployment holds the real error.
-# See ../config/fleet.yaml for the longer version, and for why no `diff.comparePatches`
-# appears here either. Fleet compares only fields the manifest declares, so the labels and
-# annotations that Rancher's own controllers write onto these objects are new map keys, and
-# invisible to its drift check.
+# its BundleDeployment holds the real error. See ../config/fleet.yaml for the longer version, and
+# for why no `diff.comparePatches` appears here either. Fleet compares only fields the manifest
+# declares, so the labels and annotations that Rancher's own controllers write onto these objects
+# are new map keys, and invisible to its drift check.
 #
 # SELF-MANAGEMENT. This bundle declares two GitRepos, one of which produced the bundle. That is
 # deliberate, because it is the only way the GitOps entry points stop being hand-made dashboard
@@ -38,6 +37,27 @@
 #     specs are therefore copied from live rather than composed, down to `pollingInterval: 1m0s`
 #     and the `targets` stanza, because a tidier value here is a change to how this repo is
 #     delivered. Confirmed with `kubectl diff` against the live Rancher: no difference.
+#     Note what correctDrift does to a field that cannot be stored: it retries once a minute,
+#     forever. See ../rancher-agent/globalrole-agent-read-only.yaml for one that cost 98 Helm
+#     release revisions in an hour.
+#
+# THIS BUNDLE REPORTS NotReady WHILE BEING PERFECTLY APPLIED, and that is the third consequence of
+# self-management, unanticipated when the preceding two were written. Fleet monitors readiness of
+# the resources a bundle deploys. One of this bundle's three resources is the `setup-rancher`
+# GitRepo that produced the bundle, and a GitRepo is Ready only when every bundle it owns is
+# Ready. So this bundle is Ready only once the GitRepo is Ready, and the GitRepo is Ready only
+# once this bundle is. Observed 2026-11-25, with Installed true, Deployed true, `nonModified:
+# true`, and Ready false citing `gitrepo.fleet.cattle.io fleet-local/setup-rancher [progressing]`.
+#
+# Whether that cycle actually wedges, or settles once no OTHER bundle is unready, is not yet
+# known: when it was observed, ../rancher-agent was independently Modified, so the GitRepo had a
+# real reason to be unready too. Fixing that is the cheap experiment, and it comes first. If this
+# bundle is still NotReady with every sibling green, the cycle is real, and the fix is either
+# Fleet's `ignore.conditions` (which suppresses matching conditions for the WHOLE bundle, so it
+# would also blind the Feature and the `setup-harvester` GitRepo, and therefore wants this
+# GitRepo split into a bundle of its own first) or not declaring `setup-rancher` here at all. The
+# second costs more than it sounds: no other GitRepo can deploy to `fleet-local`, so there is no
+# third place to declare it from, and the object would go back to being hand-made dashboard state.
 #
 # THE AGENT IDENTITY IS NOT HERE. All four of its objects, the User, the cluster RoleTemplate,
 # the GlobalRole that inherits it and the GlobalRoleBinding that grants it, live together in
