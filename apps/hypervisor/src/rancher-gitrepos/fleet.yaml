@@ -1,0 +1,79 @@
+# Fleet bundle holding both GitRepos that deliver this repository: `setup-harvester` in
+# `fleet-default` and `setup-rancher` in `fleet-local`. Nothing else. It exists to hold exactly
+# the objects whose readiness has to be ignored, because `ignore.conditions` cannot be scoped to a
+# resource and both of these are GitRepos whose readiness is an aggregate of other bundles rather
+# than a fact about the object.
+#
+# WHAT A GITREPO'S READY CONDITION ACTUALLY MEANS. It is not a claim that the GitRepo works. It
+# is the roll-up of every bundle the GitRepo owns, on every cluster it targets. Monitoring it from
+# inside a bundle therefore imports unrelated failures, in two distinct ways, both of which
+# happened:
+#
+#   - A CYCLE, when the GitRepo delivers the monitoring bundle. `setup-rancher` was declared in
+#     ../rancher-config, which `setup-rancher` delivers. The bundle was Ready only once the
+#     GitRepo was, and the GitRepo only once the bundle was. Measured 2026-11-25 with everything
+#     else green: gitrepo 6/7 ready, holdout = that bundle; bundle 2/3 ready, holdout = that
+#     gitrepo; BundleDeployment Installed, Deployed, Monitored and nonModified all true.
+#   - IMPORTED NOISE, when the GitRepo is somebody else's roll-up. With `setup-rancher` moved out
+#     and the ignore narrowed, ../rancher-config went red again within the hour, this time on
+#     `setup-harvester` reporting `virtualmachine.kubevirt.io haos/haos [progressing] virt-launcher
+#     pod has not yet been scheduled`. A stalled CDI import of a Home Assistant disk, on a
+#     different cluster, in a different app, was turning a bundle of Rancher config red.
+#
+# The second case is the reason both GitRepos live here and not just the self-delivering one. A
+# bundle cannot usefully monitor ANY GitRepo, not merely the one that delivers it.
+#
+# THIS BUNDLE'S READINESS IS NOT A SIGNAL. Everything it could report is ignored by design. Read
+# the two GitRepos directly; they are first-class objects in Fleet and each reports its own health
+# perfectly well, which is how that HAOS import was spotted in the first place. Adding a third
+# resource here would silently inherit the blindness, so do not: anything that is not one of these
+# two GitRepos belongs in ../rancher-config.
+#
+# MOVING A GITREPO BETWEEN BUNDLES IS THE DANGEROUS PART, and the guard is per-object. Dropping a
+# resource from a bundle's manifest makes Helm delete it on the next upgrade, and `keepResources`
+# does not cover that case, only bundle deletion. Deleting either of these objects stops delivery
+# of this repository to a whole cluster, with no commit able to undo it, because the thing that
+# reads commits is the thing that was deleted. Both therefore carry
+# `helm.sh/resource-policy: keep`, and each annotation had to reach the cluster in an EARLIER sync
+# than its move, because Helm reads the policy off the previous release's manifest. That is why
+# this directory arrived over four merges rather than one, and why renaming it from `rancher-self`
+# is safe now: the keep policy survives the Bundle delete and recreate that a path change causes.
+#
+# takeOwnership, because both objects are live and annotated for the releases they are leaving.
+# This is measured rather than hoped for: `setup-rancher` moved from `hypervisor-rancher-config`
+# to `hypervisor-rancher-self` on 2026-11-25 and Fleet adopted it with no manual re-annotation,
+# so takeOwnership does override a conflicting `meta.helm.sh/release-name`, not merely an absent
+# one.
+#
+# keepResources, because pruning this bundle would otherwise delete both GitRepos and turn off
+# continuous delivery for this repository entirely, on both clusters.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-rancher-gitrepos
+# Both GitRepos carry an explicit namespace, and they are deliberately different ones. This is
+# only a fallback.
+defaultNamespace: default
+# Ignore the readiness of both GitRepos, for the two reasons in the header. Deliberately the whole
+# Ready condition and not a message match: the message is Fleet's own aggregated text and is
+# rewritten on every poll.
+ignore:
+  conditions:
+    - type: Ready
+      status: "False"
+keepResources: true
+helm:
+  releaseName: hypervisor-rancher-gitrepos
+  takeOwnership: true
+# rancher-ONLY. Both objects live on Rancher's cluster, including the one whose BundleDeployments
+# land on Harvester. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: rancher
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: rancher
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
