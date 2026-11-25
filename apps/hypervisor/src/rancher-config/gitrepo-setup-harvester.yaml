@@ -3,7 +3,7 @@
 #
 # `fleet-default` is load-bearing, not a default. A GitRepo only ever produces
 # BundleDeployments for clusters in its own workspace, and Harvester (`c-27cxq`) is the only
-# cluster in this one. The sibling ./gitrepo-setup-rancher.yaml covers `fleet-local`.
+# cluster in this one. ../rancher-self/gitrepo-setup-rancher.yaml covers `fleet-local`.
 #
 # `paths: [apps]` means this GitRepo builds EVERY bundle in the repo, including the ones written
 # for Rancher. What keeps those off Harvester is each bundle's own clusterSelector plus its
