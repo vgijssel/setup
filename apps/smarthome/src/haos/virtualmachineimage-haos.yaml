@@ -1,6 +1,38 @@
-# The Home Assistant OS image the guest's boot disk is cloned from. Unlike the image it
-# replaces (`default/image-j9gz6`), this one is REPRODUCIBLE: delete it and a `fleet apply`
-# fetches the identical bits back from the pinned release URL.
+# The Home Assistant OS image the guest's boot disk is cloned from, replacing the uploaded
+# `default/image-j9gz6` whose bits existed in exactly one place.
+#
+# ─── THIS FILE IS NOT YET REPRODUCIBLE. THE URL BELOW CANNOT IMPORT ON ITS OWN. ──────────────
+# A COMPRESSED URL DOES NOT WORK on Harvester's CDI path, and the failure is silent until the
+# importer crash-loops. `initializeDownload` (pkg/image/cdi/cdi.go) derives the target size like
+# this:
+#
+#     virtualSize, _ := fetchImageVirtualSize(imageURL)  // ranged GET of bytes 0-127, parses a
+#     size, _        := fetchImageSize(imageURL)         // qcow2 header; HEAD Content-Length
+#     if virtualSize == 0 { virtualSize = size }     // "means the image is not qcow format"
+#
+# The first 128 bytes of an `.xz` are not a qcow2 header, so virtualSize comes back 0 and
+# Harvester falls back to Content-Length - the COMPRESSED size. `generateDVTargetStorage` then
+# requests exactly `status.virtualSize`, so the golden-image DataVolume was created at
+# 535,936,800 bytes (~511 MiB) for an image whose real virtual size is 32 GiB, with CDI's scratch
+# PVC sized to match at ~542 MiB. The decompressed qcow2 is ~1.09 GiB, so the importer dies in
+# the TransferScratch phase with "Unable to transfer source data to scratch space" and restarts
+# forever.
+#
+# There is NO manifest-level fix. VirtualMachineImage.spec has no size or capacity field at all
+# (backend, backingImageName, checksum, description, displayName, pvcName, pvcNamespace, retry,
+# securityParameters, sourceType, storageClassParameters, targetStorageClassName, and the URL), the size
+# comes only from the controller-owned `status.virtualSize`, and recreating the image re-derives
+# it from the URL - so deleting the image and letting Fleet reconcile reproduces the bug rather
+# than fixing it.
+#
+# The live image was unwedged by hand (patching `status.virtualSize` to 34359738368 and forcing
+# the DataVolume to be regenerated). That repair is NOT expressed here and CANNOT be: it is
+# status, which Fleet does not manage. Treat this image as hand-held until the URL points at an
+# UNCOMPRESSED qcow2, which is the only change that makes the import work from scratch - then
+# `fetchImageVirtualSize` reads a real header and every derived size is correct. Home Assistant
+# publishes no uncompressed artifact (every asset is .xz, .ova or .zip), so that means serving a
+# decompressed copy from somewhere this cluster can reach.
+# ────────────────────────────────────────────────────────────────────────────────────────────
 #
 # WHY `backend: cdi` AND NOT `backingimage`. This is the whole point of the file, and the
 # difference is measured, not stylistic:
@@ -18,10 +50,14 @@
 #     PVC-to-PVC CLONES - full independent copies, referenced by namespace/name. Once a clone
 #     finishes, the running disk needs nothing from this object.
 #
-# `.qcow2.xz` IS DELIBERATE, not an oversight. CDI natively decompresses gz/xz, converts
-# qcow2 to raw, and expands to the target size. Longhorn's backing-image downloader does
-# not, so under the other backend this URL would have to be decompressed and re-hosted
-# somewhere - which is precisely the unreproducible-blob problem this file exists to end.
+# CDI itself handles gz/xz perfectly well - it decompresses, converts qcow2 to raw and expands
+# to the target size. That is why the URL below looked safe and is not: the defect is in
+# Harvester's SIZING layer in front of CDI, not in CDI. Verifying the importer's capabilities
+# says nothing about whether Harvester can size the volume it imports into.
+#
+# The boot disk also needs CDI's clone to work, which needs
+# apps/hypervisor/src/config/storageprofile-longhorn-ssd.yaml - without it CDI snapshots through
+# the `longhorn` class, which demands an unconfigured backup target, and the clone hangs.
 #
 # `checksum` IS EMPTY ON PURPOSE. The Home Assistant OS release publishes no checksum assets
 # for its artifacts (verified against the 18.2 asset list), and Harvester's checksum semantics
