@@ -1,0 +1,11 @@
+# Home for ./addon-k3k.yaml and for the operator's own Helm release. Created by the upstream
+# standalone manifest, not by Harvester, which is why it has to be declared here: on a cold apply
+# the Addon cannot be created without it.
+#
+# Harvester does not manage this namespace, but the k3k operator's release does fill it, so
+# deleting it takes the operator and every k3k virtual cluster's control plane with it. See the
+# header in fleet.yaml.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k3k-system

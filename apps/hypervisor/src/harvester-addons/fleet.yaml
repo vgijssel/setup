@@ -1,0 +1,71 @@
+# Fleet bundle for the Harvester Addons this repo owns: the `k3k` operator, the `rancher-k3k`
+# stack that runs Rancher inside a k3k virtual cluster, and the namespace each of them lives in.
+# Both Addons were applied by hand from upstream manifests and then enabled from the Harvester
+# dashboard, so this bundle ADOPTS them. See ../config/fleet.yaml for why takeOwnership is
+# required and why no diff.comparePatches is needed. Verified against live on 2026-11-25: every
+# object here produces an empty `kubectl diff` except the one field named below.
+#
+# A Harvester Addon is a thin CR: the harvester-system addon controller reads spec.chart,
+# spec.repo, spec.version and spec.valuesContent and drives a Helm release from them, writing
+# only status back. So the CR is the whole configuration, and declaring it here is the same as
+# declaring the Helm values, including the ones the dashboard wrote. That makes the values
+# byte-faithfulness rule from ../config apply here too: spec.valuesContent is a YAML STRING,
+# Harvester diffs it as a string, and reindenting or reordering it registers as a change that
+# triggers a Helm upgrade of a live Rancher.
+#
+# `rancher-k3k` IS THE ONE ADDON WHOSE CAPTURE IS NOT BYTE-FAITHFUL, and the exception is in one
+# field. Its live spec.valuesContent embeds `rancher.bootstrapPassword` as a dashboard-generated
+# plaintext secret, the CRD marks valuesContent REQUIRED rather than optional, and this repository
+# is public. The field can therefore be neither omitted to let the live value stand nor declared
+# verbatim. ./addon-rancher-k3k.yaml declares it as the literal `rancher` instead; see that file
+# for why that value is inert and which objects the resulting one-time Helm upgrade reaches. Every
+# other value in it is copied from live.
+#
+# Note that k3kCluster.storageClassName is longhorn-ssd, which ../config declares, and that it was
+# changed from the chart default of harvester-longhorn. That is the dependsOn below, in practice.
+#
+# SCOPE. Only the two k3k addons. Harvester ships several more (rancher-monitoring,
+# rancher-logging, pcidevices-controller, vm-import-controller, nvidia-driver-toolkit,
+# harvester-seeder, descheduler, kubeovn-operator) and those stay out of git: they are installed
+# and versioned by Harvester itself as part of an upgrade, and the shutdown runbook in
+# apps/network/harvester.md toggles rancher-monitoring's spec.enabled by hand. Declaring an addon
+# here means Fleet owns its enabled flag, which would fight that runbook.
+#
+# Split from ../config rather than merged into it, on the same reasoning that split the HAOS guest
+# out. Fleet applies a bundle as ONE atomic unit, and enabling an addon makes Harvester install a
+# whole Helm release. That failing must not be able to roll back a storage class or a
+# storage-network Setting.
+#
+# dependsOn ../config, because rancher-k3k provisions its control-plane volumes through a
+# StorageClass this repo declares, so on a cold apply the class has to exist first. It costs
+# nothing to state and matters only then.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-harvester-addons
+# Every object here carries an explicit namespace, so this is only a fallback. Deliberately not
+# harvester-system: nothing in this bundle belongs to Harvester's own release.
+defaultNamespace: default
+# Removing this bundle must not delete the namespaces, because an Addon's Helm release lives
+# inside them, so a prune here would take the k3k operator and the Rancher running in rancher-k3k
+# with it. Same reasoning as ../config.
+keepResources: true
+helm:
+  releaseName: hypervisor-harvester-addons
+  # Adopt the hand-applied Addon and the two namespaces. See the header.
+  takeOwnership: true
+dependsOn:
+  - selector:
+      matchLabels:
+        fleet.blueora.ng/bundle: hypervisor-config
+# harvester-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: harvester
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: harvester
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
