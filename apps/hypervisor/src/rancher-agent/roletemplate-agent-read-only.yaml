@@ -10,8 +10,8 @@
 # manifest. `context: cluster` is what makes it eligible for that; a project-context template
 # cannot be inherited this way.
 #
-# This file has to reach the cluster BEFORE that GlobalRole, and inside one bundle Helm decides
-# that order. It decides it wrong. See ./fleet.yaml.
+# Rancher's webhook requires this object to exist before that GlobalRole, which looked like a
+# reason the two could not share a bundle. They can; it installed in one pass. See ./fleet.yaml.
 #
 # WHY THE RULES ARE WRITTEN OUT instead of `external: true` against the built-in `view` role. An
 # external template resolves against each downstream cluster's OWN ClusterRole of that name, so
