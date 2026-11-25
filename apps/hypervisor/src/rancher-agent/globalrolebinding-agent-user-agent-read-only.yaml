@@ -1,0 +1,23 @@
+# Binds `agent-user` to the `agent-read-only` GlobalRole, and through it to the inherited
+# cluster RoleTemplate in every managed cluster. This single object is the whole grant.
+#
+# It is also the revocation point, and deleting THIS FILE is now the whole of a revocation.
+# Deleting the bundle is not the same thing: the user and the role are siblings here rather than
+# in another bundle, so a bundle-level delete dismantles the identity instead of suspending it.
+# See ./fleet.yaml.
+#
+# `userName` references the User by its id, which is why ./user-agent-user.yaml sets
+# `metadata.name` explicitly instead of letting Rancher generate one. Rancher fills in the owner
+# reference and `status` itself. Neither is declared here, so neither becomes something Fleet has
+# to fight over.
+#
+# What this binding does NOT grant is a session. The user holds no GlobalRole conferring
+# dashboard or `/v3` access, so the access created here is reachable only through a kubeconfig
+# pointed at `/k8s/clusters/<cluster-id>`. The token behind that kubeconfig is minted out of band
+# and never declared in git. See the header of ../rancher-config/fleet.yaml.
+apiVersion: management.cattle.io/v3
+kind: GlobalRoleBinding
+metadata:
+  name: agent-user-agent-read-only
+globalRoleName: agent-read-only
+userName: agent-user

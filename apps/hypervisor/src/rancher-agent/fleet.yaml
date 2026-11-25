@@ -1,0 +1,71 @@
+# Fleet bundle for the whole agent identity on Rancher: the `agent-user` User, the
+# `agent-read-only` cluster RoleTemplate, the GlobalRole that inherits it, and the
+# GlobalRoleBinding that grants it. Four objects, one bundle, because they are one thing. Rancher
+# management-plane config lives in ../rancher-config, which this bundle no longer depends on.
+#
+# THIS BUNDLE IS EXPECTED TO FAIL ITS FIRST INSTALL, and that is the point of shipping it this
+# way. Both halves of the problem are measured rather than argued:
+#
+#   - Rancher's webhook rejects a GlobalRole whose inherited RoleTemplate does not already exist.
+#     Confirmed against this Rancher with a server-side dry-run:
+#
+#       admission webhook "rancher.cattle.io.globalroles.management.cattle.io" denied the request:
+#       globalrole.inheritedClusterRoles: Invalid value: "": unable to find all roleTemplates
+#       unable to get roleTemplate agent-read-only: roletemplates.management.cattle.io
+#       "agent-read-only" not found
+#
+#   - Helm applies a bundle's resources in ITS order, not the file order and not the filename
+#     order. Kinds it does not recognise sort alphabetically and last, which puts GlobalRole ahead
+#     of RoleTemplate. Confirmed offline on 2026-11-25 with `helm template` over these four kinds
+#     fed in reverse: the output came back GlobalRole, GlobalRoleBinding, RoleTemplate, User.
+#
+# So the predicted failure is not a slow convergence but a permanent one: the apply aborts before
+# the RoleTemplate is created, so every retry fails identically. It ships this way anyway, to find
+# out whether Rancher's webhook and Fleet's retry behaviour really do combine like that in
+# practice, because the prediction has never been run end to end. READ THE BUNDLEDEPLOYMENT, NOT
+# THE BUNDLE: a bundle that fails this way shows green at the Bundle while its BundleDeployment
+# holds the error.
+#
+# If it does fail, two fixes are available and neither needs this directory to change shape.
+# Split the GlobalRole and its binding back into a sibling bundle with a dependsOn selector, the
+# pattern ../haos uses against ../config and the one this bundle replaced. Or keep one bundle and
+# give the RoleTemplate a Helm pre-install hook so it is applied in an earlier phase, which costs
+# turning this flat directory into a chart, and that carries its own ownership trap: the Helm
+# release name changes to the chart name, so Helm stops recognising objects it installed itself.
+#
+# NO keepResources, and the meaning of that has CHANGED now that the identity and its grant share
+# a bundle. Deleting this bundle no longer revokes access while leaving the account intact; it
+# dismantles the identity entirely. That is a clean teardown, not a revocation. To revoke and keep
+# the account, delete ./globalrolebinding-agent-user-agent-read-only.yaml alone.
+#
+# NO takeOwnership. All four objects are new, so nothing here is adopted.
+#
+# NO TOKEN IS DECLARED, which is what makes an identity safe to keep in git. Token hashing is not
+# enabled on this Rancher, so a Token object holds its secret as plaintext. Git holds the durable
+# identity and its permissions; the short-lived token is minted out of band. See the header of
+# ../rancher-config/fleet.yaml.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-rancher-agent
+# All four objects are cluster-scoped, so this is only a fallback for anything namespaced added
+# later.
+defaultNamespace: default
+helm:
+  releaseName: hypervisor-rancher-agent
+# NO dependsOn, deliberately. The RoleTemplate this bundle's GlobalRole inherits is now a sibling
+# file rather than another bundle's object, so the only ordering left to satisfy is inside one
+# Helm release. Keeping a dependsOn on ../rancher-config would also muddy the preceding experiment
+# by adding a second reason the bundle might sit un-deployed.
+#
+# rancher-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: rancher
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: rancher
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
