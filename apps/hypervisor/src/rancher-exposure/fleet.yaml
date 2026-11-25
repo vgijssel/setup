@@ -1,0 +1,55 @@
+# Fleet bundle for how the Rancher server is reached: one HelmChartConfig that turns the Rancher
+# chart's own Service into a LoadBalancer at 192.168.20.8 and stops the chart rendering an Ingress
+# at all. See ./helmchartconfig-rancher.yaml for which chart values that is and why a
+# HelmChartConfig is the only seam the Harvester Addon leaves open.
+#
+# THIS REPLACES ../rancher-vip, WHICH IS DELETED IN THE SAME COMMIT, and the two cannot coexist.
+# Both describe the same address: that bundle declared a second Service on the HOST side selecting
+# the same pod, this one re-types the chart's own Service inside the virtual cluster. kube-vip
+# shares an address between Services only when their ports differ, and both declare 80 and 443, so
+# leaving both in place is a contested address rather than a redundant one. Fleet deletes that
+# bundle and creates this one in the same sync, which can leave a few seconds of overlap; both
+# forward to the same pod, so the worst case is which copy holds the address, not whether Rancher
+# answers.
+#
+# TARGETED AT RANCHER, NOT HARVESTER, which is the opposite of the bundle it replaces, because the
+# object is not Harvester's. The HelmChart it configures lives in the virtual cluster's
+# `kube-system`, so this is delivered by the `setup-rancher` GitRepo out of `fleet-local`. The
+# resulting Service is then synced OUT to Harvester by k3k, where kube-vip picks it up; nothing in
+# this repo declares that host copy.
+#
+# DNS HAS TO MOVE FIRST, and it already has. Verified 2026-11-25 before this merge:
+# `rancher.lan.blueora.ng` resolves to 192.168.20.8 from the gateway, from a workstation, and from
+# a Harvester node (`getent hosts`), which is what `cattle-cluster-agent` follows. Merging this
+# while the name still pointed at the VIP would have removed the only route that name had.
+#
+# NO takeOwnership. The HelmChartConfig is new, so there is nothing to adopt.
+#
+# NO keepResources, and here that is the rollback. Pruning this bundle deletes the
+# HelmChartConfig, helm-controller then upgrades the release back to the chart's defaults, and the
+# Ingress and the ClusterIP Service return. That is the whole recovery procedure, and it is why no
+# resource here carries a keep policy.
+#
+# NO dependsOn is possible. The HelmChart this configures is created by the `rancher-k3k` Addon
+# that ../harvester-addons declares, but that bundle targets a cluster in another Fleet workspace,
+# and dependsOn resolves within a workspace. If this bundle ever lands before the HelmChart exists,
+# nothing breaks: helm-controller reads the config when it reconciles the chart.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-rancher-exposure
+# The HelmChartConfig carries an explicit namespace, so this is only a fallback.
+defaultNamespace: default
+helm:
+  releaseName: hypervisor-rancher-exposure
+# rancher-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: rancher
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: rancher
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}
