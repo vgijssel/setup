@@ -4,18 +4,20 @@
 # this GlobalRole is bound to, including clusters registered after this file lands, with no
 # second manifest and no per-cluster ClusterRoleTemplateBinding to remember.
 #
-# It shares the name `agent-read-only` with the RoleTemplate in ../rancher-config on purpose.
-# They are different kinds, so the names do not collide, and there is only one logical role
-# here. Giving the wrapper a distinct name would imply a second set of permissions that does not
-# exist.
+# It shares the name `agent-read-only` with ./roletemplate-agent-read-only.yaml on purpose. They
+# are different kinds, so the names do not collide, and there is only one logical role here.
+# Giving the wrapper a distinct name would imply a second set of permissions that does not exist.
 #
 # `rules: []` is explicit rather than omitted. A GlobalRole's own rules apply to Rancher's GLOBAL
 # scope, covering users, settings, and cluster creation, and this role is meant to confer exactly
 # none of that. The empty list says so, where an absent field would read as unconsidered. All of
 # the real permissions live in the inherited template.
 #
-# Ordering: the webhook rejects this object when `agent-read-only` does not already exist, which
-# is what the dependsOn in ./fleet.yaml guarantees.
+# ORDERING, AND THE REASON THIS FILE IS THE INTERESTING ONE. The webhook rejects this object when
+# the `agent-read-only` RoleTemplate does not already exist, and Helm applies GlobalRole before
+# RoleTemplate because it sorts unrecognised kinds alphabetically. Nothing in this directory
+# guarantees the order any more; ./fleet.yaml explains what is being tested and what the fixes
+# are if the predicted failure holds.
 apiVersion: management.cattle.io/v3
 kind: GlobalRole
 metadata:

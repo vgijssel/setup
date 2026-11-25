@@ -1,10 +1,11 @@
 # The identity a coding agent authenticates as. Paired with ./roletemplate-agent-read-only.yaml,
-# and granted that template across every cluster by ../rancher-rbac.
+# and granted that template across every cluster by
+# ./globalrolebinding-agent-user-agent-read-only.yaml.
 #
 # A Rancher User is normally created by the dashboard under a generated name (`user-xxxxx`),
 # which is why users are not usually declarable. Setting `metadata.name` explicitly is what makes
 # this one reproducible: the name IS the user id, every binding references it, and a generated
-# name would leave the binding in ../rancher-rbac impossible to write down ahead of time.
+# name would leave the sibling GlobalRoleBinding impossible to write down ahead of time.
 #
 # NO PASSWORD, DELIBERATELY. Rancher stores a local user's password on this object, so declaring
 # one would commit a credential. Without it the account cannot sign in to the dashboard at all,

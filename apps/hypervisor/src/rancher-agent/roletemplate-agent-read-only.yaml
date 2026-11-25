@@ -5,10 +5,13 @@
 # ONE TEMPLATE, EVERY CLUSTER. This is a Rancher RoleTemplate, not a Kubernetes ClusterRole.
 # Rancher's RBAC controllers render it into a matching ClusterRole and ClusterRoleBinding inside
 # each downstream cluster that a binding names, which is how `cluster-owner` ends up on Harvester
-# without anyone applying it there. ../rancher-rbac inherits this template from a GlobalRole, so
+# without anyone applying it there. ./globalrole-agent-read-only.yaml inherits this template, so
 # every cluster Rancher manages, including clusters registered later, receives it with no further
 # manifest. `context: cluster` is what makes it eligible for that; a project-context template
 # cannot be inherited this way.
+#
+# This file has to reach the cluster BEFORE that GlobalRole, and inside one bundle Helm decides
+# that order. It decides it wrong. See ./fleet.yaml.
 #
 # WHY THE RULES ARE WRITTEN OUT instead of `external: true` against the built-in `view` role. An
 # external template resolves against each downstream cluster's OWN ClusterRole of that name, so

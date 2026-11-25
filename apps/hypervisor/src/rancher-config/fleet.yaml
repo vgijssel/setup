@@ -16,11 +16,11 @@
 #
 #   kubectl -n fleet-local label clusters.fleet.cattle.io local cluster.blueora.ng/name=rancher
 #
-# EVERY OBJECT HERE ALREADY EXISTS, so this bundle ADOPTS rather than creates, except the
-# RoleTemplate and the User, which are new. takeOwnership covers the adoptions. Fleet installs a
-# bundle as a Helm release, Helm refuses to manage an object carrying no ownership metadata of
-# its own, and without the flag the Bundle shows green while its BundleDeployment holds the real
-# error. See ../config/fleet.yaml for the longer version, and for why no `diff.comparePatches`
+# EVERY OBJECT HERE ALREADY EXISTS, so this bundle ADOPTS rather than creates, and takeOwnership
+# is what allows it. Fleet installs a bundle as a Helm release, Helm refuses to manage an object
+# carrying no ownership metadata of its own, and without the flag the Bundle shows green while
+# its BundleDeployment holds the real error.
+# See ../config/fleet.yaml for the longer version, and for why no `diff.comparePatches`
 # appears here either. Fleet compares only fields the manifest declares, so the labels and
 # annotations that Rancher's own controllers write onto these objects are new map keys, and
 # invisible to its drift check.
@@ -39,11 +39,12 @@
 #     and the `targets` stanza, because a tidier value here is a change to how this repo is
 #     delivered. Confirmed with `kubectl diff` against the live Rancher: no difference.
 #
-# THE AGENT IDENTITY is the `agent-user` User and the `agent-read-only` RoleTemplate. The pair
-# that grants one to the other, a GlobalRole with `inheritedClusterRoles` and its
-# GlobalRoleBinding, lives in ../rancher-rbac. Rancher's webhook rejects a GlobalRole whose
-# inherited RoleTemplate does not exist yet, so the two cannot share a bundle. That file carries
-# the exact error and the reasoning.
+# THE AGENT IDENTITY IS NOT HERE. All four of its objects, the User, the cluster RoleTemplate,
+# the GlobalRole that inherits it and the GlobalRoleBinding that grants it, live together in
+# ../rancher-agent. This bundle is Rancher's own configuration; that one is an account. They were
+# briefly split three ways across two bundles to satisfy a webhook ordering constraint, and the
+# ordering is now handled, or not handled, inside that single bundle. Its header carries the
+# measurements.
 #
 # NO TOKEN IS DECLARED ANYWHERE IN GIT, which is the whole point of separating this bundle from a
 # kubeconfig. Token hashing is not enabled on this Rancher, so a Token object carries its secret
@@ -53,7 +54,7 @@
 labels:
   fleet.blueora.ng/bundle: hypervisor-rancher-config
 # Both namespaced objects (the two GitRepos) carry an explicit namespace, so this is only a
-# fallback. The RoleTemplate, the User, and the Feature are cluster-scoped.
+# fallback. The Feature is cluster-scoped.
 defaultNamespace: default
 # Removing this bundle must not delete the GitRepos it adopts. See SELF-MANAGEMENT.
 keepResources: true
