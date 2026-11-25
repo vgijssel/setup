@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Attach the uncompressed Home Assistant OS image to its release, or skip if it is already there.
 
-Selected by .github/workflows/publish.yaml through `moon run :publish --query "tag=publish"`. The
+Selected by .github/workflows/release.yaml through `moon run :publish --query "tag=publish"`. The
 image itself is produced by build.py, which this task depends on.
 
 IDEMPOTENT, and the three states are deliberate, mirroring bin/registry-tag-exists:
@@ -14,11 +14,13 @@ An unexplained failure must never be read as permission to upload. A release ass
 replaced atomically, and a half-written one is indistinguishable from a good one to the cluster
 that consumes it.
 
-THE RELEASE MAY NOT EXIST YET, and that is a normal state rather than an error. publish.yaml runs
-on push to main; merging a release-please PR *is* such a push, and release-please is still
-deciding whether to cut the tag at that moment. So this waits briefly for the release to appear
-and then skips loudly rather than failing, because failing would make publish.yaml red for as
-long as a release PR sits unmerged. The nightly run picks it up once the tag exists.
+THE RELEASE MAY NOT EXIST YET, and that is a normal state rather than an error: a release PR can
+sit open for days, and until it merges release-please has created no tag and no release. Failing
+would make the workflow red for that whole time, so this skips loudly instead.
+
+There is no wait or retry here. release.yaml runs the release-please step BEFORE this one in the
+same job, so if this push merged a release PR the record provably already exists. Polling would
+only ever burn time in the common case, where the release PR is simply still open.
 """
 
 from __future__ import annotations
@@ -27,7 +29,6 @@ import json
 import shutil
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 import _versions
@@ -37,10 +38,6 @@ PROJECT = Path(__file__).resolve().parent.parent
 DIST = PROJECT / "dist"
 
 TAG_PREFIX = "haos-image@"
-# How long to let release-please finish cutting the tag when both workflows were started by the
-# same push. Generous enough for a cold release-please run, short enough not to hold a job open.
-WAIT_SECONDS = 180
-POLL_SECONDS = 15
 
 
 def _gh(*args: str) -> subprocess.CompletedProcess[str]:
@@ -76,21 +73,15 @@ def main() -> int:
 
     print(f"==> release {tag} should carry asset {asset}")
 
-    deadline = time.monotonic() + WAIT_SECONDS
     assets = _release_assets(tag)
-    while assets is None and time.monotonic() < deadline:
-        print(f"    release {tag} does not exist yet, waiting for release-please")
-        time.sleep(POLL_SECONDS)
-        assets = _release_assets(tag)
-
     if assets is None:
         print(
             f"==> SKIPPING: no release tagged {tag}.\n"
             f"    release-as in release-please-config.json declares {versions.release_please}, so\n"
             "    release-please will cut this tag when its release PR merges. Until then there is\n"
-            "    nothing to attach to. This run is a no-op on purpose; the nightly publish will\n"
-            "    pick it up. If the release PR has already merged and no tag appeared, check the\n"
-            "    Release Please workflow for a stuck 'autorelease: pending' label."
+            "    nothing to attach to. This run is a no-op on purpose; the next push or the nightly\n"
+            "    run picks it up. If the release PR HAS merged and no tag appeared, check the\n"
+            "    release-please step for a stuck 'autorelease: pending' label."
         )
         return 0
 

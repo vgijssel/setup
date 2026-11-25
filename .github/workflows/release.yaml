@@ -1,0 +1,170 @@
+# Decide versions, publish the artifacts those versions describe, then propose the consumer pins.
+#
+# This was two workflows (release-please.yaml and publish.yaml) triggered by the same `push: main`
+# event, with nothing ordering them. They are one job now for one reason: the release RECORD is
+# created by the release-please step, and `moon run :publish` attaches assets to it. Two parallel
+# workflows raced -- on the push that merges a release PR, publishing could ask for a release that
+# release-please had not created yet. As consecutive steps in one job that is impossible.
+#
+# WHAT THIS DOES NOT DO, and the distinction is the whole reason the previous split existed:
+# nothing here is GATED on release-please's outputs. release-please is a label state machine, not
+# a function of repo state -- a merged release PR carries `autorelease: pending`, tagging strips
+# it, and on a re-run no candidate PR remains, so `releases_created` is false and `paths_released`
+# empty. A step gated on those is skipped and the workflow GOES GREEN HAVING PUBLISHED NOTHING.
+# The publish step instead asks the registry and the release what is missing and fixes it, which
+# is why re-running this whole workflow is always correct and why the nightly schedule is free.
+# Co-locating the steps does not reintroduce that coupling; gating on the outputs would.
+#
+# `if: ${{ !cancelled() }}` ON EVERY STEP AFTER RELEASE-PLEASE IS LOAD-BEARING. Without it a
+# failure in the version-decision step would also stop publishing -- including artifacts that are
+# already released and merely missing their asset. That is not hypothetical: RELEASES_TOKEN_GITHUB
+# is a PAT, it has expired before, and it went unrecognised for months. The job still reports
+# failure in that case, so the expiry stays visible; publishing simply stops being collateral.
+#
+# Two things must not be changed here without reading design.md:
+#
+#   - Do NOT rename release-please's labels without also setting `label` / `release-label`.
+#     A merged release PR carries `autorelease: pending` until the tag is cut; a stuck label
+#     blocks every future release PR.
+#   - Do NOT set `skip-github-release`. It suppresses the git TAG as well as the release, and
+#     the tag is how release-please finds the last release on the next run -- and the tag is what
+#     the publish step attaches assets to.
+#
+# RELEASES_TOKEN_GITHUB (vgijssel-bot) rather than GITHUB_TOKEN, and the reason is NOT branch
+# protection -- nothing here pushes to `main`. Events triggered by GITHUB_TOKEN do not start
+# workflow runs. A release PR opened with it would get no `pull_request` event and no CI, so the
+# five required status checks on `protected-main` would never report and the PR could never be
+# merged -- by anyone, since `github-actions[bot]` is not a bypass actor and
+# `current_user_can_bypass` is `never` even for the repo owner. The same applies to the pin PR the
+# last step opens. See design.md D13.
+#
+# A DEAD PAT STILL BLOCKS EVERYTHING, because the checkout uses it: `release:self_upgrade`
+# rebuilds and pushes its branch through those credentials. That is unchanged from the previous
+# publish.yaml, which checked out the same way. The credential check at the top exists so the
+# failure reads as "the token expired" rather than "could not read Username for github.com".
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  # Nightly convergence: anything declared but unpublished gets another attempt, and a healthy
+  # repo is a silent no-op. A version that is declared but unpublishable therefore alerts every
+  # night, which is the intended behaviour -- publishing nothing must never read as success.
+  #
+  # release-please now runs nightly too, which is harmless (it is a convergence tool; a scheduled
+  # run just refreshes the release PR) and has a side benefit: the credential check below runs
+  # nightly, so a PAT expiry surfaces within a day instead of whenever someone next looks.
+  schedule:
+    - cron: 17 3 * * *
+  workflow_dispatch:
+
+permissions:
+  # `contents: write` for the release assets libs/haos-image attaches; `packages: write` for the
+  # plugin images pushed to ghcr.
+  contents: write
+  packages: write
+
+# Serialise. Two runs would race to open or update the same release PR, race on the pin commit,
+# and could both start the same 1 GiB upload; cancelling mid-run can leave a release labelled but
+# untagged, or abort between a successful push and the commit recording its checksum.
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Decide versions, publish artifacts, propose pins
+    runs-on: ubuntu-latest
+    steps:
+      # Fail with a sentence a human can act on. RELEASES_TOKEN_GITHUB is a PAT, PATs expire, and
+      # when this one did the runs died at `actions/checkout` with "could not read Username for
+      # 'https://github.com': terminal prompts disabled" -- which reads like a missing username and
+      # is actually an auth rejection. That went unrecognised for months. `gh` is preinstalled on
+      # the runner, so this costs one API call and needs no checkout.
+      - name: Check the release credential is alive
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::RELEASES_TOKEN_GITHUB is empty or not exposed to this run."
+            exit 1
+          fi
+          if ! login="$(gh api user --jq .login 2>&1)"; then
+            echo "::error::RELEASES_TOKEN_GITHUB is set but the API rejected it — it has almost" \
+                 "certainly expired. Mint a fresh vgijssel-bot PAT with 'repo' scope and update" \
+                 "the secret. The API said: ${login}"
+            exit 1
+          fi
+          echo "Authenticated as ${login}"
+
+      # Creates the git TAG and the GitHub RELEASE when a release PR merges; on any other push it
+      # only opens or refreshes the release PR and creates nothing. Needs no checkout -- it works
+      # entirely through the API. Everything below depends on the release record existing, which is
+      # why this step comes first.
+      - name: Run release-please
+        uses: googleapis/release-please-action@v5
+        with:
+          token: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Checkout
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@v4
+        with:
+          # Full history: release:self_upgrade rebuilds its branch from origin/main, and a
+          # shallow clone has no base to build on.
+          fetch-depth: 0
+          # vgijssel-bot, which pushes the pin branch and opens its PR. It no longer needs to
+          # bypass `protected-main` — the pins arrive as a PULL REQUEST, so the ruleset's
+          # pull_request and required_signatures rules are satisfied the ordinary way.
+          token: ${{ secrets.RELEASES_TOKEN_GITHUB }}
+
+      - uses: ./.github/actions/setup
+        if: ${{ !cancelled() }}
+
+      # Both the registry PROBE and the push must use the same credentials. ghcr answers
+      # `http 404` for a private repository probed anonymously — indistinguishable from
+      # absent — so an unauthenticated probe would misread a published private tag.
+      - name: Log in to GitHub Container Registry
+        if: ${{ !cancelled() }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Selected by TAG, not enumerated. A bare `moon run :publish` would also fire the broken
+      # fleet-mcp / devcontainer scripts and the carved-out talos-image; a hand-kept list here
+      # would go stale. A project opts in by saying `tags: [publish]` in its own moon.yml and
+      # defining its own `publish` task — there is no shared tag task, because the three publish
+      # targets do genuinely different things: two push a multi-arch image to ghcr, one attaches a
+      # decompressed disk image to a GitHub release.
+      #
+      # GH_TOKEN is for that last one, which calls `gh release upload`. GITHUB_TOKEN suffices:
+      # it only writes to a release in this same repository and triggers nothing downstream.
+      - name: Publish release artifacts
+        if: ${{ !cancelled() }}
+        run: moon run :publish --query "tag=publish"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Only after the publishes succeed — deliberately NOT `!cancelled()`, because pinning a
+      # version that failed to publish would point the apps at an artifact that is not there.
+      # This opens (or updates) ONE pull request carrying the init-container image tags and their
+      # matching catalog checksums in a single commit — OpenBao rejects a registration whose
+      # checksum does not describe the binary it is handed, and reports only "checksum mismatch",
+      # so the two halves can never be split.
+      #
+      # It is a PR and not a push to main deliberately: this is the point at which the newly
+      # published plugin gets validated against the apps that deploy it. Merging the PR is what
+      # makes the pins the deployed state. The task is a no-op when the pins already describe
+      # what is published, so the nightly run is quiet when healthy.
+      - name: Propose consumer pins
+        run: |
+          git config user.name vgijssel-bot
+          git config user.email 147037532+vgijssel-bot@users.noreply.github.com
+          moon run release:self_upgrade
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN_GITHUB }}

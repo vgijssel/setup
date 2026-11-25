@@ -3,7 +3,7 @@ layer: library
 stack: backend
 tags:
   - go
-  # Selected by .github/workflows/publish.yaml via `moon run :publish --query "tag=publish"`.
+  # Selected by .github/workflows/release.yaml via `moon run :publish --query "tag=publish"`.
   # The tag IS the opt-in: a workflow that lists its targets is a list that goes stale, and a bare
   # `moon run :publish` would also fire the broken fleet-mcp and devcontainer scripts.
   - publish
@@ -22,7 +22,7 @@ tasks:
       - build
     options:
       runFromWorkspaceRoot: false
-      # Publishing is driven explicitly by publish.yaml, never by `moon ci` on a pull request.
+      # Publishing is driven explicitly by release.yaml, never by `moon ci` on a pull request.
       runInCI: false
       # The REGISTRY is the source of truth for what has shipped, not the task hash. A cache hit
       # would return success without probing, so a tag that went missing from the registry while

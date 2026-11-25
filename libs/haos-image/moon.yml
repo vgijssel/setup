@@ -20,7 +20,7 @@ project:
     # renovate pull request both need moving by hand. version_test is what makes that visible.
     release_please_version: 18.2.0
 tags:
-  # Selected by .github/workflows/publish.yaml via `moon run :publish --query "tag=publish"`.
+  # Selected by .github/workflows/release.yaml via `moon run :publish --query "tag=publish"`.
   # The tag IS the opt-in: a workflow that lists its targets is a list that goes stale, and a bare
   # `moon run :publish` would also fire the broken fleet-mcp and devcontainer scripts.
   - publish
@@ -50,7 +50,7 @@ tasks:
       - dist
 
   # Attach the built image to the release release-please cut for this version, or skip if it is
-  # already attached. Driven by publish.yaml.
+  # already attached. Driven by release.yaml.
   publish:
     command: python3 scripts/publish.py
     deps:

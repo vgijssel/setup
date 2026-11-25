@@ -29,7 +29,7 @@ tasks:
       - "@group(yq_bin)"
 
   # Propose the pins for the currently published artifacts as a PR. Invoked by
-  # .github/workflows/publish.yaml after both publishes succeed. `cache: false` and
+  # .github/workflows/release.yaml after both publishes succeed. `cache: false` and
   # `runInCI: false`: it reaches the registry and GitHub, so a cached success would mean "we did
   # not look", and it must never fire from `moon ci` on a pull request.
   self_upgrade:
