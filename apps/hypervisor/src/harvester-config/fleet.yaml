@@ -10,6 +10,14 @@
 # (Bundle green, BundleDeployment holding the error). The `fleet.blueora.ng/bundle` label stays
 # `hypervisor-config` for the same reason, that ../haos selects it in dependsOn.
 #
+# This is measured, not theoretical. On 2026-11-25 `default/sh.helm.release.v1.hypervisor-config.v1`
+# still exists from an earlier `bin/fleet-apply` whose Bundle was later deleted, and
+# `storageclass/longhorn-ssd` and `setting/storage-network` both carry
+# `meta.helm.sh/release-name: hypervisor-config` with `app.kubernetes.io/managed-by: Helm`. So the
+# first sync of this renamed directory UPGRADES that existing release rather than installing a new
+# one. An empty Bundle list is not proof that nothing owns these objects; the object's own
+# release-name annotation is.
+#
 # Renaming the DIRECTORY is a free action only while no GitRepo exists. Rancher's GitRepo derives
 # a Bundle's name from its path, so once one is syncing, renaming this directory deletes the old
 # Bundle and creates a new one, and a deleted Bundle uninstalls its Helm release, which here would
