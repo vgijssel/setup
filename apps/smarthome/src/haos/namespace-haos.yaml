@@ -1,0 +1,9 @@
+# The namespace the Home Assistant guest lives in, separate from `default` where the
+# 2026-09-25 VM still runs. Owning the namespace here (rather than relying on Fleet's
+# defaultNamespace to conjure it) is what lets this bundle be applied to an untouched
+# cluster and converge: the VirtualMachineImage's golden PVC, the DataVolume Harvester
+# derives from it, the VM and the NAD all land in it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: haos
