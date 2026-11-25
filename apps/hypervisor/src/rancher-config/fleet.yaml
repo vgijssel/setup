@@ -41,23 +41,41 @@
 #     forever. See ../rancher-agent/globalrole-agent-read-only.yaml for one that cost 98 Helm
 #     release revisions in an hour.
 #
-# THIS BUNDLE REPORTS NotReady WHILE BEING PERFECTLY APPLIED, and that is the third consequence of
+# A BUNDLE CANNOT MONITOR THE GITREPO THAT DELIVERS IT, and that is the third consequence of
 # self-management, unanticipated when the preceding two were written. Fleet monitors readiness of
 # the resources a bundle deploys. One of this bundle's three resources is the `setup-rancher`
 # GitRepo that produced the bundle, and a GitRepo is Ready only when every bundle it owns is
 # Ready. So this bundle is Ready only once the GitRepo is Ready, and the GitRepo is Ready only
-# once this bundle is. Observed 2026-11-25, with Installed true, Deployed true, `nonModified:
-# true`, and Ready false citing `gitrepo.fleet.cattle.io fleet-local/setup-rancher [progressing]`.
+# once this bundle is. `ignore.conditions` below is what breaks that.
 #
-# Whether that cycle actually wedges, or settles once no OTHER bundle is unready, is not yet
-# known: when it was observed, ../rancher-agent was independently Modified, so the GitRepo had a
-# real reason to be unready too. Fixing that is the cheap experiment, and it comes first. If this
-# bundle is still NotReady with every sibling green, the cycle is real, and the fix is either
-# Fleet's `ignore.conditions` (which suppresses matching conditions for the WHOLE bundle, so it
-# would also blind the Feature and the `setup-harvester` GitRepo, and therefore wants this
-# GitRepo split into a bundle of its own first) or not declaring `setup-rancher` here at all. The
-# second costs more than it sounds: no other GitRepo can deploy to `fleet-local`, so there is no
-# third place to declare it from, and the object would go back to being hand-made dashboard state.
+# IT IS A CLOSED CYCLE, NOT A SLOW ONE, and that was established by experiment rather than by
+# argument. When first seen, ../rancher-agent was independently Modified, so the GitRepo had a
+# real reason to be unready and the cycle could not be blamed yet. After that was fixed the
+# cluster read, on 2026-11-25:
+#
+#   gitrepo setup-rancher       desiredReady 7, ready 6, notReady 1 -> only this bundle
+#   this bundle                 desiredReady 3, ready 2, notReady 1 -> only that gitrepo
+#   this BundleDeployment       Installed true, Deployed true, Monitored true, nonModified true
+#
+# Two nodes waiting on each other with nothing else wrong. Note that the `WaitApplied(1)` tail on
+# the error message is stale text carried inside a nested summary; `resourceCounts.waitApplied`
+# was 0 throughout, so nothing was ever actually waiting to apply.
+#
+# WHY THE BLUNT FIX IS THE RIGHT ONE. `ignore.conditions` matches conditions by field value, and
+# the only stable match here is the Ready condition itself, so it necessarily applies to all three
+# resources rather than just the GitRepo. The obvious refinement, moving `setup-rancher` into a
+# bundle of its own so the ignore covers one object, was considered and rejected as more dangerous
+# than the problem: a resource dropped from a bundle is PRUNED on the next Helm upgrade, and
+# `keepResources` does not cover that, it covers bundle deletion. If this bundle upgraded before
+# the new one adopted the object, Fleet would delete the GitRepo that delivers this repository to
+# Rancher, and nothing in git could put it back.
+#
+# What the breadth actually costs is close to nothing. The suppressed signal is this bundle's
+# MIRROR of two GitRepos' health, and both are first-class objects you read directly in Fleet; a
+# broken `setup-harvester` still shows broken as `setup-harvester`. The Feature has no meaningful
+# Ready condition at all. What would be lost is a genuinely unready resource added here LATER
+# going unnoticed, so: anything whose readiness you actually want watched does not belong in this
+# bundle.
 #
 # THE AGENT IDENTITY IS NOT HERE. All four of its objects, the User, the cluster RoleTemplate,
 # the GlobalRole that inherits it and the GlobalRoleBinding that grants it, live together in
@@ -76,6 +94,13 @@ labels:
 # Both namespaced objects (the two GitRepos) carry an explicit namespace, so this is only a
 # fallback. The Feature is cluster-scoped.
 defaultNamespace: default
+# Break the readiness cycle described in the header. Without this the bundle waits forever on the
+# GitRepo that delivers it. Deliberately the whole Ready condition and not a message match: the
+# message is Fleet's own aggregated text and changes on every poll.
+ignore:
+  conditions:
+    - type: Ready
+      status: "False"
 # Removing this bundle must not delete the GitRepos it adopts. See SELF-MANAGEMENT.
 keepResources: true
 helm:
