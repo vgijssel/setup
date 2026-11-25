@@ -31,10 +31,10 @@
 # apps/network/harvester.md toggles rancher-monitoring's spec.enabled by hand. Declaring an addon
 # here means Fleet owns its enabled flag, which would fight that runbook.
 #
-# Split from ../config rather than merged into it, on the same reasoning that split ../haos.
-# Fleet applies a bundle as ONE atomic unit, and enabling an addon makes Harvester install a whole
-# Helm release. That failing must not be able to roll back a storage class or a storage-network
-# Setting.
+# Split from ../config rather than merged into it, on the same reasoning that split the HAOS guest
+# out. Fleet applies a bundle as ONE atomic unit, and enabling an addon makes Harvester install a
+# whole Helm release. That failing must not be able to roll back a storage class or a
+# storage-network Setting.
 #
 # dependsOn ../config, because rancher-k3k provisions its control-plane volumes through a
 # StorageClass this repo declares, so on a cold apply the class has to exist first. It costs

@@ -1,7 +1,8 @@
 # Fleet bundle for the hypervisor's cluster-wide configuration: the storage classes, the
 # `storage` cluster network and its VlanConfig, and the four harvesterhci.io Settings that
-# apps/network/harvester.md records as kubectl commands. Guests live in sibling bundles,
-# starting with ../haos, and the Harvester Addons this repo owns in ../harvester-addons.
+# apps/network/harvester.md records as kubectl commands. The Harvester Addons this repo owns are
+# in the sibling ../harvester-addons; guests are not in this project at all, and the Home
+# Assistant one lives in apps/smarthome/src/haos.
 #
 # THIS DIRECTORY IS NOT RENAMED, AND THE `keepResources` FLAG BELOW IS WHY IT CANNOT BE YET.
 # `config` says nothing about which product's config it holds, and `harvester-config` would, but
@@ -27,8 +28,8 @@
 # live objects, so they already carry `meta.helm.sh/release-name: hypervisor-config`. Helm refuses
 # to adopt an object annotated for a different release even with takeOwnership, so renaming the
 # release would block the whole bundle (Bundle green, BundleDeployment holding the error). The
-# `fleet.blueora.ng/bundle` label stays `hypervisor-config` for the same reason, that ../haos and
-# ../harvester-addons select it in dependsOn.
+# `fleet.blueora.ng/bundle` label stays `hypervisor-config` for the same reason, that
+# ../harvester-addons and apps/smarthome/src/haos both select it in dependsOn, across projects.
 #
 # That is measured too. On 2026-11-25 `default/sh.helm.release.v1.hypervisor-config.v1` still
 # exists from an earlier `bin/fleet-apply` whose Bundle was later deleted, and
