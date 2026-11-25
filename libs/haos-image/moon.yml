@@ -35,15 +35,15 @@ tasks:
   # which is why it is separate from publish: a cache hit skips a 512 MiB download, and a failure
   # to produce a usable qcow2 is attributed here rather than to the upload.
   build:
-    command: python3 build.py
+    command: python3 scripts/build.py
     options:
       runFromWorkspaceRoot: false
       # Network, and a 1 GiB output. Never on a pull request.
       runInCI: false
       cache: true
     inputs:
-      - file: ./build.py
-      - file: ./_versions.py
+      - file: ./scripts/build.py
+      - file: ./scripts/_versions.py
       - file: ./moon.yml
       - /release-please-config.json
     outputs:
@@ -52,7 +52,7 @@ tasks:
   # Attach the built image to the release release-please cut for this version, or skip if it is
   # already attached. Driven by publish.yaml.
   publish:
-    command: python3 publish.py
+    command: python3 scripts/publish.py
     deps:
       - build
     options:
@@ -68,12 +68,12 @@ tasks:
   # point: it is what catches a renovate bump whose release_please_version and release-as have not
   # been moved with it.
   version_test:
-    command: python3 version_test.py
+    command: python3 scripts/version_test.py
     options:
       runFromWorkspaceRoot: false
     inputs:
-      - file: ./version_test.py
-      - file: ./_versions.py
+      - file: ./scripts/version_test.py
+      - file: ./scripts/_versions.py
       - file: ./moon.yml
       - /release-please-config.json
 

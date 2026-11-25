@@ -33,8 +33,8 @@ from pathlib import Path
 import _versions
 from build import asset_name
 
-HERE = Path(__file__).resolve().parent
-DIST = HERE / "dist"
+PROJECT = Path(__file__).resolve().parent.parent
+DIST = PROJECT / "dist"
 
 TAG_PREFIX = "haos-image@"
 # How long to let release-please finish cutting the tag when both workflows were started by the

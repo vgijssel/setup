@@ -29,8 +29,8 @@ from pathlib import Path
 
 import _versions
 
-HERE = Path(__file__).resolve().parent
-DIST = HERE / "dist"
+PROJECT = Path(__file__).resolve().parent.parent
+DIST = PROJECT / "dist"
 
 # qcow2 magic bytes. Checked rather than trusting the filename, because this is exactly the
 # property a compressed artifact fails and the one Longhorn fails silently on.
@@ -55,7 +55,7 @@ def main() -> int:
     target = DIST / asset_name(upstream)
 
     if target.exists() and target.stat().st_size > 0:
-        print(f"==> {target.relative_to(HERE)} already built, skipping download")
+        print(f"==> {target.relative_to(PROJECT)} already built, skipping download")
         _describe(target)
         return 0
 

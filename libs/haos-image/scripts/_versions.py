@@ -27,9 +27,10 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-REPO_ROOT = HERE.parents[1]
-MOON_YML = HERE / "moon.yml"
+SCRIPTS = Path(__file__).resolve().parent
+PROJECT = SCRIPTS.parent
+REPO_ROOT = PROJECT.parents[1]
+MOON_YML = PROJECT / "moon.yml"
 RELEASE_PLEASE_CONFIG = REPO_ROOT / "release-please-config.json"
 
 PACKAGE_PATH = "libs/haos-image"
