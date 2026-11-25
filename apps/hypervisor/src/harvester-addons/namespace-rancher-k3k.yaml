@@ -1,0 +1,9 @@
+# Home for the rancher-k3k Addon below. Created by the upstream release manifest, not by
+# Harvester, so it has to be declared here or a cold apply has nowhere to put the Addon.
+#
+# This is where the addon's Helm release puts the k3k Cluster, its cert-manager, and the Rancher
+# install that runs inside it. Deleting the namespace deletes that Rancher. See fleet.yaml.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rancher-k3k

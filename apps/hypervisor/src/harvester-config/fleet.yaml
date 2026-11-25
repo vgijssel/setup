@@ -1,7 +1,22 @@
 # Fleet bundle for the hypervisor's cluster-wide configuration: the storage classes, the
 # `storage` cluster network and its VlanConfig, and the four harvesterhci.io Settings that
 # apps/network/harvester.md records as kubectl commands. Guests live in sibling bundles,
-# starting with ../haos.
+# starting with ../haos, and the Harvester Addons this repo owns in ../harvester-addons.
+#
+# THE DIRECTORY IS `harvester-config`; THE HELM RELEASE IS STILL `hypervisor-config`, and the
+# mismatch is deliberate. This bundle adopts live objects, so they already carry
+# `meta.helm.sh/release-name: hypervisor-config`. Helm refuses to adopt an object annotated for a
+# different release even with takeOwnership, so renaming the release would block the whole bundle
+# (Bundle green, BundleDeployment holding the error). The `fleet.blueora.ng/bundle` label stays
+# `hypervisor-config` for the same reason, that ../haos selects it in dependsOn.
+#
+# Renaming the DIRECTORY is not free either. Rancher's GitRepo derives a Bundle's name from its
+# path, so the rename deletes the old Bundle and creates a new one, and a deleted Bundle
+# uninstalls its Helm release, which here would delete a live hypervisor's storage classes,
+# cluster network and Settings. `keepResources` below is what makes that survivable. Fleet
+# propagates it to the BundleDeployment and the downstream agent leaves the objects in place,
+# for the new Bundle to re-adopt. It only helps if the LIVE Bundle already carries it, so it has
+# to reach the cluster in its own merge BEFORE the rename does.
 #
 # Harvester appears in Continuous Delivery at all only because the Rancher-side
 # `harvester-baremetal-container-workload` feature flag is active. Without it the dashboard drops
@@ -54,6 +69,10 @@ labels:
 # Everything in this bundle is cluster-scoped, so this is only a fallback for anything namespaced
 # added later. Deliberately not one of the preceding system namespaces.
 defaultNamespace: default
+# Removing this bundle must never delete the hypervisor's storage fabric. Nothing here was
+# created by Fleet, so Fleet has no business destroying it. See the header for the rename this
+# protects.
+keepResources: true
 helm:
   releaseName: hypervisor-config
   # Adopt the pre-existing objects. See the header.
