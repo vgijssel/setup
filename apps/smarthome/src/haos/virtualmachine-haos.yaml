@@ -1,4 +1,4 @@
-# The Home Assistant VM: 4 vCPU, 8 GiB, one 32 GiB boot disk cloned from the haos-os-18-2
+# The Home Assistant VM: 4 vCPU, 8 GiB, one 32 GiB boot disk layered on the haos-18-2 backing
 # image, bridged onto VLAN 30 through the lan-automation network in this namespace.
 #
 # UNLIKE THE VM IT REPLACED, THIS ONE IS A RECIPE. `default/haos` adopted a machine built by
@@ -17,21 +17,21 @@
 # this one (its bundle was removed, so Fleet uninstalled Helm release `hypervisor-haos`). Two
 # NICs with one MAC on one L2 segment is an address conflict, so never re-create a guest with
 # this MAC alongside this one. Ordering was never in doubt during the cutover: the old VM is
-# deleted in seconds, while this one cannot boot until CDI has imported a 512 MiB xz artifact
-# and cloned a 32 GiB disk, which takes minutes.
+# deleted in seconds, while this one cannot boot until Longhorn has downloaded and inspected the
+# backing image, which takes minutes.
 # ────────────────────────────────────────────────────────────────────────────────────────────
 #
-# HOW THE BOOT DISK IS BUILT, and why it needs no image at runtime. The `volumeClaimTemplates`
-# annotation names a disk whose `harvesterhci.io/imageId` points at a CDI-backed image, and
-# Harvester's VM controller responds by creating a DataVolume of the same name whose
-# `source.pvc` is the image's golden PVC, addressed by namespace/name
-# (pkg/controller/master/virtualmachine/vm_controller.go). That is a full PVC-to-PVC copy, not
-# a delta: when the clone completes the disk owes the image nothing, and `haos-os-18-2` could
-# be deleted without touching it. Two consequences worth stating because neither is obvious:
+# HOW THE BOOT DISK IS BUILT. The `volumeClaimTemplates` annotation names a disk on the
+# per-image StorageClass `haos-18-2`, which exists because the image sets
+# `spec.backingImageName` - see virtualmachineimage-haos.yaml. Harvester's VM controller creates
+# a plain PVC from that template (`createPVCsFromAnnotation`), Longhorn provisions a volume that
+# is a thin DELTA on the backing image of the same name, and no CDI object is involved: no
+# DataVolume, no golden PVC, no VolumeSnapshot, no StorageProfile. Two things worth stating:
 #
-#   - `createDataVolume` sets NO ownerReferences, so deleting this VM does not cascade into
-#     the DataVolume or the PVC. The data survives a `kubectl delete vm`, exactly as it does
-#     for the current guest. Removing the disk is a separate, deliberate act.
+#   - The PVC is created with NO ownerReferences, so deleting this VM does not cascade into the
+#     disk. Removing it is a separate, deliberate act - which is also why the Harvester UI asks
+#     whether to delete volumes and records the answer in
+#     `harvesterhci.io/removedPersistentVolumeClaims`.
 #   - The volume below is a `persistentVolumeClaim`, NOT a `dataVolume`. This matters: the
 #     v1.9 backup engine's `volumeToPVCMappings()` only collects `volume.PersistentVolumeClaim`
 #     entries, so a VM that declares `dataVolumeTemplates` + `dataVolume` volumes gets a
@@ -39,6 +39,12 @@
 #     no error and no condition (harvester/harvester#11861, still open). Declaring the disk the
 #     Harvester-native way keeps this guest backupable. Do not "simplify" it into
 #     dataVolumeTemplates.
+#
+# The disk is named `haos-boot`, not `haos-disk-0`. The earlier name is still attached to a
+# DataVolume wedged in `SnapshotForSmartCloneInProgress` from the CDI attempt, and CDI derives
+# its temporary snapshot name from the target PVC's UID - so only a PVC with a NEW uid starts
+# cleanly. The stale `haos-disk-0` DataVolume and PVC are created by Harvester's controller
+# rather than Fleet, so nothing prunes them; delete them once this VM no longer references them.
 #
 # NO CLOUD-INIT DISK. The old VM carried one because the Harvester UI always attaches one;
 # Home Assistant OS is an appliance image that ignores NoCloud entirely, so the Secret only
@@ -50,8 +56,8 @@
 # Assistant's hardware view does not change across the migration. Safe only because the old VM
 # no longer exists; a duplicate SMBIOS UUID on a second live guest would be its own problem.
 #
-# `evictionStrategy: LiveMigrateIfPossible` plus the migratable longhorn-ssd class is what keeps
-# rolling node maintenance non-disruptive. The nodeAffinity on `network.harvesterhci.io/mgmt`
+# `evictionStrategy: LiveMigrateIfPossible` plus `migratable` on the per-image class (inherited
+# from the image's storageClassParameters) is what keeps rolling node maintenance non-disruptive. The nodeAffinity on `network.harvesterhci.io/mgmt`
 # only requires a node attached to the mgmt cluster network, which is all three.
 #
 # `harvesterhci.io/mac-address` and `harvesterhci.io/vmRunStrategy` are NOT declared: both are
@@ -63,7 +69,7 @@ metadata:
   name: haos
   namespace: haos
   annotations:
-    harvesterhci.io/volumeClaimTemplates: '[{"metadata":{"name":"haos-disk-0","annotations":{"harvesterhci.io/imageId":"haos/haos-os-18-2"}},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"32Gi"}},"volumeMode":"Block","storageClassName":"longhorn-ssd"}}]'
+    harvesterhci.io/volumeClaimTemplates: '[{"metadata":{"name":"haos-boot","annotations":{"harvesterhci.io/imageId":"haos/haos-18-2"}},"spec":{"accessModes":["ReadWriteMany"],"resources":{"requests":{"storage":"32Gi"}},"volumeMode":"Block","storageClassName":"haos-18-2"}}]'
   labels:
     harvesterhci.io/os: linux
 spec:
@@ -144,4 +150,4 @@ spec:
       volumes:
         - name: disk-0
           persistentVolumeClaim:
-            claimName: haos-disk-0
+            claimName: haos-boot
