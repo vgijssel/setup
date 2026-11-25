@@ -1,0 +1,75 @@
+# Fleet bundle holding exactly one object: the `setup-rancher` GitRepo that delivers this
+# repository to Rancher's own cluster, and therefore delivers this bundle. It exists to be ONE
+# object, because `ignore.conditions` cannot be scoped to a resource and this is the only resource
+# whose readiness has to be ignored.
+#
+# THE CYCLE THIS BREAKS. Fleet monitors the readiness of the resources a bundle deploys. A GitRepo
+# is Ready only when every bundle it owns is Ready. A bundle that deploys its own GitRepo is
+# therefore Ready only once that GitRepo is, and that GitRepo only once the bundle is. Measured as
+# a closed cycle on 2026-11-25, once every other bundle was green:
+#
+#   gitrepo setup-rancher  desiredReady 7, ready 6, notReady 1 -> only ../rancher-config
+#   ../rancher-config      desiredReady 3, ready 2, notReady 1 -> only that gitrepo
+#   its BundleDeployment   Installed true, Deployed true, Monitored true, nonModified true
+#
+# Nothing was wrong; the two were waiting on each other.
+#
+# WHY A WHOLE BUNDLE FOR ONE OBJECT. `ignore.conditions` matches conditions by field value and has
+# no resource selector, so in a bundle of several resources it blinds all of them. The live
+# condition carries only `type`, `status`, `message` and `lastUpdateTime`: no `reason`, and the
+# message is Fleet's own aggregated text about the cycle, which changes on every poll. There is no
+# stable way to name one resource. Isolating the resource is therefore the only way to narrow the
+# ignore, and it buys back strict readiness monitoring for ../rancher-config's Feature and its
+# `setup-harvester` GitRepo, which a bundle-wide ignore there would have suppressed.
+#
+# THIS BUNDLE'S READINESS IS NOT A SIGNAL. Everything it could tell you is ignored by design. Read
+# the `setup-rancher` GitRepo directly instead; it is a first-class object in Fleet and reports its
+# own health perfectly well. Adding a second resource here would silently inherit the blindness, so
+# do not: anything else belongs in ../rancher-config.
+#
+# ORDERING, AND THE ONE THING THAT CAN GO WRONG. Moving an object between bundles means dropping it
+# from one manifest, which Helm treats as a deletion on the next upgrade, and deleting THIS object
+# would stop all delivery to Rancher with no commit able to restore it. The guard is the
+# `helm.sh/resource-policy: keep` annotation on the object, which must already be live from an
+# earlier sync, because Helm reads the policy off the previous release's manifest. That is why the
+# annotation shipped separately and why this bundle must not be merged before it.
+#
+# takeOwnership, because the object is live and annotated
+# `meta.helm.sh/release-name: hypervisor-rancher-config` from the bundle it is leaving. If the
+# BundleDeployment reports an ownership conflict rather than adopting it, the remedy is a one-time
+# re-annotation, which is safe precisely because the keep policy means nothing is pruned while it
+# is sorted out:
+#
+#   kubectl -n fleet-local annotate gitrepo.fleet.cattle.io setup-rancher \
+#     meta.helm.sh/release-name=hypervisor-rancher-self --overwrite
+#
+# keepResources, for the same reason ../rancher-config sets it. Pruning this bundle would otherwise
+# delete the GitRepo and turn off continuous delivery to Rancher for the whole repository.
+labels:
+  fleet.blueora.ng/bundle: hypervisor-rancher-self
+# The GitRepo carries an explicit namespace, so this is only a fallback.
+defaultNamespace: default
+# Break the readiness cycle described in the header. Scoped to this bundle, which is why the
+# bundle contains one object. Deliberately the whole Ready condition and not a message match: the
+# message is Fleet's own aggregated text and changes on every poll.
+ignore:
+  conditions:
+    - type: Ready
+      status: "False"
+keepResources: true
+helm:
+  releaseName: hypervisor-rancher-self
+  takeOwnership: true
+# rancher-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: rancher
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: rancher
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

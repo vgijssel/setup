@@ -1,10 +1,10 @@
 # The GitRepo that delivers this repository to Rancher's own cluster, and therefore the GitRepo
-# that delivers the bundle this file belongs to. Created by hand in Continuous Delivery and
-# adopted here. Deleting it stops all delivery to Rancher, which is why the bundle sets
-# keepResources.
+# that delivers the bundle this file belongs to, which is why it is the only object in that
+# bundle. Created by hand in Continuous Delivery and adopted here. Deleting it stops all delivery
+# to Rancher, which is why the bundle sets keepResources and this object carries a keep policy.
 #
 # `fleet-local` is the whole reason a second GitRepo exists. Fleet resolves targets only within
-# the GitRepo's own workspace, so ./gitrepo-setup-harvester.yaml in `fleet-default` cannot reach
+# the GitRepo's own workspace, so ../rancher-config/gitrepo-setup-harvester.yaml cannot reach
 # `local` however its selectors are written, and relabelling the cluster does not change that.
 # The alternative, moving `local` into `fleet-default`, is accepted by the API but would put
 # every bundle in this repo in front of the Rancher cluster, leaving the terminal doNotDeploy
@@ -13,19 +13,20 @@
 # `targets: [{clusterSelector: {}}]` is an empty selector, which matches every cluster in the
 # workspace. That is exactly one cluster (`local`), so it is not the deploy-everywhere hazard
 # that the same stanza would be in `fleet-default`. Reproduced verbatim from live, for the same
-# correctDrift reason as the sibling file.
+# correctDrift reason as ../rancher-config/gitrepo-setup-harvester.yaml.
 #
 # `helm.sh/resource-policy: keep` is the one annotation this repo declares on a Fleet-managed
 # object, and it guards the gap `keepResources` leaves. keepResources protects this object when
 # the BUNDLE is deleted. It does nothing when the object is merely dropped from the bundle's
 # manifest, which Helm treats as a deletion on the next upgrade. Dropping it is exactly what
-# moving this file to another bundle does, and the object being deleted here is the one that
+# moving this file between bundles does, and the object being deleted here is the one that
 # delivers this repository to Rancher: once gone, no commit can bring it back, because the thing
 # that reads commits is the thing that was deleted.
 #
 # The annotation has to reach the cluster in an EARLIER sync than any such move. Helm decides what
 # to delete by reading the policy off the previous release's manifest, so a single commit that
-# both adds the annotation and moves the file is not protected by it. See ../rancher-self.
+# both adds the annotation and moves the file is not protected by it. That is why the annotation
+# shipped one merge ahead of the move into ./fleet.yaml's bundle.
 apiVersion: fleet.cattle.io/v1alpha1
 kind: GitRepo
 metadata:
