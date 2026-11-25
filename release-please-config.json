@@ -13,6 +13,11 @@
     "libs/openbao-cloudflare-plugin": {
       "release-type": "simple",
       "component": "openbao-cloudflare-plugin"
+    },
+    "libs/haos-image": {
+      "release-type": "simple",
+      "component": "haos-image",
+      "release-as": "18.2.0"
     }
   }
 }

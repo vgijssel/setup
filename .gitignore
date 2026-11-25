@@ -96,6 +96,10 @@ kubeconfig
 .nx/key/key.ini
 /.devcontainer/.docker-version
 apps/blueorange/dist
+
+# haos-image build output: a ~1 GiB decompressed disk image. The root /dist/ rule is
+# anchored, so this path needs its own entry.
+libs/haos-image/dist/
 .playwright-mcp/
 
 # Python library patterns (fleet-mcp)

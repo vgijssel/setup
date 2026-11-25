@@ -206,12 +206,12 @@ The CI half is the one that matters. This repo allows **squash merges only** and
 PR re-runs the check.
 
 **OpenBao plugins (`libs/openbao-netbird-plugin`, `libs/openbao-cloudflare-plugin`)** are the
-onboarded packages. Two independent workflows, and the separation is load-bearing:
+onboarded packages. One workflow, in a fixed order, and the ordering is load-bearing. The
+release RECORD must exist before anything can attach an asset to it:
 
 | Workflow | Trigger | Owns |
 |---|---|---|
-| `.github/workflows/release-please.yaml` | `push: main` | version decisions — `version.txt`, CHANGELOG, tag, GitHub Release |
-| `.github/workflows/publish.yaml` | `push: main` + nightly | building and pushing images, and the consumer pins |
+| `.github/workflows/release.yaml` | `push: main` + nightly | version decisions (`version.txt`, CHANGELOG, tag, GitHub Release), then publishing the artifacts and proposing the consumer pins |
 
 Merge-to-published, end to end:
 
@@ -220,9 +220,11 @@ Merge-to-published, end to end:
    PR covering both packages at independent versions.
 2. A human merges the release PR. That writes `libs/<plugin>/version.txt` and cuts a
    `<component>@<version>` tag.
-3. `publish.yaml` runs `moon run :release --query "tag=releasable"` — selected by **tag**, so
-   there is no list to maintain; a project opts in with `tags: [releasable]` and inherits the
-   task from `.moon/tasks/tag-releasable.yml`. Each `release.sh` reads its `version.txt` — there
+3. The same workflow then runs `moon run :publish --query "tag=publish"` — selected by **tag**, so
+   there is no list to maintain; a project opts in with `tags: [publish]` and defines its own
+   `publish` task. There is no shared tag task, because the three targets do genuinely different
+   things: two push a multi-arch image to ghcr, while `libs/haos-image` attaches a decompressed
+   disk image to a GitHub release. Each plugin's `publish.sh` reads its `version.txt` — there
    is **no fallback version** — and probes the registry via `bin/registry-tag-exists`, which
    answers in **three** states: present → skip; an explicit `http 404` → publish; **anything
    else → fail**. A probe that fails for an unrelated reason is never read as permission to
@@ -239,7 +241,8 @@ Merge-to-published, end to end:
 
 Things that look like bugs and are not:
 
-- **`publish.yaml` reads none of release-please's outputs.** release-please is a label state
+- **The publish step reads none of release-please's outputs**, even though it now sits in the
+  same job. release-please is a label state
   machine, so on a re-run `releases_created` is false and `paths_released` empty; a workflow
   gated on them goes green having published nothing. Publishing instead converges against the
   registry, which is what makes re-running the whole workflow — and the nightly schedule —

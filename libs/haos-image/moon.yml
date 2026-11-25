@@ -1,0 +1,86 @@
+language: python
+layer: library
+project:
+  description: haos-image republishes the Home Assistant OS disk image UNCOMPRESSED as a release asset
+  metadata:
+    # RENOVATE'S TARGET. The jsonata customManager in renovate.json already reads
+    # `project.metadata.dependencies` out of every moon.yml, so tracking the upstream version here
+    # needs no new manager. The packageRule in renovate.json only pins the versioning scheme, so
+    # that two-part stable tags are the only thing ever proposed and `18.5.rc1` never is.
+    dependencies:
+      home-assistant/operating-system:
+        version: "18.2"
+        datasource: github-releases
+    # The same release as semver, which is what release-please tags. It exists because Home
+    # Assistant's stable tags are two-part and cannot be handed to release-please unchanged; the
+    # `.0` patch is the whole mapping. It MUST equal `release-as` for this package in
+    # release-please-config.json, and `version_test` fails if it does not.
+    #
+    # Renovate bumps the preceding dependency but cannot write this or release-as, so after a
+    # renovate pull request both need moving by hand. version_test is what makes that visible.
+    release_please_version: 18.2.0
+tags:
+  # Selected by .github/workflows/release.yaml via `moon run :publish --query "tag=publish"`.
+  # The tag IS the opt-in: a workflow that lists its targets is a list that goes stale, and a bare
+  # `moon run :publish` would also fire the broken fleet-mcp and devcontainer scripts.
+  - publish
+  - haos
+  - image
+
+# NOT tagged `python`. That tag carries `uv build` and `uv run pytest` from
+# .moon/tasks/tag-python.yml, which would replace the `build` task below with a wheel build. This
+# project is a few scripts, not a Python package.
+tasks:
+  # Download the upstream artifact and decompress it into dist/. Cacheable and the expensive half,
+  # which is why it is separate from publish: a cache hit skips a 512 MiB download, and a failure
+  # to produce a usable qcow2 is attributed here rather than to the upload.
+  build:
+    command: python3 scripts/build.py
+    options:
+      runFromWorkspaceRoot: false
+      # Network, and a 1 GiB output. Never on a pull request.
+      runInCI: false
+      cache: true
+    inputs:
+      - file: ./scripts/build.py
+      - file: ./scripts/_versions.py
+      - file: ./moon.yml
+      - /release-please-config.json
+    outputs:
+      - dist
+
+  # Attach the built image to the release release-please cut for this version, or skip if it is
+  # already attached. Driven by release.yaml.
+  publish:
+    command: python3 scripts/publish.py
+    deps:
+      - build
+    options:
+      runFromWorkspaceRoot: false
+      runInCI: false
+      # The RELEASE is the source of truth for what has shipped, not the task hash. A cache hit
+      # would return success without asking GitHub whether the asset is actually there, so an
+      # asset deleted from a release would never be re-uploaded and the nightly convergence run
+      # would be a no-op for the wrong reason.
+      cache: false
+
+  # Offline guard over the three version sources. Runs in CI on every pull request, which is the
+  # point: it is what catches a renovate bump whose release_please_version and release-as have not
+  # been moved with it.
+  version_test:
+    command: python3 scripts/version_test.py
+    options:
+      runFromWorkspaceRoot: false
+    inputs:
+      - file: ./scripts/version_test.py
+      - file: ./scripts/_versions.py
+      - file: ./moon.yml
+      - /release-please-config.json
+
+  # `moon ci` runs `test` by convention across this repo, so point it at the version guard: a
+  # drifting pin then fails a pull request rather than waiting for a release.
+  test:
+    deps:
+      - version_test
+    options:
+      cache: false
