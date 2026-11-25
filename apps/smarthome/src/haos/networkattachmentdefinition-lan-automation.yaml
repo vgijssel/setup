@@ -5,6 +5,11 @@
 # `promiscMode: true` and the empty `ipam` are what make this a plain L2 attachment. Addressing
 # is the guest's problem, handled by the VLAN 30 DHCP scope, not by Harvester.
 #
+# THIS REPLACES `default/lan-automation`, which went away with the rest of the old guest. A NAD
+# does not own the bridge - it only references the one `mgmt-br` that the ClusterNetwork and
+# VlanConfig in apps/hypervisor/src/config already built - so several NADs for one VLAN can
+# coexist across namespaces, and moving this one changed no network state.
+#
 # TWO THINGS LIVE HERE THAT THIS FILE DELIBERATELY DOES NOT DECLARE:
 #
 #   - `network.harvesterhci.io/route`, which records the CIDR and gateway Harvester discovered
@@ -21,7 +26,7 @@ apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
   name: lan-automation
-  namespace: default
+  namespace: haos
   labels:
     network.harvesterhci.io/clusternetwork: mgmt
     network.harvesterhci.io/type: L2VlanNetwork

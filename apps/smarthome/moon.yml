@@ -1,0 +1,15 @@
+language: bash
+layer: application
+project:
+  description: smarthome — the Home Assistant guest (VM, image, VM network) on the Harvester hypervisor
+tags:
+  - app
+  - kubernetes
+  - harvester
+  # Ships Fleet bundles under src/<component>/fleet.yaml, so inherit fleet_lint_targets
+  # and fleet_build from .moon/tasks/tag-fleet.yml.
+  - fleet
+
+# No tasks. This project is declarative only: its bundles are applied by bin/fleet-apply
+# (or Rancher's GitRepo), and the hypervisor-level runbooks that power the guest down live
+# with the fabric in apps/hypervisor.
