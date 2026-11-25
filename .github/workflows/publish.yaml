@@ -30,7 +30,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # `write` because haos-image attaches an asset to an existing release; the
+  # plugins only need packages: write for ghcr.
+  contents: write
   packages: write
 
 # Serialise: two runs would race on the pin commit below, and cancelling mid-run could abort
@@ -94,12 +96,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Selected by TAG, not enumerated. A bare `moon run :release` would also fire the broken
-      # fleet-mcp / devcontainer release scripts and the carved-out talos-image; a hand-kept list
-      # here would go stale. A project is releasable because its moon.yml says
-      # `tags: [releasable]` — see .moon/tasks/tag-releasable.yml.
-      - name: Publish plugin images
-        run: moon run :release --query "tag=releasable"
+      # Selected by TAG, not enumerated. A bare `moon run :publish` would also fire the broken
+      # fleet-mcp / devcontainer scripts and the carved-out talos-image; a hand-kept list here
+      # would go stale. A project opts in by saying `tags: [publish]` in its own moon.yml and
+      # defining its own `publish` task — there is no shared tag task, because the three publish
+      # targets do genuinely different things: two push a multi-arch image to ghcr, one attaches a
+      # decompressed disk image to a GitHub release.
+      #
+      # GH_TOKEN is for that last one, which calls `gh release upload`. GITHUB_TOKEN suffices:
+      # it only writes to a release in this same repository and triggers nothing downstream.
+      - name: Publish release artifacts
+        run: moon run :publish --query "tag=publish"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Only after BOTH publishes succeed. This opens (or updates) ONE pull request carrying the
       # init-container image tags and their matching catalog checksums in a single commit —

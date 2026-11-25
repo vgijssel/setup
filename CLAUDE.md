@@ -220,9 +220,11 @@ Merge-to-published, end to end:
    PR covering both packages at independent versions.
 2. A human merges the release PR. That writes `libs/<plugin>/version.txt` and cuts a
    `<component>@<version>` tag.
-3. `publish.yaml` runs `moon run :release --query "tag=releasable"` — selected by **tag**, so
-   there is no list to maintain; a project opts in with `tags: [releasable]` and inherits the
-   task from `.moon/tasks/tag-releasable.yml`. Each `release.sh` reads its `version.txt` — there
+3. `publish.yaml` runs `moon run :publish --query "tag=publish"` — selected by **tag**, so
+   there is no list to maintain; a project opts in with `tags: [publish]` and defines its own
+   `publish` task. There is no shared tag task, because the three targets do genuinely different
+   things: two push a multi-arch image to ghcr, while `libs/haos-image` attaches a decompressed
+   disk image to a GitHub release. Each plugin's `publish.sh` reads its `version.txt` — there
    is **no fallback version** — and probes the registry via `bin/registry-tag-exists`, which
    answers in **three** states: present → skip; an explicit `http 404` → publish; **anything
    else → fail**. A probe that fails for an unrelated reason is never read as permission to

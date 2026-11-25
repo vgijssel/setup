@@ -3,10 +3,40 @@ layer: library
 stack: backend
 tags:
   - go
-  # Opts into the shared `release` task in .moon/tasks/tag-releasable.yml, and is what
-  # `moon run :release --query "tag=releasable"` in publish.yaml selects on.
-  - releasable
+  # Selected by .github/workflows/publish.yaml via `moon run :publish --query "tag=publish"`.
+  # The tag IS the opt-in: a workflow that lists its targets is a list that goes stale, and a bare
+  # `moon run :publish` would also fire the broken fleet-mcp and devcontainer scripts.
+  - publish
 tasks:
+  # Build and push the multi-arch image for the version in version.txt, guarded by
+  # bin/registry-tag-exists. Deliberately duplicated in the other plugin rather than inherited
+  # from a shared tag task: the three publish targets in this repo now do genuinely different
+  # things -- two push a container image, one uploads a release asset -- and a shared task would
+  # have to be the union of all three. The ~15 duplicated lines are cheaper to read than a task
+  # whose options only make sense for two of its three users.
+  publish:
+    command: ./publish.sh
+    deps:
+      # Compile first so a broken plugin fails before a registry probe or a push. The Dockerfile
+      # builds its own binary, so this is a fast-fail, not the artifact being shipped.
+      - build
+    options:
+      runFromWorkspaceRoot: false
+      # Publishing is driven explicitly by publish.yaml, never by `moon ci` on a pull request.
+      runInCI: false
+      # The REGISTRY is the source of truth for what has shipped, not the task hash. A cache hit
+      # would return success without probing, so a tag that went missing from the registry while
+      # version.txt stood still would never be re-published.
+      cache: false
+    # DELIBERATELY NARROW: version.txt and the probe, nothing from src/ or the Dockerfile. Adding
+    # those would mean a source change with no version bump re-publishes the SAME tag with
+    # different content -- tag mutation, which silently invalidates every plugin_sha256 pinned
+    # against the old digest. "I changed the plugin and nothing happened" is the supported
+    # outcome; bumping the version is what ships a change.
+    inputs:
+      - file: ./version.txt
+      - file: /bin/registry-tag-exists
+      - "@group(regctl_bin)"
   build:
     command: bash -c "cd src && go build -o openbao-plugin-secrets-netbird ."
     options:

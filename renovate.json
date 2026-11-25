@@ -52,7 +52,7 @@
       "platformAutomerge": true
     },
     {
-      "description": "Dependency updates to the released OpenBao plugins must be releasable. These two directories are release-please packages whose published versions are immutable, so a change typed with the repo-global `chore` would alter the shipped image (both run on `FROM alpine`) without producing a version bump \u2014 and the registry guard in release.sh would then correctly refuse to re-push the existing tag, leaving base-image CVE fixes permanently unpublished. `fix` makes them ship. Note the automerge rule above still does not apply to these 0.x packages, so their PRs land by hand.",
+      "description": "Dependency updates to the released OpenBao plugins must be releasable. These two directories are release-please packages whose published versions are immutable, so a change typed with the repo-global `chore` would alter the shipped image (both run on `FROM alpine`) without producing a version bump \u2014 and the registry guard in publish.sh would then correctly refuse to re-push the existing tag, leaving base-image CVE fixes permanently unpublished. `fix` makes them ship. Note the automerge rule above still does not apply to these 0.x packages, so their PRs land by hand.",
       "matchFileNames": [
         "libs/openbao-netbird-plugin/**",
         "libs/openbao-cloudflare-plugin/**"
@@ -60,12 +60,11 @@
       "semanticCommitType": "fix"
     },
     {
-      "description": "Home Assistant OS image. Two things are unusual here and both are load-bearing. versioning: upstream stable tags are TWO-part (18.5, 18.4, 17.3) and prereleases are 18.5.rc1, which is not semver at all; this regex matches only two-part stable tags, so rc builds can never be proposed and major/minor are always well defined. commitBody: release-please decides versions from conventional commits, which would invent its own semver bump and lose the correspondence to the Home Assistant version. The Release-As footer pins the release to <major>.<minor>.0 instead, which is what libs/haos-image/release.sh asserts against the upstream version before it publishes anything.",
+      "description": "Home Assistant OS image. The versioning regex is load-bearing: upstream stable tags are TWO-part (18.5, 18.4, 17.3) and prereleases are 18.5.rc1, which is not semver at all, so this matches only two-part stable tags and rc builds can never be proposed. Renovate bumps project.metadata.dependencies in libs/haos-image/moon.yml and nothing else; the release version is pinned by hand as release-as in release-please-config.json, and libs/haos-image/version_test.py fails until release_please_version and release-as have been moved to match.",
       "matchPackageNames": ["home-assistant/operating-system"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)$",
       "semanticCommitType": "feat",
-      "semanticCommitScope": "haos-image",
-      "commitBody": "Release-As: {{{newMajor}}}.{{{newMinor}}}.0"
+      "semanticCommitScope": "haos-image"
     }
   ],
   "pip_requirements": {
