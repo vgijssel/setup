@@ -110,8 +110,8 @@ directories:
   path: charts/omada-controller-helm
 - contents:
   - helmChart:
-      appVersion: 1.23.0
-      version: 1.23.1
+      appVersion: 1.23.1
+      version: 1.23.2
     path: .
   path: charts/psmdb-operator
 - contents:
