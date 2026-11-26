@@ -1,0 +1,15 @@
+language: bash
+layer: application
+project:
+  description: access — the Octelium/Cordium guest cluster on the Harvester hypervisor
+tags:
+  - app
+  - kubernetes
+  - harvester
+  # Ships Fleet bundles under src/<component>/fleet.yaml, so inherit fleet_lint_targets
+  # and fleet_build from .moon/tasks/tag-fleet.yml.
+  - fleet
+
+# No tasks yet. This project currently holds only the Harvester-side prerequisites for the
+# guest cluster (its namespace and VM network); the cluster itself is provisioned from
+# Rancher, and its workloads are not here yet.

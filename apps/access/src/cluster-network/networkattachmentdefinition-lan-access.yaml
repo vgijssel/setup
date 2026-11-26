@@ -1,0 +1,54 @@
+# The VM network the access guest cluster's nodes attach to. VLAN 22 (Access), on the `mgmt`
+# cluster network, bridged through `mgmt-br` on the Omada LAG. Per apps/network/network.md,
+# VLAN 22 is 192.168.22.0/24 with the gateway at .1, a DHCP pool of .100 to .199, and .200 to
+# .250 reserved outside that pool for LoadBalancer addresses.
+#
+# THIS VLAN IS THE DMZ. Octelium's data plane needs a reachable public address for WireGuard on
+# UDP 53820 and its Ingress is a LoadBalancer on TCP 443, both of which arrive by destination NAT
+# from the homelab's public address on the Omada gateway. So this is the one guest network with
+# inbound internet exposure, which is the reason it is a separate VLAN from trust rather than a
+# second member of one, because Omada ACLs are gateway ACLs and never see traffic inside a VLAN,
+# while two VMs sharing a VLAN on one Harvester node are bridged inside `mgmt-br` without
+# crossing the uplink at all. A shared VLAN therefore has no enforcement point between the
+# internet-facing cluster and the cluster holding the secrets.
+#
+# `promiscMode: true` and the empty `ipam` are what make this a plain L2 attachment. Addressing
+# is the guest's problem, handled by the VLAN 22 DHCP scope, not by Harvester.
+#
+# A NAD DOES NOT OWN THE BRIDGE. It only references the one `mgmt-br` that the ClusterNetwork and
+# VlanConfig in apps/hypervisor/src/config already built, so several NADs for several VLANs
+# coexist across namespaces and creating this one changes no host network state. The VLAN set
+# Harvester tracks for the cluster network is derived by its controller (the `vlan-id-set-str`
+# annotation), which is why no VlanConfig change accompanies this file.
+#
+# APPLYING THIS BEFORE THE OMADA SIDE EXISTS IS SAFE, AND EXPECTED. VLAN 22 has to be created in
+# Omada and added as a TAGGED member of all three Harvester LAGs and of the gateway-to-switch
+# trunk before anything on this network can reach its gateway. Until then Harvester's controller
+# probes for a route, finds none, and records `connectivity: false`. Neither that annotation nor
+# the `network.harvesterhci.io/ready` label is declared below, so neither reads as drift. No VM
+# attaches to this network yet, so nothing can break in the meantime. The failure mode to expect
+# if the tagging is missed later is a node that gets a DHCP lease from the wrong scope, or none.
+#
+# TWO THINGS LIVE HERE THAT THIS FILE DELIBERATELY DOES NOT DECLARE:
+#
+#   - `network.harvesterhci.io/route`, which records the CIDR and gateway Harvester discovered
+#     plus a `connectivity` verdict from probing that gateway. The verdict flips to "false"
+#     whenever the gateway stops answering, so declaring it would make a network outage show up
+#     as configuration drift. Omitted, it is a map key Fleet never looks at.
+#   - the `network.harvesterhci.io/ready` label, which is status for the same reason.
+#
+# The three remaining labels are declared because they are static facts about this NAD rather
+# than observations: the cluster network it belongs to, its type, and its VLAN ID, which agrees
+# with the `vlan` in spec.config. Harvester's UI lists VM networks by these labels, so a NAD that
+# loses them stops appearing as a selectable network even though the bridge still works.
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: lan-access
+  namespace: access
+  labels:
+    network.harvesterhci.io/clusternetwork: mgmt
+    network.harvesterhci.io/type: L2VlanNetwork
+    network.harvesterhci.io/vlan-id: "22"
+spec:
+  config: '{"cniVersion":"0.3.1","name":"lan-access","type":"bridge","bridge":"mgmt-br","promiscMode":true,"vlan":22,"ipam":{}}'
