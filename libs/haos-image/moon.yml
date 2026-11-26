@@ -16,7 +16,7 @@ project:
     # the newest release that actually carries haos_ova-*.qcow2.xz rather than the newest release.
     dependencies:
       home-assistant/operating-system:
-        version: "18.4"
+        version: "18.2"
         datasource: github-releases
     # The same release as semver, which is what release-please tags. It exists because Home
     # Assistant's stable tags are two-part and cannot be handed to release-please unchanged; the
@@ -25,7 +25,7 @@ project:
     #
     # Renovate bumps the preceding dependency but cannot write this or release-as, so after a
     # renovate pull request both need moving by hand. version_test is what makes that visible.
-    release_please_version: 18.4.0
+    release_please_version: 18.2.0
 tags:
   # Selected by .github/workflows/release.yaml via `moon run :publish --query "tag=publish"`.
   # The tag IS the opt-in: a workflow that lists its targets is a list that goes stale, and a bare
