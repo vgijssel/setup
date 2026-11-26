@@ -230,11 +230,13 @@ Merge-to-published, end to end:
    else → fail**. A probe that fails for an unrelated reason is never read as permission to
    push, because re-pushing a live tag changes its digest and silently invalidates the checksums
    pinned downstream.
-4. `moon run release:self_upgrade` then **opens a pull request** carrying the init-container
-   image tags in `apps/secret/src/openbao/values.yaml` **and** the matching
-   `plugins.<name>.{version,sha256}` in `apps/secret/src/openbao-config/values.yaml` — in
-   **one** commit, as `vgijssel-bot`. Those values are **bot-written**; hand edits are
-   overwritten.
+4. `moon run release:self_upgrade` then **opens a pull request** carrying every consumer's pins
+   in **one** commit, as `vgijssel-bot`. It writes nothing itself: it `deps` on a `self_upgrade`
+   task per consuming app — `secret:self_upgrade` for the init-container image tags and the
+   matching `plugins.<name>.{version,sha256}`, `smarthome:self_upgrade` for the HAOS image's
+   `url`/`checksum` — and commits whatever they left in the worktree. Adding a consumer is a
+   script plus one `deps` line; the release tooling learns nothing about it. Those values are
+   **bot-written**; hand edits are overwritten.
 5. **A human merges that PR**, and that is what makes the new plugin the deployed state. It is a
    PR and not a push to `main` because this is the only point at which the newly published
    plugin is validated against the apps that deploy it.
@@ -247,7 +249,7 @@ Things that look like bugs and are not:
   gated on them goes green having published nothing. Publishing instead converges against the
   registry, which is what makes re-running the whole workflow — and the nightly schedule —
   correct.
-- **`self_upgrade` reuses one fixed branch** (`chore/openbao-plugin-pins`) and compares *trees*,
+- **`self_upgrade` reuses one fixed branch** (`chore/artifact-pins`) and compares *trees*,
   not commits. Publishing runs on every push to `main` and nightly, so opening a fresh PR each
   time would accumulate them; instead there is always at most one, always describing the newest
   publish. Closing it unmerged is fine — the next run re-opens it.

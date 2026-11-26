@@ -34,6 +34,13 @@ tasks:
   # not look", and it must never fire from `moon ci` on a pull request.
   self_upgrade:
     command: ./self-upgrade.sh
+    # EVERY consumer of an artifact released from this repository. Each writes its own pins and
+    # commits nothing; this target turns the result into one commit on one pull request, so a
+    # version and its checksum can never land apart. Adding a consumer means adding its
+    # `self_upgrade` task and one line here -- this script learns nothing about it.
+    deps:
+      - secret:self_upgrade
+      - smarthome:self_upgrade
     options:
       runFromWorkspaceRoot: false
       runInCI: false

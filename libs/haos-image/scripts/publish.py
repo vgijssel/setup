@@ -39,12 +39,9 @@ import sys
 from pathlib import Path
 
 import _versions
-from build import asset_name
 
 PROJECT = Path(__file__).resolve().parent.parent
 DIST = PROJECT / "dist"
-
-TAG_PREFIX = "haos-image@"
 
 
 def _gh(*args: str) -> subprocess.CompletedProcess[str]:
@@ -75,8 +72,8 @@ def _release_assets(tag: str) -> list[str] | None:
 
 def main() -> int:
     versions = _versions.verify()
-    tag = f"{TAG_PREFIX}{versions.release_please}"
-    asset = asset_name(versions.upstream)
+    tag = versions.tag
+    asset = versions.asset
 
     print(f"==> release {tag} should carry asset {asset}")
 
