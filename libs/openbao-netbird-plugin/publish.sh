@@ -23,7 +23,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd -P)"
 REGISTRY="${REGISTRY:-ghcr.io/vgijssel/setup}"
-SOURCE_REPO="https://github.com/vgijssel/setup"
 VERSION_FILE="${SCRIPT_DIR}/version.txt"
 
 if [[ ! -s "${VERSION_FILE}" ]]; then
@@ -66,12 +65,18 @@ case "${probe_rc}" in
     ;;
 esac
 
-docker buildx build \
-    --platform linux/amd64,linux/arm64 \
-    --push \
-    --label "org.opencontainers.image.source=${SOURCE_REPO}" \
-    --tag "${IMAGE_REF}" \
-    "${SCRIPT_DIR}"
+# TRANSFER, don't rebuild. build.sh already produced the multi-arch OCI layout and computed the
+# per-architecture checksum from the binary inside it; pushing that exact artifact is what makes
+# the checksum apps/secret pins describe the bytes the registry actually serves. A `buildx
+# --push` here would rebuild, and a rebuild can differ -- a moved base-image tag is enough --
+# which would leave a pinned checksum describing a binary nobody ever published.
+OCI_TAR="${SCRIPT_DIR}/dist/image.oci.tar"
+if [[ ! -s "${OCI_TAR}" ]]; then
+    printf 'ERROR: %s is missing. This task depends on build, which writes it.\n' "${OCI_TAR}" >&2
+    exit 1
+fi
+
+regctl image import "${IMAGE_REF}" "${OCI_TAR}"
 
 echo ""
 echo "Successfully published ${IMAGE_REF}"

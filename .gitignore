@@ -100,6 +100,11 @@ apps/blueorange/dist
 # haos-image build output: a ~1 GiB decompressed disk image. The root /dist/ rule is
 # anchored, so this path needs its own entry.
 libs/haos-image/dist/
+
+# OpenBao plugin build output: the multi-arch OCI layout publish.sh pushes, plus the per-arch
+# plugin checksums apps/secret pins. Same reason the entries are explicit: /dist/ is anchored.
+libs/openbao-netbird-plugin/dist/
+libs/openbao-cloudflare-plugin/dist/
 .playwright-mcp/
 
 # Python library patterns (fleet-mcp)

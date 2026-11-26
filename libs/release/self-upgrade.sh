@@ -27,7 +27,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="${SELF_UPGRADE_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd -P)}"
-BRANCH="${SELF_UPGRADE_BRANCH:-chore/openbao-plugin-pins}"
+BRANCH="${SELF_UPGRADE_BRANCH:-chore/artifact-pins}"
 BASE="${SELF_UPGRADE_BASE:-main}"
 REMOTE="${SELF_UPGRADE_REMOTE:-origin}"
 DRY_RUN="${SELF_UPGRADE_DRY_RUN:-0}"
@@ -40,20 +40,30 @@ cd "${REPO_ROOT}"
 echo "==> Fetching ${REMOTE}/${BASE}" >&2
 git fetch --quiet "${REMOTE}" "${BASE}"
 
-START_POINT="${REMOTE}/${BASE}"
-echo "==> Building pins on ${BRANCH} from ${START_POINT}" >&2
-git checkout --quiet -B "${BRANCH}" "${START_POINT}"
-
-# bin/openbao-plugin-pin computes the checksums from the PUBLISHED images and commits both halves
-# of every pin together, or commits nothing.
-BEFORE="$(git rev-parse HEAD)"
-"${REPO_ROOT}/bin/openbao-plugin-pin"
-AFTER="$(git rev-parse HEAD)"
-
-if [[ "${BEFORE}" == "${AFTER}" ]]; then
-    echo "==> Pins already describe the published images; nothing to propose." >&2
+# THE PINS ARE ALREADY WRITTEN by this target's moon deps -- one `self_upgrade` task per
+# consuming app (apps/secret for the OpenBao plugins, apps/smarthome for the HAOS image). This
+# script only turns whatever they wrote into a proposal, which is what makes adding a third
+# consumer a matter of writing its script and declaring the dep, with nothing to change here.
+pending="$(git status --porcelain)"
+if [[ -z "${pending}" ]]; then
+    echo "==> Pins already describe the published artifacts; nothing to propose." >&2
     exit 0
 fi
+
+# `checkout -b` with NO start point, deliberately. `-B "${REMOTE}/${BASE}"` resets the index, which
+# would discard exactly the uncommitted writes this script exists to commit. In CI, HEAD is already
+# the merged main commit, so the branch starts from the right place without being told; a stale
+# local branch of the same name is deleted rather than reset onto, for the same reason.
+head_short="$(git rev-parse --short HEAD)"
+echo "==> Building pins on ${BRANCH} from ${head_short}" >&2
+git branch --quiet --delete --force "${BRANCH}" 2>/dev/null || true
+git checkout --quiet -b "${BRANCH}"
+
+# One commit, always. A version and its checksum describe each other, and OpenBao reports a split
+# pair only as a bare "checksum mismatch", so the halves can never land separately.
+git add --all
+git commit --quiet --message "chore: pin published artifacts" \
+    --message "Written by \`moon run release:self_upgrade\` from the artifacts currently published."
 
 if [[ "${DRY_RUN}" != "0" ]]; then
     echo "==> SELF_UPGRADE_DRY_RUN set; committed locally, not pushing." >&2

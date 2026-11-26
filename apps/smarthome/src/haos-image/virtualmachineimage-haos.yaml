@@ -15,24 +15,28 @@
 # disks are thin deltas on the backing image, so there is also no fully allocated golden PVC
 # costing 32 GiB per replica.
 #
-# ─── THE URL IS STILL WRONG, AND THIS IS THE ONE THING LEFT TO FIX. ──────────────────────────
-# Longhorn validates a downloaded file with `qemu-img info` (pkg/util/util.go), and qemu-img
-# reads qcow2 and raw - NOT `.xz`, and not `.gz` either: `GunzipFile` exists in
-# backing-image-manager but is referenced only by its tests, never on the download path. There
-# is no `xz` anywhere in that repository.
+# ─── THE URL AND CHECKSUM BELOW ARE BOT-WRITTEN. DO NOT HAND-EDIT. ──────────────────────────
+# `moon run smarthome:self_upgrade` writes both, from libs/haos-image/dist/pin.json, and
+# `release:self_upgrade` proposes the result as a pull request. A hand edit is overwritten by the
+# next publish.
 #
-# So the URL below CANNOT import. It is kept pointing at upstream only so the artifact that is
-# wanted is unambiguous, and because the rest of this file is correct and worth landing: fixing
-# it is a one-line change once a decompressed copy is hosted somewhere this cluster can reach.
-# Home Assistant publishes no uncompressed artifact - every asset is .xz, .ova or .zip - so that
-# copy has to be produced once and served, for example as a release asset on this repository
-# (~1.09 GiB, inside GitHub's 2 GiB per-asset limit).
+# They point at THIS repository's release rather than upstream, because Longhorn cannot read a
+# compressed source and Home Assistant publishes nothing else. It validates a download with
+# `qemu-img info`, which reads qcow2 and raw -- not `.xz`, and not `.gz` either. GunzipFile exists
+# in backing-image-manager but only its tests call it, and there is no `xz` anywhere in that
+# repository. Upstream declined to add it. longhorn/longhorn#3988 was closed 2024-08-26 as a
+# refusal to support compressed backing images, while harvester/harvester#681 is closed as
+# though delivered -- six months EARLIER, with that dependency still open. harvester#2070, the
+# exact symptom, was closed by a stale bot.
 #
-# Why UPLOAD works and download does not, since the asymmetry is the whole story: an upload hands
-# Longhorn the actual bytes, so it writes the file and reads the real virtual size out of the
-# qcow2 header. That is why the guest this replaces reported size 1091698688 with virtualSize
-# 34359738368 from an uploaded qcow2. A download has to be fetched before it can be inspected,
-# and anything qemu-img cannot parse is treated as raw at its on-disk length.
+# Measured before this pipeline existed: the upstream `.qcow2.xz` URL downloaded, landed as a
+# backing image with virtualSize=0 because qemu-img could not parse it, and the volume built on it
+# bound and then failed to attach. Silent, not loud -- so `virtualSize` is the field to check when
+# an image looks imported but nothing boots.
+#
+# The asset keeps upstream's own filename minus the `.xz`. `haos_ova-*` is the x86-64
+# virtual-appliance image; upstream also ships `haos_generic-aarch64-*.qcow2.xz`, which is ARM64
+# and would not boot this guest (`architecture: amd64`, on x86_64 nodes).
 # ────────────────────────────────────────────────────────────────────────────────────────────
 #
 # `storageClassParameters` are inherited into the per-image StorageClass alongside the backing
@@ -63,8 +67,8 @@ spec:
   backingImageName: haos-18-2
   displayName: haos-os-18.2
   sourceType: download
-  url: https://github.com/home-assistant/operating-system/releases/download/18.2/haos_ova-18.2.qcow2.xz
-  checksum: ""
+  url: https://github.com/vgijssel/setup/releases/download/haos-image-18.2.0/haos_ova-18.2.qcow2
+  checksum: f4d5071a1f3b5b882a8a18f01b4317b192f47966515606254a4ebe6eab2c723b
   targetStorageClassName: longhorn-ssd
   storageClassParameters:
     diskSelector: ssd

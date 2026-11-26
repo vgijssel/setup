@@ -8,8 +8,8 @@
 # reported success, which is the same fail-open-to-skipping shape as a registry probe reading
 # ambiguity as absence.
 #
-# `gh` and `plugin-sha.sh` are stubbed and the remote is a local bare repo, so nothing here needs
-# a network, docker, or GitHub.
+# `gh` is stubbed, the plugin checksums are written as build outputs, and the remote is a local
+# bare repo, so nothing here needs a network, docker, or GitHub.
 
 setup() {
     TEST_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd -P)"
@@ -86,25 +86,41 @@ STUB
     export PATH
 }
 
+# version.txt plus the dist/sha256-<arch>.txt the plugin's build would have written. The checksum
+# is a build output now, not something fetched from a published image, which is what lets this run
+# with no docker and no network.
 make_plugin() {
     local name="$1" version="$2" sha="$3"
     local dir="${WORK}/libs/openbao-${name}-plugin"
     printf '%s\n' "${version}" >"${dir}/version.txt"
-    cat >"${dir}/plugin-sha.sh" <<STUB
-#!/usr/bin/env bash
-printf '%s' "${sha}"
-STUB
-    chmod +x "${dir}/plugin-sha.sh"
+    mkdir -p "${dir}/dist"
+    printf '%s\n' "${sha}" >"${dir}/dist/sha256-arm64.txt"
 }
 
+# One invocation models one CI run: a fresh checkout of main, then the moon deps writing their
+# pins into the worktree, then the proposer turning whatever they wrote into a branch and a PR.
+# self-upgrade.sh no longer writes any pins itself -- `release:self_upgrade` depends on a
+# `self_upgrade` task per consuming app, and this stands in for apps/secret's.
 run_self_upgrade() {
     cd "${WORK}" || return 1
+    git -C "${WORK}" checkout -q main
+    git -C "${WORK}" reset -q --hard origin/main
+    ./bin/openbao-plugin-pin >/dev/null 2>&1
+    run env SELF_UPGRADE_ROOT="${WORK}" ./libs/release/self-upgrade.sh
+}
+
+# The same, but with the deps writing NOTHING -- the healthy steady state, where the committed
+# pins already describe what is published.
+run_self_upgrade_with_no_changes() {
+    cd "${WORK}" || return 1
+    git -C "${WORK}" checkout -q main
+    git -C "${WORK}" reset -q --hard origin/main
     run env SELF_UPGRADE_ROOT="${WORK}" ./libs/release/self-upgrade.sh
 }
 
 prs_created() { grep -c 'pr create' "${GH_LOG}" || true; }
 remote_has_branch() {
-    git -C "${WORK}" ls-remote --exit-code --heads origin chore/openbao-plugin-pins >/dev/null 2>&1
+    git -C "${WORK}" ls-remote --exit-code --heads origin chore/artifact-pins >/dev/null 2>&1
 }
 
 # --- the happy path -------------------------------------------------------------------
@@ -157,13 +173,13 @@ remote_has_branch() {
 
 @test "a stranded branch is not re-pushed, only proposed" {
     run_self_upgrade
-    before="$(git -C "${WORK}" rev-parse refs/remotes/origin/chore/openbao-plugin-pins 2>/dev/null ||
-        git --git-dir="${ORIGIN}" rev-parse chore/openbao-plugin-pins)"
+    before="$(git -C "${WORK}" rev-parse refs/remotes/origin/chore/artifact-pins 2>/dev/null ||
+        git --git-dir="${ORIGIN}" rev-parse chore/artifact-pins)"
     : >"${PR_STATE_FILE}"
 
     run_self_upgrade
     [ "$status" -eq 0 ]
-    after="$(git --git-dir="${ORIGIN}" rev-parse chore/openbao-plugin-pins)"
+    after="$(git --git-dir="${ORIGIN}" rev-parse chore/artifact-pins)"
     # Identical content must not produce a new commit object on the remote — that would churn the
     # PR and re-trigger CI for nothing.
     [ "${before}" = "${after}" ]
@@ -184,4 +200,37 @@ remote_has_branch() {
     [ "$status" -eq 0 ]
     [ "$(prs_created)" -eq 0 ]
     ! remote_has_branch
+}
+
+# --- the contract introduced by splitting writing from proposing ------------------------
+
+@test "deps that write nothing produce no branch and no PR" {
+    run_self_upgrade_with_no_changes
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"nothing to propose"* ]]
+    run -0 bash -c '! git -C "'"${WORK}"'" ls-remote --exit-code --heads origin chore/artifact-pins >/dev/null 2>&1'
+    [ "$(prs_created)" -eq 0 ]
+}
+
+@test "the deps' uncommitted writes survive the branch switch" {
+    # The trap this refactor could introduce. `git checkout -B <branch> <start-point>` resets the
+    # index, which would discard exactly the writes the deps just made and propose an empty
+    # change. The commit must therefore contain the pin, not just exist.
+    run_self_upgrade
+    [ "$status" -eq 0 ]
+    run git -C "${WORK}" show --stat --name-only chore/artifact-pins
+    [[ "$output" == *"apps/secret/src/openbao-config/values.yaml"* ]]
+    run git -C "${WORK}" show "chore/artifact-pins:apps/secret/src/openbao-config/values.yaml"
+    [[ "$output" == *"46c6c0e836eca5ae53045857791f1779f935bae0255e69a5bc5e86a4e293b077"* ]]
+}
+
+@test "the proposal commit is typed chore so it cannot route to a release-please package" {
+    # Moved here from openbao-plugin-pin.bats when that script stopped committing. The property
+    # is unchanged and still load-bearing: this commit must not itself propose a version bump.
+    # `chore` is not a releasable type, which is the guard that does not depend on which paths
+    # the consumers happened to write.
+    run_self_upgrade
+    [ "$status" -eq 0 ]
+    subject="$(git -C "${WORK}" log -1 --format=%s chore/artifact-pins)"
+    [[ "$subject" == chore* ]]
 }

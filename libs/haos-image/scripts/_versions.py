@@ -58,6 +58,24 @@ class Versions:
     upstream: str
     release_please: str
     release_as: str
+    tag_separator: str = "@"
+
+    @property
+    def tag(self) -> str:
+        """The git tag release-please cuts, and so the path segment in the asset URL."""
+        return f"haos-image{self.tag_separator}{self.release_please}"
+
+    @property
+    def asset(self) -> str:
+        """Upstream's own filename, minus the .xz this pipeline exists to remove."""
+        return f"haos_ova-{self.upstream}.qcow2"
+
+    @property
+    def url(self) -> str:
+        return (
+            "https://github.com/vgijssel/setup/releases/download/"
+            f"{self.tag}/{self.asset}"
+        )
 
 
 def _read_moon_metadata() -> tuple[str, str]:
@@ -132,12 +150,30 @@ def _read_release_as() -> str:
     return str(release_as)
 
 
+def _read_tag_separator() -> str:
+    """The separator release-please puts between component and version in the tag.
+
+    Per-package, and verified in release-please's own source rather than inferred from its schema:
+    `extractReleaserConfig` in manifest.ts reads `tagSeparator: config['tag-separator']` for each
+    package entry. The schema cannot confirm it, since `properties.packages` is literally `true`.
+    Defaults to the `@` release-please itself defaults to, which the OpenBao plugins use.
+
+    This package overrides it to "-" so the download URL carries no percent-encoded `@`. GitHub
+    builds asset URLs from the TAG, so `haos-image@18.2.0` turns into `haos-image%4018.2.0` in
+    every link, including the one Harvester fetches.
+    """
+    config = json.loads(RELEASE_PLEASE_CONFIG.read_text())
+    package = config.get("packages", {}).get(PACKAGE_PATH, {})
+    return str(package.get("tag-separator", config.get("tag-separator", "@")))
+
+
 def load() -> Versions:
     upstream, release_please = _read_moon_metadata()
     return Versions(
         upstream=upstream,
         release_please=release_please,
         release_as=_read_release_as(),
+        tag_separator=_read_tag_separator(),
     )
 
 
