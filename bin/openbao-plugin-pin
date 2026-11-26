@@ -185,3 +185,5 @@ it as a bare \"checksum mismatch\"."
 
 echo "==> committed" >&2
 git --no-pager log -1 --stat >&2
+
+# probe: isolate whether a bin/ change alone fails devcontainer:test
