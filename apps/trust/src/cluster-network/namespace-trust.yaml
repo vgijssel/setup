@@ -1,0 +1,13 @@
+# The Harvester namespace the trust guest cluster's VMs live in. Rancher's Harvester node
+# driver places a machine pool's VirtualMachines into a namespace that must already exist,
+# and the VM network below is namespaced alongside them, so owning it here (rather than
+# leaving Fleet's defaultNamespace to conjure it) is what lets this bundle converge on an
+# untouched cluster.
+#
+# Separate from `access` deliberately. Harvester namespaces are not a security boundary on
+# their own, but a guest cluster's VMs, its VM network and later its OS image all resolve by
+# namespace, so one namespace per cluster keeps those references unambiguous.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trust

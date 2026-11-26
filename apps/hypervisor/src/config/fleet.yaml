@@ -41,7 +41,8 @@
 # Harvester appears in Continuous Delivery at all only because the Rancher-side
 # `harvester-baremetal-container-workload` feature flag is active. Without it the dashboard drops
 # every cluster labelled `provider.cattle.io: harvester` from the target picker and reports them
-# as hidden, so the GitRepo has nothing to deploy to. The flag is experimental on the 1.8 line.
+# as hidden, so the GitRepo has nothing to deploy to. The flag is enabled and working on 1.9.1,
+# the version this cluster runs.
 #
 # Scope. Harvester owns monitoring, logging, Rancher, KubeVirt, and Longhorn, and upstream states
 # that none of them are modifiable from outside. This bundle leaves them alone, along with the

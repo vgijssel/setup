@@ -1,6 +1,6 @@
 # Harvester HA Cluster — Configuration Reference
 
-3-node Harvester HCI cluster (**1.8.2**) deployed on VLAN 20 (Servers,
+3-node Harvester HCI cluster (**1.9.1**) deployed on VLAN 20 (Servers,
 `192.168.20.0/24`).
 
 Two physical fabrics: management and VM networks run over the Omada LAG on VLAN
@@ -115,11 +115,17 @@ Notes:
   A mismatch (e.g. switch Active LACP vs node `active-backup`) leaves the LAG
   blocking/flapping.
 - Management itself needs no trunking — inter-VLAN traffic routes through the
-  Omada gateway per firewall policy. **VM networks do:** add VLANs 30
-  (Automation/HAOS), 70 (Media) and 80 (Shared Services) as *tagged* members of
-  the same LAG rather than adding separate access ports. Each becomes a Harvester
-  ClusterNetwork/VLAN that guests attach to, while VLAN 20 stays untagged for
+  Omada gateway per firewall policy. **VM networks do:** add VLANs 21 (Trust), 22
+  (Access), 30 (Automation/HAOS), 70 (Media) and 80 (Shared Services) as *tagged*
+  members of the same LAG rather than adding separate access ports. Each becomes a
+  Harvester VM network that guests attach to, while VLAN 20 stays untagged for
   node management.
+- **A VM network whose VLAN is not tagged on the LAG fails silently.** The
+  NetworkAttachmentDefinition applies, the VM is admitted, and frames simply never
+  leave the node; Harvester records `connectivity: false` on the NAD and nothing
+  else complains. VLANs 21 and 22 are declared in
+  `apps/trust/src/cluster-network` and `apps/access/src/cluster-network`, and both
+  are inert until the tagging below and in `network.md` is done.
 
 ## Storage & Live Migration Fabric — Mellanox 25G Mesh
 
@@ -519,7 +525,7 @@ Longhorn with attach and rebuild work.
 - [Shutdown and Restart a Harvester Cluster](https://harvesterhci.io/kb/shutdown_and_restart_a_harvester_cluster/)
   — upstream procedure. Last revised mid-2024, so it predates 1.8; the addon list
   and etcd pod naming are worth re-checking against the live cluster before a run.
-- [Host Management](https://docs.harvesterhci.io/v1.8/host/) — Maintenance Mode
+- [Host Management](https://docs.harvesterhci.io/v1.9/host/) — Maintenance Mode
   and the `harvesterhci.io/maintain-mode-strategy` label, for single-node work.
 
 ## Firewall Considerations
@@ -534,6 +540,12 @@ Per network.md firewall policy:
 ## Troubleshooting
 
 ### Install fails at `Configure network failed: exit status 1`
+
+> **FIXED in 1.9.1, the version this cluster now runs.** The upstream patch was merged to
+> `master` on 2026-10-19 (#11690) and backported to the `v1.9` branch on 2026-10-20 (#11980),
+> which lands it ahead of the 1.9.1 release on 2026-11-10. The shim below is therefore **not
+> needed on a 1.9.1 ISO** and is kept only because a reinstall from an older image (1.8.x, or
+> 1.9.0) still loses the race on this hardware every time.
 
 Affects **1.9.0 and 1.8.2**, on every node, in every bond mode, on every retry.
 The network config the installer writes is *correct* — the node answers ping on
@@ -586,7 +598,7 @@ Notes:
   `30s` proves it never waited; `0s` would mean it genuinely timed out. After the
   shim the same sequence reports `[started]` rc 0 — `-s` changes the result string
   from `online`/`offline` to `started`/`startup-pending`.
-- Needed once per node, per install, until the fix ships. Not in 1.9.0.
+- Needed once per node, per install, on any image older than 1.9.1. Not in 1.9.0.
 - Only the interactive network page is affected on an ISO install: `doInstall`
   applies the same config with `applyConfig=false`, which never calls `nm-online`,
   and the other `applyConfig=true` call site (`configureInstalledNode`) is gated on
@@ -602,4 +614,6 @@ Notes:
 References:
 - [harvester#11662](https://github.com/harvester/harvester/issues/11662) — this bug on 1.9.0/1.8.2
 - [harvester#10885](https://github.com/harvester/harvester/issues/10885) — root cause
-- [harvester#11690](https://github.com/harvester/harvester/pull/11690) — the fix (`nm-online -s -t 100`, non-fatal); open against `master`, no 1.9 backport as of 2026-09-24
+- [harvester#11690](https://github.com/harvester/harvester/pull/11690) — the fix (`nm-online -s -t 100`, non-fatal); merged to `master` 2026-10-19
+- [harvester#11980](https://github.com/harvester/harvester/pull/11980): the `v1.9` backport, merged
+  2026-10-20, so it **shipped in 1.9.1**

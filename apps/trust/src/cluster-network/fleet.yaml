@@ -1,0 +1,50 @@
+# The Harvester-side prerequisites for the trust guest cluster: the namespace its VMs live in
+# and the VLAN 21 VM network they attach to. Both must EXIST BEFORE the cluster is provisioned,
+# because Rancher's Harvester node driver places machines into a namespace it does not create and
+# selects a VM network by `<namespace>/<name>`.
+#
+# WHY THIS LIVES IN apps/trust RATHER THAN apps/hypervisor. A Rancher GitRepo derives a Bundle's
+# name from its PATH, so moving this file later deletes the old Bundle, and deleting a Bundle
+# uninstalls its Helm release. Once the guest cluster's VMs are attached to this NAD, that is not
+# a move anybody wants to make. The repo already settled the direction when the Home Assistant
+# guest left apps/hypervisor for apps/smarthome, taking its own VM network with it: the hypervisor
+# project owns the fabric (the cluster networks, the VlanConfigs, the storage settings), and each
+# guest owns what is specific to it. Putting it in the right project now is free, and the same
+# choice costs an outage later.
+#
+# NOTHING HERE DEPENDS ON THE OMADA SIDE BEING DONE. VLAN 21 still has to be created in Omada and
+# tagged onto the three Harvester LAGs and the gateway-to-switch trunk, per apps/network/network.md.
+# Until then the NAD records `connectivity: false` and no VM attaches to it, so this bundle is
+# inert rather than broken. See the header of ./networkattachmentdefinition-lan-trust.yaml.
+#
+# NO `helm.takeOwnership`. Every object here is created by this bundle rather than adopted, so the
+# ownership check should stay on; it is what would catch a collision with an object somebody else
+# made by hand in the UI.
+#
+# NO `diff.comparePatches`. Harvester's controllers rewrite the NAD's probed route and its ready
+# label, and neither is declared. Fleet only compares fields the manifest declares, so an
+# annotation this file never mentions is a new map key its drift check does not look at. The
+# measured evidence is in apps/hypervisor/src/config/fleet.yaml.
+#
+# NO `dependsOn`. The `mgmt` cluster network and its VlanConfig were built by the Harvester
+# installer rather than by apps/hypervisor/src/config, so there is no bundle here to wait for.
+# That is the difference from apps/smarthome/src/haos-image, which does depend on
+# hypervisor-config for the `longhorn-ssd` storage class its image provisions through.
+labels:
+  fleet.blueora.ng/bundle: trust-cluster-network
+defaultNamespace: trust
+helm:
+  releaseName: trust-cluster-network
+# harvester-ONLY. The selector alone restricts nothing under a Rancher GitRepo, which appends
+# its own catch-all target. The terminal doNotDeploy entry below is what restricts this.
+targetCustomizations:
+  - name: harvester
+    clusterSelector:
+      matchLabels:
+        cluster.blueora.ng/name: harvester
+  # Terminal catch-all. Targets are first-match-wins and a GitRepo APPENDS its own target
+  # after these, so without this a non-matching cluster falls through to it and deploys with
+  # default values. Keeps this bundle off every cluster not named here. See bin/fleet-lint-targets.
+  - name: none
+    doNotDeploy: true
+    clusterSelector: {}

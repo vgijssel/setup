@@ -96,7 +96,9 @@ here:
 | VLAN | Class | Subnet | Internet | Peers | Inbound discovery | Members |
 |-----:|-------|--------|:--------:|:-----:|-------------------|---------|
 | 10 | Infra | `192.168.10.0/24` | restricted | yes | Trusted only | Omada gateway/switch/APs, **PiKVM** |
-| 20 | Servers | `192.168.20.0/24` | egress only | yes | Trusted only | Harvester nodes + cluster VIP |
+| 20 | Servers | `192.168.20.0/24` | egress only | yes | Trusted only | Harvester nodes + cluster VIP + Rancher VIP |
+| 21 | Trust | `192.168.21.0/24` | egress only | yes | **none** | `trust` guest cluster (OpenBao, Authentik) |
+| 22 | Access | `192.168.22.0/24` | yes | yes | **internet (DNAT)** | `access` guest cluster (Octelium, Cordium) |
 | 30 | Automation | `192.168.30.0/24` | yes | n/a | Trusted only | **Home Assistant (HAOS)** `.30` |
 | 40 | Trusted | `192.168.40.0/24` | yes | yes | — | MacBook, iPhone |
 | 50 | IoT-Local | `192.168.50.0/24` | **no** | **isolated** | no | esphome (incl. **toilet-dimmer** `.2`, **monkey-dimmer** `.3`), WiCAN Pro |
@@ -116,6 +118,31 @@ Notes on the less obvious placements:
 - **Shared Services (80)** is the DMZ: anything reachable by identities outside the
   household (family/friends streaming). Its blast radius differs from both Servers and
   Media, so it is isolated from both.
+- **Trust (21) and Access (22) are two VLANs, not one, and not VLAN 20.** Both hold guest
+  Kubernetes clusters on the Harvester hypervisor, so "put them on Servers" and "put them
+  together" are the obvious shortcuts. Both are wrong for the same mechanical reason:
+  **Omada ACLs are gateway ACLs and never see traffic inside a VLAN**, and two VMs sharing a
+  VLAN on one Harvester node are bridged inside `mgmt-br` without ever crossing the uplink,
+  so neither the gateway nor the switch is in that path. A shared VLAN therefore has no
+  enforcement point at all, rather than a weak one. Separate VLANs force the traffic to be
+  *routed*, and the only router is the Omada gateway, so every packet between the two crosses
+  one place that can filter and count it.
+  - What that boundary protects is **not** OpenBao's API. It is the trust cluster's
+    `:6443`, `:9345`, `:10250`, `:2379-2380` and `:22`, which are host ports on the guest
+    nodes and therefore outside any Kubernetes NetworkPolicy. Access reaching only
+    `:8200` is meaningful precisely because the other ports are denied.
+  - Access (22) is the one guest network with **inbound internet exposure** (Octelium needs
+    WireGuard on UDP 53820 and an ingress on TCP 443, both by DNAT from the public address).
+    Putting an internet-facing cluster on VLAN 20 would share an L2 segment with the
+    hypervisor management plane and the Harvester API, which hosts every VM including trust.
+    That is design rule 2 again: a controller never shares a VLAN with the things it controls.
+  - Trust (21) takes **no inbound from the LAN at all.** Break-glass is Rancher, whose agent
+    dials *out*, so no inbound path is needed for it. The optional SSH allow from Trusted in
+    the ACL table is a deliberate fallback for a Rancher outage, not a requirement.
+  - This is a property of the gear, not a law of networking. Private VLANs (RFC 5517), VLAN
+    ACLs, or a hypervisor distributed firewall would all let one segment be segmented
+    internally; Omada offers gateway ACLs and all-or-nothing client isolation, and client
+    isolation cannot be used on a VLAN whose members must talk to each other.
 
 ## DHCP
 
@@ -126,6 +153,8 @@ bridged; never run two DHCP servers on one L2):
 |-----:|-----------|--------------|-------|
 | 10 | `.100`–`.199` | **PiKVM → reserved (by MAC)** for stable console access; its route next-hop is the *static* `.2` | 24h |
 | 20 | `.100`–`.199` | Harvester nodes are **static** (`.10`/`.11`/`.12`), VIP `.9` | 24h |
+| 21 | `.100` to `.199` | guest-cluster nodes take leases; `.200` to `.250` is the LoadBalancer range and must stay **out of the pool** | `24h` |
+| 22 | `.100` to `.199` | guest-cluster nodes take leases; `.200` to `.250` is the LoadBalancer range and must stay **out of the pool** | `24h` |
 | 30 | `.100`–`.199` | HAOS is **static** `192.168.30.30` | 24h |
 | 40 | `.100`–`.199` | — | 24h |
 | 50 | `.100`–`.199` | **static**: toilet-dimmer `.2`, monkey-dimmer `.3`; all other devices reserved by MAC | 24h |
@@ -229,11 +258,34 @@ Default **deny** between VLANs. Rules belong to the class, not the device:
 | 70 Media | 80 Shared Services | Jellyfin/Plex (TCP 8096 / 32400) |
 | 70 Media | internet | yes |
 | 70 Media | other VLANs | deny |
+| 22 Access | 21 Trust | **`openbao.lan.blueora.ng` TCP 8200 and the Authentik VIP TCP 443, and nothing else** |
+| 21 Trust | 22 Access | UDP 53820 (Octelium tunnel), TCP 6443 (secret push), TCP 443 |
+| 21 / 22 | 20 Servers | **TCP 443 to the Rancher VIP `.8` only** (the cattle-cluster-agent). Deny `.9`, which is the Harvester API |
+| 21 Trust | internet | egress only |
+| 22 Access | internet | yes, plus inbound by DNAT (see below) |
+| 21 / 22 | any other VLAN | deny |
+| 40 Trusted | 21 / 22 | TCP 22 only, an optional Rancher-independent break-glass |
 | 80 Shared Services | 20 Servers | **storage host:port only** |
 | 80 Shared Services | internet | yes — metadata + updates |
 | 80 Shared Services | 10 / 30 / 50 / 60 / 70 | deny |
 | 90 Guest | internet only | fully isolated |
 | any VLAN | `100.65.0.0/16` | as needed — Omada management, i.e. `omada.vpn.blueora.ng` |
+
+### Inbound from the internet (destination NAT)
+
+One forward, to the access cluster, from the homelab's public address:
+
+| WAN port | Destination | Purpose |
+|----------|-------------|---------|
+| TCP 443 | Octelium ingress LoadBalancer in `192.168.22.200` to `.250` | the portal, clientless access, and the anonymous Authentik login Service |
+| UDP 53820 | the same | WireGuard |
+
+Octelium's data-plane nodes additionally need the annotation
+`octelium.com/override-gw-ip=<PUBLIC_IP>`, because they sit behind this NAT rather than holding
+the public address themselves.
+
+This is the only inbound forward in the network, and VLAN 22 is the only VLAN that terminates
+it. A dynamic WAN address needs DDNS, since the Octelium cluster domain must resolve to it.
 
 - **`50 IoT-Local → 30:1883` is a deliberate exception** to "IoT never initiates". ESPHome's
   native API is HA-initiated so it needs nothing, but WiCAN Pro *publishes* over MQTT.
@@ -267,8 +319,21 @@ internet policy) at the price of losing Sonos peering.
   discover esphome devices, Sonos and casting targets across the segmentation boundary.
   Omada's repeater is **all-to-all among the selected networks** — you cannot express
   pairwise relationships, so selecting these four also lets Trusted see IoT-Local.
-- VLANs 60, 80 and 90 are deliberately **excluded**: cloud appliances integrate via vendor
-  clouds, and media-server clients use explicit URLs rather than discovery.
+- VLANs 21, 22, 60, 80 and 90 are deliberately **excluded**: cloud appliances integrate via
+  vendor clouds, media-server clients use explicit URLs rather than discovery, and the two
+  guest-cluster VLANs have nothing to discover and nothing that should discover them.
+- **`*.lan.blueora.ng` is the LAN horizon**, the counterpart to `*.vpn.blueora.ng` for the mesh.
+  Names in it are **unproxied Cloudflare A records pointing at private addresses**, the same
+  pattern `omada` uses, rather than Omada's own LAN DNS: Omada DNS is silently bypassed by DoH
+  clients, so a public record is the one answer every client agrees on. First member is
+  `openbao.lan.blueora.ng`, the trust cluster's OpenBao LoadBalancer in `192.168.21.200`–`.250`.
+  - **A public name does not imply a public certificate.** OpenBao serves a private CA here on
+    purpose: issuing a public certificate for the name needs ACME DNS-01, which needs the
+    Cloudflare token that is stored in OpenBao. The record resolving publicly costs nothing,
+    because if public DNS is down then nothing else resolves either.
+  - Records in this zone are managed by `apps/network`'s Crossplane `provider-opentofu`
+    (`cloudflare_dns_record`). The record outlives its management path, so it is not in the
+    cold-start chain even though creating it is.
 - Public DNS resolution via the gateway. **Everything now reaches the Omada controller at one
   name, `omada.vpn.blueora.ng`** — humans, on-mesh tooling AND the physical gateway/switches/APs.
   It is served by the controller's own mesh peer (`apps/network/src/mesh-omada/`), which
@@ -319,8 +384,8 @@ Design decisions for that path:
 
 | Port role | Native (untagged) | Tagged | Used by |
 |-----------|-------------------|--------|---------|
-| Trunk (uplinks, APs) | Infra (10) | 20/30/40/50/60/70/80/90 | gateway↔switch, switch↔APs |
-| Harvester LAG | Servers (20) | 30/70/80 (VM networks) | one LACP LAG per node — see harvester.md |
+| Trunk (uplinks, APs) | Infra (10) | 20/21/22/30/40/50/60/70/80/90 | gateway↔switch, switch↔APs |
+| Harvester LAG | Servers (20) | 21/22/30/70/80 (VM networks) | one LACP LAG per node — see harvester.md |
 | PiKVM | (its untagged VLAN) | 10 | **trunk** — untagged DHCP + tagged VLAN 10 — see note |
 | Access | one VLAN | — | single-VLAN endpoints |
 
