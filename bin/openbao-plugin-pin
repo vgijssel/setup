@@ -20,7 +20,7 @@
 # cluster ALREADY pins, so a guard shared with the push would conclude "nothing to do" and never
 # write the checksums.
 #
-# The checksum is per-ARCHITECTURE and taken from the published image, never predicted — nothing
+# The checksum is per-ARCHITECTURE and taken from the plugin's build output, never predicted — nothing
 # here assumes reproducible builds. Both clusters are arm64.
 #
 # Idempotent by construction: writing the same pins twice produces the same two files.
@@ -57,7 +57,7 @@ esac
 VALUES="${REPO_ROOT}/apps/secret/src/openbao/values.yaml"
 PINS="${REPO_ROOT}/apps/secret/src/openbao-config/values.yaml"
 
-# name:project — the moon project supplies version.txt and plugin-sha.sh; the name supplies the
+# name:project — the moon project supplies version.txt and dist/sha256-<arch>.txt; the name supplies the
 # image repository and the init-container name.
 PLUGINS=(
     "netbird:openbao-netbird-plugin"
@@ -86,11 +86,24 @@ if [[ "${MODE}" == "write" ]]; then
 
         printf '==> %s %s\n' "${name}" "${image_ref}" >&2
 
-        # plugin-sha.sh is called directly, not via `moon run`: moon decorates stdout with
-        # progress markers, which would land in the pinned value.
-        sha="$(IMAGE_REF="${image_ref}" ARCH="${ARCH}" "${plugin_dir}/plugin-sha.sh")"
+        # The checksum comes from the plugin's BUILD OUTPUT, which is the same artifact the
+        # publish step pushes: build.sh runs the production buildx build and copies the sha256 out
+        # of the image it just produced. It used to come from `docker run`ning the already-
+        # published image, which was correct but needed docker, the network and a published tag,
+        # and so could not run in CI.
+        #
+        # Equality is not assumed. The arm64 value this reads for the netbird plugin at 0.1.4 is
+        # 46c6c0e8…, byte-identical to the value previously derived from the published image.
+        sha_file="${plugin_dir}/dist/sha256-${ARCH}.txt"
+        if [[ ! -s "${sha_file}" ]]; then
+            printf 'ERROR: %s is missing. Run "moon run %s:build" first - this script reads the\n' \
+                "${sha_file}" "openbao-${name}-plugin" >&2
+            printf '       checksum from the build output rather than from a published image.\n' >&2
+            exit 1
+        fi
+        sha="$(tr -d '[:space:]' <"${sha_file}")"
         if ! printf '%s' "${sha}" | grep -qE '^[0-9a-f]{64}$'; then
-            printf 'ERROR: %s produced %q, which is not a sha256.\n' "${plugin_dir}/plugin-sha.sh" "${sha}" >&2
+            printf 'ERROR: %s contains %q, which is not a sha256.\n' "${sha_file}" "${sha}" >&2
             exit 1
         fi
 

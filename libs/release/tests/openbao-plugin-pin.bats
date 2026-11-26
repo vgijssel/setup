@@ -7,8 +7,9 @@
 # ("re-propagating correct pins is a no-op").
 #
 # The fixture is a throwaway git repo with the same shape as the real tree, and
-# plugin-sha.sh is stubbed so nothing pulls an image. OPENBAO_PIN_ROOT points the script at
-# it. STUB_SHA_<name> controls what the registry is pretending to hold.
+# No image is pulled: the checksum is read from each plugin's build output, which the fixture
+# writes directly. OPENBAO_PIN_ROOT points the script at the fixture tree, and set_built_sha
+# stands in for a rebuild producing different bytes.
 
 setup() {
     TEST_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd -P)"
@@ -53,20 +54,23 @@ YAML
     export OPENBAO_PIN_ROOT="${FIXTURE}"
 }
 
-# A plugin directory: version.txt plus a plugin-sha.sh that answers from the environment
+# A plugin directory: version.txt plus the dist/sha256-<arch>.txt its build would have written
 # instead of pulling an image.
+# The checksum now comes from the plugin's BUILD OUTPUT -- build.sh copies it out of the image it
+# just produced -- rather than from `docker run`ning a published image. So the fixture writes the
+# file the build would have written, which is also why these tests need no docker and no network.
 make_plugin() {
     local name="$1" version="$2" sha="$3"
     local dir="${FIXTURE}/libs/openbao-${name}-plugin"
 
     printf '%s\n' "${version}" >"${dir}/version.txt"
+    mkdir -p "${dir}/dist"
+    printf '%s\n' "${sha}" >"${dir}/dist/sha256-arm64.txt"
+}
 
-    cat >"${dir}/plugin-sha.sh" <<STUB
-#!/usr/bin/env bash
-printf '%s' "\${STUB_SHA_${name}:-${sha}}"
-STUB
-    chmod +x "${dir}/plugin-sha.sh"
-
+# Overwrite a plugin's build output, standing in for a rebuild that produced different bytes.
+set_built_sha() {
+    printf '%s\n' "$2" >"${FIXTURE}/libs/openbao-${1}-plugin/dist/sha256-arm64.txt"
 }
 
 # openbao-config is a Helm chart now, so the pins are ONE values file shared by both plugins
@@ -120,11 +124,15 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
 }
 
 @test "running twice over a change is idempotent" {
-    STUB_SHA_netbird="${SHA_NEW_NB}" STUB_SHA_cloudflare="${SHA_NEW_CF}" run "${PIN}"
+    set_built_sha netbird "${SHA_NEW_NB}"
+    set_built_sha cloudflare "${SHA_NEW_CF}"
+    run "${PIN}"
     [ "$status" -eq 0 ]
     once="$(pins_digest)"
 
-    STUB_SHA_netbird="${SHA_NEW_NB}" STUB_SHA_cloudflare="${SHA_NEW_CF}" run "${PIN}"
+    set_built_sha netbird "${SHA_NEW_NB}"
+    set_built_sha cloudflare "${SHA_NEW_CF}"
+    run "${PIN}"
     [ "$status" -eq 0 ]
     # The point of running this task in CI: a second run over the same inputs must produce the
     # same bytes, or the task is not safe to cache.
@@ -133,7 +141,8 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
 
 @test "the pins land in the files without any commit" {
     head_before="$(git -C "${FIXTURE}" rev-parse HEAD)"
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
+    set_built_sha netbird "${SHA_NEW_NB}"
+    run "${PIN}"
     [ "$status" -eq 0 ]
     [ "$(pinned_sha netbird)" = "${SHA_NEW_NB}" ]
     # No git at all: release:self_upgrade owns the commit, and a second idea of what a proposal is
@@ -146,7 +155,8 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
 @test "a version bump writes the tag and the checksum together" {
     printf '0.1.5\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
 
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
+    set_built_sha netbird "${SHA_NEW_NB}"
+    run "${PIN}"
     [ "$status" -eq 0 ]
 
     # Both halves moved...
@@ -167,7 +177,9 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
     printf '0.1.5\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
     printf '0.2.0\n' >"${FIXTURE}/libs/openbao-cloudflare-plugin/version.txt"
 
-    STUB_SHA_netbird="${SHA_NEW_NB}" STUB_SHA_cloudflare="${SHA_NEW_CF}" run "${PIN}"
+    set_built_sha netbird "${SHA_NEW_NB}"
+    set_built_sha cloudflare "${SHA_NEW_CF}"
+    run "${PIN}"
     [ "$status" -eq 0 ]
 
     files="$(written_files)"
@@ -180,7 +192,8 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
     # Still worth asserting without a commit: release:self_upgrade stages everything in the
     # worktree, so a stray write here would silently join somebody else's proposal.
     printf '0.1.5\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
+    set_built_sha netbird "${SHA_NEW_NB}"
+    run "${PIN}"
     [ "$status" -eq 0 ]
 
     while read -r f; do
@@ -199,14 +212,27 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
         "${FIXTURE}/apps/secret/src/openbao/values.yaml"
     printf '0.1.5\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
 
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
+    set_built_sha netbird "${SHA_NEW_NB}"
+    run "${PIN}"
     [ "$status" -ne 0 ]
 }
 
-@test "a non-sha256 from plugin-sha.sh fails instead of pinning garbage" {
-    STUB_SHA_netbird="not-a-sha" run "${PIN}"
+@test "a non-sha256 in the build output fails instead of pinning garbage" {
+    set_built_sha netbird "not-a-sha"
+    run "${PIN}"
     [ "$status" -ne 0 ]
     [ "$(pinned_sha netbird)" = "${SHA_OLD_NB}" ]
+}
+
+@test "a missing build output fails instead of pinning a stale checksum" {
+    # The new dependency made visible: the checksum is a build artifact, so a pin run without a
+    # build must say so rather than silently leaving whatever was pinned before.
+    before="$(pins_digest)"
+    rm -f "${FIXTURE}/libs/openbao-netbird-plugin/dist/sha256-arm64.txt"
+    run "${PIN}"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"is missing"* ]]
+    [ "$(pins_digest)" = "${before}" ]
 }
 
 @test "an empty version.txt fails instead of pinning a bare repository name" {
@@ -220,7 +246,8 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
 # --- the rewrite must not damage the surrounding YAML ---------------------------------
 
 @test "comments survive the rewrite of both values files" {
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" 
+    set_built_sha netbird "${SHA_NEW_NB}"
+    run "${PIN}" 
     [ "$status" -eq 0 ]
     grep -q "A comment that must survive the rewrite" \
         "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
@@ -259,7 +286,8 @@ written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
 @test "--check neither writes nor commits" {
     before="$(pins_digest)"
     sha_before="$(pinned_sha netbird)"
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" --check
+    set_built_sha netbird "${SHA_NEW_NB}"
+    run "${PIN}" --check
     [ "$status" -eq 0 ]
     [ "$(pins_digest)" = "${before}" ]
     # Unchanged even though the stub would have reported a different checksum — --check must not

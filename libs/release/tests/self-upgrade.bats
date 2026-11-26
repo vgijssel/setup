@@ -8,8 +8,8 @@
 # reported success, which is the same fail-open-to-skipping shape as a registry probe reading
 # ambiguity as absence.
 #
-# `gh` and `plugin-sha.sh` are stubbed and the remote is a local bare repo, so nothing here needs
-# a network, docker, or GitHub.
+# `gh` is stubbed, the plugin checksums are written as build outputs, and the remote is a local
+# bare repo, so nothing here needs a network, docker, or GitHub.
 
 setup() {
     TEST_DIR="$(cd "$(dirname "${BATS_TEST_FILENAME}")" && pwd -P)"
@@ -86,15 +86,15 @@ STUB
     export PATH
 }
 
+# version.txt plus the dist/sha256-<arch>.txt the plugin's build would have written. The checksum
+# is a build output now, not something fetched from a published image, which is what lets this run
+# with no docker and no network.
 make_plugin() {
     local name="$1" version="$2" sha="$3"
     local dir="${WORK}/libs/openbao-${name}-plugin"
     printf '%s\n' "${version}" >"${dir}/version.txt"
-    cat >"${dir}/plugin-sha.sh" <<STUB
-#!/usr/bin/env bash
-printf '%s' "${sha}"
-STUB
-    chmod +x "${dir}/plugin-sha.sh"
+    mkdir -p "${dir}/dist"
+    printf '%s\n' "${sha}" >"${dir}/dist/sha256-arm64.txt"
 }
 
 # One invocation models one CI run: a fresh checkout of main, then the moon deps writing their

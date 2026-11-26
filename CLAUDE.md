@@ -230,6 +230,12 @@ Merge-to-published, end to end:
    else → fail**. A probe that fails for an unrelated reason is never read as permission to
    push, because re-pushing a live tag changes its digest and silently invalidates the checksums
    pinned downstream.
+   Each plugin's `build` runs the **production** `docker buildx build` and emits two things its
+   `publish` consumes: the multi-arch **OCI layout** that gets transferred to ghcr with
+   `regctl image import`. It is never rebuilt, because a rebuild can differ and the pinned checksum
+   would then describe bytes nobody published. Plus the **per-arch plugin checksum**, copied out of the
+   image it just built. That is why the checksum can be trusted: it describes the artifact that
+   actually ships.
 4. `moon run release:self_upgrade` then **opens a pull request** carrying every consumer's pins
    in **one** commit, as `vgijssel-bot`. It writes nothing itself: it `deps` on a `self_upgrade`
    task per consuming app — `secret:self_upgrade` for the init-container image tags and the
