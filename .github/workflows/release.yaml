@@ -15,11 +15,20 @@
 # is why re-running this whole workflow is always correct and why the nightly schedule is free.
 # Co-locating the steps does not reintroduce that coupling; gating on the outputs would.
 #
-# `if: ${{ !cancelled() }}` ON EVERY STEP AFTER RELEASE-PLEASE IS LOAD-BEARING. Without it a
-# failure in the version-decision step would also stop publishing -- including artifacts that are
-# already released and merely missing their asset. That is not hypothetical: RELEASES_TOKEN_GITHUB
-# is a PAT, it has expired before, and it went unrecognised for months. The job still reports
-# failure in that case, so the expiry stays visible; publishing simply stops being collateral.
+# ORDINARY STEP SEMANTICS: a failing step stops the ones after it. There is no `if:` condition on
+# any step, deliberately.
+#
+# An earlier revision guarded every step after release-please with `if: ${{ !cancelled() }}`, on
+# the theory that a version-decision failure should not stop publishing artifacts that are already
+# released and merely missing their asset. MEASURED, that theory is wrong, and run 45703820295 is
+# the proof: RELEASES_TOKEN_GITHUB expired, the credential check failed, and the guards then
+# marched the job through a failed checkout, a failed setup, a SUCCEEDED docker login and a failed
+# publish -- four more results to read, three of them noise, and the publish could never have
+# worked anyway because the checkout it needs uses the same PAT. The guard bought nothing and
+# buried the one line that mattered.
+#
+# So a credential failure now stops at the credential check, which is both the real cause and the
+# only actionable line in the log.
 #
 # Two things must not be changed here without reading design.md:
 #
@@ -110,7 +119,6 @@ jobs:
           manifest-file: .release-please-manifest.json
 
       - name: Checkout
-        if: ${{ !cancelled() }}
         uses: actions/checkout@v4
         with:
           # Full history: release:self_upgrade rebuilds its branch from origin/main, and a
@@ -122,13 +130,11 @@ jobs:
           token: ${{ secrets.RELEASES_TOKEN_GITHUB }}
 
       - uses: ./.github/actions/setup
-        if: ${{ !cancelled() }}
 
       # Both the registry PROBE and the push must use the same credentials. ghcr answers
       # `http 404` for a private repository probed anonymously — indistinguishable from
       # absent — so an unauthenticated probe would misread a published private tag.
       - name: Log in to GitHub Container Registry
-        if: ${{ !cancelled() }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -145,13 +151,12 @@ jobs:
       # GH_TOKEN is for that last one, which calls `gh release upload`. GITHUB_TOKEN suffices:
       # it only writes to a release in this same repository and triggers nothing downstream.
       - name: Publish release artifacts
-        if: ${{ !cancelled() }}
         run: moon run :publish --query "tag=publish"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Only after the publishes succeed — deliberately NOT `!cancelled()`, because pinning a
-      # version that failed to publish would point the apps at an artifact that is not there.
+      # Only after the publishes succeed, which ordinary step semantics already guarantee: pinning
+      # a version that failed to publish would point the apps at an artifact that is not there.
       # This opens (or updates) ONE pull request carrying the init-container image tags and their
       # matching catalog checksums in a single commit — OpenBao rejects a registration whose
       # checksum does not describe the binary it is handed, and reports only "checksum mismatch",
