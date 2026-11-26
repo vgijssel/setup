@@ -1,10 +1,12 @@
 # Netdata Helm chart for Kubernetes deployments
 
+Netdata, full-stack observability: the AI SRE that learns your stack!
+
 <a href="https://artifacthub.io/packages/search?repo=netdata" target="_blank" rel="noopener noreferrer"><img loading="lazy" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/netdata" alt="Artifact HUB" class="img_node_modules-@docusaurus-theme-classic-lib-theme-MDXComponents-Img-styles-module"></img></a>
 
-![Version: 3.7.173](https://img.shields.io/badge/Version-3.7.173-informational?style=flat-square)
+![Version: 3.7.182](https://img.shields.io/badge/Version-3.7.182-informational?style=flat-square)
 
-![AppVersion: v2.11.0](https://img.shields.io/badge/AppVersion-v2.11.0-informational?style=flat-square)
+![AppVersion: v2.13.0](https://img.shields.io/badge/AppVersion-v2.13.0-informational?style=flat-square)
 
 _Based on the work of varyumin (https://github.com/varyumin/netdata)_.
 
@@ -67,19 +69,20 @@ Netdata is a comprehensive monitoring solution that requires specific access to 
 
 ### Required Kubernetes RBAC Resources
 
-| Resource           | Verbs            | Components & Descriptions                                                                                                                                                        |
-|:-------------------|:-----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| pods               | get, list, watch | • **service discovery**: Used for discovering services. <br/>• **go.d/k8s_state**: Kubernetes state monitoring. <br/>• **netdata**: Used by cgroup-name.sh and get-kubernetes-labels.sh scripts. |
-| services           | get, list, watch | • **service discovery**: Used for discovering services.                                                                                                                          |
-| configmaps         | get, list, watch | • **service discovery**: Used for discovering services.                                                                                                                          |
-| secrets            | get, list, watch | • **service discovery**: Used for discovering services.                                                                                                                          |
-| nodes              | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
-| nodes/metrics      | get, list, watch | • **go.d/k8s_kubelet**: Used when querying Kubelet HTTPS endpoint.                                                                                                               |
-| nodes/proxy        | get, list, watch | • **netdata**: Used by cgroup-name.sh when querying Kubelet /pods endpoint.                                                                                                      |
-| deployments (apps) | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
-| cronjobs (batch)   | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
-| jobs (batch)       | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
-| namespaces         | get              | • **go.d/k8s_state**: Kubernetes state monitoring. <br/>• **netdata**: Used by cgroup-name.sh and get-kubernetes-labels.sh scripts.                                              |
+| Resource               | Verbs            | Components & Descriptions                                                                                                                                                        |
+|:-----------------------|:-----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| pods                   | get, list, watch | • **service discovery**: Used for discovering services. <br/>• **go.d/k8s_state**: Kubernetes state monitoring. <br/>• **netdata**: Used by cgroup-name.sh and get-kubernetes-labels.sh scripts. |
+| services               | get, list, watch | • **service discovery**: Used for discovering services.                                                                                                                          |
+| configmaps             | get, list, watch | • **service discovery**: Used for discovering services.                                                                                                                          |
+| secrets                | get, list, watch | • **service discovery**: Used for discovering services.                                                                                                                          |
+| nodes                  | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
+| nodes/metrics          | get, list, watch | • **go.d/k8s_kubelet**: Used when querying Kubelet HTTPS endpoint.                                                                                                               |
+| nodes/proxy            | get, list, watch | • **netdata**: Used by cgroup-name.sh when querying Kubelet /pods endpoint.                                                                                                      |
+| persistentvolumeclaims | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring (PersistentVolumeClaim capacity).                                                                                              |
+| deployments (apps)     | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
+| cronjobs (batch)       | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
+| jobs (batch)           | get, list, watch | • **go.d/k8s_state**: Kubernetes state monitoring.                                                                                                                               |
+| namespaces             | get              | • **go.d/k8s_state**: Kubernetes state monitoring. <br/>• **netdata**: Used by cgroup-name.sh and get-kubernetes-labels.sh scripts.                                              |
 
 </details>
 
