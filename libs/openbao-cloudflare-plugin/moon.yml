@@ -35,31 +35,34 @@ tasks:
     # outcome; bumping the version is what ships a change.
     inputs:
       - file: ./version.txt
+      - file: ./dist/image.oci.tar
       - file: /bin/registry-tag-exists
       - "@group(regctl_bin)"
+  # Build the image the way production does, via buildx against the Dockerfile. Emits the
+  # multi-arch OCI layout publish.sh pushes AND the per-architecture plugin checksum apps/secret
+  # pins -- both from one build, so the thing tested, the thing shipped and the thing checksummed
+  # cannot drift apart. The old `go build` compiled with the host toolchain and no flags, so it
+  # proved nothing about the artifact that ships.
+  #
+  # Cached, and runnable in CI: `builder` pins --platform=$BUILDPLATFORM and cross-compiles, and
+  # the runtime stage only COPYs into a per-arch alpine, so neither platform executes a foreign
+  # binary and no QEMU emulation is involved.
   build:
-    command: bash -c "cd src && go build -o openbao-plugin-secrets-cloudflare ."
+    command: ./build.sh
     options:
       runFromWorkspaceRoot: false
+      cache: true
+    inputs:
+      - src/**/*.go
+      - src/go.mod
+      - src/go.sum
+      - file: ./Dockerfile
+      - file: ./build.sh
+      - file: ./version.txt
+    outputs:
+      - dist
 
   test:
     command: bash -c "cd src && go test -v -count=1 ./..."
     options:
       runFromWorkspaceRoot: false
-
-  docker:
-    command: docker buildx build --platform linux/amd64,linux/arm64 -t openbao-plugin-secrets-cloudflare .
-    options:
-      runFromWorkspaceRoot: false
-      runInCI: false
-
-  # Print the per-architecture sha256 of the binary in the published image — the value
-  # apps/secret/src/openbao-config/values.yaml pins as plugins.cloudflare.sha256, and which
-  # OpenBao requires. Normally invoked via bin/openbao-plugin-pin from CI; pass
-  # ARCH=amd64 only if the target cluster is amd64 (both vind clusters are arm64).
-  plugin_sha:
-    command: ./plugin-sha.sh
-    options:
-      runFromWorkspaceRoot: false
-      runInCI: false
-      cache: false

@@ -13,3 +13,30 @@ tags:
 # No tasks. This project is declarative only: its bundles are applied by bin/fleet-apply
 # (or Rancher's GitRepo), and the hypervisor-level runbooks that power the guest down live
 # with the fabric in apps/hypervisor.
+
+tasks:
+  # Point the VirtualMachineImage at the artifact libs/haos-image publishes. Writes two fields and
+  # nothing else -- `release:self_upgrade` depends on this and does the commit, so every consumer's
+  # pin lands in one commit on one pull request.
+  #
+  # Depends on haos-image:build because the URL and the checksum both come from dist/pin.json,
+  # which that build emits. The checksum has to describe the exact published bytes, and only the
+  # build has seen them.
+  self_upgrade:
+    command: python3 scripts/self_upgrade.py
+    deps:
+      - haos-image:build
+    options:
+      runFromWorkspaceRoot: false
+      # RUNS IN CI and is cached. It reaches nothing and is a pure function of its inputs: the
+      # pin.json the build emitted and the manifest it rewrites. Running it on every pull request
+      # is the point -- an idempotent writer is only trustworthy if something exercises it, and
+      # the second run over unchanged inputs is what proves the pin converged rather than
+      # oscillating. On a pull request where the pin is already current it writes nothing.
+      cache: true
+    inputs:
+      - file: ./scripts/self_upgrade.py
+      - file: ./src/haos-image/virtualmachineimage-haos.yaml
+      - file: /libs/haos-image/dist/pin.json
+    outputs:
+      - src/haos-image/virtualmachineimage-haos.yaml

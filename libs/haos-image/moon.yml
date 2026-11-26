@@ -45,8 +45,11 @@ tasks:
     command: python3 scripts/build.py
     options:
       runFromWorkspaceRoot: false
-      # Network, and a 1 GiB output. Never on a pull request.
-      runInCI: false
+      # RUNS IN CI, and is cached. `moon ci` starts a bazel-remote fronting the Backblaze bucket
+      # (see .github/workflows/test.yaml), so the ~1 GiB output is fetched from the shared cache
+      # rather than rebuilt: the first run anywhere pays the 512 MiB download, the rest do not.
+      # Worth running at all because the build is where an upstream artifact that has changed
+      # bytes, or stopped shipping an OVA image, is caught.
       cache: true
     inputs:
       - file: ./scripts/build.py

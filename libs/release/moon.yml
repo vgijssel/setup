@@ -11,9 +11,9 @@ tasks:
   # "absent" re-pushes a live tag; bin/openbao-plugin-pin committing one half of a pin leaves
   # Fleet deploying a plugin that fails registration with a bare "checksum mismatch". Neither
   # shows up until long after the commit; and self-upgrade.sh treating a stranded branch as
-  # proof that a proposal exists reports success having proposed nothing. regctl, plugin-sha.sh
-  # and gh are stubbed and the remote is a local bare repo, so this needs no network and no
-  # docker.
+  # proof that a proposal exists reports success having proposed nothing. regctl and gh are
+  # stubbed, the plugin checksums are written as build outputs, and the remote is a local bare
+  # repo, so this needs no network and no docker.
   test:
     command: bats tests/registry-tag-exists.bats tests/openbao-plugin-pin.bats tests/self-upgrade.bats
     options:
@@ -34,6 +34,13 @@ tasks:
   # not look", and it must never fire from `moon ci` on a pull request.
   self_upgrade:
     command: ./self-upgrade.sh
+    # EVERY consumer of an artifact released from this repository. Each writes its own pins and
+    # commits nothing; this target turns the result into one commit on one pull request, so a
+    # version and its checksum can never land apart. Adding a consumer means adding its
+    # `self_upgrade` task and one line here -- this script learns nothing about it.
+    deps:
+      - secret:self_upgrade
+      - smarthome:self_upgrade
     options:
       runFromWorkspaceRoot: false
       runInCI: false

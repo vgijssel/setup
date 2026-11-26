@@ -19,6 +19,8 @@ stable. Home Assistant publishes no uncompressed artifact; every asset is .xz, .
 
 from __future__ import annotations
 
+import hashlib
+import json
 import lzma
 import shutil
 import subprocess
@@ -37,30 +39,59 @@ DIST = PROJECT / "dist"
 QCOW2_MAGIC = b"QFI\xfb"
 
 
-def asset_name(upstream: str) -> str:
-    return f"haos_ova-{upstream}.qcow2"
-
-
 def source_url(upstream: str) -> str:
+    """Upstream's compressed artifact. `haos_ova-*` is the x86-64 virtual-appliance image.
+
+    NOT `haos_generic-aarch64-*`, which upstream also publishes as a qcow2: that one is ARM64,
+    and this guest is `architecture: amd64` on an x86_64 Harvester, so it would not boot.
+    """
     return (
         "https://github.com/home-assistant/operating-system/releases/download/"
         f"{upstream}/haos_ova-{upstream}.qcow2.xz"
     )
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_pin(versions, target: Path) -> None:
+    """Record what a consumer needs to pin this artifact, beside the artifact itself.
+
+    apps/smarthome needs the URL and the checksum of the image its VirtualMachineImage points at.
+    Both are knowable only here -- the checksum because it describes these exact bytes, the URL
+    because it is built from the release-please tag. Writing them as a build OUTPUT means the
+    consumer reads a file instead of re-deriving the tag format or re-downloading a gibibyte.
+    """
+    pin = {
+        "asset": versions.asset,
+        "tag": versions.tag,
+        "url": versions.url,
+        "sha256": _sha256(target),
+        "bytes": target.stat().st_size,
+    }
+    (DIST / "pin.json").write_text(json.dumps(pin, indent=2) + "\n")
+    print(f"==> dist/pin.json  sha256={pin['sha256']}")
+
+
 def main() -> int:
     versions = _versions.verify()
     upstream = versions.upstream
     url = source_url(upstream)
-    target = DIST / asset_name(upstream)
+    target = DIST / versions.asset
 
     if target.exists() and target.stat().st_size > 0:
         print(f"==> {target.relative_to(PROJECT)} already built, skipping download")
         _describe(target)
+        write_pin(versions, target)
         return 0
 
     DIST.mkdir(parents=True, exist_ok=True)
-    compressed = DIST / f"{asset_name(upstream)}.xz"
+    compressed = DIST / f"{versions.asset}.xz"
 
     print(f"==> downloading {url}")
     try:
@@ -101,6 +132,7 @@ def main() -> int:
 
     partial.replace(target)
     _describe(target)
+    write_pin(versions, target)
     return 0
 
 
