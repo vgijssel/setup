@@ -23,11 +23,10 @@
 # The checksum is per-ARCHITECTURE and taken from the published image, never predicted — nothing
 # here assumes reproducible builds. Both clusters are arm64.
 #
-# Idempotent by construction: it writes the values, then commits only if `git diff` is non-empty.
+# Idempotent by construction: writing the same pins twice produces the same two files.
 #
 # Usage:
-#   bin/openbao-plugin-pin              # write + commit if anything changed
-#   bin/openbao-plugin-pin --no-commit  # write only, leave the diff in the worktree
+#   bin/openbao-plugin-pin              # write the pins into both values files
 #   bin/openbao-plugin-pin --check      # verify committed pins are self-consistent; no docker,
 #                                       # no writes. This is `moon run release:self_upgrade_check`
 #                                       # and exists because the VERSION is necessarily duplicated
@@ -46,13 +45,11 @@ REGISTRY="${REGISTRY:-ghcr.io/vgijssel/setup}"
 ARCH="${ARCH:-arm64}"
 
 MODE="write"
-COMMIT=1
 case "${1:-}" in
---no-commit) COMMIT=0 ;;
 --check) MODE=check ;;
 "") ;;
 *)
-    printf 'usage: openbao-plugin-pin [--no-commit|--check]\n' >&2
+    printf 'usage: openbao-plugin-pin [--check]\n' >&2
     exit 1
     ;;
 esac
@@ -154,34 +151,9 @@ fi
 
 cd "${REPO_ROOT}"
 
-PINNED_FILES=(
-    apps/secret/src/openbao/values.yaml
-    apps/secret/src/openbao-config/values.yaml
-)
-
-if git diff --quiet -- "${PINNED_FILES[@]}"; then
-    echo "==> pins already describe the published images, nothing to commit" >&2
-    exit 0
-fi
-
-echo "==> pins changed:" >&2
-git --no-pager diff --stat -- "${PINNED_FILES[@]}" >&2
-
-if [[ "${COMMIT}" -eq 0 ]]; then
-    echo "==> --no-commit, leaving the diff in the worktree" >&2
-    exit 0
-fi
-
-# `chore(secret):` and a path confined to apps/secret/** are two independent guards on the same
-# property: this commit must not route to either release-please package and propose a further
-# bump. apps/secret is outside both package paths in release-please-config.json, and `chore` is
-# not a releasable type.
-git add -- "${PINNED_FILES[@]}"
-git commit -m "chore(secret): pin openbao plugin images and catalog checksums" \
-    -m "Written by bin/openbao-plugin-pin after a successful publish. The init-container image
-tags and the plugins.<name>.{version,sha256} values move in this one commit because OpenBao
-rejects a registration whose checksum does not describe the binary it is handed, and reports
-it as a bare \"checksum mismatch\"."
-
-echo "==> committed" >&2
-git --no-pager log -1 --stat >&2
+# NO GIT. This script writes files and nothing else. `release:self_upgrade` depends on
+# `secret:self_upgrade`, which runs this, and commits whatever every consumer left in the
+# worktree -- so staging and committing here would be a second, competing idea of what a
+# proposal is. The single-commit property that OpenBao needs is still guaranteed, just one
+# level up: both values files are written below before anything is committed.
+echo "==> wrote pins for the published images" >&2

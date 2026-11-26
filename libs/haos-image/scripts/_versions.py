@@ -59,6 +59,7 @@ class Versions:
     release_please: str
     release_as: str
     tag_separator: str = "@"
+    upstream_sha256: str = ""
 
     @property
     def tag(self) -> str:
@@ -78,7 +79,7 @@ class Versions:
         )
 
 
-def _read_moon_metadata() -> tuple[str, str]:
+def _read_moon_metadata() -> tuple[str, str, str]:
     """Pull the two versions out of moon.yml without a YAML dependency.
 
     The file is hand-written and shallow, so a line scan is honest here and avoids making this
@@ -107,6 +108,13 @@ def _read_moon_metadata() -> tuple[str, str]:
             if stripped and not line.startswith(" " * 8):
                 in_dep = False
 
+    upstream_sha = ""
+    for raw in text.splitlines():
+        match = re.match(r'^\s+upstream_sha256:\s*"?([0-9a-f]{64})"?\s*$', raw.rstrip())
+        if match and not raw.strip().startswith("#"):
+            upstream_sha = match.group(1)
+            break
+
     release_please = None
     for raw in text.splitlines():
         match = re.match(
@@ -128,7 +136,7 @@ def _read_moon_metadata() -> tuple[str, str]:
             "upstream version with a .0 patch, and must match release-as in "
             "release-please-config.json."
         )
-    return upstream, release_please
+    return upstream, release_please, upstream_sha
 
 
 def _read_release_as() -> str:
@@ -168,12 +176,13 @@ def _read_tag_separator() -> str:
 
 
 def load() -> Versions:
-    upstream, release_please = _read_moon_metadata()
+    upstream, release_please, upstream_sha = _read_moon_metadata()
     return Versions(
         upstream=upstream,
         release_please=release_please,
         release_as=_read_release_as(),
         tag_separator=_read_tag_separator(),
+        upstream_sha256=upstream_sha,
     )
 
 

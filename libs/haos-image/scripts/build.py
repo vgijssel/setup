@@ -51,6 +51,14 @@ def source_url(upstream: str) -> str:
     )
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def write_pin(versions, target: Path) -> None:
     """Record what a consumer needs to pin this artifact, beside the artifact itself.
 
@@ -59,15 +67,11 @@ def write_pin(versions, target: Path) -> None:
     because it is built from the release-please tag. Writing them as a build OUTPUT means the
     consumer reads a file instead of re-deriving the tag format or re-downloading a gibibyte.
     """
-    digest = hashlib.sha256()
-    with target.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
     pin = {
         "asset": versions.asset,
         "tag": versions.tag,
         "url": versions.url,
-        "sha256": digest.hexdigest(),
+        "sha256": _sha256(target),
         "bytes": target.stat().st_size,
     }
     (DIST / "pin.json").write_text(json.dumps(pin, indent=2) + "\n")
@@ -107,6 +111,30 @@ def main() -> int:
     except urllib.error.URLError as exc:
         print(f"ERROR: could not reach {url}: {exc.reason}", file=sys.stderr)
         return 1
+
+    expected = versions.upstream_sha256
+    actual = _sha256(compressed)
+    if expected and actual != expected:
+        compressed.unlink(missing_ok=True)
+        print(
+            f"ERROR: {url}\n"
+            f"  expected sha256 {expected}\n"
+            f"  actual   sha256 {actual}\n"
+            "  The upstream artifact is not the one this repository pinned. Home Assistant\n"
+            "  publishes no checksums of its own, so this pin is the only thing that would\n"
+            "  notice a release's bytes being replaced. Refusing to build.",
+            file=sys.stderr,
+        )
+        return 1
+    if not expected:
+        print(
+            "==> WARNING: upstream_sha256 is unset in moon.yml, so the download is unverified.\n"
+            f"    Home Assistant publishes no checksums, so pin this value by hand:\n"
+            f"      upstream_sha256: {actual}",
+            file=sys.stderr,
+        )
+    else:
+        print(f"==> upstream sha256 verified: {actual}")
 
     print("==> decompressing")
     # Written to a temporary name and moved into place only once complete, so an interrupted run

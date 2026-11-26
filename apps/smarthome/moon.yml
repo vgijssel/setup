@@ -28,7 +28,15 @@ tasks:
       - haos-image:build
     options:
       runFromWorkspaceRoot: false
-      # Reaches nothing, but it WRITES a tracked file, so it must never fire from `moon ci` on a
-      # pull request, and a cache hit would skip a pin the build just changed.
-      runInCI: false
-      cache: false
+      # RUNS IN CI and is cached. It reaches nothing and is a pure function of its inputs: the
+      # pin.json the build emitted and the manifest it rewrites. Running it on every pull request
+      # is the point -- an idempotent writer is only trustworthy if something exercises it, and
+      # the second run over unchanged inputs is what proves the pin converged rather than
+      # oscillating. On a pull request where the pin is already current it writes nothing.
+      cache: true
+    inputs:
+      - file: ./scripts/self_upgrade.py
+      - file: ./src/haos-image/virtualmachineimage-haos.yaml
+      - file: /libs/haos-image/dist/pin.json
+    outputs:
+      - src/haos-image/virtualmachineimage-haos.yaml

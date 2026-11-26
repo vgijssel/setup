@@ -273,7 +273,7 @@ bin/release-please release-pr --repo-url=vgijssel/setup --target-branch=<branch>
   --token="$(gh auth token)" --dry-run
 moon run release:test                 # bats over both bin/ scripts; no network, no docker
 moon run release:self_upgrade_check   # assert the committed pins agree across both bundles
-bin/openbao-plugin-pin --no-commit    # write the pins, leave the diff in the worktree
+bin/openbao-plugin-pin                # write the pins into both values files (no git)
 SELF_UPGRADE_DRY_RUN=1 moon run release:self_upgrade   # commit locally, never push or call gh
 printf 'feat(x): y' | bin/commitlint  # the same rules CI applies to a PR title
 ```

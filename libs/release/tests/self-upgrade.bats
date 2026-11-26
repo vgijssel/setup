@@ -105,7 +105,7 @@ run_self_upgrade() {
     cd "${WORK}" || return 1
     git -C "${WORK}" checkout -q main
     git -C "${WORK}" reset -q --hard origin/main
-    ./bin/openbao-plugin-pin --no-commit >/dev/null 2>&1
+    ./bin/openbao-plugin-pin >/dev/null 2>&1
     run env SELF_UPGRADE_ROOT="${WORK}" ./libs/release/self-upgrade.sh
 }
 
@@ -222,4 +222,15 @@ remote_has_branch() {
     [[ "$output" == *"apps/secret/src/openbao-config/values.yaml"* ]]
     run git -C "${WORK}" show "chore/artifact-pins:apps/secret/src/openbao-config/values.yaml"
     [[ "$output" == *"46c6c0e836eca5ae53045857791f1779f935bae0255e69a5bc5e86a4e293b077"* ]]
+}
+
+@test "the proposal commit is typed chore so it cannot route to a release-please package" {
+    # Moved here from openbao-plugin-pin.bats when that script stopped committing. The property
+    # is unchanged and still load-bearing: this commit must not itself propose a version bump.
+    # `chore` is not a releasable type, which is the guard that does not depend on which paths
+    # the consumers happened to write.
+    run_self_upgrade
+    [ "$status" -eq 0 ]
+    subject="$(git -C "${WORK}" log -1 --format=%s chore/artifact-pins)"
+    [[ "$subject" == chore* ]]
 }

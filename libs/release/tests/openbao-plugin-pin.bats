@@ -101,39 +101,50 @@ pinned_version() {
         "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
 }
 
-commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
+# The script no longer touches git, so "nothing changed" is asserted on the FILES. A digest over
+# both values files together is the honest check: it catches a half-write, which a per-file
+# comparison run in sequence would not.
+pins_digest() {
+    cat "${FIXTURE}/apps/secret/src/openbao/values.yaml" \
+        "${FIXTURE}/apps/secret/src/openbao-config/values.yaml" | shasum -a 256 | cut -d" " -f1
+}
+written_files() { git -C "${FIXTURE}" status --porcelain | awk '{print $2}'; }
 
 # --- idempotence (spec: "re-propagating correct pins is a no-op") ---------------------
 
-@test "already-correct pins produce no commit" {
+@test "already-correct pins leave both files byte-identical" {
+    before="$(pins_digest)"
     run "${PIN}"
     [ "$status" -eq 0 ]
-    [ "$(commit_count)" -eq 1 ]
-    [[ "$output" == *"nothing to commit"* ]]
+    [ "$(pins_digest)" = "${before}" ]
 }
 
-@test "running twice over a change produces exactly one commit" {
+@test "running twice over a change is idempotent" {
     STUB_SHA_netbird="${SHA_NEW_NB}" STUB_SHA_cloudflare="${SHA_NEW_CF}" run "${PIN}"
     [ "$status" -eq 0 ]
-    [ "$(commit_count)" -eq 2 ]
+    once="$(pins_digest)"
 
     STUB_SHA_netbird="${SHA_NEW_NB}" STUB_SHA_cloudflare="${SHA_NEW_CF}" run "${PIN}"
     [ "$status" -eq 0 ]
-    [ "$(commit_count)" -eq 2 ]
+    # The point of running this task in CI: a second run over the same inputs must produce the
+    # same bytes, or the task is not safe to cache.
+    [ "$(pins_digest)" = "${once}" ]
 }
 
-@test "--no-commit writes the files but makes no commit" {
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" --no-commit
+@test "the pins land in the files without any commit" {
+    head_before="$(git -C "${FIXTURE}" rev-parse HEAD)"
+    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
     [ "$status" -eq 0 ]
-    [ "$(commit_count)" -eq 1 ]
     [ "$(pinned_sha netbird)" = "${SHA_NEW_NB}" ]
+    # No git at all: release:self_upgrade owns the commit, and a second idea of what a proposal is
+    # was exactly the bug that let a stranded branch read as success.
+    [ "$(git -C "${FIXTURE}" rev-parse HEAD)" = "${head_before}" ]
 }
 
 # --- atomicity: tag and checksum are never committed out of step ----------------------
 
-@test "a version bump commits the tag and the checksum together" {
+@test "a version bump writes the tag and the checksum together" {
     printf '0.1.5\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
-    git -C "${FIXTURE}" commit -qam "bump netbird to 0.1.5"
 
     STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
     [ "$status" -eq 0 ]
@@ -144,45 +155,38 @@ commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
     # ...including the version beside the checksum, which is what --check compares the tag to.
     [ "$(pinned_version netbird)" = "0.1.5" ]
 
-    # ...and they moved in the SAME commit. This is the property the whole design exists for:
-    # any commit that touches the tag must also touch the checksum beside it.
-    files="$(git -C "${FIXTURE}" show --name-only --format= HEAD)"
+    # ...and they moved in the SAME RUN. This is the property the whole design exists for: the
+    # tag and the checksum beside it are never written apart. It now holds because one run writes
+    # both files before release:self_upgrade commits anything.
+    files="$(written_files)"
     [[ "$files" == *"apps/secret/src/openbao/values.yaml"* ]]
     [[ "$files" == *"apps/secret/src/openbao-config/values.yaml"* ]]
 }
 
-@test "no commit ever changes a tag without the checksum beside it" {
+@test "a run never writes a tag without the checksum beside it" {
     printf '0.1.5\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
     printf '0.2.0\n' >"${FIXTURE}/libs/openbao-cloudflare-plugin/version.txt"
-    git -C "${FIXTURE}" commit -qam "bump both"
 
     STUB_SHA_netbird="${SHA_NEW_NB}" STUB_SHA_cloudflare="${SHA_NEW_CF}" run "${PIN}"
     [ "$status" -eq 0 ]
 
-    # Walk every commit the script produced and assert the invariant holds in each.
-    for rev in $(git -C "${FIXTURE}" rev-list HEAD); do
-        files="$(git -C "${FIXTURE}" show --name-only --format= "${rev}")"
-        if [[ "$files" == *"apps/secret/src/openbao/values.yaml"* ]]; then
-            [[ "$files" == *"openbao-config/values.yaml"* ]]
-        fi
-    done
+    files="$(written_files)"
+    if [[ "$files" == *"apps/secret/src/openbao/values.yaml"* ]]; then
+        [[ "$files" == *"openbao-config/values.yaml"* ]]
+    fi
 }
 
-@test "the propagation commit touches only apps/secret so it cannot route to a package" {
+@test "the script writes only under apps/secret" {
+    # Still worth asserting without a commit: release:self_upgrade stages everything in the
+    # worktree, so a stray write here would silently join somebody else's proposal.
+    printf '0.1.5\n' >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
     STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
     [ "$status" -eq 0 ]
 
     while read -r f; do
         [ -n "$f" ] || continue
-        [[ "$f" == apps/secret/* ]]
-    done <<<"$(git -C "${FIXTURE}" show --name-only --format= HEAD)"
-}
-
-@test "the propagation commit is typed chore so it is not releasable" {
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
-    [ "$status" -eq 0 ]
-    subject="$(git -C "${FIXTURE}" log -1 --format=%s)"
-    [[ "$subject" == chore* ]]
+        [[ "$f" == apps/secret/* || "$f" == libs/openbao-* ]]
+    done <<<"$(written_files)"
 }
 
 # --- the writes must actually land, not silently select nothing -----------------------
@@ -197,27 +201,26 @@ commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
 
     STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}"
     [ "$status" -ne 0 ]
-    [ "$(commit_count)" -eq 1 ]
 }
 
 @test "a non-sha256 from plugin-sha.sh fails instead of pinning garbage" {
     STUB_SHA_netbird="not-a-sha" run "${PIN}"
     [ "$status" -ne 0 ]
-    [ "$(commit_count)" -eq 1 ]
     [ "$(pinned_sha netbird)" = "${SHA_OLD_NB}" ]
 }
 
 @test "an empty version.txt fails instead of pinning a bare repository name" {
+    before="$(pins_digest)"
     : >"${FIXTURE}/libs/openbao-netbird-plugin/version.txt"
     run "${PIN}"
     [ "$status" -ne 0 ]
-    [ "$(commit_count)" -eq 1 ]
+    [ "$(pins_digest)" = "${before}" ]
 }
 
 # --- the rewrite must not damage the surrounding YAML ---------------------------------
 
 @test "comments survive the rewrite of both values files" {
-    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" --no-commit
+    STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" 
     [ "$status" -eq 0 ]
     grep -q "A comment that must survive the rewrite" \
         "${FIXTURE}/apps/secret/src/openbao-config/values.yaml"
@@ -254,11 +257,11 @@ commit_count() { git -C "${FIXTURE}" rev-list --count HEAD; }
 }
 
 @test "--check neither writes nor commits" {
-    before="$(commit_count)"
+    before="$(pins_digest)"
     sha_before="$(pinned_sha netbird)"
     STUB_SHA_netbird="${SHA_NEW_NB}" run "${PIN}" --check
     [ "$status" -eq 0 ]
-    [ "$(commit_count)" -eq "${before}" ]
+    [ "$(pins_digest)" = "${before}" ]
     # Unchanged even though the stub would have reported a different checksum — --check must not
     # consult plugin-sha.sh at all, since it has to run in CI with no docker and no network.
     [ "$(pinned_sha netbird)" = "${sha_before}" ]
